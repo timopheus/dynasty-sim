@@ -1,0 +1,306 @@
+# Черновой формат события (storylet) — задача 1.5, GDD §9, D-040…D-048.
+#
+# Это образец для разговора, а не рабочий контент: валидатор его не читает,
+# схема появится на этапе 3. Пять событий взяты из образца хроники
+# (docs/samples/chronicle-target.md), чтобы было видно, как строки хроники
+# получаются из данных. Тексты игры на английском, комментарии по-русски.
+#
+# Обозначения в текстах:
+#   {coward}          — человек в роли: имя-ссылка на его страницу (D-020)
+#   {coward.he}       — местоимение по полу: he/she, {.his} his/her, {.him} him/her
+#   {second?, and {second} stands…} — кусок текста, только если роль заполнена
+#   #ambush_opening#  — символ грамматики (D-046): случайная формулировка через seed
+# Герой в тексте события — «you» (D-048). Строка хроники пишется
+# в третьем лице и без подлежащего, если это строка биографии героя:
+# «Wounded in a bandit ambush…».
+
+# Общая грамматика: символы видны всем событиям. У события может быть своя.
+grammar:
+  dawn: ["at first light", "in the grey before dawn", "as the sun came up"]
+  weather:
+    - { text: "in driving snow", when: { season: [winter] } }
+    - { text: "in the mud of the spring thaw", when: { season: [spring] } }
+    - { text: "under a hard sun", when: { season: [summer] } }
+    - "in a cold rain"
+
+events:
+
+  # ─────────────────────────────────────────────────────────────────────
+  # 1. Засада на конвой. Хроника, 1700, март:
+  #    «Wounded in a bandit ambush while guarding Ansel Ravencroft's wine.
+  #     Publicly named Lucan Thorne a coward and a liar. ▸»
+  # Показывает: условия места и действия, роли из живущих людей,
+  # предпочтение при подборе роли, проверку характеристики, рану,
+  # репутацию, мнение без затухания, создание соперничества (D-036).
+  # ─────────────────────────────────────────────────────────────────────
+  - id: escort_ambush
+    severity: heavy                 # light | medium | heavy — для рассказчика (D-045)
+    weight: 10
+    when:                           # все условия должны выполняться
+      action: [escort_cargo]
+      place:
+        road: [trail, none]         # на тропе или без дороги, не на тракте
+        terrain: [forest, hills]
+      hero:
+        conditions_none: [severe_wound]
+    weight_mods:                    # множители веса, целые дроби (D-003)
+      - { when: { season: [winter] }, factor: 1/2 }   # зимой разбойников меньше
+      - { when: { place: { lawless: true } }, factor: 2 }
+    roles:
+      employer:                     # чей груз везём
+        pick: employer_of_hero      # заготовленный способ подбора
+      coward:                       # товарищ по охране, который побежит
+        pick: nearby
+        where:
+          serves_with: hero
+          occupation: [mercenary, guard]
+          traits_none: [brave]
+        prefer:                     # кого из подходящих брать охотнее
+          - { traits_any: [craven], factor: 5 }
+          - { opinion_of_hero: { max: -10 }, factor: 2 }
+    text: >-
+      #ambush_opening# The carters scatter. Out of the corner of your eye you
+      see {coward} drop {coward.his} musket and run for the trees.
+    grammar:
+      ambush_opening:
+        - "Shots crack from the treeline #weather#."
+        - "A felled tree blocks the road, and men rise from the ditch."
+    options:
+      - text: Stand and hold the wagons
+        check: { skill: prowess, difficulty: 10 }   # шанс показан словами (D-042)
+        success:
+          then:
+            - wound: { who: hero, kind: light_wound }
+            - opinion: { of: employer, about: hero, value: 30, reason: saved_my_cargo, decay: years_3 }
+          next: thorne_shamed       # переход к следующей странице события
+        failure:
+          then:
+            - wound: { who: hero, kind: severe_wound }
+            - money: -15            # бандиты унесли часть груза — вычет из платы
+          next: thorne_shamed
+      - text: Run with {coward}
+        then:
+          - trait: { who: hero, add: craven_rep }   # публичный поступок → репутация
+          - opinion: { of: employer, about: hero, value: -40, reason: abandoned_my_cargo, decay: never }
+        chronicle: "Fled a bandit ambush while guarding {employer}'s wine."
+    pages:                          # вторая «страница» того же события
+      thorne_shamed:
+        text: >-
+          The bandits are gone. In the yard of the inn, {coward} is already
+          telling the carters how bravely {coward.he} fought.
+        options:
+          - text: Name {coward} a coward and a liar, before everyone
+            then:
+              - trait: { who: coward, add: craven_rep }
+              - opinion: { of: coward, about: hero, value: -60, reason: called_me_coward, decay: never }
+              - relation: { add: rival, between: [hero, coward] }
+            chronicle: >-
+              Wounded in a bandit ambush while guarding {employer}'s wine.
+              Publicly named {coward} a coward and a liar.
+            # ▸ ставится сам: выбор игрока создал отношение (D-044)
+          - text: Say nothing
+            then:
+              - opinion: { of: coward, about: hero, value: 10, reason: kept_my_secret, decay: years_1 }
+              - secret: { owner: coward, kind: fled_ambush, known_by: [hero] }
+            chronicle: "Wounded in a bandit ambush while guarding {employer}'s wine."
+            # «трус» становится тайной Торна; её можно раскрыть позже (D-037)
+
+  # ─────────────────────────────────────────────────────────────────────
+  # 2. Конь в долг. Хроника, 1701, январь:
+  #    «Bought a warhorse from Ravencroft on credit: 40 crowns
+  #     (the Ravencroft debt). ▸»  …  1704, декабрь: «The Ravencroft debt repaid in full.»
+  # Показывает: роль по знакомству и мнению, закрытый вариант с причиной
+  # (D-043), долг как сущность (D-036) и продолжение по расписанию.
+  # ─────────────────────────────────────────────────────────────────────
+  - id: warhorse_on_credit
+    severity: light
+    weight: 6
+    when:
+      place: { settlement: [town, city] }
+      hero:
+        items_none: [warhorse]
+    roles:
+      merchant:
+        pick: known                 # кого герой уже знает
+        where:
+          occupation: [merchant]
+          opinion_of_hero: { min: 20 }
+          lives_in: here
+    text: >-
+      {merchant} has a grey destrier in the stable behind the warehouse.
+      "Forty crowns, and for you I'll take it in instalments."
+    options:
+      - text: Pay in full
+        when: { hero: { money: { min: 40 } } }       # иначе — серым: «Requires 40 crowns»
+        then:
+          - money: -40
+          - item: { who: hero, add: warhorse }
+        chronicle: null             # покупка за наличные — повседневное, только журнал
+      - text: Take it on credit
+        then:
+          - item: { who: hero, add: warhorse }
+          - debt:
+              id: horse_debt        # имя для ссылок внутри события; сущность получит постоянный id
+              name: "the {merchant.surname} debt"
+              debtor: hero
+              creditor: merchant
+              amount: 40
+              interest: 1/10        # в год
+              term_days: 1095
+        chronicle: "Bought a warhorse from {merchant} on credit: {horse_debt.amount} crowns ({horse_debt})."
+        # сам долг — «крючок»: когда подойдёт срок, планировщик долга (этап 6)
+        # запустит событие debt_due; закрытие долга даёт строку
+        # «The Ravencroft debt repaid in full.» из события-извещения
+      - text: Decline
+        then:
+          - opinion: { of: merchant, about: hero, value: -5, reason: refused_my_offer, decay: years_1 }
+
+  # ─────────────────────────────────────────────────────────────────────
+  # 3. Вербовщик в долговой тюрьме. Хроника, 1712, март:
+  #    «A Karelov recruiter paid Aubrey's gaol fees and stood surety for him
+  #     in return for five years' service; the Marquis's 1,200 crowns
+  #     stayed owing. Elinor stayed in Carrow. ▸»
+  # Показывает: положение падения (D-017) и выход со дна (рассказчик
+  # поднимает вес таких событий, D-045), роль-иностранца из живущих,
+  # условие по чужой державе, обязательство службы как продолжение.
+  # ─────────────────────────────────────────────────────────────────────
+  - id: gaol_recruiter
+    severity: medium
+    weight: 4
+    tags: [way_up]                  # рассказчик поднимает вес, пока герой на дне
+    when:
+      hero:
+        situation: [debt_gaol]
+        age: { max: 50 }
+        martial: { min: 8 }
+    roles:
+      recruiter:
+        pick: visiting              # человек мира, который проездом в этом городе
+        where:
+          office: [recruiting_officer]
+          realm: { not: hero_realm }
+      creditor:
+        pick: relation
+        where: { creditor_of: hero }
+        prefer:
+          - { debt_amount: largest, factor: 100 }
+    text: >-
+      A visitor asks for you by name: {recruiter}, an officer of
+      {recruiter.realm}. {recruiter.he} has heard of {hero.known_for}.
+      "Five years in the {recruiter.realm_adj} service, and I pay your fees today."
+    options:
+      - text: Sign for five years
+        then:
+          - situation: { who: hero, end: debt_gaol }
+          - contract:
+              employer: recruiter.realm
+              years: 5
+              surety: recruiter
+          - travel: { who: hero, to: recruiter.realm_capital }
+        chronicle: >-
+          {recruiter}, a {recruiter.realm_adj} recruiter, paid the gaol fees and
+          stood surety in return for five years' service; {creditor}'s
+          {creditor.debt_amount} crowns stayed owing.
+      - text: Refuse and wait for better
+        then:
+          - opinion: { of: recruiter, about: hero, value: -5, reason: wasted_my_time, decay: years_1 }
+
+  # ─────────────────────────────────────────────────────────────────────
+  # 4. Соперник обвиняет при дворе. Хроника, 1721, июнь:
+  #    «Thorne accused him before the court of stealing Karelov pay.
+  #     Aubrey called him out instead.»
+  # Показывает: «крючок» через 21 год — событие выросло из отношения
+  # соперников, а не из расписания; вес по чертам соперника;
+  # история со сроком и запасной развязкой (D-044); вариант NPC.
+  # ─────────────────────────────────────────────────────────────────────
+  - id: rival_accuses_at_court
+    severity: heavy
+    weight: 5
+    who: [hero, npc]                # и у людей мира рядом с героем (D-047)
+    when:
+      protagonist:
+        office_any: true            # есть должность, которую можно потерять
+        at_court: true
+    roles:
+      accuser:
+        pick: relation
+        where:
+          relation_to_protagonist: rival
+          at_same_court: true
+    weight_mods:
+      - { when: { role: accuser, traits_any: [vengeful] }, factor: 3 }
+      - { when: { role: accuser, intrigue: { min: 12 } }, factor: 2 }
+    text: >-
+      Before the whole court, {accuser} declares that you stole the pay of
+      your men in {protagonist.last_service_realm}. Heads turn toward you.
+    options:
+      - text: Answer with proofs
+        check: { skill: diplomacy, against: { role: accuser, skill: intrigue } }  # встречная проверка
+        success:
+          then:
+            - opinion: { of: accuser, about: hero, value: -20, reason: humiliated_me_at_court, decay: never }
+          chronicle: "Cleared {hero.his} name before the court when {accuser} accused {hero.him} of theft."
+        failure:
+          then:
+            - office: { who: protagonist, lose: current }
+            - trait: { who: protagonist, add: thief_rep }
+          chronicle: "{accuser} accused {hero.him} before the court of theft. Lost {hero.his} post."
+        ai: { base: 10, traits: { calm: 10, honest: 5 } }   # как выбирает человек мира
+      - text: Call {accuser} out
+        when: { protagonist: { traits_none: [craven] } }
+        then:
+          - story:
+              id: duel_with_accuser
+              deadline_days: 14
+              fallback: duel_avoided      # не случилось к сроку → запасная развязка
+                                          # (тихое событие: «Thorne left the city»)
+          - schedule:
+              event: duel_at_dawn
+              after_days: { min: 2, max: 5 }
+              roles: { opponent: accuser }
+        chronicle: "{accuser} accused {hero.him} before the court of stealing pay. Called {accuser} out instead."
+        ai: { base: 5, traits: { proud: 20, wrathful: 15, brave: 10 } }
+
+  # ─────────────────────────────────────────────────────────────────────
+  # 5. Дуэль на рассвете. Хроника, 1721–1722:
+  #    «Thorne was killed, Aubrey wounded in the arm.»
+  #    «Garrick Thorne, the dead man's son, swore revenge.»
+  # Показывает: событие-продолжение по расписанию (не из общей колоды),
+  # встречную проверку, смерть персонажа от события с причиной,
+  # наследование вражды, закрытие истории.
+  # ─────────────────────────────────────────────────────────────────────
+  - id: duel_at_dawn
+    severity: heavy
+    scheduled_only: true            # только как продолжение, рассказчик сам не выбирает
+    story: duel_with_accuser        # закрывает эту историю любым исходом
+    roles:
+      opponent: { from_schedule: true }
+      second:
+        pick: relation
+        where: { relation_to_hero: [friend] }
+        optional: true              # нет друга — дуэль без секунданта
+    text: >-
+      #dawn#, in the field behind the chapel. {opponent} waits with drawn
+      steel{second?, and {second} stands at your shoulder}.
+    options:
+      - text: Fight to kill
+        check: { skill: prowess, against: { role: opponent, skill: prowess }, mods: [{ traits_any: [duelist], add: 3 }] }
+        success:
+          then:
+            - kill: { who: opponent, cause: killed_in_duel, by: hero }
+            - wound: { who: hero, kind: light_wound, where: arm }
+            # «убил моего отца» — причина мнения наследникам убитого (D-035);
+            # соперничество переходит наследнику (D-036): через несколько
+            # месяцев событие-извещение даёт строку «Garrick Thorne swore revenge»
+            - relation: { inherit: rival, from: opponent }
+          chronicle: "Killed {opponent} in a duel and was wounded in the arm."
+        failure:
+          then:
+            - wound: { who: hero, kind: severe_wound }
+            - trait: { who: opponent, add: duelist_rep }
+          chronicle: "Was badly wounded by {opponent} in a duel."
+      - text: Fire into the air
+        then:
+          - opinion: { of: opponent, about: hero, value: 20, reason: spared_me, decay: years_5 }
+          - relation: { end: rival, between: [hero, opponent] }
+        chronicle: "Met {opponent} at dawn and fired into the air. The feud was ended."
