@@ -1,0 +1,2 @@
+# Map sources from Azgaar: no line-by-line diffs, collapsed in GitHub PRs (map/scripts and README keep normal diffs)
+map/region.* -diff linguist-generated=true
