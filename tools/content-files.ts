@@ -8,10 +8,7 @@ export const CONTENT_DIR = 'content';
 export function readContentFiles(dir = CONTENT_DIR): SourceFile[] {
   return readdirSync(dir, { recursive: true, encoding: 'utf8' })
     .filter((name) => name.endsWith('.yaml') || name.endsWith('.yml'))
-    .map((name) => join(dir, name))
+    .map((name) => relative('.', join(dir, name)).split(sep).join('/'))
     .sort()
-    .map((path) => ({
-      path: relative('.', path).split(sep).join('/'),
-      text: readFileSync(path, 'utf8'),
-    }));
+    .map((path) => ({ path, text: readFileSync(path, 'utf8') }));
 }

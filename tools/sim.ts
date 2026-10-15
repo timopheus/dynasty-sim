@@ -37,8 +37,9 @@ function readArgs() {
 
 const values = readArgs();
 
-const years = Number(values.years);
-const seed = Number(values.seed);
+const DIGITS = /^\d+$/;
+const years = DIGITS.test(values.years) ? Number(values.years) : NaN;
+const seed = DIGITS.test(values.seed) ? Number(values.seed) : NaN;
 if (!Number.isInteger(years) || years < 1) fail(`--years must be a positive integer, got "${values.years}"`);
 if (!isValidSeed(seed)) fail(`--seed must be an integer in 0..${MAX_SEED}, got "${values.seed}"`);
 const out = values.out ?? `out/chronicle-seed${seed}-${years}y.md`;

@@ -28,6 +28,7 @@ describe('content', () => {
     ['unbalanced-brace.yaml', 'actions[0].text', /unbalanced/],
     ['settings-out-of-range.yaml', 'settings.eventChancePer10k', /.+/],
     ['names-empty.yaml', 'names.given', /.+/],
+    ['zero-duration.yaml', 'actions[0].duration.min', /.+/],
   ];
 
   it.each(cases)('rejects %s with an error at %s', (name, path, message) => {

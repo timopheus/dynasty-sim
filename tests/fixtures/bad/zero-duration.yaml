@@ -1,0 +1,5 @@
+actions:
+  - id: instant
+    name: Instant
+    duration: { min: 0, max: 0 }
+    text: "{name} did nothing at all."

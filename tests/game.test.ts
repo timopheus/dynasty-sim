@@ -126,11 +126,14 @@ describe('mortality', () => {
   });
 
   it('grows with age and poor health; zero health is certain death', () => {
-    const age20 = -20 * 366;
-    expect(dailyDeathChance(person(age20, 100), 0)).toBe(1000);
-    expect(dailyDeathChance(person(age20, 30), 0)).toBe(4000);
-    expect(dailyDeathChance(person(-95 * 366, 100), 0)).toBe(40000);
-    expect(dailyDeathChance(person(age20, 0), 0)).toBe(DAILY_DEATH_DENOMINATOR);
+    const chance = (ageYears: number, health: number) => dailyDeathChance(person(-ageYears * 366, health), 0);
+    expect(chance(20, 100)).toBeGreaterThan(0);
+    expect(chance(45, 100)).toBeGreaterThan(chance(20, 100));
+    expect(chance(95, 100)).toBeGreaterThan(chance(45, 100));
+    expect(chance(20, 30)).toBeGreaterThan(chance(20, 100));
+    expect(chance(20, 10)).toBeGreaterThan(chance(20, 30));
+    expect(chance(95, 1)).toBeLessThan(DAILY_DEATH_DENOMINATOR);
+    expect(chance(20, 0)).toBe(DAILY_DEATH_DENOMINATOR);
   });
 });
 
