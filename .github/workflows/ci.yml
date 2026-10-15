@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Validate content
+        run: npm run validate
+
+      - name: Simulate 50 years
+        run: npm run sim -- --years 50 --seed 1 --out out/chronicle-seed1-50y.md
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload chronicle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chronicle
+          path: out/
+          if-no-files-found: ignore
