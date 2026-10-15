@@ -77,7 +77,10 @@
   for (const b of pack.burgs) if (b.i && !b.removed && !b.capital) {
     if (cities.has(b.i)) Burgs.setGroup(b.i, 'city'); else if (b.group === 'city') Burgs.setGroup(b.i, 'town');
   }
-  // 7. sea zones: connected regions of the main sea grown from four seeds; bays of the off-map northern sea apart
+  // 7. roads, trails and sea routes again: the capitals added above must be on them
+  for (const b of pack.burgs) if (b.i && !b.removed && !b.port && pack.features[c.f[b.cell]].group !== 'continent' && c.t[b.cell] === 1) Burgs.setPort(b.i, true); // island towns need a harbour
+  Routes.regenerate();
+  // 8. sea zones: connected regions of the main sea grown from four seeds; bays of the off-map northern sea apart
   for (const z of [...pack.zones]) if (z && !z.removed) Zones.remove(z.i);
   const seeds = { 'Western Ocean': [10, 560], 'The Strait': [230, 470], 'Inner Sea (west)': [620, 380], 'Inner Sea (east)': [1060, 470] };
   const zoneOf = new Map(); let queue = [];

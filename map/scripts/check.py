@@ -31,5 +31,16 @@ print('ocean cells not in a zone',len([i for i in oc if i not in water]))
 st={s['i']:s for s in P['states'] if ok(s)}
 for s in st.values():
     b=P['burgs'][s['capital']]; sea=any(C[j]['h']<20 and feat[C[j]['f']]['type']=='ocean' for j in C[b['cell']]['c'])
-    print('capital',s['name'],b['name'],'sea-coast' if sea else 'NOT on sea', round(b['population']*2000))
+    print('capital',s['name'],b['name'],'sea-coast' if sea else 'NOT on sea', round(b['population']*d['settings']['populationRate']*d['settings']['urbanization']))
 print('cities',sum(b.get('group') in ('city','capital') for b in bu),'land without state',sum(1 for c in C if c['h']>=20 and not c['state']))
+ends=set()
+for r in P['routes']:
+    if r.get('group')=='searoutes' and r.get('points'):
+        ends.add(r['points'][0][2]); ends.add(r['points'][-1][2])
+for s in st.values():
+    b=P['burgs'][s['capital']]
+    if b.get('port'): print('sea route end', b['name'], b['cell'] in ends)
+rc=set()
+for r in P['routes']:
+    for pt in r.get('points',[]): rc.add(pt[2])
+print('burgs off every route',[b['name'] for b in bu if b['cell'] not in rc])
