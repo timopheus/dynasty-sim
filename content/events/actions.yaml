@@ -1,0 +1,81 @@
+# Events tied to specific actions (`actions:` lists where they can fire). Schema: EventSchema.
+events:
+  - id: highwaymen
+    weight: 10
+    actions: [travel]
+    text: "Highwaymen bar the road ahead of {name}."
+    options:
+      - text: Fight
+        result: "{name} fought off highwaymen and took their purse."
+        effects: { health: -15, money: 15 }
+      - text: Pay them off
+        result: "{name} paid off highwaymen on the road."
+        effects: { money: -20 }
+
+  - id: broken_wheel
+    weight: 8
+    actions: [travel, trade]
+    text: "A cart wheel breaks on a muddy road."
+    options:
+      - text: Pay a wheelwright
+        result: "{name} paid a wheelwright to mend a broken wheel."
+        effects: { money: -8 }
+      - text: Mend it yourself
+        result: "{name} mended a broken wheel by hand in the mud."
+        effects: { health: -2 }
+
+  - id: night_patrol
+    weight: 10
+    actions: [serve_contract]
+    text: "The captain offers a bonus for a dangerous night patrol."
+    options:
+      - text: Volunteer
+        result: "{name} volunteered for a night patrol and earned a bonus."
+        effects: { health: -10, money: 30 }
+      - text: Stay in camp
+        result: "{name} stayed in camp while others went on patrol."
+
+  - id: late_wages
+    weight: 8
+    actions: [serve_contract]
+    text: "The paymaster is late with the wages again."
+    options:
+      - text: Complain loudly
+        result: "{name} complained to the paymaster and got part of the wages."
+        effects: { money: 10 }
+      - text: Wait patiently
+        result: "{name} waited out a late payday on credit."
+        effects: { money: -5 }
+
+  - id: shared_lodgings
+    weight: 8
+    actions: [winter_quarters]
+    text: "A fellow lodger proposes to share the costs of the winter."
+    options:
+      - text: Agree
+        result: "{name} shared winter lodgings and costs with a stranger."
+        effects: { money: 10 }
+      - text: Refuse
+        result: "{name} kept to a room alone for the winter."
+
+  - id: cheap_cargo
+    weight: 8
+    actions: [trade]
+    text: "A merchant offers {name} a cargo of cloth at a suspiciously low price."
+    options:
+      - text: Buy it
+        result: "{name} bought a cheap cargo of cloth that turned out to be rotten."
+        effects: { money: -30 }
+      - text: Refuse
+        result: "{name} refused a suspiciously cheap cargo of cloth."
+
+  - id: wild_boar
+    weight: 8
+    actions: [hunt]
+    text: "A wild boar charges at {name}."
+    options:
+      - text: Stand and strike
+        result: "{name} killed a charging boar but was gored."
+        effects: { health: -12, money: 10 }
+      - text: Climb a tree
+        result: "{name} waited out a wild boar from the branches of a tree."

@@ -1,0 +1,6 @@
+actions:
+  - id: paint
+    name: Paint
+    duration: { min: 1, max: 2 }
+    colour: red
+    text: "{name} painted."

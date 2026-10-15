@@ -1,0 +1,69 @@
+# Events that can happen during any action. Schema: EventSchema.
+# `text` is shown to the player; each option's `result` goes to the chronicle.
+events:
+  - id: fever
+    weight: 10
+    text: "A fever takes hold of {name}."
+    options:
+      - text: Send for a physician
+        result: "{name} paid a physician and got over a fever."
+        effects: { health: -5, money: -10 }
+      - text: Rest and hope
+        result: "{name} lay sick with fever for weeks."
+        effects: { health: -15 }
+
+  - id: card_game
+    weight: 8
+    text: "A stranger at an inn invites {name} to a game of cards."
+    options:
+      - text: Play for high stakes
+        result: "{name} lost heavily at cards to a stranger."
+        effects: { money: -20 }
+      - text: Play a modest hand
+        result: "{name} won a few coins at cards."
+        effects: { money: 5 }
+      - text: Decline
+        result: "{name} declined a game of cards with a stranger."
+
+  - id: letter_from_home
+    weight: 5
+    text: "A letter finds {name}: an old debt owed to the family has been repaid."
+    options:
+      - text: Buy new clothes
+        result: "{name} spent a repaid family debt on new clothes."
+        effects: { money: 5 }
+      - text: Keep the money
+        result: "{name} received a repaid family debt and kept it."
+        effects: { money: 25 }
+
+  - id: old_wound
+    weight: 8
+    text: "An old wound aches in the damp weather."
+    options:
+      - text: Ignore it
+        result: "{name} ignored an aching old wound."
+        effects: { health: -5 }
+      - text: Rest for a few days
+        result: "{name} rested an old wound for a few days."
+        effects: { health: 3, money: -3 }
+
+  - id: pickpocket
+    weight: 6
+    text: "{name} feels a hand slipping into a purse at the market."
+    options:
+      - text: Give chase
+        result: "{name} chased a pickpocket through the market."
+        effects: { health: -3 }
+      - text: Let it go
+        result: "{name} was robbed by a pickpocket at the market."
+        effects: { money: -10 }
+
+  - id: tavern_brawl
+    weight: 6
+    text: "A brawl breaks out in the tavern where {name} is drinking."
+    options:
+      - text: Join in
+        result: "{name} was bruised in a tavern brawl."
+        effects: { health: -8 }
+      - text: Slip out
+        result: "{name} slipped out of a tavern brawl unharmed."

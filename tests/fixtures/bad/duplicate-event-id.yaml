@@ -1,0 +1,6 @@
+events:
+  - id: ping
+    weight: 1
+    text: "Ping again."
+    options:
+      - { text: Ok, result: "{name} heard a ping again." }

@@ -1,0 +1,7 @@
+events:
+  - id: flight
+    weight: 1
+    actions: [fly]
+    text: "Wings."
+    options:
+      - { text: Flap, result: "{name} flapped." }
