@@ -1,28 +1,16 @@
-import { z } from 'zod';
-
 /**
- * Schema of the YAML content in /content. Every content file is an object with
- * any of the top-level keys below; files are merged by the loader.
- * Text fields may use the placeholders listed in PLACEHOLDERS.
+ * Assembly file (D-052): schema of the YAML content in /content. Every content
+ * file is an object with any of the top-level keys below; each module owns its
+ * key. Files are merged by the loader: a "single" key must appear exactly once,
+ * a "list" key is concatenated in file order.
  */
-export const PLACEHOLDERS = ['name', 'age'] as const;
-
-const Id = z.string().regex(/^[a-z][a-z0-9_]*$/, 'ids are lower_snake_case: a-z, 0-9, _');
-const Int = z.int();
-const Text = z.string().trim().min(1);
-
-const Range = z
-  .strictObject({ min: Int.min(0), max: Int.min(0) })
-  .refine((r) => r.max >= r.min, { message: 'max must be >= min' });
-
-const DayRange = z
-  .strictObject({ min: Int.min(1), max: Int.min(1) })
-  .refine((r) => r.max >= r.min, { message: 'max must be >= min' });
-
-export const EffectsSchema = z.strictObject({
-  health: Int.optional(),
-  money: Int.optional(),
-});
+import { z } from 'zod';
+import { ActionSchema, checkActions } from '../actions/content';
+import { NamesSchema } from '../character/content';
+import { checkEvents, EventSchema } from '../events/content';
+import { HealthContentSchema } from '../health/content';
+import { checkTemplate } from '../text/text';
+import { Int, Range, Text, type ContentError, type Located } from './types';
 
 export const SettingsSchema = z.strictObject({
   /** Chance per day, out of 10000, that an event fires. */
@@ -35,7 +23,6 @@ export const SettingsSchema = z.strictObject({
   startAge: Range,
   /** Age in years of a placeholder heir (stub until the Dynasty stage). */
   heirAge: Range,
-  startHealth: Range.refine((r) => r.max <= 100, { message: 'health is 0..100' }),
   startMoney: Int.min(0),
   texts: z.strictObject({
     start: Text,
@@ -44,57 +31,41 @@ export const SettingsSchema = z.strictObject({
   }),
 });
 
-export const ActionSchema = z.strictObject({
-  id: Id,
-  name: Text,
-  /** Duration in days, rolled when the action starts. */
-  duration: DayRange,
-  effects: EffectsSchema.optional(),
-  /** Chronicle line written when the action completes. */
-  text: Text,
-});
-
-export const OptionSchema = z.strictObject({
-  /** Button label shown to the player. */
-  text: Text,
-  /** Chronicle line written when this option is chosen. */
-  result: Text,
-  effects: EffectsSchema.optional(),
-});
-
-export const EventSchema = z.strictObject({
-  id: Id,
-  weight: Int.min(1),
-  /** If set, the event can only fire during these actions. */
-  actions: z.array(Id).min(1).optional(),
-  text: Text,
-  options: z.array(OptionSchema).min(1),
-});
-
-export const NamesSchema = z.strictObject({
-  given: z.array(Text).min(1),
-  surnames: z.array(Text).min(1),
-});
+export const SINGLE_KEYS = ['settings', 'names', 'health'] as const;
+export const LIST_KEYS = ['actions', 'events'] as const;
 
 export const ContentFileSchema = z.strictObject({
   settings: SettingsSchema.optional(),
+  names: NamesSchema.optional(),
+  health: HealthContentSchema.optional(),
   actions: z.array(ActionSchema).optional(),
   events: z.array(EventSchema).optional(),
-  names: NamesSchema.optional(),
 });
 
-export type Effects = z.infer<typeof EffectsSchema>;
 export type Settings = z.infer<typeof SettingsSchema>;
-export type ActionDef = z.infer<typeof ActionSchema>;
-export type OptionDef = z.infer<typeof OptionSchema>;
-export type EventDef = z.infer<typeof EventSchema>;
-export type Names = z.infer<typeof NamesSchema>;
 export type ContentFile = z.infer<typeof ContentFileSchema>;
+type SingleKey = (typeof SINGLE_KEYS)[number];
+type ListKey = (typeof LIST_KEYS)[number];
 
 /** Merged, validated content. Arrays keep file order (files are sorted by path). */
-export interface Content {
-  settings: Settings;
-  actions: ActionDef[];
-  events: EventDef[];
-  names: Names;
-}
+export type Content = { [K in SingleKey]: NonNullable<ContentFile[K]> } & { [K in ListKey]: NonNullable<ContentFile[K]> };
+
+/** Every item of every key with the file it came from, for cross-checks. */
+export type ContentSources = { [K in SingleKey | ListKey]: Located<Content[K] extends (infer T)[] ? T : Content[K]>[] };
+
+/** A check across items or modules; sees the items of every file that passed the schema. */
+export type CrossCheck = (sources: ContentSources) => ContentError[];
+
+const checkSettings: CrossCheck = ({ settings }) => {
+  const errors: ContentError[] = [];
+  for (const { file, item } of settings) {
+    for (const [key, text] of Object.entries(item.texts)) {
+      const problem = checkTemplate(text);
+      if (problem) errors.push({ file, path: `settings.texts.${key}`, message: problem });
+    }
+  }
+  return errors;
+};
+
+/** Cross-checks of all modules, in a fixed order. */
+export const CROSS_CHECKS: readonly CrossCheck[] = [checkSettings, checkActions, checkEvents];

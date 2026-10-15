@@ -1,3 +1,4 @@
+# expect-error: events[0].options /.+/
 events:
   - id: silence
     weight: 1

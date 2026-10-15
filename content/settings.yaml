@@ -6,7 +6,6 @@ settings:
   eventRepeatCooldownDays: 365  # the same event cannot repeat within this time
   startAge: { min: 18, max: 26 }
   heirAge: { min: 16, max: 25 } # placeholder heir until the Dynasty stage (D-007)
-  startHealth: { min: 80, max: 100 }
   startMoney: 50
   texts:
     start: "{name}, aged {age}, set out into the world with a horse, a sword and a few coins."

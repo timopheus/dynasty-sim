@@ -1,3 +1,4 @@
+# expect-error: events[0].actions[0] /unknown action "fly"/
 events:
   - id: flight
     weight: 1

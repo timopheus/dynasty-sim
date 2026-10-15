@@ -1,0 +1,3 @@
+# expect-error: health.startHealth /health is 0..100/
+health:
+  startHealth: { min: 50, max: 150 }

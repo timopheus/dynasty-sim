@@ -1,3 +1,4 @@
+# expect-error: actions[0].text /unbalanced/
 actions:
   - id: brace
     name: Brace

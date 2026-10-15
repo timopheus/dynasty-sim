@@ -1,0 +1,13 @@
+# expect-error: settings /startHealth/
+settings:
+  eventChancePer10k: 0
+  minDaysBetweenEvents: 0
+  eventRepeatCooldownDays: 0
+  startAge: { min: 20, max: 20 }
+  heirAge: { min: 18, max: 18 }
+  startHealth: { min: 100, max: 100 }
+  startMoney: 10
+  texts:
+    start: "{name} started."
+    death: "{name} died."
+    succession: "{name} succeeded."
