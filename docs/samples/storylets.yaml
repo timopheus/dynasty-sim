@@ -9,7 +9,10 @@
 #   {coward}          — человек в роли: имя-ссылка на его страницу (D-020)
 #   {coward.he}       — местоимение по полу: he/she, {.his} his/her, {.him} him/her
 #   {second?, and {second} stands…} — кусок текста, только если роль заполнена
-#   #ambush_opening#  — символ грамматики (D-046): случайная формулировка через seed
+#   #ambush_opening#  — символ грамматики (D-046): случайная формулировка через seed.
+#                       Текст с # — только в кавычках или блоком >-, иначе YAML
+#                       примет остаток строки за комментарий.
+#   {protagonist}     — чьё это событие: герой или человек мира (D-047)
 # Герой в тексте события — «you» (D-046). Строка хроники пишется
 # в третьем лице и без подлежащего, если это строка биографии героя:
 # «Wounded in a bandit ambush…».
@@ -70,13 +73,15 @@ events:
         check: { skill: prowess, difficulty: 10 }   # шанс показан словами (D-042)
         success:
           then:
-            - wound: { who: hero, kind: light_wound }
+            - wound: { who: hero, kind: light_wound }   # лёгкая рана — не строка хроники (§8.9)
             - opinion: { of: employer, about: hero, value: 30, reason: saved_my_cargo, decay: years_3 }
           next: thorne_shamed       # переход к следующей странице события
         failure:
           then:
             - wound: { who: hero, kind: severe_wound }
             - money: -15            # бандиты унесли часть груза — вычет из платы
+          chronicle: "Badly wounded in a bandit ambush while guarding {employer}'s wine."
+          # строки страниц одного события склеиваются в одну запись хроники (§9.5)
           next: thorne_shamed
       - text: Run with {coward}
         then:
@@ -94,15 +99,14 @@ events:
               - trait: { who: coward, add: craven_rep }
               - opinion: { of: coward, about: hero, value: -60, reason: called_me_coward, decay: never }
               - relation: { add: rival, between: [hero, coward] }
-            chronicle: >-
-              Wounded in a bandit ambush while guarding {employer}'s wine.
-              Publicly named {coward} a coward and a liar.
-            # ▸ ставится сам: выбор игрока создал отношение (D-040)
+            chronicle: "Publicly named {coward} a coward and a liar."
+            # ▸ ставится сам: выбор игрока создал отношение (D-040).
+            # После провала проверки запись: «Badly wounded … Publicly named …»
           - text: Say nothing
             then:
               - opinion: { of: coward, about: hero, value: 10, reason: kept_my_secret, decay: years_1 }
               - secret: { owner: coward, kind: fled_ambush, known_by: [hero] }
-            chronicle: "Wounded in a bandit ambush while guarding {employer}'s wine."
+            # строки нет: после провала останется только строка о ране.
             # «трус» становится тайной Торна; её можно раскрыть позже (D-037)
 
   # ─────────────────────────────────────────────────────────────────────
@@ -148,6 +152,7 @@ events:
               interest: 1/10        # в год
               term_days: 1095
         chronicle: "Bought a warhorse from {merchant} on credit: {horse_debt.amount} crowns ({horse_debt})."
+        # сумма и название фиксируются в момент записи; ссылкой остаётся долг (D-040)
         # сам долг — «крючок»: когда подойдёт срок, планировщик долга (этап 6)
         # запустит событие debt_due; закрытие долга даёт строку
         # «The Ravencroft debt repaid in full.» из события-извещения
@@ -201,6 +206,7 @@ events:
           {recruiter}, a {recruiter.realm_adj} recruiter, paid the gaol fees and
           stood surety in return for five years' service; {creditor}'s
           {creditor.debt_amount} crowns stayed owing.
+        # ▸ ставится сам: контракт и смена положения (D-040)
       - text: Refuse and wait for better
         then:
           - opinion: { of: recruiter, about: hero, value: -5, reason: wasted_my_time, decay: years_1 }
@@ -233,18 +239,20 @@ events:
     text: >-
       Before the whole court, {accuser} declares that you stole the pay of
       your men in {protagonist.last_service_realm}. Heads turn toward you.
+    # текст видит только игрок; если это событие человека мира, текста нет,
+    # а проверки и последствия идут от его лица
     options:
       - text: Answer with proofs
         check: { skill: diplomacy, against: { role: accuser, skill: intrigue } }  # встречная проверка
         success:
           then:
-            - opinion: { of: accuser, about: hero, value: -20, reason: humiliated_me_at_court, decay: never }
-          chronicle: "Cleared {hero.his} name before the court when {accuser} accused {hero.him} of theft."
+            - opinion: { of: accuser, about: protagonist, value: -20, reason: humiliated_me_at_court, decay: never }
+          chronicle: "Cleared {protagonist.his} name before the court when {accuser} accused {protagonist.him} of theft."
         failure:
           then:
             - office: { who: protagonist, lose: current }
             - trait: { who: protagonist, add: thief_rep }
-          chronicle: "{accuser} accused {hero.him} before the court of theft. Lost {hero.his} post."
+          chronicle: "{accuser} accused {protagonist.him} before the court of theft. Lost {protagonist.his} post."
         ai: { base: 10, traits: { calm: 10, honest: 5 } }   # как выбирает человек мира
       - text: Call {accuser} out
         when: { protagonist: { traits_none: [craven] } }
@@ -258,7 +266,7 @@ events:
               event: duel_at_dawn
               after_days: { min: 2, max: 5 }
               roles: { opponent: accuser }
-        chronicle: "{accuser} accused {hero.him} before the court of stealing pay. Called {accuser} out instead."
+        chronicle: "{accuser} accused {protagonist.him} before the court of stealing pay. Called {accuser} out instead."
         ai: { base: 5, traits: { proud: 20, wrathful: 15, brave: 10 } }
 
   # ─────────────────────────────────────────────────────────────────────
@@ -271,13 +279,14 @@ events:
   # ─────────────────────────────────────────────────────────────────────
   - id: duel_at_dawn
     severity: heavy
+    who: [hero, npc]                # чья дуэль — того, кто вызвал (protagonist из расписания)
     scheduled_only: true            # только как продолжение, рассказчик сам не выбирает
     story: duel_with_accuser        # закрывает эту историю любым исходом
     roles:
-      opponent: { from_schedule: true }
+      opponent: { from_schedule: true }   # умер до дуэли — событие отменяется (D-044)
       second:
         pick: relation
-        where: { relation_to_hero: [friend] }
+        where: { relation_to_protagonist: [friend] }
         optional: true              # нет друга — дуэль без секунданта
     text: >-
       #dawn#, in the field behind the chapel. {opponent} waits with drawn
@@ -287,8 +296,8 @@ events:
         check: { skill: prowess, against: { role: opponent, skill: prowess }, mods: [{ traits_any: [duelist], add: 3 }] }
         success:
           then:
-            - kill: { who: opponent, cause: killed_in_duel, by: hero }
-            - wound: { who: hero, kind: light_wound, where: arm }
+            - kill: { who: opponent, cause: killed_in_duel, by: protagonist }
+            - wound: { who: protagonist, kind: light_wound, where: arm }
             # «убил моего отца» — причина мнения наследникам убитого (D-035);
             # соперничество переходит наследнику (D-036): через несколько
             # месяцев событие-извещение даёт строку «Garrick Thorne swore revenge»
@@ -296,11 +305,11 @@ events:
           chronicle: "Killed {opponent} in a duel and was wounded in the arm."
         failure:
           then:
-            - wound: { who: hero, kind: severe_wound }
+            - wound: { who: protagonist, kind: severe_wound }
             - trait: { who: opponent, add: duelist_rep }
           chronicle: "Was badly wounded by {opponent} in a duel."
       - text: Fire into the air
         then:
-          - opinion: { of: opponent, about: hero, value: 20, reason: spared_me, decay: years_5 }
-          - relation: { end: rival, between: [hero, opponent] }
+          - opinion: { of: opponent, about: protagonist, value: 20, reason: spared_me, decay: years_5 }
+          - relation: { end: rival, between: [protagonist, opponent] }
         chronicle: "Met {opponent} at dawn and fired into the air. The feud was ended."
