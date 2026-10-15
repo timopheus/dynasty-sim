@@ -1,7 +1,7 @@
 import { birthDayRange } from '../time/calendar';
 import { int, pick } from '../rng';
 import { isInt } from '../helpers';
-import type { Character, CreateHook, Invariant } from '../state';
+import type { Character, CreateHook, DeathHook, Invariant } from '../state';
 
 export interface CharacterBase {
   id: string;
@@ -31,6 +31,8 @@ export const createCharacterBase: CreateHook = ({ state, content }, c, spec) => 
   c.birthDay = int(state.rng, births.earliest, births.latest);
   c.money = 0;
 };
+
+export const characterOnDeath: DeathHook = () => {};
 
 export const characterInvariants: Invariant = ({ state }) => {
   const problems: string[] = [];

@@ -5,17 +5,26 @@
  */
 import { z } from 'zod';
 import { applyCharacterEffects, characterEffectShape } from './character/effects';
+import { actionsEffectShape, applyActionsEffects } from './actions/actions';
 import { applyHealthEffects, healthEffectShape } from './health/health';
 import type { Character, Ctx } from './state';
+import { applyTimeEffects, timeEffectShape } from './time/time';
 
 export const EffectsSchema = z.strictObject({
   ...healthEffectShape,
   ...characterEffectShape,
+  ...timeEffectShape,
+  ...actionsEffectShape,
 });
 
 export type Effects = z.infer<typeof EffectsSchema>;
 
-const APPLY: readonly ((ctx: Ctx, c: Character, effects: Effects) => void)[] = [applyHealthEffects, applyCharacterEffects];
+const APPLY: readonly ((ctx: Ctx, c: Character, effects: Effects) => void)[] = [
+  applyHealthEffects,
+  applyCharacterEffects,
+  applyTimeEffects,
+  applyActionsEffects,
+];
 
 export function applyEffects(ctx: Ctx, c: Character, effects: Effects | undefined): void {
   if (!effects) return;

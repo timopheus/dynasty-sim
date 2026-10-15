@@ -47,6 +47,18 @@ describe('content', () => {
     expect(match, JSON.stringify(result.errors, null, 2)).toBeDefined();
   });
 
+  it('accepts the empty keys of later modules at most once', () => {
+    const file = { path: 'fixture/later.yaml', text: 'time: {}\npopulation: {}\nopinions: {}\nchronicle: {}\ntraits: []\n' };
+    const once = loadContent([...BASE_FILES, file]);
+    expect(once.ok).toBe(true);
+    if (once.ok) expect(once.content.time).toEqual({});
+    const base = loadContent(BASE_FILES);
+    if (base.ok) expect(base.content.time).toBeNull();
+    const twice = loadContent([...BASE_FILES, file, { ...file, path: 'fixture/later2.yaml' }]);
+    expect(twice.ok).toBe(false);
+    if (!twice.ok) expect(twice.errors.map((e) => e.path)).toContain('time');
+  });
+
   it('requires single keys exactly once', () => {
     const result = loadContent([...BASE_FILES, ...BASE_FILES.map((f) => ({ ...f, path: `copy/${f.path}` }))]);
     expect(result.ok).toBe(false);

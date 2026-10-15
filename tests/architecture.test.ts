@@ -8,7 +8,7 @@ const ALLOWED_PACKAGES = ['yaml', 'zod'];
 /** Things that would make the core depend on a host or break determinism (D-003). */
 const BANNED: [RegExp, string][] = [
   [/\bMath\.random\b/, 'Math.random (use src/core/rng.ts)'],
-  [/\bDate\b/, 'Date (use src/core/calendar.ts)'],
+  [/\bDate\b/, 'Date (use src/core/time/calendar.ts)'],
   [/\bperformance\b/, 'performance'],
   [/\bMath\.(exp|expm1|log|log1p|log2|log10|pow|sin|cos|tan|asin|acos|atan|atan2|sinh|cosh|tanh|cbrt|hypot)\b/, 'transcendental Math functions (results can differ between engines)'],
   [/\bwindow\b|\bdocument\b|\blocalStorage\b|\bfetch\(/, 'browser APIs'],

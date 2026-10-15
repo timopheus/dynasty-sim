@@ -4,18 +4,27 @@
  * goes at the end unless a decision says otherwise.
  */
 import { actionsOnDeath } from './actions/actions';
-import { createCharacterBase } from './character/character';
+import { characterOnDeath, createCharacterBase } from './character/character';
 import { log } from './chronicle/log';
 import { eventsOnDeath } from './events/events';
 import { createHealth, healthOnDeath } from './health/health';
 import { createRelations, relationsOnDeath } from './relations/relations';
 import { newId } from './helpers';
 import type { Character, CreateHook, Ctx, DeathHook, NewCharacter } from './state';
+import { timeOnDeath } from './time/time';
 import { createWorld, worldOnDeath } from './world/world';
 
 const CREATE_HOOKS: readonly CreateHook[] = [createCharacterBase, createHealth, createWorld, createRelations];
 
-const DEATH_HOOKS: readonly DeathHook[] = [healthOnDeath, actionsOnDeath, eventsOnDeath, worldOnDeath, relationsOnDeath];
+const DEATH_HOOKS: readonly DeathHook[] = [
+  characterOnDeath,
+  healthOnDeath,
+  timeOnDeath,
+  actionsOnDeath,
+  eventsOnDeath,
+  worldOnDeath,
+  relationsOnDeath,
+];
 
 /** Creates a living character; every module fills its part through its hook. */
 export function createCharacter(ctx: Ctx, spec: NewCharacter): Character {

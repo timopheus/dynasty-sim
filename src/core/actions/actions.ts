@@ -3,7 +3,7 @@ import type { Content } from '../content/schema';
 import { applyEffects } from '../effects';
 import { int } from '../rng';
 import { getPlayer, isInt } from '../helpers';
-import type { Ctx, DayPhase, DeathHook, Invariant } from '../state';
+import type { Character, Ctx, DayPhase, DeathHook, Invariant } from '../state';
 import type { ActionDef } from './content';
 
 export interface ActionsState {
@@ -58,6 +58,11 @@ export const actionEndPhase: DayPhase = {
     return true;
   },
 };
+
+/** Effect keys of this module (`end_action`); filled by 2.2. */
+export const actionsEffectShape = {};
+
+export function applyActionsEffects(_ctx: Ctx, _c: Character, _effects: object): void {}
 
 /** The hero's death ends the action. */
 export const actionsOnDeath: DeathHook = ({ state }, c) => {

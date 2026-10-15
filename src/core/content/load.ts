@@ -4,7 +4,7 @@
  */
 import { parseDocument } from 'yaml';
 import type { z } from 'zod';
-import { ContentFileSchema, CROSS_CHECKS, LIST_KEYS, SINGLE_KEYS, type Content, type ContentSources } from './schema';
+import { ContentFileSchema, CROSS_CHECKS, LIST_KEYS, OPTIONAL_KEYS, SINGLE_KEYS, type Content, type ContentSources } from './schema';
 import type { ContentError } from './types';
 
 export type { ContentError } from './types';
@@ -36,7 +36,7 @@ function zodErrors(file: string, error: z.ZodError): ContentError[] {
 
 function emptySources(): ContentSources {
   const sources: Record<string, unknown[]> = {};
-  for (const key of [...SINGLE_KEYS, ...LIST_KEYS]) sources[key] = [];
+  for (const key of [...SINGLE_KEYS, ...OPTIONAL_KEYS, ...LIST_KEYS]) sources[key] = [];
   return sources as ContentSources;
 }
 
@@ -65,7 +65,7 @@ export function loadContent(files: readonly SourceFile[]): LoadResult {
       continue;
     }
     const data = parsed.data as Record<string, unknown>;
-    for (const key of SINGLE_KEYS) {
+    for (const key of [...SINGLE_KEYS, ...OPTIONAL_KEYS]) {
       if (data[key] !== undefined) anySources[key]?.push({ file, index: 0, item: data[key] });
     }
     for (const key of LIST_KEYS) {
@@ -84,11 +84,22 @@ export function loadContent(files: readonly SourceFile[]): LoadResult {
       });
     }
   }
+  for (const key of OPTIONAL_KEYS) {
+    const found = sources[key];
+    if (found.length > 1) {
+      errors.push({
+        file: found.map((s) => s.file).join(', '),
+        path: key,
+        message: `${key} must be defined at most once, found ${found.length}`,
+      });
+    }
+  }
   for (const check of CROSS_CHECKS) errors.push(...check(sources));
   if (errors.length > 0) return { ok: false, errors };
 
   const content: Record<string, unknown> = {};
   for (const key of SINGLE_KEYS) content[key] = sources[key][0]?.item;
+  for (const key of OPTIONAL_KEYS) content[key] = sources[key][0]?.item ?? null;
   for (const key of LIST_KEYS) content[key] = sources[key].map((s) => s.item);
   return { ok: true, content: content as Content };
 }
