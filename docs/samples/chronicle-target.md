@@ -1,4 +1,4 @@
-# Chronicle of the House of Calder — целевой образец (черновик 2)
+# Chronicle of the House of Calder — целевой образец (согласован Тимом)
 
 > **Для Тима.** Образец того, какой мы хотим видеть хронику готовой игры (задача 1.3). Движок так писать пока не умеет. Хроника — на английском (текст игры), пояснения — по-русски, в цитатах `>`.
 >
@@ -41,8 +41,8 @@
 - **Feb** — The Marquis demanded his 1,200 crowns. Aubrey could not pay, lost his post and was jailed for debt in [Carrow Gaol](#carrow-gaol).
 - **Nov** — A son, [Piers](#piers-calder), was born.
 
-### 1712 · 33
-- **Mar** — A [Karelov](#tsardom-of-karelov) recruiter bought out Aubrey's debt for five years' service. Elinor stayed in Carrow. ▸
+### 1712–1713
+- **Mar 1712** — A [Karelov](#tsardom-of-karelov) recruiter paid Aubrey out of gaol in return for five years' service; the Marquis's 1,200 crowns stayed owing. Elinor stayed in Carrow. ▸
 - ◆ **Apr 1713** — The [Peace of Ostrel](#marche-war) ended the Marche war. Valmont kept the duchy; Aldmere kept the trade.
 
 ### 1714–1717 · in Karelov service
@@ -70,18 +70,18 @@
 
 ## Страницы по ссылкам (примеры)
 
-> Каждая ссылка в хронике ведёт на страницу. Ниже четыре типа страниц: человек, организация, событие, долг. Остальные (места, державы, предметы, договоры) устроены так же. Страница строится из состояния игры и записей хроники, текст пишется шаблонами.
+> Каждая ссылка в хронике ведёт на страницу. В образце работают только якоря четырёх примеров ниже; остальные ссылки условные. Ниже четыре типа страниц: человек, организация, событие, долг. Остальные (места, державы, предметы, договоры) устроены так же. Страница строится из состояния игры и записей хроники, текст пишется шаблонами.
 
 ### Aubrey Calder
 *Head of the House 1700–1728 · born 1679 · died March 1728 · fourth son of Sir Hugh Calder*
-**Traits:** scarred, steady-handed, proud. **Rank at death:** colonel of foreign horse.
+**Traits:** scarred, steady-handed, proud. **Rank at death:** former colonel of foreign horse.
 **Allies:** Dmitri Orlov, the Saint-Arnaud family. **Rivals:** Lucan Thorne (dead), Garrick Thorne.
 **Left behind:** 2,000-crown debt, Dunmere Manor, the Orlov letter. **Ambition "settle":** not achieved.
 **Timeline:** 1700 Left home · 1702 Kell Bridge · 1704 Orrel Mill · 1708 Ostmark crash · 1709 Carrow Gaol · 1716 Azmar · 1721 Duel · 1728 Death.
 
 ### Lucan Thorne
 *Mercenary, later Ostmark Company agent · born c. 1675 · killed June 1721*
-Fled the Ashen ambush in 1700; Aubrey exposed him. Served Aldmere in the Marche war. Sold his Company shares before the crash.
+Fled a bandit ambush in 1700; Aubrey exposed him. Served Aldmere in the Marche war. Sold his Company shares before the crash.
 **Opinion of Aubrey:** hatred since 1700 (never faded). **Heir to the feud:** Garrick Thorne.
 
 ### Ostmark Company
@@ -94,7 +94,7 @@ Debtor: Aubrey Calder. Creditor: Ansel Ravencroft. Paid in full. The house of Ra
 
 ---
 
-## Как отбираются записи (предложение, D-019)
+## Как отбираются записи (D-019)
 
 Строка попадает в хронику, если выполнено одно из условий:
 1. **Жизнь:** рождение, брак, смерть, тяжёлое ранение или болезнь с последствиями, смена должности, потеря или получение имущества.
@@ -103,16 +103,16 @@ Debtor: Aubrey Calder. Creditor: Ansel Ravencroft. Paid in full. The house of Ra
 4. **Мир:** смерть правителя, война и мир, кризис, если событие затронуло героя или его место; дальние события — по значимости для всего региона.
 5. **Решение игрока**, которое запустило цепочку (помечается ▸).
 
-Повседневное (охота, переезды, мелкие стычки и болезни без последствий) в хронику не идёт, но остаётся в журнале героя, если он нужен. Ориентир: 30–45 строк на жизнь, около 1,5 строк в год.
+Повседневное (охота, переезды, мелкие стычки и болезни без последствий) в хронику не идёт, но остаётся в журнале героя, если он нужен. Ориентир: 25–45 строк на жизнь, около одной строки в год.
 
 ## Какие системы нужны
 
 | Что в хронике | Какая система | Этап ROADMAP |
 |---|---|---|
-| Возраст, рана, шрам, болезнь, смерть от ран | Персонаж: черты, здоровье, смертность | 2.3 |
+| Действия длятся от недель до месяцев, события во время действия | Время и действия как данные, планировщик | 2.2 |
+| Возраст, рана, шрам, болезнь, смерть от ран | Персонаж: черты, здоровье, смертность; пол и местоимения (his, he в образце — после D-010) | 2.3 |
 | «Назвал лжецом» → соперник на 25 лет; мнение не затухает | Мнения и отношения с причинами и затуханием | 2.4 |
 | Торн, Равенкрофт, маркиз — жили в мире до события, Торн сменил службу | Население вокруг героя, жизнь людей без игрока | 2.5 |
-| Действия длятся от недель до месяцев, события во время действия | Время и действия как данные, планировщик | 2.2 |
 | Строки с датой, ссылками, ◆, ▸; отбор по значимости; страницы | Хроника: записи со ссылками на сущности, оценка значимости, биография и история мира | 2.6 |
 | Ссылки кликаются, страницы людей, мест, событий, долгов | Интерфейс: гиперссылки и страницы сущностей | 2.8 |
 | Выбор во время действия, продолжения (шпион, дуэль, наследование вражды), роли из живущих людей | Движок событий (storylets) и рассказчик | 3 |
