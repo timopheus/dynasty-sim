@@ -33,10 +33,5 @@ export function checkTimeConditions(_ctx: Ctx, _c: Character, _when: object): st
   return [];
 }
 
-/** Effect keys of this module (`later`, D-053); filled by 2.2. */
-export const timeEffectShape = {};
-
-export function applyTimeEffects(_ctx: Ctx, _c: Character, _effects: object): void {}
-
 /** Death cancels what is scheduled for the character (D-053); filled by 2.2. */
 export const timeOnDeath: DeathHook = () => {};

@@ -48,6 +48,28 @@ describe('core architecture', () => {
     }
   });
 
+  // A runtime cycle loads one file half-initialised: tsx throws, a bundle silently drops values.
+  it('has no runtime import cycles', () => {
+    const graph = new Map<string, string[]>();
+    for (const file of coreFiles()) {
+      const deps: string[] = [];
+      for (const [, clause, spec] of readFileSync(file, 'utf8').matchAll(/^import\s+(?!type\b)([^;]*?)from\s+['"](\.[^'"]+)['"]/gm)) {
+        const names = /^\s*\{([^}]*)\}\s*$/.exec(clause ?? '')?.[1];
+        const typesOnly = names !== undefined && names.split(',').map((n) => n.trim()).filter(Boolean).every((n) => n.startsWith('type '));
+        if (!typesOnly && spec) deps.push(`${posix.join(posix.dirname(file.split('\\').join('/')), spec)}.ts`);
+      }
+      graph.set(file.split('\\').join('/'), deps);
+    }
+    const done = new Set<string>();
+    const visit = (file: string, path: string[]) => {
+      if (path.includes(file)) expect.fail(`import cycle: ${[...path.slice(path.indexOf(file)), file].join(' -> ')}`);
+      if (done.has(file)) return;
+      for (const dep of graph.get(file) ?? []) visit(dep, [...path, file]);
+      done.add(file);
+    };
+    for (const file of graph.keys()) visit(file, []);
+  });
+
   it('does not use host APIs or non-deterministic sources', () => {
     for (const file of coreFiles()) {
       const code = readFileSync(file, 'utf8')
