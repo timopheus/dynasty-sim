@@ -76,3 +76,16 @@ export function ageYears(birthDay: number, day: number): number {
   const beforeBirthday = t.month < b.month || (t.month === b.month && t.day < b.day);
   return t.year - b.year - (beforeBirthday ? 1 : 0);
 }
+
+/** Inclusive range of birth days that give an age of minAge..maxAge full years on `day`. */
+export function birthDayRange(day: number, minAge: number, maxAge: number): { earliest: number; latest: number } {
+  const { year, month, day: d } = toYmd(day);
+  // Starting points are exact except around 29 February; the loops settle those by a day or two.
+  let latest = fromYmd(year - minAge, month, d);
+  while (ageYears(latest, day) < minAge) latest -= 1;
+  while (ageYears(latest + 1, day) >= minAge) latest += 1;
+  let earliest = fromYmd(year - maxAge - 1, month, d) + 1;
+  while (ageYears(earliest, day) > maxAge) earliest += 1;
+  while (ageYears(earliest - 1, day) <= maxAge) earliest -= 1;
+  return { earliest, latest };
+}

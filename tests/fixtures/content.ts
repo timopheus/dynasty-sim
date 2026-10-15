@@ -42,6 +42,15 @@ events:
         effects: { health: -200 }
       - text: Ignore
         result: "{name} ignored it."
+  - id: rest_only
+    weight: 100
+    actions: [rest]
+    text: "Only while resting."
+    options:
+      - text: Ok
+        result: "{name} rested well."
+      - text: Skip
+        result: "{name} skipped it."
 `,
   },
 ];

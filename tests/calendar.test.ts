@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ageYears, formatDate, fromYmd, isLeapYear, toYmd } from '../src/core/calendar';
+import { ageYears, birthDayRange, formatDate, fromYmd, isLeapYear, toYmd } from '../src/core/calendar';
 
 describe('calendar', () => {
   it('starts on 1 January 1700', () => {
@@ -42,5 +42,20 @@ describe('calendar', () => {
     const birth = fromYmd(1680, 5, 10);
     expect(ageYears(birth, fromYmd(1700, 5, 9))).toBe(19);
     expect(ageYears(birth, fromYmd(1700, 5, 10))).toBe(20);
+  });
+
+  it('gives exact birth day ranges for an age range, including around 29 February', () => {
+    const days = [fromYmd(1704, 2, 28), fromYmd(1704, 2, 29), fromYmd(1704, 3, 1), fromYmd(1705, 2, 28), fromYmd(1705, 3, 1)];
+    for (let day = 0; day < 3 * 366; day += 7) days.push(day);
+    for (const day of days) {
+      for (const [min, max] of [[18, 26], [16, 25], [0, 0], [30, 30]] as const) {
+        const { earliest, latest } = birthDayRange(day, min, max);
+        const where = `${formatDate(day)}, ages ${min}-${max}`;
+        expect(ageYears(latest, day), where).toBe(min);
+        expect(ageYears(latest + 1, day), where).toBe(min - 1);
+        expect(ageYears(earliest, day), where).toBe(max);
+        expect(ageYears(earliest - 1, day), where).toBe(max + 1);
+      }
+    }
   });
 });

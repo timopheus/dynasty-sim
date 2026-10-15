@@ -19,13 +19,23 @@ function fail(message: string): never {
   process.exit(1);
 }
 
-const { values } = parseArgs({
-  options: {
-    years: { type: 'string', default: '300' },
-    seed: { type: 'string', default: '1' },
-    out: { type: 'string' },
-  },
-});
+const USAGE = 'Usage: npm run sim -- --years 300 --seed 42 [--out path/to/chronicle.md]';
+
+function readArgs() {
+  try {
+    return parseArgs({
+      options: {
+        years: { type: 'string', default: '300' },
+        seed: { type: 'string', default: '1' },
+        out: { type: 'string' },
+      },
+    }).values;
+  } catch (err) {
+    return fail(`${err instanceof Error ? err.message : String(err)}\n${USAGE}`);
+  }
+}
+
+const values = readArgs();
 
 const years = Number(values.years);
 const seed = Number(values.seed);

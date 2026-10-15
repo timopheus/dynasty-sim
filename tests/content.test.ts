@@ -24,6 +24,10 @@ describe('content', () => {
     ['unknown-placeholder.yaml', 'actions[0].text', /unknown placeholder \{title\}/],
     ['bad-id.yaml', 'actions[0].id', /lower_snake_case/],
     ['reversed-range.yaml', 'actions[0].duration', /max must be >= min/],
+    ['duplicate-event-id.yaml', 'events[0].id', /duplicate event id "ping"/],
+    ['unbalanced-brace.yaml', 'actions[0].text', /unbalanced/],
+    ['settings-out-of-range.yaml', 'settings.eventChancePer10k', /.+/],
+    ['names-empty.yaml', 'names.given', /.+/],
   ];
 
   it.each(cases)('rejects %s with an error at %s', (name, path, message) => {

@@ -1,4 +1,4 @@
-import { formatDate } from './calendar';
+import { birthDayRange, formatDate } from './calendar';
 import {
   applyEffects,
   dailyDeathChance,
@@ -49,8 +49,6 @@ export interface GameState {
 
 export type Command = { type: 'start'; actionId: string } | { type: 'choose'; option: number };
 
-const YEAR_DAYS = 365;
-
 export function getPlayer(state: GameState): Character {
   const player = state.characters.find((c) => c.id === state.playerId);
   if (!player) throw new Error(`Player character ${state.playerId} not found`);
@@ -75,12 +73,12 @@ function log(state: GameState, c: Character, kind: ChronicleKind, template: stri
 
 function createCharacter(state: GameState, content: Content, surname: string, age: Content['settings']['startAge']): Character {
   const { settings, names } = content;
-  const ageDays = int(state.rng, age.min * YEAR_DAYS, age.max * YEAR_DAYS + YEAR_DAYS - 1);
+  const births = birthDayRange(state.day, age.min, age.max);
   const character: Character = {
     id: `c${state.nextId}`,
     givenName: pick(state.rng, names.given),
     surname,
-    birthDay: state.day - ageDays,
+    birthDay: int(state.rng, births.earliest, births.latest),
     deathDay: null,
     health: int(state.rng, settings.startHealth.min, settings.startHealth.max),
     money: 0,
@@ -191,8 +189,8 @@ function rollEvent(state: GameState, content: Content, actionId: string): EventD
   if (!chancePer(state.rng, settings.eventChancePer10k, 10000)) return null;
   const candidates = content.events.filter((e) => {
     if (e.actions && !e.actions.includes(actionId)) return false;
-    const last = state.lastFired[e.id];
-    return last === undefined || state.day - last >= settings.eventRepeatCooldownDays;
+    if (!Object.hasOwn(state.lastFired, e.id)) return true;
+    return state.day - (state.lastFired[e.id] ?? 0) >= settings.eventRepeatCooldownDays;
   });
   if (candidates.length === 0) return null;
   return weightedPick(state.rng, candidates, (e) => e.weight);

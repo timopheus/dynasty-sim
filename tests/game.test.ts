@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { apply, checkInvariants, deserialize, getPlayer, newGame, serialize } from '../src/core/game';
-import { fixtureContent } from './fixtures/content';
+import { ageYears } from '../src/core/calendar';
+import { DAILY_DEATH_DENOMINATOR, dailyDeathChance, type Character } from '../src/core/character';
+import type { Content } from '../src/core/content/schema';
+import { apply, checkInvariants, deserialize, getPlayer, newGame, serialize, type GameState } from '../src/core/game';
+import { fixtureContent, realContent } from './fixtures/content';
+
+/** Starts an action and answers every event with the given option; returns [day, eventId] of each event. */
+function runAction(state: GameState, content: Content, actionId: string, option = 1): [number, string][] {
+  const events: [number, string][] = [];
+  apply(state, content, { type: 'start', actionId });
+  while (state.status === 'awaiting_choice' && state.pendingEvent) {
+    events.push([state.day, state.pendingEvent.eventId]);
+    apply(state, content, { type: 'choose', option });
+  }
+  return events;
+}
 
 describe('game loop', () => {
   it('starts with one living character and a chronicle entry', () => {
@@ -62,18 +76,70 @@ describe('game loop', () => {
     expect(state.playerId).toBe(heir?.id);
     expect(heir?.surname).toBe('Fixture');
     expect(heir?.money).toBe(10);
+    expect(heir && ageYears(heir.birthDay, state.day)).toBe(18);
     expect(state.status).toBe('awaiting_action');
     expect(state.activeAction).toBeNull();
     expect(state.chronicle.slice(-2).map((e) => e.kind)).toEqual(['death', 'succession']);
     expect(checkInvariants(state, content)).toEqual([]);
   });
+
+  it('creates the first head of the house within the configured age range', () => {
+    const content = realContent();
+    const { min, max } = content.settings.startAge;
+    for (let seed = 0; seed < 1000; seed++) {
+      const founder = getPlayer(newGame(seed, content));
+      const age = ageYears(founder.birthDay, 0);
+      expect(age >= min && age <= max, `seed ${seed}: age ${age}`).toBe(true);
+    }
+  });
+});
+
+describe('event rules', () => {
+  it('keeps the minimum gap between events', () => {
+    const content = fixtureContent({ eventChancePer10k: 10000, minDaysBetweenEvents: 5 });
+    const days = runAction(newGame(1, content), content, 'wait').map(([day]) => day);
+    expect(days).toEqual([1, 6, 11, 16, 21, 26]);
+  });
+
+  it('does not repeat an event before its cooldown ends', () => {
+    const content = fixtureContent({ eventChancePer10k: 10000, eventRepeatCooldownDays: 10 });
+    expect(runAction(newGame(1, content), content, 'wait')).toEqual([
+      [1, 'ping'],
+      [11, 'ping'],
+      [21, 'ping'],
+    ]);
+  });
+
+  it('fires action-bound events only during their actions', () => {
+    const content = fixtureContent({ eventChancePer10k: 10000 });
+    const state = newGame(1, content);
+    const duringWait = runAction(state, content, 'wait').map(([, id]) => id);
+    expect(new Set(duringWait)).toEqual(new Set(['ping']));
+    const duringRest = runAction(state, content, 'rest').map(([, id]) => id);
+    expect(duringRest).toContain('rest_only');
+  });
+});
+
+describe('mortality', () => {
+  const person = (birthDay: number, health: number): Character => ({
+    id: 'c1', givenName: 'A', surname: 'B', birthDay, deathDay: null, health, money: 0,
+  });
+
+  it('grows with age and poor health; zero health is certain death', () => {
+    const age20 = -20 * 366;
+    expect(dailyDeathChance(person(age20, 100), 0)).toBe(1000);
+    expect(dailyDeathChance(person(age20, 30), 0)).toBe(4000);
+    expect(dailyDeathChance(person(-95 * 366, 100), 0)).toBe(40000);
+    expect(dailyDeathChance(person(age20, 0), 0)).toBe(DAILY_DEATH_DENOMINATOR);
+  });
 });
 
 describe('saves', () => {
   it('continues identically after a JSON save and load mid-game', () => {
-    const content = fixtureContent({ eventChancePer10k: 3000, minDaysBetweenEvents: 2 });
+    const content = fixtureContent({ eventChancePer10k: 5000, minDaysBetweenEvents: 2 });
     const original = newGame(99, content);
     apply(original, content, { type: 'start', actionId: 'rest' });
+    expect(original.status).toBe('awaiting_choice');
     const loaded = deserialize(serialize(original), content);
     expect(loaded).toEqual(original);
 
