@@ -7,7 +7,8 @@
 #
 # Обозначения в текстах:
 #   {coward}          — человек в роли: имя-ссылка на его страницу (D-020)
-#   {coward.he}       — местоимение по полу: he/she, {.his} his/her, {.him} him/her
+#   {coward.he}       — местоимение по полу: he/she, {.his} his/her, {.him} him/her;
+#                       с заглавной — {coward.He}, #dawn.capitalize# (D-046)
 #   {second?, and {second} stands…} — кусок текста, только если роль заполнена
 #   #ambush_opening#  — символ грамматики (D-046): случайная формулировка через seed.
 #                       Текст с # — только в кавычках или блоком >-, иначе YAML
@@ -79,7 +80,7 @@ events:
         failure:
           then:
             - wound: { who: hero, kind: severe_wound }
-            - money: -15            # бандиты унесли часть груза — вычет из платы
+            - money: { who: hero, add: -15 }   # бандиты унесли часть груза — вычет из платы
           chronicle: "Badly wounded in a bandit ambush while guarding {employer}'s wine."
           # строки страниц одного события склеиваются в одну запись хроники (§9.5)
           next: thorne_shamed
@@ -137,7 +138,7 @@ events:
       - text: Pay in full
         when: { hero: { money: { min: 40 } } }       # иначе — серым: «Requires 40 crowns»
         then:
-          - money: -40
+          - money: { who: hero, add: -40 }
           - item: { who: hero, add: warhorse }
         chronicle: null             # покупка за наличные — повседневное, только журнал
       - text: Take it on credit
@@ -191,7 +192,7 @@ events:
           - { debt_amount: largest, factor: 100 }
     text: >-
       A visitor asks for you by name: {recruiter}, an officer of
-      {recruiter.realm}. {recruiter.he} has heard of {hero.known_for}.
+      {recruiter.realm}. {recruiter.He} has heard of {hero.known_for}.
       "Five years in the {recruiter.realm_adj} service, and I pay your fees today."
     options:
       - text: Sign for five years
@@ -222,7 +223,8 @@ events:
   - id: rival_accuses_at_court
     severity: heavy
     weight: 5
-    who: [hero, npc]                # и у людей мира рядом с героем (D-047)
+    who: [hero, npc]                # и у людей мира рядом с героем (D-047);
+                                    # герой не попадает в роли события человека мира
     when:
       protagonist:
         office_any: true            # есть должность, которую можно потерять
@@ -266,7 +268,7 @@ events:
               event: duel_at_dawn
               after_days: { min: 2, max: 5 }
               roles: { opponent: accuser }
-        chronicle: "{accuser} accused {protagonist.him} before the court of stealing pay. Called {accuser} out instead."
+        chronicle: "Accused before the court by {accuser} of stealing pay; called {accuser} out instead."
         ai: { base: 5, traits: { proud: 20, wrathful: 15, brave: 10 } }
 
   # ─────────────────────────────────────────────────────────────────────
@@ -289,7 +291,7 @@ events:
         where: { relation_to_protagonist: [friend] }
         optional: true              # нет друга — дуэль без секунданта
     text: >-
-      #dawn#, in the field behind the chapel. {opponent} waits with drawn
+      #dawn.capitalize#, in the field behind the chapel. {opponent} waits with drawn
       steel{second?, and {second} stands at your shoulder}.
     options:
       - text: Fight to kill
@@ -303,6 +305,7 @@ events:
             # месяцев событие-извещение даёт строку «Garrick Thorne swore revenge»
             - relation: { inherit: rival, from: opponent }
           chronicle: "Killed {opponent} in a duel and was wounded in the arm."
+        ai: { base: 10, traits: { wrathful: 10, vengeful: 10 } }
         failure:
           then:
             - wound: { who: protagonist, kind: severe_wound }
@@ -313,3 +316,4 @@ events:
           - opinion: { of: opponent, about: protagonist, value: 20, reason: spared_me, decay: years_5 }
           - relation: { end: rival, between: [protagonist, opponent] }
         chronicle: "Met {opponent} at dawn and fired into the air. The feud was ended."
+        ai: { base: 5, traits: { forgiving: 15, compassionate: 10 } }
