@@ -1,0 +1,16 @@
+import { open } from './common.mjs';
+import fs from 'fs';
+const OUT = process.argv[2] || 'out';
+fs.mkdirSync(OUT, { recursive: true });
+const { b, p } = await open(343);
+for (const s of ['stage1.js', 'stage2.js', 'report.js']) console.log(`== ${s}\n${await p.evaluate(fs.readFileSync(s, 'utf8'))}`);
+await p.waitForTimeout(1000);
+await p.screenshot({ path: `${OUT}/region.png` });
+fs.writeFileSync(`${OUT}/region.map`, await p.evaluate(() => Services.Save.prepareMapData()));
+const dl = async fn => { const [d] = await Promise.all([p.waitForEvent('download', { timeout: 120000 }), p.evaluate(fn)]); return d; };
+await (await dl(() => { window.exportToJson('Full'); })).saveAs(`${OUT}/region.json`);
+const svg = await dl(async () => { await Services.ExportMap.exportToSvg(); });
+await svg.saveAs(`${OUT}/region.svg`);
+await p.waitForTimeout(2000);
+await b.close();
+console.log('exported');
