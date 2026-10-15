@@ -39,6 +39,7 @@ events:
   # ─────────────────────────────────────────────────────────────────────
   - id: escort_ambush
     severity: heavy                 # light | medium | heavy — для рассказчика (D-045)
+                                    # нет поля who — событие для героя (по умолчанию)
     weight: 10
     when:                           # все условия должны выполняться
       action: [escort_cargo]
@@ -305,15 +306,15 @@ events:
             # месяцев событие-извещение даёт строку «Garrick Thorne swore revenge»
             - relation: { inherit: rival, from: opponent }
           chronicle: "Killed {opponent} in a duel and was wounded in the arm."
-        ai: { base: 10, traits: { wrathful: 10, vengeful: 10 } }
         failure:
           then:
             - wound: { who: protagonist, kind: severe_wound }
             - trait: { who: opponent, add: duelist_rep }
           chronicle: "Was badly wounded by {opponent} in a duel."
-      - text: Fire into the air
+        ai: { base: 10, traits: { wrathful: 10, vengeful: 10 } }
+      - text: Lower your blade and offer a hand
         then:
           - opinion: { of: opponent, about: protagonist, value: 20, reason: spared_me, decay: years_5 }
           - relation: { end: rival, between: [protagonist, opponent] }
-        chronicle: "Met {opponent} at dawn and fired into the air. The feud was ended."
+        chronicle: "Met {opponent} at dawn and lowered the blade. The feud was ended."
         ai: { base: 5, traits: { forgiving: 15, compassionate: 10 } }
