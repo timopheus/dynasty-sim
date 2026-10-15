@@ -1,0 +1,5 @@
+events:
+  - id: silence
+    weight: 1
+    text: "Nothing to choose."
+    options: []

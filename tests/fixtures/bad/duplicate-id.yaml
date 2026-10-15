@@ -1,0 +1,5 @@
+actions:
+  - id: wait
+    name: Wait again
+    duration: { min: 1, max: 2 }
+    text: "{name} waited again."

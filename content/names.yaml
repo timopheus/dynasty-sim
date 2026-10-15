@@ -1,0 +1,32 @@
+# Name pools for generated characters. Schema: NamesSchema.
+names:
+  given:
+    - Edmund
+    - Thomas
+    - William
+    - Henry
+    - Robert
+    - Richard
+    - Hugh
+    - Walter
+    - Arthur
+    - Francis
+    - Matthew
+    - Nicholas
+    - Simon
+    - Roger
+    - Anne
+    - Catherine
+    - Eleanor
+    - Margaret
+    - Isabel
+    - Joan
+  surnames:
+    - Harlow
+    - Ashby
+    - Calder
+    - Dunmore
+    - Fenwick
+    - Holloway
+    - Merrick
+    - Thorne
