@@ -44,3 +44,8 @@ rc=set()
 for r in P['routes']:
     for pt in r.get('points',[]): rc.add(pt[2])
 print('burgs off every route',[b['name'] for b in bu if b['cell'] not in rc])
+ports=[b for b in bu if b.get('port')]
+inland=[b['name'] for b in ports if not any(C[j]['h']<20 and feat[C[j]['f']]['type']=='ocean' for j in C[b['cell']]['c'])]
+print('ports',len(ports),'river/lake ports',len(inland),inland)
+print('ports with no sea route through them',[b['name'] for b in ports if b['cell'] not in {pt[2] for r in P['routes'] if r.get('group')=='searoutes' for pt in r['points']}])
+print('routes',{g:sum(1 for r in P['routes'] if r.get('group')==g) for g in ('roads','trails','searoutes')})

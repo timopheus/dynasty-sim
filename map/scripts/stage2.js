@@ -78,7 +78,9 @@
     if (cities.has(b.i)) Burgs.setGroup(b.i, 'city'); else if (b.group === 'city') Burgs.setGroup(b.i, 'town');
   }
   // 7. roads, trails and sea routes again: the capitals added above must be on them
-  for (const b of pack.burgs) if (b.i && !b.removed && !b.port && pack.features[c.f[b.cell]].group !== 'continent' && c.t[b.cell] === 1) Burgs.setPort(b.i, true); // island towns need a harbour
+  { // towns on islands off the main landmass need a harbour on the open sea
+    const land = pack.features.filter(f => f && f.land).sort((a, b) => b.cells - a.cells)[0].i;
+    for (const b of pack.burgs) if (b.i && !b.removed && !b.port && c.f[b.cell] !== land && c.c[b.cell].some(j => c.h[j] < 20 && pack.features[c.f[j]].type === 'ocean')) Burgs.setPort(b.i, true); }
   Routes.regenerate();
   // 8. sea zones: connected regions of the main sea grown from four seeds; bays of the off-map northern sea apart
   for (const z of [...pack.zones]) if (z && !z.removed) Zones.remove(z.i);
