@@ -1,3 +1,4 @@
+# expect-error: events[0].weight /.+/
 events:
   - id: half
     weight: 1.5

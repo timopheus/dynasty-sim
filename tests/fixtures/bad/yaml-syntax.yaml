@@ -1,3 +1,4 @@
+# expect-error: line /.+/
 actions:
   - id: broken
     name: "unterminated

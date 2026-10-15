@@ -1,0 +1,10 @@
+actions:
+  - id: wait
+    name: Wait
+    duration: { min: 30, max: 30 }
+    effects: { money: 1 }
+    text: "{name} waited."
+  - id: rest
+    name: Rest
+    duration: { min: 5, max: 10 }
+    text: "{name} rested."

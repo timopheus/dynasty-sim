@@ -1,0 +1,4 @@
+# Health. Schema: src/core/health/content.ts (HealthContentSchema).
+# A 0..100 scale until task 2.9 replaces it with conditions and stages (D-033).
+health:
+  startHealth: { min: 80, max: 100 }

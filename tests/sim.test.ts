@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chronicleMarkdown } from '../src/core/chronicle';
+import { chronicleMarkdown } from '../src/core/chronicle/markdown';
 import { runSim } from '../src/core/sim';
 import { realContent } from './fixtures/content';
 

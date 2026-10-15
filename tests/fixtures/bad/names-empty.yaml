@@ -1,3 +1,4 @@
+# expect-error: names.given /.+/
 names:
   given: []
   surnames: [Nobody]

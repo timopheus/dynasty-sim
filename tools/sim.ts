@@ -5,13 +5,13 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { parseArgs } from 'node:util';
-import { ageYears, formatDate } from '../src/core/calendar';
-import { fullName } from '../src/core/character';
-import { chronicleMarkdown } from '../src/core/chronicle';
+import { fullName } from '../src/core/character/character';
+import { chronicleMarkdown } from '../src/core/chronicle/markdown';
 import { loadContent } from '../src/core/content/load';
-import { getPlayer } from '../src/core/game';
 import { isValidSeed, MAX_SEED } from '../src/core/rng';
 import { runSim } from '../src/core/sim';
+import { getPlayer } from '../src/core/helpers';
+import { ageYears, formatDate } from '../src/core/time/calendar';
 import { readContentFiles } from './content-files';
 
 function fail(message: string): never {

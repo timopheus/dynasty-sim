@@ -1,3 +1,4 @@
+# expect-error: actions[0].id /lower_snake_case/
 actions:
   - id: Bad-Id
     name: Bad

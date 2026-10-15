@@ -1,3 +1,4 @@
+# expect-error: events[0].id /duplicate event id "ping"/
 events:
   - id: ping
     weight: 1

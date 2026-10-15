@@ -1,8 +1,9 @@
-import { formatDate, toYmd } from './calendar';
-import { fullName, type Character } from './character';
-import type { GameState } from './game';
+import { fullName, type CharacterBase } from '../character/character';
+import type { GameState } from '../state';
+import { formatDate, toYmd } from '../time/calendar';
+import { entryText } from './log';
 
-function lifespan(c: Character): string {
+function lifespan(c: CharacterBase): string {
   const born = toYmd(c.birthDay).year;
   return c.deathDay === null ? `b. ${born}` : `${born}–${toYmd(c.deathDay).year}`;
 }
@@ -17,10 +18,10 @@ export function chronicleMarkdown(state: GameState): string {
     `Seed ${state.seed} · ${formatDate(0)} – ${formatDate(state.day)}`,
   ];
   for (const c of state.characters) {
-    const entries = state.chronicle.filter((e) => e.characterId === c.id);
+    const entries = state.chronicle.filter((e) => e.subject === c.id);
     if (entries.length === 0) continue;
     lines.push('', `## ${fullName(c)} (${lifespan(c)})`, '');
-    for (const e of entries) lines.push(`- ${formatDate(e.day)} — ${e.text}`);
+    for (const e of entries) lines.push(`- ${formatDate(e.day)} — ${entryText(e)}`);
   }
   return `${lines.join('\n')}\n`;
 }

@@ -1,0 +1,2 @@
+health:
+  startHealth: { min: 100, max: 100 }

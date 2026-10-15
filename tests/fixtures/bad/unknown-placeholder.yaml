@@ -1,3 +1,4 @@
+# expect-error: actions[0].text /unknown placeholder \{title\}/
 actions:
   - id: bow
     name: Bow

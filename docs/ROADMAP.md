@@ -31,7 +31,7 @@
 | ID | Задача | Модуль | Зависит от | Модель | Волна | Статус |
 |---|---|---|---|---|---|---|
 | 2.0 | План этапа | `docs/` | — | Opus | — | ✅ [#12](https://github.com/timopheus/dynasty-sim/pull/12) |
-| 2.1 | Модули ядра и точки подключения | весь `src/core`, `tests/`, CLAUDE.md | — | Opus | 1 | ⬜ |
+| 2.1 | Модули ядра и точки подключения | весь `src/core`, `tests/`, CLAUDE.md | — | Opus | 1 | ✅ [#13](https://github.com/timopheus/dynasty-sim/pull/13) |
 | 2.2 | Время и действия как данные | `src/core/time/`, `src/core/actions/`, `src/core/conditions/`, `src/core/events/` (только схема варианта), `content/actions.yaml`, `content/time.yaml` | 2.1 | Sonnet | 2 | ⬜ |
 | 2.3 | Персонаж: характеристики, черты, пол | `src/core/character/`, `content/traits/`, `content/names.yaml`, `content/settings.yaml` (тексты), CLAUDE.md, `.claude/agents/content-writer.md` | 2.1 | Sonnet | 2 | ⬜ |
 | 2.7 | Метрики прогона | `src/core/metrics/`, `tools/sim.ts`, CLAUDE.md (команды) | 2.1 | Sonnet | 2 | ⬜ |

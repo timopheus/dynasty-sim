@@ -8,7 +8,7 @@ const ALLOWED_PACKAGES = ['yaml', 'zod'];
 /** Things that would make the core depend on a host or break determinism (D-003). */
 const BANNED: [RegExp, string][] = [
   [/\bMath\.random\b/, 'Math.random (use src/core/rng.ts)'],
-  [/\bDate\b/, 'Date (use src/core/calendar.ts)'],
+  [/\bDate\b/, 'Date (use src/core/time/calendar.ts)'],
   [/\bperformance\b/, 'performance'],
   [/\bMath\.(exp|expm1|log|log1p|log2|log10|pow|sin|cos|tan|asin|acos|atan|atan2|sinh|cosh|tanh|cbrt|hypot)\b/, 'transcendental Math functions (results can differ between engines)'],
   [/\bwindow\b|\bdocument\b|\blocalStorage\b|\bfetch\(/, 'browser APIs'],
@@ -35,6 +35,39 @@ describe('core architecture', () => {
         }
       }
     }
+  });
+
+  // state.ts pulls in every module's initial part; a runtime import of it from a module is a cycle.
+  it('imports runtime code from state.ts only in game.ts', () => {
+    for (const file of coreFiles()) {
+      if (file === join(CORE, 'game.ts') || file === join(CORE, 'state.ts')) continue;
+      const source = readFileSync(file, 'utf8');
+      for (const [statement] of source.matchAll(/import\s[^;]*?from\s+['"][./]+state['"];/g)) {
+        expect(statement.startsWith('import type'), `${file}: ${statement}`).toBe(true);
+      }
+    }
+  });
+
+  // A runtime cycle loads one file half-initialised: tsx throws, a bundle silently drops values.
+  it('has no runtime import cycles', () => {
+    const graph = new Map<string, string[]>();
+    for (const file of coreFiles()) {
+      const deps: string[] = [];
+      for (const [, clause, spec] of readFileSync(file, 'utf8').matchAll(/^(?:import|export)\s+(?!type\b)([^;]*?)from\s+['"](\.[^'"]+)['"]/gm)) {
+        const names = /^\s*\{([^}]*)\}\s*$/.exec(clause ?? '')?.[1];
+        const typesOnly = names !== undefined && names.split(',').map((n) => n.trim()).filter(Boolean).every((n) => n.startsWith('type '));
+        if (!typesOnly && spec) deps.push(`${posix.join(posix.dirname(file.split('\\').join('/')), spec)}.ts`);
+      }
+      graph.set(file.split('\\').join('/'), deps);
+    }
+    const done = new Set<string>();
+    const visit = (file: string, path: string[]) => {
+      if (path.includes(file)) expect.fail(`import cycle: ${[...path.slice(path.indexOf(file)), file].join(' -> ')}`);
+      if (done.has(file)) return;
+      for (const dep of graph.get(file) ?? []) visit(dep, [...path, file]);
+      done.add(file);
+    };
+    for (const file of graph.keys()) visit(file, []);
   });
 
   it('does not use host APIs or non-deterministic sources', () => {
