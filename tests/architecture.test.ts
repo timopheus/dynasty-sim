@@ -53,7 +53,7 @@ describe('core architecture', () => {
     const graph = new Map<string, string[]>();
     for (const file of coreFiles()) {
       const deps: string[] = [];
-      for (const [, clause, spec] of readFileSync(file, 'utf8').matchAll(/^import\s+(?!type\b)([^;]*?)from\s+['"](\.[^'"]+)['"]/gm)) {
+      for (const [, clause, spec] of readFileSync(file, 'utf8').matchAll(/^(?:import|export)\s+(?!type\b)([^;]*?)from\s+['"](\.[^'"]+)['"]/gm)) {
         const names = /^\s*\{([^}]*)\}\s*$/.exec(clause ?? '')?.[1];
         const typesOnly = names !== undefined && names.split(',').map((n) => n.trim()).filter(Boolean).every((n) => n.startsWith('type '));
         if (!typesOnly && spec) deps.push(`${posix.join(posix.dirname(file.split('\\').join('/')), spec)}.ts`);
