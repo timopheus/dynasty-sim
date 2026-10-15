@@ -34,11 +34,11 @@
 | 2.1 | Модули ядра и точки подключения | весь `src/core`, `tests/`, CLAUDE.md | — | Opus | 1 | ⬜ |
 | 2.2 | Время и действия как данные | `src/core/time/`, `src/core/actions/`, `src/core/conditions/`, `src/core/events/` (только схема варианта), `content/actions.yaml`, `content/time.yaml` | 2.1 | Sonnet | 2 | ⬜ |
 | 2.3 | Персонаж: характеристики, черты, пол | `src/core/character/`, `content/traits/`, `content/names.yaml`, `content/settings.yaml` (тексты), CLAUDE.md, `.claude/agents/content-writer.md` | 2.1 | Sonnet | 2 | ⬜ |
-| 2.7 | Метрики прогона | `src/core/metrics/`, `tools/sim.ts` | 2.1 | Sonnet | 2 | ⬜ |
+| 2.7 | Метрики прогона | `src/core/metrics/`, `tools/sim.ts`, CLAUDE.md (команды) | 2.1 | Sonnet | 2 | ⬜ |
 | 2.9 | Здоровье и смертность | `src/core/health/`, `content/health.yaml`, `content/traits/injuries.yaml`, `content/actions.yaml` и `content/events/` (замена `health: ±N`, ограничения по полу) | 2.2, 2.3, 2.7 | Opus | 3 | ⬜ |
 | 2.5 | Население вокруг героя | `src/core/world/`, `content/population.yaml` | 2.3, 2.7 | Sonnet | 3 | ⬜ |
 | 2.6 | Хроника v1: отбор и markdown | `src/core/chronicle/`, `content/chronicle.yaml`, `src/core/events/` (пометка ▸), вывод журнала в `tools/sim.ts` | 2.9, 2.5 | Sonnet | 4 | ⬜ |
-| 2.8 | Интерфейс v1 и автосохранение | `src/ui/`, `src/core/save/` | 2.2, 2.3, 2.9 | Sonnet | 4 | ⬜ |
+| 2.8 | Интерфейс v1 и автосохранение | `src/ui/`, `src/core/save/`, `package.json` и `package-lock.json` (если берём фреймворк) | 2.2, 2.3, 2.9 | Sonnet | 4 | ⬜ |
 | 2.4 | Мнения, отношения, знакомство | `src/core/relations/`, `content/opinions.yaml` | 2.3, 2.5 | Sonnet | 4 | ⬜ |
 | 2.10 | Страницы людей и ссылки | `src/ui/`, `src/core/pages/` | 2.4, 2.6, 2.8 | Sonnet | 5 | ⬜ |
 
@@ -52,7 +52,7 @@
   - ключи условий с текстом причины недоступности — 2.2 (сезон, деньги, возраст), 2.3 (пол), 2.9 (здоровье);
   - ключи эффектов — 2.2 (`later`, `end_action`), 2.3 (`traits`), 2.9 (`wound`, `disease`, `heal`);
   - поправки к характеристикам от других модулей — 2.3 суммирует, 2.9 регистрирует штрафы стадий;
-  - множители смертности и `annualDeathChance(age)` с зафиксированной сигнатурой в `health/` — 2.9 реализует, 2.5 зовёт для дальних;
+  - множители смертности и `annualDeathChance(age)` с зафиксированной сигнатурой в `health/` — 2.1 даёт рабочую версию по нынешней таблице, 2.9 меняет реализацию, 2.5 зовёт для дальних;
   - прерывание действия — 2.2 реализует, 2.9 зовёт;
   - фаза дня и годовой тик по `detailedCharacters` — 2.5, 2.4, 2.9;
   - хуки создания персонажа и смерти — 2.3, 2.9, 2.5, 2.4;
