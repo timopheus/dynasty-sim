@@ -42,7 +42,7 @@
 - **Nov** — A son, [Piers](#piers-calder), was born.
 
 ### 1712–1713
-- **Mar 1712** — A [Karelov](#tsardom-of-karelov) recruiter paid Aubrey out of gaol in return for five years' service; the Marquis's 1,200 crowns stayed owing. Elinor stayed in Carrow. ▸
+- **Mar 1712** — A [Karelov](#tsardom-of-karelov) recruiter paid Aubrey's gaol fees and stood surety for him in return for five years' service; the Marquis's 1,200 crowns stayed owing. Elinor stayed in Carrow. ▸
 - ◆ **Apr 1713** — The [Peace of Ostrel](#marche-war) ended the Marche war. Valmont kept the duchy; Aldmere kept the trade.
 
 ### 1714–1717 · in Karelov service
@@ -111,7 +111,7 @@ Debtor: Aubrey Calder. Creditor: Ansel Ravencroft. Paid in full. The house of Ra
 |---|---|---|
 | Действия длятся от недель до месяцев, события во время действия | Время и действия как данные, планировщик | 2.2 |
 | Возраст, рана, шрам, болезнь, смерть от ран | Персонаж: черты, здоровье, смертность; пол и местоимения (his, he в образце — после D-010) | 2.3 |
-| «Назвал лжецом» → соперник на 25 лет; мнение не затухает | Мнения и отношения с причинами и затуханием | 2.4 |
+| «Назвал лжецом» → соперник на всю жизнь; мнение не затухает | Мнения и отношения с причинами и затуханием | 2.4 |
 | Торн, Равенкрофт, маркиз — жили в мире до события, Торн сменил службу | Население вокруг героя, жизнь людей без игрока | 2.5 |
 | Строки с датой, ссылками, ◆, ▸; отбор по значимости; страницы | Хроника: записи со ссылками на сущности, оценка значимости, биография и история мира | 2.6 |
 | Ссылки кликаются, страницы людей, мест, событий, долгов | Интерфейс: гиперссылки и страницы сущностей | 2.8 |
