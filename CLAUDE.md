@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Инструкции по репозиторию dynasty-sim. Правила работы (треды, PR, мерж, роли моделей, координация сессий) — в `.claude/rules/workflow.md`, он загружается автоматически. Дизайн — `docs/GDD.md`, задачи — `docs/ROADMAP.md`, решения — `docs/DECISIONS.md`, текущее состояние — `docs/STATUS.md`, история — `docs/CHANGELOG.md`.
+Инструкции по репозиторию dynasty-sim. Правила работы (треды, PR, мерж, роли моделей, координация сессий) — в `.claude/rules/workflow.md`, он загружается автоматически. Дизайн — `docs/GDD.md`, задачи — `docs/ROADMAP.md`, решения — `docs/DECISIONS.md`, текущее состояние — `docs/STATUS.md`, история — `docs/CHANGELOG.md`, идеи — `docs/IDEAS.md`.
 
 ## Стек
 - TypeScript (strict), Node 22 (`.nvmrc`). Версии зависимостей закреплены точно, обновление — отдельной задачей.
