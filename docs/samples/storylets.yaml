@@ -1,4 +1,4 @@
-# Черновой формат события (storylet) — задача 1.5, GDD §9, D-040…D-048.
+# Черновой формат события (storylet) — задача 1.5, GDD §9, D-040…D-047.
 #
 # Это образец для разговора, а не рабочий контент: валидатор его не читает,
 # схема появится на этапе 3. Пять событий взяты из образца хроники
@@ -10,7 +10,7 @@
 #   {coward.he}       — местоимение по полу: he/she, {.his} his/her, {.him} him/her
 #   {second?, and {second} stands…} — кусок текста, только если роль заполнена
 #   #ambush_opening#  — символ грамматики (D-046): случайная формулировка через seed
-# Герой в тексте события — «you» (D-048). Строка хроники пишется
+# Герой в тексте события — «you» (D-046). Строка хроники пишется
 # в третьем лице и без подлежащего, если это строка биографии героя:
 # «Wounded in a bandit ambush…».
 
@@ -97,7 +97,7 @@ events:
             chronicle: >-
               Wounded in a bandit ambush while guarding {employer}'s wine.
               Publicly named {coward} a coward and a liar.
-            # ▸ ставится сам: выбор игрока создал отношение (D-044)
+            # ▸ ставится сам: выбор игрока создал отношение (D-040)
           - text: Say nothing
             then:
               - opinion: { of: coward, about: hero, value: 10, reason: kept_my_secret, decay: years_1 }
@@ -110,7 +110,7 @@ events:
   #    «Bought a warhorse from Ravencroft on credit: 40 crowns
   #     (the Ravencroft debt). ▸»  …  1704, декабрь: «The Ravencroft debt repaid in full.»
   # Показывает: роль по знакомству и мнению, закрытый вариант с причиной
-  # (D-043), долг как сущность (D-036) и продолжение по расписанию.
+  # (D-043), долг как сущность (D-036) и «крючок» для продолжения (D-044).
   # ─────────────────────────────────────────────────────────────────────
   - id: warhorse_on_credit
     severity: light
