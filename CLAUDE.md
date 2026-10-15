@@ -21,6 +21,7 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   chronicle.ts     хроника в markdown
 src/ui/            браузерный интерфейс (main.ts, style.css)
 content/           игровой контент в YAML, тексты на английском
+map/               исходники карты из Azgaar (region.map/json/svg, D-025); как править — docs/map-guide.md
 tools/             validate.ts, sim.ts, content-files.ts (чтение content/ с диска)
 tests/             vitest; fixtures/ — тестовый контент и плохие примеры
 docs/              GDD, ROADMAP, DECISIONS, STATUS, CHANGELOG (по-русски)
