@@ -2,6 +2,9 @@
 
 Новые записи сверху: дата, ID задачи, что изменилось.
 
+## 2026-10-16 · 3.1g Проверка по характеристике роли
+- У проверки события новое поле `of: <роль>`: шанс считается по характеристике человека роли, надбавки — по нему же (Учёность лекаря, D-165, D-193). Роль может быть необязательной: пока она пуста, вариант скрыт (так лекарь `fever` из 3.12 получает бросок). Плохие примеры `event-check-of-*.yaml`, тесты в `tests/events.test.ts`. Поведение нынешнего контента не меняется; `fever` переводит 3.13.
+
 ## 2026-10-16 · 3.12 Контент: события с ролями, пачка 1
 - 13 нынешних событий переведены на новый формат (текст во втором лице, роли, проверки, `chronicle`, `mood`); `old_wound` — с `conditions_any: [old_wound]`; `fever` — с необязательной ролью лекаря (D-283).
 - 24 новых события с ролями на все действия: 5 тяжёлых со смертельным риском для героя (`escort_ambush`, `skirmish_at_the_ford`, `mutiny_in_camp`, `bear_in_the_thicket`, `duel_at_dawn`; D-282); связи (друг, соперник, покровитель) в `fellow_traveller`, `kindly_nurse`, `mutiny_in_camp`, `market_rival`, `patron_offer` и др.; цепочки: вызов → дуэль через `schedule` (`slighted_at_the_inn` → `duel_at_dawn`) и история с долгом (`lend_to_a_comrade` → `debtor_repays` / `debtor_defaults`); 4 события людей мира (`npc_quarrel`, `npc_kindness`, `npc_fever`, `npc_theft`, `ai` по чертам); 3 извещения (`lucky_find`, `news_of_an_old_comrade`, `cold_snap`); 3 события `way_up` (`priest_alms`, `odd_job_offer`, `patron_offer`).

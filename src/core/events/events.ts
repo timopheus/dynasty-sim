@@ -229,6 +229,8 @@ function flushAfter(state: GameState, pending: PendingEvent): void {
 
 /** Whether an option can be chosen now, and whether the player may see it at all (D-043). */
 export function optionState(ctx: Ctx, option: OptionDef, protagonist: Character, scope: Scope): { available: boolean; hidden: boolean; reasons: string[] } {
+  // A check of an empty optional role hides the option, like a condition naming an empty role (D-193, D-221).
+  if (option.check?.of !== undefined && scope[option.check.of] === undefined) return { available: false, hidden: true, reasons: [] };
   if (!option.when) return { available: true, hidden: false, reasons: [] };
   const report = conditionReport(ctx, protagonist, option.when, scope);
   return { available: report.met, hidden: report.hidden, reasons: report.reasons };
