@@ -54,6 +54,12 @@ function game(money: number[] = [5, 100, 200], c: Content = content): { ctx: Ctx
   return { ctx, hero, people };
 }
 
+/** The fixture events are `followup_only` to stay out of the deck; tests that roll the deck (3.7) put them in. */
+function inDeck(event: EventDef): EventDef {
+  const { followup_only: _out, ...rest } = event;
+  return rest;
+}
+
 function fire(ctx: Ctx, id: string, hero: Character) {
   return fireEvent(ctx, findEvent(ctx.content, id), hero);
 }
@@ -225,7 +231,7 @@ describe('notices', () => {
 
   it('in the day loop: a loud notice stops the action, a quiet one does not', () => {
     for (const [id, stops] of [['loud_notice', true], ['quiet_notice', false]] as const) {
-      const c = fixtureNarrator({ eventChancePer10k: 10000, minDaysBetweenEvents: 1 }, { events: [findEvent(content, id)] });
+      const c = fixtureNarrator({ eventChancePer10k: 10000, minDaysBetweenEvents: 1 }, { events: [inDeck(findEvent(content, id))] });
       const state = newGame(1, c);
       apply(state, c, { type: 'start', actionId: 'wait' });
       expect(state.status === 'awaiting_choice', id).toBe(stops);
@@ -267,7 +273,7 @@ describe('weight', () => {
 
 describe('in a run', () => {
   it('plays the engine events for 20 years with the bot without broken invariants', () => {
-    const c: Content = { ...content, narrator: { ...content.narrator!, eventChancePer10k: 3000, minDaysBetweenEvents: 1 } };
+    const c: Content = { ...content, events: content.events.map(inDeck), narrator: { ...content.narrator!, eventChancePer10k: 3000, minDaysBetweenEvents: 1 } };
     const { state, violations } = runSim(c, { seed: 3, years: 20 });
     expect(violations).toEqual([]);
     const kinds = new Set(state.chronicle.map((e) => e.kind));

@@ -1,6 +1,17 @@
-# The narrator: pace of events (D-045, D-168). Schema: src/core/narrator/content.ts (NarratorContentSchema).
-# Moved here from settings in 3.1 (D-170); the narrator task 3.7 adds tension, the bottom and the deck rules.
+# The narrator: pace of events (D-045, D-168, D-230). Schema: src/core/narrator/content.ts (NarratorContentSchema).
+# Target (D-168): 6-12 events with a choice a year; 2-4 on an action of 60 days or more, 0-1 on a short one.
 narrator:
-  eventChancePer10k: 150        # chance per day that an event fires, out of 10000
-  minDaysBetweenEvents: 20      # quiet days after any event
-  eventRepeatCooldownDays: 365  # the same event cannot repeat within this time
+  eventChancePer10k: 200        # chance per day that an event fires, on actions shorter than longActionDays
+  longActionDays: 60            # nominal length (mean of the action's range) from which an action is long
+  longActionChancePer10k: 600   # the same chance on long actions
+  minDaysBetweenEvents: 10      # quiet days after any event
+  eventRepeatCooldownDays: 365  # the same event cannot repeat within this time (cooldown_days of an event replaces it)
+  tension:                      # heavy events raise it, it fades by itself (D-231)
+    gain: { medium: 15, heavy: 40 }
+    decayPerDay: 1
+    high: 50                    # from here heavy events do not fall, light ones weigh lightFactor times more
+    lightFactor: 2
+  bottom:                       # the way up (D-017, D-165, D-233); money only until the falls of stage 6
+    when: { money_max: 10 }
+    wayUpFactor: 4              # events tagged way_up weigh this many times more at the bottom
+    forceAfterDays: 180         # this long at the bottom without one: the next roll is a way_up event
