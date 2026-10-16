@@ -176,7 +176,7 @@ events:
           result: "{name} traded insults with {rival} at the inn and came off worse."
           mood: shame
       - text: Swallow the insult
-        on: { rival: { opinion: [{ toward: hero, reason: called_coward }] } }
+        on: { rival: { opinion: [{ toward: hero, reason: no_spine }] } }
         result: "{name} let {rival}'s insult pass and drank in silence."
         mood: shame
 
@@ -223,7 +223,7 @@ events:
           mood: loss
       - text: Refuse to draw
         effects: { traits: { add: [coward] } }
-        on: { rival: { opinion: [{ toward: hero, reason: called_coward }] } }
+        on: { rival: { opinion: [{ toward: hero, reason: no_spine }] } }
         result: "{name} refused to face {rival} at dawn and went home in shame."
         chronicle: true
         mood: shame
@@ -235,7 +235,7 @@ events:
       debtor:
         pick: circle
         where: { money_max: 40 }
-    text: "{debtor} takes you aside, hat in hand. A bad season, a bad debt: could you lend 25 crowns until the harvest?"
+    text: "{debtor} takes you aside, hat in hand. A bad season, a bad debt: could you lend 25 crowns for a few weeks?"
     options:
       - text: Lend the 25 crowns
         when: { money_min: 25 }
@@ -244,7 +244,7 @@ events:
           opinion: [{ toward: debtor, reason: owes_me }]
           story: { open: debt_owed, days: 300, fallback: [debtor_defaults], roles: { debtor: debtor } }
         on: { debtor: { money: 25, opinion: [{ toward: hero, reason: favour }] } }
-        result: "{name} lent {debtor} 25 crowns until the harvest."
+        result: "{name} lent {debtor} 25 crowns."
         mood: joy
       - text: Refuse
         on: { debtor: { opinion: [{ toward: hero, reason: slighted }] } }
@@ -284,7 +284,7 @@ events:
     roles:
       debtor: { pick: given }
     mood: anger
-    text: "The year is out and {debtor} has not come. Someone says {debtor.he} was seen spending coin at a fair two counties away."
+    text: "The months have gone by and {debtor} has not come. Someone says {debtor.he} was seen spending coin at a fair two counties away."
     options:
       - text: Write the debt off
         effects:
@@ -316,8 +316,7 @@ events:
     text: "You have not eaten properly in two days. {priest} stops you at the church door and looks at your coat, then at your face."
     options:
       - text: Accept the bread and the coins
-        effects: { money: 12 }
-        on: { priest: { opinion: [{ toward: hero, reason: gift }] } }
+        effects: { money: 12, opinion: [{ toward: priest, reason: gift }] }
         result: "{name}, with an empty purse, was given alms by {priest}."
         mood: loss
       - text: Ask for work instead of charity
@@ -356,6 +355,7 @@ events:
 
   - id: lucky_find
     weight: 4
+    cooldown_days: 730
     effects: { money: 12 }
     mood: joy
     text: "Among the stones of a dry ditch you find a purse someone lost. There is no name inside it, only twelve crowns."
@@ -363,6 +363,7 @@ events:
 
   - id: news_of_an_old_comrade
     weight: 4
+    cooldown_days: 1460
     roles:
       comrade: { pick: known }
     on: { comrade: { opinion: [{ toward: hero, reason: comrade }] } }

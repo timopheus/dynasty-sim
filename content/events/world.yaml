@@ -35,11 +35,9 @@ events:
     who: npc
     weight: 6
     cooldown_days: 180
-    when: { money_min: 20 }
     roles:
       other:
         pick: circle
-        where: { money_max: 20 }
     text: "{name} sees that {other} has not eaten properly in days."
     options:
       - text: Help {other} quietly
@@ -69,7 +67,6 @@ events:
     options:
       - text: Send for a physician
         ai: { base: 6, traits: { diligent: 3, trusting: 3, craven: 3, greedy: -3 } }
-        when: { money_min: 10 }
         effects: { money: -10 }
         result: "{name} paid for a physician{physician?, {physician},} and got over a fever."
         mood: joy
@@ -83,11 +80,9 @@ events:
     who: npc
     weight: 4
     cooldown_days: 365
-    when: { money_max: 25 }
     roles:
       victim:
         pick: circle
-        where: { money_min: 20 }
     text: "{name} is hungry, and {victim} has left a coat with a heavy purse hanging on a peg."
     options:
       - text: Take the purse

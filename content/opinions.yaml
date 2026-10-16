@@ -26,6 +26,7 @@ opinions:
     - { id: cheated_me, name: Cheated me, value: -45, kind: harm, decay: { kind: fade, days: 1825 } }
     - { id: comrade, name: Stood beside me, value: 25, kind: benefit, decay: { kind: fade, days: 1825 } }
     - { id: nursed_me, name: Nursed me, value: 30, kind: benefit, decay: { kind: fade, days: 1825 } }
+    - { id: no_spine, name: Showed no spine, value: -20, kind: harm, decay: { kind: fade, days: 1460 } }
     - { id: stood_by_me, name: Stood by me when it counted, value: 40, kind: benefit, decay: { kind: fade, days: 1825 } }
 
   # Memory of the holder: fade 0 never forgets, 200 forgets twice as fast; scale is the weight of the reason.
