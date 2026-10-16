@@ -24,7 +24,7 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   modifiers.ts     поправки к характеристикам от модулей
   content/         schema.ts (верхние ключи, перекрёстные проверки), load.ts, types.ts
   модули-папки: у каждого своя часть состояния, контент, хуки, фазы, инварианты
-  character/       имя, рождение, деньги, плейсхолдеры (2.3)
+  character/       пол, имя, рождение, деньги, характеристики (stats.ts), черты (holding.ts, traits.ts), генерация (generate.ts), местоимения (2.3)
   health/          здоровье, смертность annualDeathChance, фазы здоровья и смерти (2.9)
   time/            calendar.ts, фазы нового дня и назначенного (2.2)
   actions/         действия: начало, конец, прерывание (2.2)
@@ -34,6 +34,7 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   relations/       мнения и отношения (2.4)
   chronicle/       log() — единственная запись в хронику, markdown (2.6)
   save/            serialize/deserialize, версия формата (2.8)
+  metrics/         computeMetrics(state) — метрики прогона (2.7), сводка и сравнение
   text/            шаблоны: части текста и ссылки
 src/ui/            браузерный интерфейс (main.ts, style.css)
 content/           игровой контент в YAML, тексты на английском
@@ -51,7 +52,10 @@ npm run dev                             # игра в браузере; ?seed=N 
 npm run typecheck                       # tsc для core, ui и tools+tests
 npm test                                # vitest
 npm run validate                        # проверка контента по схеме
-npm run sim -- --years 300 --seed 42    # прогон; хроника в out/chronicle-seed42-300y.md
+npm run sim -- --years 300 --seed 42    # прогон; хроника в out/chronicle-seed42-300y.md, метрики в конце
+npm run sim -- --years 300 --seed 1 --runs 10          # seeds 1..10, метрики: min / медиана / max
+npm run -s sim -- --years 300 --seed 1 --runs 10 --json > a.json   # то же в JSON; -s нужен, иначе npm пишет заголовок в файл
+npm run -s sim -- --compare a.json b.json # медианы двух файлов рядом, только изменившиеся
 npm run check                           # typecheck + test + validate + sim 50 лет
 npm run build                           # сборка в dist/
 ```
@@ -79,7 +83,7 @@ CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck,
 ## Контент (content/)
 - Любой `*.yaml` в `content/` — объект с верхними ключами модулей (`SINGLE_KEYS`, `OPTIONAL_KEYS`, `LIST_KEYS` в `content/schema.ts`): одиночные `settings`, `names`, `health` — ровно по одному разу; необязательные `time`, `population`, `opinions`, `chronicle` — не больше одного раза; списки `actions`, `events`, `traits` складываются. Файлы сливаются в алфавитном порядке пути.
 - Схема ключа лежит в модуле (`actions/content.ts` и т. п.). Новое поле: схема модуля → перекрёстная проверка модуля → плохой пример в `tests/fixtures/bad/`. Первая строка плохого примера — ожидаемая ошибка: `# expect-error: <путь> /<регулярка>/`; тест находит файлы сам.
-- id в `lower_snake_case`. Тексты на английском, плейсхолдеры только `{name}` и `{age}` (список — `character/text.ts`). Без местоимений: пола у персонажей пока нет.
+- id в `lower_snake_case`. Тексты на английском, плейсхолдеры `{name}`, `{age}` и местоимения того же персонажа `{he} {him} {his} {He} {His}` (список — `character/text.ts`, D-055). Пол задан у каждого персонажа: тексты читаются для обоих полов.
 - После правки контента: `npm run validate` и прогон.
 
 ## Тесты

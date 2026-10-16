@@ -1,0 +1,164 @@
+# Character traits (GDD 8.2). Each has an opposite; gaining one removes the other.
+# `gained` is the chronicle line written when a character gains the trait.
+traits:
+  - id: proud
+    name: Proud
+    category: character
+    opposite: humble
+    stats: { diplomacy: -1, martial: 1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} grew proud and stopped bowing to anyone."
+
+  - id: humble
+    name: Humble
+    category: character
+    opposite: proud
+    stats: { diplomacy: 1, prowess: -1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} put pride aside and learned to be humble."
+
+  - id: brave
+    name: Brave
+    category: character
+    opposite: craven
+    stats: { prowess: 2 }
+    visibility: normal
+    weight: 4
+    gained: "{name} found courage that {he} had not known before."
+
+  - id: craven
+    name: Craven
+    category: character
+    opposite: brave
+    stats: { prowess: -2, martial: -1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} lost {his} nerve and could not shake the fear."
+
+  - id: honest
+    name: Honest
+    category: character
+    opposite: deceitful
+    stats: { intrigue: -2, diplomacy: 1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} came to value plain dealing above profit."
+
+  - id: deceitful
+    name: Deceitful
+    category: character
+    opposite: honest
+    stats: { intrigue: 2, diplomacy: -1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} learned that a convenient lie can be worth more than the truth."
+
+  - id: generous
+    name: Generous
+    category: character
+    opposite: greedy
+    stats: { diplomacy: 1, stewardship: -1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} became open-handed with {his} purse."
+
+  - id: greedy
+    name: Greedy
+    category: character
+    opposite: generous
+    stats: { stewardship: 2, diplomacy: -1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} grew tight-fisted and counted every coin."
+
+  - id: vengeful
+    name: Vengeful
+    category: character
+    opposite: forgiving
+    stats: { intrigue: 1, diplomacy: -1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} swore never to forget a wrong."
+
+  - id: forgiving
+    name: Forgiving
+    category: character
+    opposite: vengeful
+    stats: { diplomacy: 2, intrigue: -1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} learned to let old wrongs lie."
+
+  - id: ambitious
+    name: Ambitious
+    category: character
+    opposite: content
+    stats: { stewardship: 1, martial: 1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} began to look for a place higher than {his} own."
+
+  - id: content
+    name: Content
+    category: character
+    opposite: ambitious
+    stats: { stewardship: -1, learning: 1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} stopped chasing advancement and settled into what {he} had."
+
+  - id: wrathful
+    name: Wrathful
+    category: character
+    opposite: calm
+    stats: { prowess: 1, diplomacy: -2 }
+    visibility: normal
+    weight: 4
+    gained: "{name} lost {his} temper once too often and became known for it."
+
+  - id: calm
+    name: Calm
+    category: character
+    opposite: wrathful
+    stats: { diplomacy: 1, martial: 1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} cooled {his} temper and met trouble with a steady head."
+
+  - id: diligent
+    name: Diligent
+    category: character
+    opposite: lazy
+    stats: { stewardship: 2, learning: 1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} turned to steady work and kept at it."
+
+  - id: lazy
+    name: Lazy
+    category: character
+    opposite: diligent
+    stats: { stewardship: -2, learning: -1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} fell into idle habits and let work slide."
+
+  - id: trusting
+    name: Trusting
+    category: character
+    opposite: suspicious
+    stats: { diplomacy: 1, intrigue: -2 }
+    visibility: normal
+    weight: 4
+    gained: "{name} began to take people at their word."
+
+  - id: suspicious
+    name: Suspicious
+    category: character
+    opposite: trusting
+    stats: { intrigue: 2, diplomacy: -1 }
+    visibility: normal
+    weight: 4
+    gained: "{name} learned to trust no one without cause."

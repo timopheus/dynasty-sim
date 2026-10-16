@@ -1,0 +1,3 @@
+# expect-error: traits /needs a gained line/
+traits:
+  - { id: tt_a, name: A, category: character, visibility: normal }

@@ -1,26 +1,34 @@
-# Name pools for generated characters. Schema: NamesSchema.
+# Name pools and character texts. Schema: NamesSchema (src/core/character/content.ts).
 names:
   given:
-    - Edmund
-    - Thomas
-    - William
-    - Henry
-    - Robert
-    - Richard
-    - Hugh
-    - Walter
-    - Arthur
-    - Francis
-    - Matthew
-    - Nicholas
-    - Simon
-    - Roger
-    - Anne
-    - Catherine
-    - Eleanor
-    - Margaret
-    - Isabel
-    - Joan
+    male:
+      - Edmund
+      - Thomas
+      - William
+      - Henry
+      - Robert
+      - Richard
+      - Hugh
+      - Walter
+      - Arthur
+      - Francis
+      - Matthew
+      - Nicholas
+      - Simon
+      - Roger
+    female:
+      - Anne
+      - Catherine
+      - Eleanor
+      - Margaret
+      - Isabel
+      - Joan
+      - Mary
+      - Alice
+      - Susanna
+      - Judith
+      - Frances
+      - Lucy
   surnames:
     - Harlow
     - Ashby
@@ -30,3 +38,21 @@ names:
     - Holloway
     - Merrick
     - Thorne
+  # Words for stat values: the last step whose `from` is not above the value.
+  statScale:
+    - { from: 0, word: Wretched }
+    - { from: 4, word: Poor }
+    - { from: 8, word: Average }
+    - { from: 12, word: Good }
+    - { from: 16, word: Excellent }
+    - { from: 20, word: Brilliant }
+  # Fame steps, from a private person to someone known to all.
+  fame:
+    - Private person
+    - Local figure
+    - Known across the realm
+    - Known to all
+  # Shown on an action that needs one sex, to a character of the other.
+  requiresSex:
+    male: "Closed to women in this age."
+    female: "Open only to women."

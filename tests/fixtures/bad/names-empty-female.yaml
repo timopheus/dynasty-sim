@@ -1,0 +1,7 @@
+# expect-error: names.given.female /Too small/
+names:
+  given: { male: [Arthur], female: [] }
+  surnames: [Nobody]
+  statScale: [{ from: 0, word: Poor }]
+  fame: [A, B, C, D]
+  requiresSex: { male: "m", female: "f" }

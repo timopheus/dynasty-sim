@@ -1,0 +1,3 @@
+# expect-error: traits /needs education/
+traits:
+  - { id: tt_edu, name: Edu, category: education, visibility: normal }

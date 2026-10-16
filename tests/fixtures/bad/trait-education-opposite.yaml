@@ -1,0 +1,3 @@
+# expect-error: traits /education trait has no opposite/
+traits:
+  - { id: tt_e, name: E, category: education, visibility: normal, opposite: strong, education: { stat: learning, level: 1 } }

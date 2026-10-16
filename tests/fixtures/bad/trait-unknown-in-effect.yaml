@@ -1,0 +1,9 @@
+# expect-error: events /unknown trait "tt_ghost"/
+events:
+  - id: tt_event
+    weight: 1
+    text: "Something happens."
+    options:
+      - text: Go on
+        result: "{name} went on."
+        effects: { traits: { add: [tt_ghost] } }

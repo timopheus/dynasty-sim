@@ -17,6 +17,6 @@ if (!result.ok) {
 const { content } = result;
 console.log(
   `Content OK: ${files.length} files, ${content.actions.length} actions, ` +
-    `${content.events.length} events, ${content.names.given.length} given names, ` +
+    `${content.events.length} events, ${content.names.given.male.length + content.names.given.female.length} given names, ` +
     `${content.names.surnames.length} surnames.`,
 );
