@@ -1,21 +1,17 @@
-import { housePage } from '../house/page';
-import { heirloomPage } from '../heirloom/page';
-import type { EntityPage } from '../pages/entity';
 import type { Ctx, GameState } from '../state';
 
 /**
- * A kind of entity (D-311): the prefix of its ids, the word of its address and the function of its page. A person keeps
- * their own page (D-150), so the kind of a person has no common page.
+ * A kind of entity (D-311): the prefix of its ids, the word of its address and how to tell that one exists. The page of
+ * a kind lives in `pages/entity.ts` (`ENTITY_PAGES`): this file is imported by the chronicle invariant, so it must not
+ * reach the pages, the archive or the modules that write to the chronicle.
  */
 export interface EntityKind {
   /** One letter every id of the kind starts with, followed by digits. */
   prefix: string;
   /** Word in the address `#/<word>/<id>`. */
   word: string;
-  /** Common page of the entity, or null when there is no such entity. Absent for a person. */
-  page?: (ctx: Ctx, id: string) => EntityPage | null;
-  /** Whether the entity exists; by default the kind's own page is built (null = absent). */
-  exists?: (state: GameState, id: string) => boolean;
+  /** Whether the entity exists, by the hot state only (D-312): what the player has seen does not matter here. */
+  exists: (state: GameState, id: string) => boolean;
 }
 
 /**
@@ -44,8 +40,8 @@ export function makeEntityRegistry(kinds: readonly EntityKind[]): EntityRegistry
 /** Kinds of stage 4: a person, a house (4.7), an heirloom (4.9). Later stages add theirs here. */
 export const ENTITY_KINDS: EntityRegistry = makeEntityRegistry([
   { prefix: 'c', word: 'person', exists: (state, id) => state.characters.some((c) => c.id === id) },
-  { prefix: 'h', word: 'house', page: housePage },
-  { prefix: 'i', word: 'heirloom', page: heirloomPage },
+  { prefix: 'h', word: 'house', exists: (state, id) => state.houses.some((h) => h.id === id) },
+  { prefix: 'i', word: 'heirloom', exists: (state, id) => state.heirlooms.some((h) => h.id === id) },
 ]);
 
 const ID = /^([a-z])\d+$/;
@@ -63,8 +59,5 @@ export function wordOf(id: string, kinds: EntityRegistry = ENTITY_KINDS): string
 
 /** Whether the id names an existing entity of any kind. */
 export function entityExists(ctx: Ctx, id: string, kinds: EntityRegistry = ENTITY_KINDS): boolean {
-  const kind = kindOf(id, kinds);
-  if (!kind) return false;
-  if (kind.exists) return kind.exists(ctx.state, id);
-  return kind.page?.(ctx, id) != null;
+  return kindOf(id, kinds)?.exists(ctx.state, id) ?? false;
 }

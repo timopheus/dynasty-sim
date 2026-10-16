@@ -1,5 +1,7 @@
 import { allChronicle } from '../archive/archive';
 import { ENTITY_KINDS, kindOf, type EntityRegistry } from '../entities/registry';
+import { heirloomPage } from '../heirloom/page';
+import { housePage } from '../house/page';
 import type { ChronicleEntry } from '../chronicle/log';
 import type { Ctx } from '../state';
 import type { TextPart } from '../text/text';
@@ -34,22 +36,27 @@ export function entityChronicle(ctx: Ctx, id: string): ChronicleEntry[] {
   const all = allChronicle(ctx.state);
   for (let i = all.length - 1; i >= 0 && out.length < ENTITY_ENTRY_LIMIT; i--) {
     const e = all[i] as ChronicleEntry;
+    // the subject of a line is always a person, so a house or an heirloom is found by its link; a person by either
     if (e.level === 'chronicle' && (e.subject === id || e.parts.some((p) => typeof p !== 'string' && p.id === id))) out.push(e);
   }
   return out.reverse();
 }
 
+/** Pages of the common kind by prefix (D-311); 4.7 and 4.9 fill the functions, a later stage adds its kinds here. A person has their own page. */
+export type EntityPages = Readonly<Record<string, (ctx: Ctx, id: string) => EntityPage | null>>;
+export const ENTITY_PAGES: EntityPages = { h: housePage, i: heirloomPage };
+
 /**
  * The page of the entity with this id, or null for an unknown id (D-311). A pure query: the page of a person for
  * `c…`, the common page of the kind for any other id (the kind decides what the player may see).
  */
-export function entityPage(ctx: Ctx, id: string, kinds: EntityRegistry = ENTITY_KINDS): AnyPage | null {
+export function entityPage(ctx: Ctx, id: string, kinds: EntityRegistry = ENTITY_KINDS, pages: EntityPages = ENTITY_PAGES): AnyPage | null {
   const kind = kindOf(id, kinds);
   if (!kind) return null;
-  if (!kind.page) {
-    const page = kind.prefix === 'c' ? personPage(ctx, id) : null;
+  if (kind.prefix === 'c') {
+    const page = personPage(ctx, id);
     return page ? { type: 'person', page } : null;
   }
-  const page = kind.page(ctx, id);
+  const page = pages[kind.prefix]?.(ctx, id) ?? null;
   return page ? { type: 'entity', page } : null;
 }

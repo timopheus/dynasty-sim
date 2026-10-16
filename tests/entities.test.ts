@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { chronicleProblems } from '../src/core/chronicle/log';
 import { chronicleMarkdown } from '../src/core/chronicle/markdown';
@@ -5,7 +6,7 @@ import { ENTITY_KINDS, entityExists, kindOf, makeEntityRegistry, wordOf, type En
 import { apply, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
-import { entityPage, type EntityPage } from '../src/core/pages/entity';
+import { entityChronicle, entityPage, type EntityPage, type EntityPages } from '../src/core/pages/entity';
 import { personPage } from '../src/core/pages/person';
 import { serialize } from '../src/core/save/save';
 import type { Ctx } from '../src/core/state';
@@ -16,9 +17,11 @@ const content = loadOrThrow(BASE_FILES);
 
 // A sample kind of the test: places `p…` do not exist yet (D-311 reserves the letter), so the sample takes `z`.
 function sampleKind(known: string[]): EntityKind {
-  const page = (_ctx: Ctx, id: string): EntityPage | null =>
-    known.includes(id) ? { id, kind: 'sample', title: `Sample ${id}`, subtitle: 'A sample', facts: [{ label: 'Owner', parts: ['by ', { id: 'c1', name: 'Someone' }] }], chronicle: [] } : null;
-  return { prefix: 'z', word: 'sample', page };
+  return { prefix: 'z', word: 'sample', exists: (_state, id) => known.includes(id) };
+}
+
+function samplePages(known: string[]): EntityPages {
+  return { z: (_ctx, id): EntityPage | null => (known.includes(id) ? { id, kind: 'sample', title: `Sample ${id}`, subtitle: 'A sample', facts: [{ label: 'Owner', parts: ['by ', { id: 'c1', name: 'Someone' }] }], chronicle: [] } : null) };
 }
 
 function setup() {
@@ -40,11 +43,11 @@ describe('registry of kinds (D-311)', () => {
   });
 
   it('refuses a repeated prefix or word, and a reserved or malformed prefix', () => {
-    const a: EntityKind = { prefix: 'z', word: 'a' };
-    expect(() => makeEntityRegistry([a, { prefix: 'z', word: 'b' }])).toThrow(/used twice/);
-    expect(() => makeEntityRegistry([a, { prefix: 'y', word: 'a' }])).toThrow(/used twice/);
-    expect(() => makeEntityRegistry([{ prefix: 'r', word: 'relation' }])).toThrow(/reserved/);
-    expect(() => makeEntityRegistry([{ prefix: 'zz', word: 'a' }])).toThrow(/one lowercase letter/);
+    const a: EntityKind = { prefix: 'z', word: 'a', exists: () => false };
+    expect(() => makeEntityRegistry([a, { prefix: 'z', word: 'b', exists: () => false }])).toThrow(/used twice/);
+    expect(() => makeEntityRegistry([a, { prefix: 'y', word: 'a', exists: () => false }])).toThrow(/used twice/);
+    expect(() => makeEntityRegistry([{ prefix: 'r', word: 'relation', exists: () => false }])).toThrow(/reserved/);
+    expect(() => makeEntityRegistry([{ prefix: 'zz', word: 'a', exists: () => false }])).toThrow(/one lowercase letter/);
     expect(makeEntityRegistry(ENTITY_KINDS)).toBe(ENTITY_KINDS);
   });
 });
@@ -67,16 +70,24 @@ describe('links in the chronicle point to entities of any kind', () => {
   });
 });
 
+describe('registry stays light', () => {
+  it('imports no runtime module: the chronicle invariant imports it, so it must not reach pages, archive or writers', () => {
+    const src = readFileSync('src/core/entities/registry.ts', 'utf8');
+    const runtime = [...src.matchAll(/^import\s+(?!type\b)[^;]*from\s+['"]([^'"]+)['"]/gm)].map((m) => m[1]);
+    expect(runtime).toEqual([]);
+  });
+});
+
 describe('common page of an entity', () => {
   it('is built from the kind, does not change the state and ignores unknown ids', () => {
     const { ctx, hero } = setup();
     const kinds = makeEntityRegistry([...ENTITY_KINDS, sampleKind(['z1'])]);
     const before = serialize(ctx.state);
-    const found = entityPage(ctx, 'z1', kinds);
+    const found = entityPage(ctx, 'z1', kinds, samplePages(['z1']));
     expect(found).toEqual({ type: 'entity', page: expect.objectContaining({ id: 'z1', title: 'Sample z1' }) });
-    expect(entityPage(ctx, 'z2', kinds)).toBeNull();
-    expect(entityPage(ctx, 'q1', kinds)).toBeNull();
-    expect(entityPage(ctx, hero.id, kinds)).toEqual({ type: 'person', page: personPage(ctx, hero.id) });
+    expect(entityPage(ctx, 'z2', kinds, samplePages(['z1']))).toBeNull();
+    expect(entityPage(ctx, 'q1', kinds, samplePages(['z1']))).toBeNull();
+    expect(entityPage(ctx, hero.id, kinds, samplePages(['z1']))).toEqual({ type: 'person', page: personPage(ctx, hero.id) });
     expect(serialize(ctx.state)).toBe(before);
   });
 
@@ -84,6 +95,23 @@ describe('common page of an entity', () => {
     const { ctx } = setup();
     expect(entityPage(ctx, 'h1')).toBeNull();
     expect(entityPage(ctx, 'i1')).toBeNull();
+  });
+});
+
+describe('chronicle of an entity', () => {
+  it('takes the last 30 lines of level chronicle that link to it, newest last, and skips the journal', () => {
+    const { ctx, hero } = setup();
+    ctx.state.chronicle.length = 0;
+    for (let n = 0; n < 35; n++) {
+      ctx.state.chronicle.push({ day: n, subject: hero.id, kind: 'event', level: 'chronicle', parts: [`Line ${n} `, { id: 'h1', name: 'House' }] });
+      ctx.state.chronicle.push({ day: n, subject: hero.id, kind: 'event', level: 'journal', parts: [{ id: 'h1', name: 'House' }] });
+    }
+    ctx.state.chronicle.push({ day: 40, subject: hero.id, kind: 'event', level: 'chronicle', parts: ['Other'] });
+    const lines = entityChronicle(ctx, 'h1');
+    expect(lines.length).toBe(30);
+    expect(lines.every((e) => e.level === 'chronicle')).toBe(true);
+    expect(lines[0]?.day).toBe(5);
+    expect(lines.at(-1)?.day).toBe(34);
   });
 });
 
