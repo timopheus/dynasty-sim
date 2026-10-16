@@ -4,11 +4,11 @@ import { apply, newGame } from '../src/core/game';
 import { SAVE_VERSION, deserialize, jsonProblems, readSave, serialize } from '../src/core/save/save';
 import { seedRng } from '../src/core/rng';
 import { fromYmd, START_YEAR } from '../src/core/time/calendar';
-import { fixtureContent, realContent } from './fixtures/content';
+import { fixtureContent, fixtureNarrator, realContent } from './fixtures/content';
 
 describe('saves', () => {
   it('continues identically after a JSON save and load mid-game', () => {
-    const content = fixtureContent({ eventChancePer10k: 5000, minDaysBetweenEvents: 2 });
+    const content = fixtureNarrator({ eventChancePer10k: 5000, minDaysBetweenEvents: 2 });
     const original = newGame(99, content);
     apply(original, content, { type: 'start', actionId: 'rest' });
     expect(original.status).toBe('awaiting_choice');

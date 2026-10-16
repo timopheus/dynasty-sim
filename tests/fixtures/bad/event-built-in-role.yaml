@@ -1,0 +1,10 @@
+# expect-error: events[0].roles.hero /built-in role/
+events:
+  - id: bad_role
+    weight: 1
+    roles:
+      hero: { pick: circle }
+    text: "Hello."
+    options:
+      - text: Hello
+        result: "{name} said hello."

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { narratorContent } from '../src/core/narrator/content';
 import { botCommand } from '../src/core/bot';
 import { mortalityRow } from '../src/core/health/mortality';
 import { createCharacter, kill } from '../src/core/lifecycle';
@@ -107,7 +108,7 @@ describe('moves', () => {
     apply(state, content, { type: 'start', actionId: 'rest' }); // fills the circle
     const before = [...state.circle];
     // Skip chance events: only the move matters here.
-    const quiet = { ...content, settings: { ...content.settings, eventChancePer10k: 0 } };
+    const quiet = { ...content, narrator: { ...narratorContent(content), eventChancePer10k: 0 } };
     apply(state, quiet, { type: 'start', actionId: 'wait' });
     const after = state.circle;
     const gone = before.filter((id) => !after.includes(id));
@@ -129,7 +130,7 @@ describe('moves', () => {
   });
 
   it('are not applied to an interrupted action, nor twice for one action', () => {
-    const quiet = { ...content, settings: { ...content.settings, eventChancePer10k: 0 } };
+    const quiet = { ...content, narrator: { ...narratorContent(content), eventChancePer10k: 0 } };
     const state = newGame(12, quiet);
     apply(state, quiet, { type: 'start', actionId: 'rest' });
     apply(state, quiet, { type: 'start', actionId: 'wait' });
@@ -150,7 +151,7 @@ describe('moves', () => {
   it('leave the circle alone for other actions', () => {
     const state = newGame(11, content);
     apply(state, content, { type: 'start', actionId: 'rest' });
-    const quiet = { ...content, settings: { ...content.settings, eventChancePer10k: 0 } };
+    const quiet = { ...content, narrator: { ...narratorContent(content), eventChancePer10k: 0 } };
     const before = [...state.circle];
     apply(state, quiet, { type: 'start', actionId: 'rest' });
     expect(state.chronicle.filter((e) => e.kind === 'move')).toHaveLength(0);

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { narratorContent } from '../src/core/narrator/content';
 import { actionAvailability, availableActions, interruptAction } from '../src/core/actions/actions';
 import { botCommand } from '../src/core/bot';
 import { entryText } from '../src/core/chronicle/log';
@@ -6,7 +7,9 @@ import type { Content } from '../src/core/content/schema';
 import { apply, DAY_PHASES, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
-import { kill } from '../src/core/lifecycle';
+import { conditionReport, unmetConditions } from '../src/core/condition-keys';
+import { applyEffects } from '../src/core/effects';
+import { createCharacter, kill } from '../src/core/lifecycle';
 import { seedRng } from '../src/core/rng';
 import { deserialize, serialize } from '../src/core/save/save';
 import type { GameState } from '../src/core/state';
@@ -28,7 +31,7 @@ function reasons(state: GameState, id: string): string[] {
 describe('day phases', () => {
   it('run in the order of D-053', () => {
     expect(DAY_PHASES.map((p) => p.id)).toEqual([
-      'new_day', 'scheduled', 'health', 'death', 'world', 'relations', 'action_end', 'event',
+      'new_day', 'scheduled', 'health', 'death', 'world', 'relations', 'action_end', 'stories', 'narrator',
     ]);
   });
 });
@@ -51,6 +54,15 @@ describe('conditions', () => {
     getPlayer(state).money = 100;
     expect(reasons(state, 'rich')).toEqual([]);
     expect(state.rng).toEqual(rng);
+  });
+
+  it('gates by money_max (3.1) with a reason from content', () => {
+    const state = newGame(1, content); // 10 crowns
+    const ctx = { state, content };
+    const hero = getPlayer(state);
+    expect(unmetConditions(ctx, hero, { money_max: 10 }, {})).toEqual([]);
+    expect(unmetConditions(ctx, hero, { money_max: 9 }, {})).toEqual(['Only with 9 crowns or less']);
+    expect(conditionReport(ctx, hero, { money_max: 9 }, {})).toEqual({ met: false, reasons: ['Only with 9 crowns or less'], hidden: false });
   });
 
   it('refuses to start an unavailable action', () => {
@@ -110,6 +122,30 @@ describe('scheduled effects', () => {
   });
 });
 
+describe('scope of roles in later (3.1)', () => {
+  it('keeps the roles of the block for the queued effects, through a save', () => {
+    const state = newGame(1, content);
+    const ctx = { state, content };
+    const hero = getPlayer(state);
+    const friend = createCharacter(ctx, { surname: 'Friend', age: { min: 30, max: 30 } });
+    const scope = { hero: hero.id, protagonist: hero.id, friend: friend.id };
+    applyEffects(ctx, hero, { later: [{ after_days: 3, effects: { money: 7, later: [{ after_days: 2, effects: { money: 1 } }] } }] }, scope);
+    expect(state.scheduled).toEqual([{ dueDay: 3, characterId: hero.id, effects: expect.anything(), scope }]);
+    expect(deserialize(serialize(state), content).scheduled[0]?.scope).toEqual(scope);
+    const money = hero.money;
+    while (state.day < 3) start(state, 'tick');
+    expect(hero.money).toBe(money + 7);
+    // The nested later was queued by the phase with the same scope.
+    expect(state.scheduled).toEqual([{ dueDay: 5, characterId: hero.id, effects: { money: 1 }, scope }]);
+  });
+
+  it('reports a role given to an unknown character', () => {
+    const state = newGame(1, content);
+    state.scheduled.push({ dueDay: 5, characterId: state.playerId, effects: {}, scope: { friend: 'c999' } });
+    expect(checkInvariants(state, content).some((p) => p.includes('role friend'))).toBe(true);
+  });
+});
+
 describe('interrupting an action', () => {
   it('end_action stops the action and writes a journal line', () => {
     const state = newGame(1, content);
@@ -151,7 +187,7 @@ describe('time content', () => {
 describe('event options', () => {
   const eventContent: Content = {
     ...content,
-    settings: { ...content.settings, eventChancePer10k: 10000, minDaysBetweenEvents: 0 },
+    narrator: { ...narratorContent(content), eventChancePer10k: 10000, minDaysBetweenEvents: 0 },
     events: content.events.filter((e) => e.id === 'stop'),
   };
 

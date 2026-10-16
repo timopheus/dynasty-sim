@@ -3,7 +3,7 @@ import { ANNUAL_DEATH_DENOMINATOR, annualDeathChance, mortalityRow } from '../he
 import { getPlayer } from '../helpers';
 import { createCharacter, kill } from '../lifecycle';
 import { chancePer, int, pick, weightedPick } from '../rng';
-import type { Character, Ctx, DayPhase, GameState } from '../state';
+import type { Character, Ctx, DayPhase, GameState, NewGameHook } from '../state';
 import { ageYears, toYmd } from '../time/calendar';
 import { occupationsForAge, type MoveDef, type PopulationContent } from './content';
 
@@ -127,3 +127,9 @@ export const worldPhase: DayPhase = {
     return false;
   },
 };
+
+/**
+ * New game hook (D-167): the circle is filled before the backstory, so scenes find people for their roles (3.11).
+ * Empty in 3.1: the first world phase fills the circle.
+ */
+export const worldOnNewGame: NewGameHook = () => {};

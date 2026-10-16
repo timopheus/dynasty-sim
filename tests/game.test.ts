@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { entryText } from '../src/core/chronicle/log';
 import type { Content } from '../src/core/content/schema';
 import { apply, DAY_PHASES, newGame } from '../src/core/game';
+import { findEvent, startEvent } from '../src/core/events/events';
 import { getPlayer } from '../src/core/helpers';
+import { deserialize, serialize } from '../src/core/save/save';
 import { checkInvariants } from '../src/core/invariants';
 import type { GameState } from '../src/core/state';
 import { ageYears } from '../src/core/time/calendar';
-import { fixtureContent, realContent } from './fixtures/content';
+import { fixtureContent, fixtureNarrator, realContent } from './fixtures/content';
 
 /** Starts an action and answers every event with the given option; returns [day, eventId] of each event. */
 function runAction(state: GameState, content: Content, actionId: string, option = 1): [number, string][] {
@@ -30,7 +32,7 @@ describe('game loop', () => {
   });
 
   it('runs an action for exactly its duration when no events fire', () => {
-    const content = fixtureContent({ eventChancePer10k: 0 });
+    const content = fixtureNarrator({ eventChancePer10k: 0 });
     const state = newGame(1, content);
     apply(state, content, { type: 'start', actionId: 'wait' });
     expect(state.day).toBe(30);
@@ -41,7 +43,7 @@ describe('game loop', () => {
   });
 
   it('interrupts an action with an event and resumes it after the choice', () => {
-    const content = fixtureContent({ eventChancePer10k: 10000 });
+    const content = fixtureNarrator({ eventChancePer10k: 10000 });
     const state = newGame(1, content);
     apply(state, content, { type: 'start', actionId: 'wait' });
     expect(state.status).toBe('awaiting_choice');
@@ -59,7 +61,7 @@ describe('game loop', () => {
   });
 
   it('rejects commands that do not fit the current status', () => {
-    const content = fixtureContent({ eventChancePer10k: 10000 });
+    const content = fixtureNarrator({ eventChancePer10k: 10000 });
     const state = newGame(1, content);
     expect(() => apply(state, content, { type: 'choose', option: 0 })).toThrow();
     expect(() => apply(state, content, { type: 'start', actionId: 'nope' })).toThrow();
@@ -69,7 +71,7 @@ describe('game loop', () => {
   });
 
   it('kills a character of a condition and hands over to a placeholder heir', () => {
-    const content = fixtureContent({ eventChancePer10k: 10000 });
+    const content = fixtureNarrator({ eventChancePer10k: 10000 });
     const state = newGame(1, content);
     apply(state, content, { type: 'start', actionId: 'wait' });
     apply(state, content, { type: 'choose', option: 0 }); // a mortal wound, death at the weekly roll on day 7
@@ -99,23 +101,53 @@ describe('game loop', () => {
   });
 });
 
+describe('choice outside an action (3.1)', () => {
+  it('waits for the choice without an action, then lets the player pick one without running days', () => {
+    const content = fixtureNarrator({ eventChancePer10k: 0 });
+    const state = newGame(1, content);
+    const ctx = { state, content };
+    // As a scene of the backstory will: an event before the first action.
+    expect(startEvent(ctx, findEvent(content, 'ping'), getPlayer(state))).toBe(true);
+    expect(state.status).toBe('awaiting_choice');
+    expect(state.activeAction).toBeNull();
+    expect(checkInvariants(state, content)).toEqual([]);
+    const loaded = deserialize(serialize(state), content);
+    expect(loaded).toEqual(state);
+    apply(state, content, { type: 'choose', option: 1 });
+    expect(state.day).toBe(0);
+    expect(state.status).toBe('awaiting_action');
+    expect(state.pendingEvent).toBeNull();
+    expect(entryText(state.chronicle.at(-1)!)).toBe('Anne Fixture ignored it.');
+    expect(checkInvariants(state, content)).toEqual([]);
+    apply(state, content, { type: 'start', actionId: 'wait' });
+    expect(state.day).toBe(30);
+  });
+
+  it('keeps the scope of the event for its effects and line', () => {
+    const content = fixtureNarrator({ eventChancePer10k: 10000 });
+    const state = newGame(1, content);
+    apply(state, content, { type: 'start', actionId: 'wait' });
+    expect(state.pendingEvent).toEqual({ eventId: 'ping', protagonist: state.playerId, scope: { hero: state.playerId, protagonist: state.playerId } });
+  });
+});
+
 describe('day loop', () => {
   it('runs the phases in the order of D-053', () => {
     expect(DAY_PHASES.map((p) => p.id)).toEqual([
-      'new_day', 'scheduled', 'health', 'death', 'world', 'relations', 'action_end', 'event',
+      'new_day', 'scheduled', 'health', 'death', 'world', 'relations', 'action_end', 'stories', 'narrator',
     ]);
   });
 });
 
 describe('event rules', () => {
   it('keeps the minimum gap between events', () => {
-    const content = fixtureContent({ eventChancePer10k: 10000, minDaysBetweenEvents: 5 });
+    const content = fixtureNarrator({ eventChancePer10k: 10000, minDaysBetweenEvents: 5 });
     const days = runAction(newGame(1, content), content, 'wait').map(([day]) => day);
     expect(days).toEqual([1, 6, 11, 16, 21, 26]);
   });
 
   it('does not repeat an event before its cooldown ends', () => {
-    const content = fixtureContent({ eventChancePer10k: 10000, eventRepeatCooldownDays: 10 });
+    const content = fixtureNarrator({ eventChancePer10k: 10000, eventRepeatCooldownDays: 10 });
     expect(runAction(newGame(1, content), content, 'wait')).toEqual([
       [1, 'ping'],
       [11, 'ping'],
@@ -124,7 +156,7 @@ describe('event rules', () => {
   });
 
   it('fires action-bound events only during their actions', () => {
-    const content = fixtureContent({ eventChancePer10k: 10000 });
+    const content = fixtureNarrator({ eventChancePer10k: 10000 });
     const state = newGame(1, content);
     const duringWait = runAction(state, content, 'wait').map(([, id]) => id);
     expect(new Set(duringWait)).toEqual(new Set(['ping']));

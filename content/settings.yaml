@@ -1,9 +1,6 @@
 # Global simulation settings. Schema: src/core/content/schema.ts (SettingsSchema).
 # Text placeholders: {name}, {age}, and pronouns for the same character: {he} {him} {his} {He} {His}.
 settings:
-  eventChancePer10k: 150        # chance per day that an event fires, out of 10000
-  minDaysBetweenEvents: 20      # storyteller pacing: quiet days after any event
-  eventRepeatCooldownDays: 365  # the same event cannot repeat within this time
   startAge: { min: 18, max: 26 }
   heirAge: { min: 16, max: 25 } # placeholder heir until the Dynasty stage (D-007)
   startMoney: 50

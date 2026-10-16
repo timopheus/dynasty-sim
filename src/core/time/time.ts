@@ -1,6 +1,6 @@
 import { applyEffects, type Effects } from '../effects';
 import { findCharacter, isInt } from '../helpers';
-import type { DayPhase, DeathHook, Invariant } from '../state';
+import type { DayPhase, DeathHook, Invariant, Scope } from '../state';
 import { toYmd } from './calendar';
 
 export { checkTimeConditions, timeConditionShape } from './conditions';
@@ -12,6 +12,8 @@ export interface ScheduledEffect {
   /** The character they apply to; death of that character cancels them. */
   characterId: string;
   effects: Effects;
+  /** Scope of roles of the block that queued them (D-162): they apply with the same participants. Null means none. */
+  scope: Scope | null;
 }
 
 export interface TimeState {
@@ -52,7 +54,7 @@ export const scheduledPhase: DayPhase = {
     due.sort((a, b) => a.dueDay - b.dueDay);
     for (const item of due) {
       const target = findCharacter(state, item.characterId);
-      if (target && target.deathDay === null) applyEffects(ctx, target, item.effects);
+      if (target && target.deathDay === null) applyEffects(ctx, target, item.effects, item.scope ?? {});
     }
     return state.activeAction === null;
   },
@@ -65,6 +67,9 @@ export const timeInvariants: Invariant = ({ state }) => {
     const target = findCharacter(state, item.characterId);
     if (!target) problems.push(`scheduled effects refer to unknown character ${item.characterId}`);
     else if (target.deathDay !== null) problems.push(`scheduled effects remain for dead character ${item.characterId}`);
+    for (const [role, id] of Object.entries(item.scope ?? {})) {
+      if (!findCharacter(state, id)) problems.push(`scheduled effects for ${item.characterId} give role ${role} to unknown character ${id}`);
+    }
   }
   return problems;
 };

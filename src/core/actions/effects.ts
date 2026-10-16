@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { checkTemplate } from '../text/text';
-import type { Character, Ctx } from '../state';
+import type { Character, Ctx, Scope } from '../state';
 
 /**
  * Effect keys of this module: `end_action` interrupts the hero's action (`true` for the
@@ -18,7 +18,7 @@ export const actionsEffectShape = {
  * action is ending, where nothing may stop the day loop. The action-end phase of the same
  * or the next day carries it out (see actionEndPhase).
  */
-export function applyActionsEffects({ state }: Ctx, c: Character, effects: { end_action?: true | string | undefined }): void {
+export function applyActionsEffects({ state }: Ctx, c: Character, effects: { end_action?: true | string | undefined }, _scope: Scope): void {
   if (effects.end_action === undefined || c.id !== state.playerId || !state.activeAction) return;
   state.interruptRequest = { template: effects.end_action === true ? null : effects.end_action };
 }

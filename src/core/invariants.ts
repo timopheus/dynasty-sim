@@ -3,15 +3,18 @@
  * command in headless runs and tests; a new rule goes into its module's list.
  */
 import { actionsInvariants } from './actions/actions';
+import { backstoryInvariants } from './backstory/backstory';
 import { characterInvariants } from './character/character';
 import { chronicleInvariants } from './chronicle/log';
 import type { Content } from './content/schema';
 import { eventsInvariants } from './events/events';
 import { healthInvariants } from './health/health';
+import { narratorInvariants } from './narrator/narrator';
 import { relationsInvariants } from './relations/relations';
 import { SAVE_VERSION } from './save/version';
 import { isInt } from './helpers';
 import type { GameState, Invariant } from './state';
+import { storiesInvariants } from './stories/stories';
 import { timeInvariants } from './time/time';
 import { worldInvariants } from './world/world';
 
@@ -27,7 +30,8 @@ const coreInvariants: Invariant = ({ state }) => {
       problems.push('awaiting_action with an active action or pending event');
     }
   } else if (state.status === 'awaiting_choice') {
-    if (!state.activeAction || !state.pendingEvent) problems.push('awaiting_choice without an action and event');
+    // No action is fine: the scenes of the backstory come before the first action (D-167).
+    if (!state.pendingEvent) problems.push('awaiting_choice without a pending event');
   } else {
     problems.push(`unknown status ${String(state.status)}`);
   }
@@ -44,6 +48,9 @@ const INVARIANTS: readonly Invariant[] = [
   worldInvariants,
   relationsInvariants,
   chronicleInvariants,
+  narratorInvariants,
+  storiesInvariants,
+  backstoryInvariants,
 ];
 
 /** Returns a list of broken rules; empty means the state is consistent. */

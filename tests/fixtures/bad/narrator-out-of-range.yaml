@@ -1,0 +1,5 @@
+# expect-error: narrator.eventChancePer10k /.+/
+narrator:
+  eventChancePer10k: 10001
+  minDaysBetweenEvents: 0
+  eventRepeatCooldownDays: 0

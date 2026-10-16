@@ -26,12 +26,10 @@ export function initChronicleState(): ChronicleState {
   return { chronicle: [] };
 }
 
-export interface LogLine {
+interface LogLineBase {
   subject: Character;
   kind: string;
   level: ChronicleLevel;
-  /** Content template; placeholders refer to the subject. */
-  template: string;
   /**
    * Change of the subject's money caused by what this line records, for selection by the size of
    * a sum (D-019, 2.6). Not stored in the entry.
@@ -39,6 +37,22 @@ export interface LogLine {
   money?: number;
   /** The line records a choice of the player that deserves a ▸ (an event option with `mark`). */
   mark?: boolean;
+  /**
+   * For kinds `action` and `event`: the author wants the line in the chronicle (`chronicle: true` of an outcome,
+   * 3.2), whatever the sum.
+   */
+  important?: boolean;
+}
+
+/**
+ * A line is a content template whose placeholders refer to the subject, or parts already made (an event text with
+ * roles, text/render.ts).
+ */
+export type LogLine = LogLineBase & ({ template: string; parts?: never } | { parts: TextPart[]; template?: never });
+
+/** Text of the line as parts, made at the moment of writing. */
+function lineParts(line: LogLine, day: number): TextPart[] {
+  return line.parts !== undefined ? line.parts : characterParts(line.template, line.subject, day);
 }
 
 /**
@@ -57,7 +71,7 @@ function selectLevel({ state, content }: Ctx, line: LogLine): ChronicleLevel | n
   }
   if (line.level === 'journal') return 'journal';
   if (kind === 'action' || kind === 'event') {
-    if (line.mark) return 'chronicle';
+    if (line.mark || line.important) return 'chronicle';
     const sum = Math.abs(line.money ?? 0);
     const before = subject.money - (line.money ?? 0);
     return sum >= sel.bigSum.min && sum * 100 >= Math.max(0, before) * sel.bigSum.percent ? 'chronicle' : 'journal';
@@ -68,7 +82,7 @@ function selectLevel({ state, content }: Ctx, line: LogLine): ChronicleLevel | n
 
 /** True if the same health line about the person is already in the chronicle within `days`. */
 function repeatsRecent(state: GameState, subjectId: string, line: LogLine, days: number): boolean {
-  const text = partsText(characterParts(line.template, line.subject, state.day));
+  const text = partsText(lineParts(line, state.day));
   for (let i = state.chronicle.length - 1; i >= 0; i--) {
     const e = state.chronicle[i] as ChronicleEntry;
     if (e.day < state.day - days) break;
@@ -90,7 +104,7 @@ export function log(ctx: Ctx, line: LogLine): ChronicleEntry | null {
     subject: line.subject.id,
     kind: line.kind,
     level,
-    parts: characterParts(line.template, line.subject, state.day),
+    parts: lineParts(line, state.day),
   };
   if (line.mark) entry.mark = true;
   state.chronicle.push(entry);

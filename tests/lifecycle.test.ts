@@ -6,7 +6,7 @@ import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
 import { createCharacter, kill } from '../src/core/lifecycle';
 import { statModifiers } from '../src/core/modifiers';
-import { fixtureContent } from './fixtures/content';
+import { fixtureContent, fixtureNarrator } from './fixtures/content';
 
 /** Contracts of the hook points that later tasks fill (2.1). */
 describe('hook points', () => {
@@ -25,7 +25,7 @@ describe('hook points', () => {
   });
 
   it('interrupts the hero action and hands control back to the player', () => {
-    const content = fixtureContent({ eventChancePer10k: 10000 });
+    const content = fixtureNarrator({ eventChancePer10k: 10000 });
     const state = newGame(1, content);
     apply(state, content, { type: 'start', actionId: 'wait' });
     expect(state.status).toBe('awaiting_choice');
@@ -40,7 +40,7 @@ describe('hook points', () => {
     const content = fixtureContent();
     const state = newGame(1, content);
     const before = [...state.rng];
-    expect(unmetConditions({ state, content }, getPlayer(state), {})).toEqual([]);
+    expect(unmetConditions({ state, content }, getPlayer(state), {}, {})).toEqual([]);
     expect(statModifiers({ state, content }, getPlayer(state))).toEqual([{}]);
     expect(state.rng).toEqual(before);
   });

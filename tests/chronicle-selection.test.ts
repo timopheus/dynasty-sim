@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { narratorContent } from '../src/core/narrator/content';
 import { log } from '../src/core/chronicle/log';
 import { chronicleMarkdown, journalMarkdown } from '../src/core/chronicle/markdown';
 import type { Content } from '../src/core/content/schema';
@@ -15,7 +16,7 @@ const base = loadOrThrow([...BASE_FILES, ...readContentFiles('tests/fixtures/chr
 function withMoney(actionMoney: number, optionMoney: number, mark = false): Content {
   return {
     ...base,
-    settings: { ...base.settings, eventChancePer10k: 10000, minDaysBetweenEvents: 1000 },
+    narrator: { ...narratorContent(base), eventChancePer10k: 10000, minDaysBetweenEvents: 1000 },
     actions: [{ id: 'wait', name: 'Wait', duration: { min: 30, max: 30 }, effects: { money: actionMoney }, text: '{name} waited.' }],
     events: [
       {
@@ -67,6 +68,19 @@ describe('chronicle selection (D-019, D-130)', () => {
     apply(state, content, { type: 'start', actionId: 'wait' });
     apply(state, content, { type: 'choose', option: 0 });
     expect(state.chronicle.find((e) => e.kind === 'action')?.level).toBe('journal');
+  });
+
+  it('sends an important line (the author decided) to the chronicle without ▸, given as ready parts', () => {
+    const content = withMoney(1, 1);
+    const state = newGame(1, content);
+    const ctx = { state, content };
+    const hero = getPlayer(state);
+    const plain = log(ctx, { subject: hero, kind: 'event', level: 'chronicle', parts: [{ id: hero.id, name: 'X' }, ' did a small thing.'] });
+    expect(plain?.level).toBe('journal');
+    const important = log(ctx, { subject: hero, kind: 'event', level: 'chronicle', parts: ['A thing that matters.'], important: true });
+    expect(important?.level).toBe('chronicle');
+    expect(important?.mark).toBeUndefined();
+    expect(important?.parts).toEqual(['A thing that matters.']);
   });
 
   it('keeps ended actions in the journal as kind "action" for the metrics', () => {

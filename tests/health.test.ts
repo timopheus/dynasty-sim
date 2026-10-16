@@ -35,15 +35,15 @@ const lastText = (state: GameState) => entryText(state.chronicle.at(-1)!);
 describe('conditions and stages', () => {
   it('start at the first stage through effects and are not doubled', () => {
     const { ctx, hero } = setup();
-    applyEffects(ctx, hero, { wound: 'rot', disease: 'flu' });
-    applyEffects(ctx, hero, { wound: 'rot' });
+    applyEffects(ctx, hero, { wound: 'rot', disease: 'flu' }, {});
+    applyEffects(ctx, hero, { wound: 'rot' }, {});
     expect(hero.conditions.map((c) => [c.id, c.stage])).toEqual([['rot', 'early'], ['flu', 'sick']]);
     expect(checkInvariants(ctx.state, content)).toEqual([]);
   });
 
   it('move on once a week after the stage has lasted minDays, with a line on the way to death', () => {
     const { state, ctx, hero } = setup();
-    applyEffects(ctx, hero, { wound: 'rot' });
+    applyEffects(ctx, hero, { wound: 'rot' }, {});
     nextWeek(ctx);
     expect(stage(hero, 'rot')).toBe('late');
     expect(state.chronicle.at(-1)?.level).toBe('chronicle'); // late is severe
@@ -56,7 +56,7 @@ describe('conditions and stages', () => {
   it('heal after minDays and roll an outcome: injury trait, lost skill, chronicle line', () => {
     const { state, ctx, hero } = setup();
     hero.traits = ['steady'];
-    applyEffects(ctx, hero, { wound: 'cut' });
+    applyEffects(ctx, hero, { wound: 'cut' }, {});
     nextWeek(ctx); // day 7: only 7 of 10 days
     expect(stage(hero, 'cut')).toBe('fresh');
     nextWeek(ctx); // day 14
@@ -69,7 +69,7 @@ describe('conditions and stages', () => {
   it('give stage penalties to stats', () => {
     const { ctx, hero } = setup();
     const before = stats(ctx, hero);
-    applyEffects(ctx, hero, { wound: 'cut' });
+    applyEffects(ctx, hero, { wound: 'cut' }, {});
     const after = stats(ctx, hero);
     expect(before.prowess - after.prowess).toBe(Math.min(2, before.prowess));
     expect(before.martial - after.martial).toBe(Math.min(1, before.martial));
@@ -78,14 +78,14 @@ describe('conditions and stages', () => {
 
   it('heal effect: one stage back, recovery from the first, permanent conditions stay', () => {
     const { ctx, hero } = setup();
-    applyEffects(ctx, hero, { wound: 'rot' });
+    applyEffects(ctx, hero, { wound: 'rot' }, {});
     nextWeek(ctx);
-    applyEffects(ctx, hero, { heal: 'rot' });
+    applyEffects(ctx, hero, { heal: 'rot' }, {});
     expect(stage(hero, 'rot')).toBe('early');
-    applyEffects(ctx, hero, { heal: 'all' });
+    applyEffects(ctx, hero, { heal: 'all' }, {});
     expect(stage(hero, 'rot')).toBeNull();
-    applyEffects(ctx, hero, { wound: 'mortal', heal: 'all' });
-    applyEffects(ctx, hero, { heal: 'all' });
+    applyEffects(ctx, hero, { wound: 'mortal', heal: 'all' }, {});
+    applyEffects(ctx, hero, { heal: 'all' }, {});
     expect(stage(hero, 'mortal')).toBe('fatal');
   });
 });
@@ -93,16 +93,16 @@ describe('conditions and stages', () => {
 describe('old wound', () => {
   it('follows a healed gash and opens again, and heal closes it without removing it', () => {
     const { state, ctx, hero } = setup();
-    applyEffects(ctx, hero, { wound: 'gash' });
+    applyEffects(ctx, hero, { wound: 'gash' }, {});
     nextWeek(ctx);
     expect(hero.conditions.map((c) => [c.id, c.stage])).toEqual([['old_wound', 'closed']]);
     expect(lastText(state)).toBe("Anne Fixture's gash never quite healed.");
     nextWeek(ctx);
     expect(stage(hero, 'old_wound')).toBe('reopened');
     expect(lastText(state)).toBe("Anne Fixture's old wound opened.");
-    applyEffects(ctx, hero, { heal: 'old_wound' });
+    applyEffects(ctx, hero, { heal: 'old_wound' }, {});
     expect(stage(hero, 'old_wound')).toBe('closed');
-    applyEffects(ctx, hero, { heal: 'old_wound' });
+    applyEffects(ctx, hero, { heal: 'old_wound' }, {});
     expect(stage(hero, 'old_wound')).toBe('closed');
   });
 });
@@ -110,7 +110,7 @@ describe('old wound', () => {
 describe('death', () => {
   it('comes from a stage that leads to death, with the cause and its chronicle line', () => {
     const { state, ctx, hero } = setup();
-    applyEffects(ctx, hero, { wound: 'rot' });
+    applyEffects(ctx, hero, { wound: 'rot' }, {});
     nextWeek(ctx); // late
     expect(nextWeek(ctx)).toBe(true);
     expect(hero.deathCause).toBe('rot_death');
@@ -124,10 +124,10 @@ describe('death', () => {
     const { state, ctx, hero } = setup();
     expect(dailyDeathChance(ctx, hero)).toBe(1000);
     expect(deathCause(ctx, hero)).toBe('illness');
-    applyEffects(ctx, hero, { wound: 'gash' });
+    applyEffects(ctx, hero, { wound: 'gash' }, {});
     nextWeek(ctx);
     nextWeek(ctx); // old wound reopened: x3
-    applyEffects(ctx, hero, { wound: 'rot' });
+    applyEffects(ctx, hero, { wound: 'rot' }, {});
     nextWeek(ctx); // rot late: x5; the old wound stays reopened
     expect(dailyDeathChance(ctx, hero)).toBe(15000);
     expect(deathCause(ctx, hero)).toBe('rot_death');
@@ -144,6 +144,16 @@ describe('death', () => {
     expect(deathPhase.run({ state, content: certain })).toBe(true);
     expect(hero.deathCause).toBe('old_age');
     expect(entryText(state.chronicle.at(-2)!)).toMatch(/^Old age took (him|her)\.$/);
+  });
+
+  it('carries out death requests first in the death phase (D-164), dropping those for the dead', () => {
+    const { state, ctx, hero } = setup();
+    state.deathRequests.push({ characterId: hero.id, cause: 'rot_death' }, { characterId: hero.id, cause: 'old_age' });
+    expect(deathPhase.run(ctx)).toBe(true);
+    expect(hero.deathCause).toBe('rot_death');
+    expect(state.deathRequests).toEqual([]);
+    expect(state.chronicle.slice(-3).map((e) => e.kind)).toEqual(['death', 'death_cause', 'succession']);
+    expect(checkInvariants(state, content)).toEqual([]);
   });
 
   it('keeps the annual chance for people far away by age', () => {
@@ -169,11 +179,11 @@ describe('rest and the road', () => {
   it('rest stops the way toward death, the road stops recovery', () => {
     const { state, ctx, hero } = setup();
     state.activeAction = { actionId: 'rest', endDay: state.day + 100 };
-    applyEffects(ctx, hero, { wound: 'rot' });
+    applyEffects(ctx, hero, { wound: 'rot' }, {});
     nextWeek(ctx);
     expect(stage(hero, 'rot')).toBe('early'); // rest: worse x0
     state.activeAction = { actionId: 'march', endDay: state.day + 100 };
-    applyEffects(ctx, hero, { disease: 'flu' });
+    applyEffects(ctx, hero, { disease: 'flu' }, {});
     nextWeek(ctx);
     expect(stage(hero, 'flu')).toBe('sick'); // road: better x0
     expect(stage(hero, 'rot')).toBe('late');
@@ -185,7 +195,7 @@ describe('fit condition and interruption', () => {
     const { state, ctx, hero } = setup();
     const reasons = () => actionAvailability(ctx).find((a) => a.action.id === 'march')?.unmet;
     expect(reasons()).toEqual([]);
-    applyEffects(ctx, hero, { wound: 'rot' });
+    applyEffects(ctx, hero, { wound: 'rot' }, {});
     nextWeek(ctx);
     const rng = [...state.rng];
     expect(reasons()).toEqual(['Too ill']);
@@ -195,7 +205,7 @@ describe('fit condition and interruption', () => {
   it('a severe stage breaks off an action that is not rest, with a journal line', () => {
     const { state, ctx, hero } = setup();
     state.activeAction = { actionId: 'wait', endDay: state.day + 30 };
-    applyEffects(ctx, hero, { wound: 'rot' });
+    applyEffects(ctx, hero, { wound: 'rot' }, {});
     expect(nextWeek(ctx)).toBe(true);
     expect(state.activeAction).toBeNull();
     expect(state.status).toBe('awaiting_action');

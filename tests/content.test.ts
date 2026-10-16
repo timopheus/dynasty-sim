@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../src/core/content/load';
+import { Factor, factorParts } from '../src/core/content/types';
 import { BASE_FILES, realContent } from './fixtures/content';
 
 const BAD_DIR = 'tests/fixtures/bad';
@@ -66,6 +67,23 @@ describe('content', () => {
     const twice = loadContent([...BASE_FILES, file, { ...file, path: 'fixture/later2.yaml' }]);
     expect(twice.ok).toBe(false);
     if (!twice.ok) expect(twice.errors.map((e) => e.path)).toContain('opinions');
+  });
+
+  it('requires the narrator section (pace of events, D-170)', () => {
+    const result = loadContent(BASE_FILES.filter((f) => !f.path.endsWith('narrator.yaml')));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors.some((e) => e.path === 'narrator' && /required/.test(e.message))).toBe(true);
+  });
+
+  it('accepts the new keys grammar and backstory, and factors as integer fractions', () => {
+    const file = { path: 'fixture/stage3.yaml', text: 'grammar:\n  dawn: ["at first light", { text: "in the snow", when: { season: [winter] } }]\nbackstory: {}\n' };
+    const result = loadContent([...BASE_FILES, file]);
+    expect(result.ok, JSON.stringify(!result.ok && result.errors)).toBe(true);
+    expect(Factor.safeParse('1/2').success).toBe(true);
+    expect(Factor.safeParse(3).success).toBe(true);
+    expect(Factor.safeParse(0).success).toBe(false);
+    expect(Factor.safeParse('0/2').success).toBe(false);
+    expect(factorParts('3/4')).toEqual({ num: 3, den: 4 });
   });
 
   it('requires single keys exactly once', () => {

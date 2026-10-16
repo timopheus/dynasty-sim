@@ -1,5 +1,5 @@
 import { log } from '../chronicle/log';
-import { unmetConditions } from '../condition-keys';
+import { conditionReport } from '../condition-keys';
 import type { Content } from '../content/schema';
 import { applyEffects } from '../effects';
 import { int } from '../rng';
@@ -29,21 +29,28 @@ export function findAction(content: Content, id: string): ActionDef {
 
 export interface ActionAvailability {
   action: ActionDef;
-  /** Texts of the conditions that are not met; empty means the action can be started. */
+  /** Texts of the visible conditions that are not met. */
   unmet: string[];
+  /** Some condition the player must not see is not met: the action is not shown (D-043). */
+  hidden: boolean;
 }
 
 /** Every action with the reasons it is unavailable now (D-043). Never consumes randomness. */
 export function actionAvailability(ctx: Ctx): ActionAvailability[] {
   const { state, content } = ctx;
   const hero = getPlayer(state);
-  return content.actions.map((action) => ({ action, unmet: action.when ? unmetConditions(ctx, hero, action.when) : [] }));
+  const scope = { hero: hero.id, protagonist: hero.id };
+  return content.actions.map((action) => {
+    if (!action.when) return { action, unmet: [], hidden: false };
+    const report = conditionReport(ctx, hero, action.when, scope);
+    return { action, unmet: report.reasons, hidden: report.hidden };
+  });
 }
 
 /** Actions the player can start now. Never consumes randomness. */
 export function availableActions(ctx: Ctx): ActionDef[] {
   if (ctx.state.status !== 'awaiting_action') return [];
-  return actionAvailability(ctx).filter((a) => a.unmet.length === 0).map((a) => a.action);
+  return actionAvailability(ctx).filter((a) => a.unmet.length === 0 && !a.hidden).map((a) => a.action);
 }
 
 export function startAction(ctx: Ctx, actionId: string): void {
@@ -90,7 +97,7 @@ export const actionEndPhase: DayPhase = {
     const action = findAction(content, active.actionId);
     const player = getPlayer(state);
     const moneyBefore = player.money;
-    applyEffects(ctx, player, action.effects);
+    applyEffects(ctx, player, action.effects, { hero: player.id, protagonist: player.id });
     log(ctx, { subject: player, kind: 'action', level: 'chronicle', template: action.text, money: player.money - moneyBefore });
     state.activeAction = null;
     state.interruptRequest = null;

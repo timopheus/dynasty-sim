@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Id } from '../content/types';
-import type { Character, Ctx } from '../state';
+import type { Character, Ctx, Scope } from '../state';
 import { addTrait, removeTrait } from './traits';
 
 /** Effect keys of this module; effects.ts merges them into the content schema. */
@@ -17,6 +17,7 @@ export function applyCharacterEffects(
   ctx: Ctx,
   c: Character,
   effects: { money?: number | undefined; traits?: { add?: string[] | undefined; remove?: string[] | undefined } | undefined },
+  _scope: Scope,
 ): void {
   if (effects.money !== undefined) c.money += effects.money;
   for (const id of effects.traits?.remove ?? []) removeTrait(ctx, c, id);

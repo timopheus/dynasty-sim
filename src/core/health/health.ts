@@ -2,8 +2,26 @@ import { z } from 'zod';
 import { log } from '../chronicle/log';
 import { Id } from '../content/types';
 import { isInt } from '../helpers';
-import type { Character, CreateHook, Ctx, DeathHook, Invariant } from '../state';
+import type { Unmet } from '../condition-keys';
+import type { Character, CreateHook, Ctx, DeathHook, Invariant, Scope } from '../state';
 import { addCondition, healStep, isSeverelyIll, stageOf, type HealthCondition } from './course';
+
+/** A death ordered by an effect (`kill`, 3.5): the next death phase carries it out (D-164). */
+export interface DeathRequest {
+  characterId: string;
+  /** Id of the cause, as in `health.causes`. */
+  cause: string;
+}
+
+/** Health part of the game state. */
+export interface HealthState {
+  /** In the order they were made; emptied by the death phase. */
+  deathRequests: DeathRequest[];
+}
+
+export function initHealthState(): HealthState {
+  return { deathRequests: [] };
+}
 
 /** Health part of a character: conditions with stages instead of a scale (D-033). */
 export interface HealthPart {
@@ -39,7 +57,7 @@ interface HealthEffects {
 }
 
 /** Order: heal, then new wounds and diseases, so `heal: all` with a new wound keeps the wound. */
-export function applyHealthEffects(ctx: Ctx, c: Character, effects: HealthEffects): void {
+export function applyHealthEffects(ctx: Ctx, c: Character, effects: HealthEffects, _scope: Scope): void {
   if (effects.heal !== undefined) {
     for (const hc of [...c.conditions]) {
       if (effects.heal === 'all' || effects.heal === hc.id) healStep(ctx, c, hc);
@@ -54,8 +72,8 @@ export const healthConditionShape = {
   fit: z.literal(true).optional(),
 };
 
-export function checkHealthConditions({ content }: Ctx, c: Character, when: { fit?: true | undefined }): string[] {
-  if (when.fit && isSeverelyIll(content, c)) return [content.health.texts.unfit];
+export function checkHealthConditions({ content }: Ctx, c: Character, when: { fit?: true | undefined }, _scope: Scope): Unmet[] {
+  if (when.fit && isSeverelyIll(content, c)) return [{ text: content.health.texts.unfit, hidden: false }];
   return [];
 }
 
@@ -72,6 +90,9 @@ export function healthStatModifiers({ content }: Ctx, c: Character): Record<stri
 
 export const healthInvariants: Invariant = ({ state, content }) => {
   const problems: string[] = [];
+  for (const r of state.deathRequests) {
+    if (!state.characters.some((c) => c.id === r.characterId)) problems.push(`death requested for unknown character ${r.characterId}`);
+  }
   for (const c of state.characters) {
     if (!Array.isArray(c.conditions)) {
       problems.push(`${c.id} has no list of conditions`);

@@ -1,3 +1,0 @@
-# expect-error: settings.eventChancePer10k /.+/
-settings:
-  eventChancePer10k: 10001

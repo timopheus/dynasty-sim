@@ -10,6 +10,7 @@ import { eventsOnDeath } from './events/events';
 import { createHealth, healthOnDeath } from './health/health';
 import { createRelations, relationsOnDeath } from './relations/relations';
 import { newId } from './helpers';
+import { storiesOnDeath } from './stories/stories';
 import type { Character, CreateHook, Ctx, DeathHook, NewCharacter } from './state';
 import { timeOnDeath } from './time/time';
 import { createWorld, worldOnDeath } from './world/world';
@@ -24,6 +25,7 @@ const DEATH_HOOKS: readonly DeathHook[] = [
   eventsOnDeath,
   worldOnDeath,
   relationsOnDeath,
+  storiesOnDeath,
 ];
 
 /** Creates a living character; every module fills its part through its hook. */

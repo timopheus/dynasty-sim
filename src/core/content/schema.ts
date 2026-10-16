@@ -7,23 +7,22 @@
  */
 import { z } from 'zod';
 import { ActionSchema, checkActions } from '../actions/content';
+import { BackstoryContentSchema, checkBackstory } from '../backstory/content';
 import { checkCharacter, NamesSchema, TraitSchema } from '../character/content';
 import { checkChronicle, ChronicleContentSchema } from '../chronicle/content';
 import { checkEvents, EventSchema } from '../events/content';
 import { checkHealth, HealthContentSchema } from '../health/content';
+import { checkNarrator, NarratorContentSchema } from '../narrator/content';
 import { checkRelations, OpinionsContentSchema } from '../relations/content';
+import { checkStories } from '../stories/content';
+import { checkGrammar, GrammarSchema } from '../text/grammar';
 import { checkTime, TimeContentSchema } from '../time/content';
 import { checkWorld, PopulationContentSchema } from '../world/content';
 import { checkTemplate } from '../text/text';
 import { Int, Range, Text, type ContentError, type Located } from './types';
 
+/** Top-level key `settings`. The pace of events lives in `narrator` (D-170). */
 export const SettingsSchema = z.strictObject({
-  /** Chance per day, out of 10000, that an event fires. */
-  eventChancePer10k: Int.min(0).max(10000),
-  /** Minimum days between any two events (storyteller pacing). */
-  minDaysBetweenEvents: Int.min(0),
-  /** Minimum days before the same event can fire again. */
-  eventRepeatCooldownDays: Int.min(0),
   /** Age in years of the first head of the house. */
   startAge: Range,
   /** Age in years of a placeholder heir (stub until the Dynasty stage). */
@@ -37,7 +36,7 @@ export const SettingsSchema = z.strictObject({
 });
 
 export const SINGLE_KEYS = ['settings', 'names', 'health'] as const;
-export const OPTIONAL_KEYS = ['time', 'population', 'opinions', 'chronicle'] as const;
+export const OPTIONAL_KEYS = ['time', 'population', 'opinions', 'chronicle', 'grammar', 'narrator', 'backstory'] as const;
 export const LIST_KEYS = ['actions', 'events', 'traits'] as const;
 
 export const ContentFileSchema = z.strictObject({
@@ -48,6 +47,9 @@ export const ContentFileSchema = z.strictObject({
   population: PopulationContentSchema.optional(),
   opinions: OpinionsContentSchema.optional(),
   chronicle: ChronicleContentSchema.optional(),
+  grammar: GrammarSchema.optional(),
+  narrator: NarratorContentSchema.optional(),
+  backstory: BackstoryContentSchema.optional(),
   actions: z.array(ActionSchema).optional(),
   events: z.array(EventSchema).optional(),
   traits: z.array(TraitSchema).optional(),
@@ -94,4 +96,8 @@ export const CROSS_CHECKS: readonly CrossCheck[] = [
   checkWorld,
   checkRelations,
   checkChronicle,
+  checkGrammar,
+  checkNarrator,
+  checkBackstory,
+  checkStories,
 ];
