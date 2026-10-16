@@ -8,3 +8,13 @@ grammar:
   weather:
     - { text: in driving snow, when: { season: [winter] } }
     - in a cold rain
+  inn_name:
+    - the Black Swan
+    - the Crooked Anchor
+    - the Three Bells
+    - the Grey Goose
+    - the Ploughman's Rest
+  road_weather:
+    - { text: in the first snow, when: { season: [winter] } }
+    - { text: under a burning sun, when: { season: [summer] } }
+    - on a grey morning
