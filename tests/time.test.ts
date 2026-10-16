@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { narratorContent } from '../src/core/narrator/content';
 import { actionAvailability, availableActions, interruptAction } from '../src/core/actions/actions';
 import { botCommand } from '../src/core/bot';
 import { entryText } from '../src/core/chronicle/log';
@@ -28,7 +29,7 @@ function reasons(state: GameState, id: string): string[] {
 describe('day phases', () => {
   it('run in the order of D-053', () => {
     expect(DAY_PHASES.map((p) => p.id)).toEqual([
-      'new_day', 'scheduled', 'health', 'death', 'world', 'relations', 'action_end', 'event',
+      'new_day', 'scheduled', 'health', 'death', 'world', 'relations', 'action_end', 'stories', 'narrator',
     ]);
   });
 });
@@ -151,7 +152,7 @@ describe('time content', () => {
 describe('event options', () => {
   const eventContent: Content = {
     ...content,
-    settings: { ...content.settings, eventChancePer10k: 10000, minDaysBetweenEvents: 0 },
+    narrator: { ...narratorContent(content), eventChancePer10k: 10000, minDaysBetweenEvents: 0 },
     events: content.events.filter((e) => e.id === 'stop'),
   };
 

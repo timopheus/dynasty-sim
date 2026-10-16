@@ -11,6 +11,9 @@ export interface SimOptions {
   years: number;
 }
 
+/** Steps in a row that may pass without time moving: pages of an event, scenes of the backstory. More is a hang. */
+export const MAX_STEPS_WITHOUT_TIME = 50;
+
 export interface SimResult {
   state: GameState;
   steps: number;
@@ -25,11 +28,16 @@ export function runSim(content: Content, { seed, years }: SimOptions): SimResult
   const endDay = fromYmd(START_YEAR + years, 1, 1);
   const violations = checkInvariants(state, content);
   let steps = 0;
+  let still = 0;
   while (state.day < endDay && violations.length === 0) {
     const prevDay = state.day;
-    apply(state, content, botCommand(state, content, botRng));
+    const cmd = botCommand(state, content, botRng);
+    apply(state, content, cmd);
     steps += 1;
-    if (state.day <= prevDay) violations.push(`step ${steps}: time did not advance from day ${prevDay}`);
+    // A choice may leave time where it was (another page, a scene, the first action to pick); an action may not.
+    if (state.day > prevDay) still = 0;
+    else if (cmd.type === 'start') violations.push(`step ${steps}: time did not advance from day ${prevDay}`);
+    else if (++still > MAX_STEPS_WITHOUT_TIME) violations.push(`step ${steps}: ${still} choices in a row without time moving from day ${prevDay}`);
     for (const v of checkInvariants(state, content)) violations.push(`step ${steps}, ${formatDate(state.day)}: ${v}`);
   }
   return { state, steps, violations };

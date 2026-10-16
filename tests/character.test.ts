@@ -22,7 +22,7 @@ describe('traits', () => {
   it('removes the opposite trait when a new one is gained and writes a chronicle line', () => {
     const { ctx, hero, state } = setup();
     hero.traits = ['proud'];
-    applyEffects(ctx, hero, { traits: { add: ['humble'] } });
+    applyEffects(ctx, hero, { traits: { add: ['humble'] } }, {});
     expect(hero.traits).toEqual(['humble']);
     const line = entryText(state.chronicle.at(-1)!);
     expect(state.chronicle.at(-1)?.kind).toBe('trait_change');
@@ -33,9 +33,9 @@ describe('traits', () => {
   it('ignores a second education and never removes one', () => {
     const { ctx, hero } = setup();
     hero.traits = ['learned_2'];
-    applyEffects(ctx, hero, { traits: { add: ['courtly_1'] } });
+    applyEffects(ctx, hero, { traits: { add: ['courtly_1'] } }, {});
     expect(hero.traits).toEqual(['learned_2']);
-    applyEffects(ctx, hero, { traits: { remove: ['learned_2'] } });
+    applyEffects(ctx, hero, { traits: { remove: ['learned_2'] } }, {});
     expect(hero.traits).toEqual(['learned_2']);
   });
 
@@ -43,10 +43,10 @@ describe('traits', () => {
     const { ctx, hero, state } = setup();
     hero.traits = [];
     const lines = state.chronicle.length;
-    applyEffects(ctx, hero, { traits: { add: ['coward'] } });
+    applyEffects(ctx, hero, { traits: { add: ['coward'] } }, {});
     expect(hero.traits).toEqual(['coward']);
     expect(state.chronicle.length).toBe(lines);
-    applyEffects(ctx, hero, { traits: { remove: ['coward'] } });
+    applyEffects(ctx, hero, { traits: { remove: ['coward'] } }, {});
     expect(hero.traits).toEqual([]);
   });
 
@@ -118,11 +118,11 @@ describe('sex', () => {
     const { ctx, hero } = setup();
     const when = WhenSchema.parse({ sex: 'male' });
     hero.sex = 'male';
-    expect(unmetConditions(ctx, hero, when)).toEqual([]);
+    expect(unmetConditions(ctx, hero, when, {})).toEqual([]);
     hero.sex = 'female';
-    expect(unmetConditions(ctx, hero, when)).toEqual(['Men only.']);
-    expect(unmetConditions(ctx, hero, WhenSchema.parse({ sex: 'female' }))).toEqual([]);
-    expect(unmetConditions(ctx, hero, WhenSchema.parse({}))).toEqual([]);
+    expect(unmetConditions(ctx, hero, when, {})).toEqual(['Men only.']);
+    expect(unmetConditions(ctx, hero, WhenSchema.parse({ sex: 'female' }), {})).toEqual([]);
+    expect(unmetConditions(ctx, hero, WhenSchema.parse({}), {})).toEqual([]);
   });
 
   it('picks given names from the pool of the sex', () => {

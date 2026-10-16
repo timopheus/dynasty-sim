@@ -25,3 +25,23 @@ export interface ContentError {
   path: string;
   message: string;
 }
+
+/**
+ * A multiplier as an integer fraction (D-161): a whole number `3` or a string `"1/2"`, never zero.
+ * Integers only, so weights stay exact on every engine.
+ */
+export const Factor = z.union([
+  Int.min(1),
+  z
+    .string()
+    .regex(/^[1-9][0-9]*\/[1-9][0-9]*$/, 'a factor is a positive integer or a fraction "n/d" of positive integers'),
+]);
+
+export type FactorValue = z.infer<typeof Factor>;
+
+/** Numerator and denominator of a factor: `3` is 3/1, `"1/2"` is 1/2. */
+export function factorParts(factor: FactorValue): { num: number; den: number } {
+  if (typeof factor === 'number') return { num: factor, den: 1 };
+  const [num, den] = factor.split('/').map(Number);
+  return { num: num ?? 1, den: den ?? 1 };
+}

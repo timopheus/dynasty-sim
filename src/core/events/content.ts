@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import type { CrossCheck } from '../content/schema';
 import { Id, Int, Text, type ContentError } from '../content/types';
-import { EffectsSchema } from '../effects';
-import { checkTemplate } from '../text/text';
+import { effectRoleRefs, EffectsSchema } from '../effects';
+import { checkRoles, RolesSchema } from '../roles/content';
+import { checkEventTemplate } from '../text/check';
 
 export const OptionSchema = z.strictObject({
   /** Button label shown to the player. */
@@ -20,6 +21,8 @@ export const EventSchema = z.strictObject({
   weight: Int.min(1),
   /** If set, the event can only fire during these actions. */
   actions: z.array(Id).min(1).optional(),
+  /** Participants besides the hero and the main participant, filled in this order (D-041, `docs/event-format.md`). */
+  roles: RolesSchema.optional(),
   text: Text,
   options: z.array(OptionSchema).min(1),
 });
@@ -27,7 +30,8 @@ export const EventSchema = z.strictObject({
 export type OptionDef = z.infer<typeof OptionSchema>;
 export type EventDef = z.infer<typeof EventSchema>;
 
-export const checkEvents: CrossCheck = ({ actions, events }) => {
+export const checkEvents: CrossCheck = (sources) => {
+  const { actions, events } = sources;
   const errors: ContentError[] = [];
   const actionIds = new Set(actions.map((a) => a.item.id));
   const ids = new Set<string>();
@@ -38,12 +42,20 @@ export const checkEvents: CrossCheck = ({ actions, events }) => {
     item.actions?.forEach((ref, i) => {
       if (!actionIds.has(ref)) errors.push({ file, path: `${at}.actions[${i}]`, message: `unknown action "${ref}"` });
     });
+    if (item.roles) errors.push(...checkRoles(item.roles, { file, path: `${at}.roles`, sources }));
+    const env = { roles: Object.keys(item.roles ?? {}) };
+    const known = new Set(['hero', 'protagonist', ...env.roles]);
+    item.options.forEach((option, i) => {
+      for (const role of option.effects ? effectRoleRefs(option.effects) : []) {
+        if (!known.has(role)) errors.push({ file, path: `${at}.options[${i}].effects`, message: `unknown role "${role}"` });
+      }
+    });
     const templates: [string, string][] = [[`${at}.text`, item.text]];
     item.options.forEach((option, i) => {
       templates.push([`${at}.options[${i}].text`, option.text], [`${at}.options[${i}].result`, option.result]);
     });
     for (const [path, text] of templates) {
-      const problem = checkTemplate(text);
+      const problem = checkEventTemplate(text, env);
       if (problem) errors.push({ file, path, message: problem });
     }
   }

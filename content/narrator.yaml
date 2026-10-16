@@ -1,0 +1,6 @@
+# The narrator: pace of events (D-045, D-168). Schema: src/core/narrator/content.ts (NarratorContentSchema).
+# Moved here from settings in 3.1 (D-170); the narrator task 3.7 adds tension, the bottom and the deck rules.
+narrator:
+  eventChancePer10k: 150        # chance per day that an event fires, out of 10000
+  minDaysBetweenEvents: 20      # quiet days after any event
+  eventRepeatCooldownDays: 365  # the same event cannot repeat within this time

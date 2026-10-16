@@ -57,11 +57,35 @@ export const healthPhase: DayPhase = {
   },
 };
 
-/** Death roll for every detailed character. The player's death stops the day for succession. */
+/**
+ * Carries out the deaths ordered by effects (D-164), in order; a request for someone already dead is dropped.
+ * Returns true if the player died.
+ */
+function deathRequests(ctx: Ctx): boolean {
+  const { state } = ctx;
+  const requests = state.deathRequests;
+  if (requests.length === 0) return false;
+  state.deathRequests = [];
+  const playerId = state.playerId; // death hands the house to an heir
+  let playerDied = false;
+  for (const r of requests) {
+    const c = state.characters.find((x) => x.id === r.characterId);
+    if (!c || c.deathDay !== null) continue;
+    if (c.id === playerId) playerDied = true;
+    kill(ctx, c, r.cause);
+  }
+  return playerDied;
+}
+
+/**
+ * Deaths ordered by effects first, then the death roll for every detailed character. The player's death stops
+ * the day for succession.
+ */
 export const deathPhase: DayPhase = {
   id: 'death',
   run(ctx) {
     const { state } = ctx;
+    if (deathRequests(ctx)) return true;
     let playerDied = false;
     for (const c of detailedCharacters(state)) {
       if (chancePer(state.rng, dailyDeathChance(ctx, c), DAILY_DEATH_DENOMINATOR)) {

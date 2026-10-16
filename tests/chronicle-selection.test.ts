@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { narratorContent } from '../src/core/narrator/content';
 import { log } from '../src/core/chronicle/log';
 import { chronicleMarkdown, journalMarkdown } from '../src/core/chronicle/markdown';
 import type { Content } from '../src/core/content/schema';
@@ -15,7 +16,7 @@ const base = loadOrThrow([...BASE_FILES, ...readContentFiles('tests/fixtures/chr
 function withMoney(actionMoney: number, optionMoney: number, mark = false): Content {
   return {
     ...base,
-    settings: { ...base.settings, eventChancePer10k: 10000, minDaysBetweenEvents: 1000 },
+    narrator: { ...narratorContent(base), eventChancePer10k: 10000, minDaysBetweenEvents: 1000 },
     actions: [{ id: 'wait', name: 'Wait', duration: { min: 30, max: 30 }, effects: { money: actionMoney }, text: '{name} waited.' }],
     events: [
       {

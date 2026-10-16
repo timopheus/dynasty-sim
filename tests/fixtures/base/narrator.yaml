@@ -1,0 +1,4 @@
+narrator:
+  eventChancePer10k: 0
+  minDaysBetweenEvents: 0
+  eventRepeatCooldownDays: 0

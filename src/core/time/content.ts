@@ -15,6 +15,7 @@ const SeasonSchema = z.strictObject({
 const ReasonsSchema = z.strictObject({
   season: Text,
   money_min: Text,
+  money_max: Text,
   age_min: Text,
   age_max: Text,
 });
@@ -35,6 +36,7 @@ export type SeasonDef = z.infer<typeof SeasonSchema>;
 export const REASON_VARS = {
   season: ['seasons'],
   money_min: ['amount'],
+  money_max: ['amount'],
   age_min: ['age'],
   age_max: ['age'],
 } as const;

@@ -9,6 +9,7 @@ time:
   reasons:
     season: "Only in {seasons}"
     money_min: "Requires {amount} crowns"
+    money_max: "Only with {amount} crowns or less"
     age_min: "Requires age {age} or older"
     age_max: "Requires age {age} or younger"
   texts:
