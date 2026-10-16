@@ -1541,7 +1541,7 @@
 ## D-293. Пачка 2 и замеры этапа 3
 2026-10-16 · принято (задача 3.13)
 
-**Решение.** Хроника уложилась в цель (40 строк), поэтому пачка 2 — 10 событий на разнообразие: `bedside_gossip`, `leaking_roof`, `stray_hound`, `weights_inspector`, `sentry_asleep` (к действиям), `sealed_letter`, `fire_in_the_street`, `mistaken_for_another` (общие), `npc_old_debt`, `npc_pilgrimage` (люди мира). У всех `mood`; `chronicle: true` — у одного исхода (`fire_in_the_street`); смертельных исходов нет.
+**Решение.** Хроника уложилась в цель (44 строки), поэтому пачка 2 — 10 событий на разнообразие: `bedside_gossip`, `leaking_roof`, `stray_hound`, `weights_inspector`, `sentry_asleep` (к действиям), `sealed_letter`, `fire_in_the_street`, `mistaken_for_another` (общие), `npc_old_debt`, `npc_pilgrimage` (люди мира). У всех `mood`; `chronicle: true` — у одного исхода (`fire_in_the_street`); смертельных исходов нет.
 
 **Замеры** (20 seeds × 300 лет, медианы; «до» — main с 3.1h, без 3.14: сохранение 2,33 МБ): строки на жизнь 62,75 → 44; смерть главы 50 → 47,8; глав 10 → 11; время 23,9 → 24,0 с; сохранение (максимум) 2,33 → 1,41 МБ (за счёт 3.14). Все четыре цели этапа выполнены.
 

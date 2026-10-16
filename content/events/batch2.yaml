@@ -210,7 +210,7 @@ events:
         check: { stat: diplomacy, difficulty: 6, bonus: [{ when: { traits_any: [linguist] }, add: 1 }] }
         success:
           effects: { fame: 1 }
-          result: "{name} talked {bailiff} out of an arrest for another man's debt."
+          result: "{name} talked {bailiff} out of an arrest for someone else's debt."
           mood: triumph
         failure:
           effects: { money: -15 }
