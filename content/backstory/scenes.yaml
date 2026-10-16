@@ -1,0 +1,416 @@
+# Scenes of the backstory of the first hero (D-038, D-167, task 3.11). Stages are listed in backstory.yaml.
+# The answer sets the direction, the chance sets the size (stats_roll). One education at most, in `training`.
+events:
+  # --- origin: the house the hero was born in (the player is offered 2 of the 5 variants, plus the common one) ---
+  - id: bs_origin_house
+    deck: backstory
+    stage: origin
+    weight: 10
+    mood: neutral
+    text: "The house where you were born stood among others like it, and everything you know began under its roof. Whose roof was it?"
+    options:
+      - text: A guild house, where the ledger was read aloud at supper
+        when: { offered: guild_house }
+        effects: { stats_roll: { stewardship: { min: 1, max: 3 }, learning: { min: 0, max: 1 } }, money: 15 }
+        result: "{name} was born in a guild house and learned early what a ledger was worth."
+        chronicle: true
+      - text: A soldier's family, where a musket hung above the door
+        when: { offered: soldier_family }
+        effects: { stats_roll: { martial: { min: 1, max: 3 }, prowess: { min: 0, max: 1 } } }
+        result: "{name} was born into a soldier's family and grew up among old campaign stories."
+        chronicle: true
+      - text: A parish house, among prayers and books
+        when: { offered: parish_house }
+        effects: { stats_roll: { learning: { min: 1, max: 3 }, diplomacy: { min: 0, max: 1 } }, money: -5 }
+        result: "{name} was born in a parish house and learned {his} letters from the hymn books."
+        chronicle: true
+      - text: A gentry house, with more name than comfort
+        when: { offered: gentry_house }
+        effects:
+          stats_roll: { diplomacy: { min: 1, max: 2 }, stewardship: { min: 0, max: 1 } }
+          traits: { add: [ambitious] }
+          money: 50
+        result: "{name} was born in a gentry house and was taught from the cradle what the family name was owed."
+        chronicle: true
+      - text: The waterfront, among sailors, smugglers and gulls
+        when: { offered: waterfront }
+        effects:
+          stats_roll: { intrigue: { min: 1, max: 3 }, prowess: { min: 0, max: 2 } }
+          money: -10
+        mood: threat
+        result: "{name} was born on the waterfront and grew up among sailors and smugglers."
+        chronicle: true
+      - text: A plain house of plain people, no one of note
+        effects: { stats_roll: { prowess: { min: 0, max: 1 }, stewardship: { min: 0, max: 1 } }, traits: { add: [diligent] } }
+        result: "{name} was born to plain people and learned early to work for {his} bread."
+        chronicle: true
+
+  # --- childhood ---
+  - id: bs_child_friend
+    deck: backstory
+    stage: childhood
+    weight: 8
+    mood: joy
+    roles:
+      friend: { pick: circle, where: { age_max: 22 } }
+    text: "A child from the next yard, {friend}, was always at your door. Together you ran through the lanes and fields."
+    options:
+      - text: Share everything with {friend}
+        effects:
+          stats_roll: { diplomacy: { min: 0, max: 2 }, prowess: { min: 0, max: 1 } }
+          opinion: [{ toward: friend, reason: childhood_friend }]
+        on:
+          friend: { opinion: [{ toward: hero, reason: childhood_friend }] }
+        mood: joy
+        result: "{name} grew up inseparable from {friend}, a friend of the next yard."
+        chronicle: true
+      - text: Fight {friend} over a stolen toy
+        effects: { stats_roll: { prowess: { min: 1, max: 2 } } }
+        on:
+          friend: { opinion: [{ toward: hero, reason: slighted }] }
+        mood: anger
+        result: "{name} fought {friend} over a toy as a child and won, and neither forgot it."
+        chronicle: true
+      - text: Keep to yourself and watch from the doorstep
+        mood: neutral
+        effects: { stats_roll: { learning: { min: 0, max: 2 }, intrigue: { min: 0, max: 1 } } }
+        result: "{name} kept apart as a child and watched the neighbours' games from the doorstep."
+        chronicle: true
+
+  - id: bs_child_winter
+    deck: backstory
+    stage: childhood
+    weight: 8
+    mood: threat
+    text: "One winter the stores ran low. The wolves came near the houses, and your household looked to every pair of hands."
+    options:
+      - text: Go out with the men to set snares
+        check: { stat: prowess, difficulty: 5 }
+        success:
+          effects: { stats_roll: { prowess: { min: 1, max: 2 }, martial: { min: 0, max: 1 } }, money: 5 }
+          mood: triumph
+          result: "{name} set snares with the men in a hungry winter and brought home meat."
+          chronicle: true
+        failure:
+          effects: { stats_roll: { prowess: { min: 0, max: 1 } }, money: -5 }
+          mood: pain
+          result: "{name} froze in the snow checking snares one hungry winter and came back with nothing."
+          chronicle: true
+      - text: Stay by the fire, mind the little ones and listen to the old people
+        effects: { stats_roll: { learning: { min: 1, max: 2 }, diplomacy: { min: 0, max: 1 } } }
+        mood: neutral
+        result: "{name} spent a hungry winter by the fire, minding the little ones and listening to the old people."
+        chronicle: true
+      - text: Carry what little there is to the neighbours, for a coin
+        effects: { stats_roll: { stewardship: { min: 1, max: 2 } }, money: 10 }
+        result: "{name} sold what little the house could spare to the neighbours in a hungry winter."
+        chronicle: true
+
+  - id: bs_child_fair
+    deck: backstory
+    stage: childhood
+    weight: 7
+    mood: joy
+    text: "On the day of the fair the whole district came to town. You were given a few hours and a coin."
+    options:
+      - text: Watch the jugglers and the bear
+        effects: { stats_roll: { diplomacy: { min: 0, max: 1 }, learning: { min: 0, max: 1 } } }
+        mood: joy
+        result: "{name} spent a fair day watching jugglers and a dancing bear."
+        chronicle: true
+      - text: Slip between the stalls and lift an apple
+        check: { stat: intrigue, difficulty: 5 }
+        success:
+          effects: { stats_roll: { intrigue: { min: 1, max: 2 } } }
+          mood: triumph
+          result: "{name} lifted an apple from a stall at the fair and was not caught."
+          chronicle: true
+        failure:
+          effects: { stats_roll: { intrigue: { min: 0, max: 1 } }, money: -5 }
+          mood: shame
+          result: "{name} was caught stealing an apple at the fair and paid for it."
+          chronicle: true
+      - text: Help a stallholder and keep the coin earned
+        effects: { stats_roll: { stewardship: { min: 1, max: 2 } }, money: 5 }
+        result: "{name} helped at a stall during the fair and earned a few coins."
+        chronicle: true
+
+  # --- youth ---
+  - id: bs_youth_rival
+    deck: backstory
+    stage: youth
+    weight: 7
+    mood: anger
+    roles:
+      rival: { pick: circle, where: { age_min: 16, age_max: 28 } }
+    text: "{rival} had long made a habit of mocking you in front of others. Today it was in front of a crowd."
+    options:
+      - text: Answer with fists
+        check: { stat: prowess, difficulty: 5 }
+        success:
+          effects: { stats_roll: { prowess: { min: 1, max: 2 } } }
+          on:
+            rival: { opinion: [{ toward: hero, reason: humiliated }] }
+          mood: triumph
+          result: "{name} beat {rival} in a fight before a crowd, and {rival} did not forgive it."
+          chronicle: true
+        failure:
+          effects: { stats_roll: { prowess: { min: 0, max: 1 } }, fame: -1 }
+          on:
+            rival: { opinion: [{ toward: hero, reason: slighted }] }
+          mood: shame
+          result: "{name} was beaten by {rival} in a fight before a crowd."
+          chronicle: true
+      - text: Answer with a sharp word
+        check: { stat: diplomacy, against: { role: rival, stat: intrigue } }
+        success:
+          effects: { stats_roll: { diplomacy: { min: 1, max: 2 } } }
+          on:
+            rival: { opinion: [{ toward: hero, reason: shamed_me }] }
+          mood: triumph
+          result: "{name} silenced {rival} with a single sharp word before a crowd."
+          chronicle: true
+        failure:
+          effects: { stats_roll: { diplomacy: { min: 0, max: 1 } } }
+          mood: shame
+          result: "{name} could find no answer to {rival}'s mockery and left in silence."
+          chronicle: true
+      - text: Walk away
+        mood: neutral
+        effects: { stats_roll: { learning: { min: 0, max: 1 }, intrigue: { min: 0, max: 1 } } }
+        result: "{name} walked away from the mockery of {rival}."
+        chronicle: true
+
+  - id: bs_youth_teacher
+    deck: backstory
+    stage: youth
+    weight: 7
+    mood: neutral
+    roles:
+      teacher: { pick: circle, where: { occupation: [priest, physician, craftsman, clerk, sergeant], age_min: 25 } }
+    text: "{teacher} noticed you hanging about the door and offered to show you something of {teacher.his} work, if you would come in the evenings."
+    options:
+      - text: Come every evening and listen
+        effects:
+          stats_roll: { learning: { min: 1, max: 2 }, stewardship: { min: 0, max: 1 } }
+          opinion: [{ toward: teacher, reason: mentor }]
+        on:
+          teacher: { opinion: [{ toward: hero, reason: gift }] }
+        result: "{name} spent youthful evenings listening to {teacher} and learned much from {teacher.him}."
+        chronicle: true
+      - text: Take a few lessons for the practical use
+        effects:
+          stats_roll: { stewardship: { min: 0, max: 2 }, intrigue: { min: 0, max: 1 } }
+          opinion: [{ toward: teacher, reason: mentor }]
+        result: "{name} took a few useful lessons from {teacher} and went on."
+        chronicle: true
+      - text: Decline, there is work to do
+        effects: { stats_roll: { prowess: { min: 0, max: 1 } }, money: 10 }
+        result: "{name} declined the lessons of {teacher} and took paid work instead."
+        chronicle: true
+
+  - id: bs_youth_debt
+    deck: backstory
+    stage: youth
+    weight: 8
+    mood: loss
+    text: "A bad year, and the creditor came to your household. The family could pay only a part."
+    options:
+      - text: Take the debt on yourself and work it off
+        effects: { stats_roll: { stewardship: { min: 1, max: 2 }, prowess: { min: 0, max: 1 } }, money: -20, traits: { add: [diligent] } }
+        mood: pain
+        result: "{name} took the family's debt upon {his} own shoulders and worked it off for years."
+        chronicle: true
+      - text: Talk the creditor into waiting
+        check: { stat: diplomacy, difficulty: 5 }
+        success:
+          effects: { stats_roll: { diplomacy: { min: 1, max: 2 } }, money: 10 }
+          mood: triumph
+          result: "{name} persuaded the family's creditor to wait for the money."
+          chronicle: true
+        failure:
+          effects: { stats_roll: { diplomacy: { min: 0, max: 1 } }, money: -30 }
+          mood: shame
+          result: "{name} failed to talk the family's creditor into waiting, and the house paid dearly."
+          chronicle: true
+      - text: Let the creditor take what he wants and say nothing
+        effects: { stats_roll: { intrigue: { min: 0, max: 2 } }, money: -10, traits: { add: [suspicious] } }
+        mood: loss
+        result: "{name} watched a creditor carry off the household's goods and trusted few people after."
+        chronicle: true
+
+  # --- training: one education at most, age_years only here ---
+  - id: bs_train_master
+    deck: backstory
+    stage: training
+    weight: 7
+    mood: neutral
+    roles:
+      master: { pick: circle, where: { occupation: [craftsman, clerk, physician, merchant, priest], age_min: 25 } }
+    text: "{master} agreed to take you as an apprentice, for board and a promise of obedience."
+    options:
+      - text: Learn the counting and the keeping of books
+        effects:
+          traits: { add: [stewardship_2] }
+          stats_roll: { stewardship: { min: 0, max: 1 } }
+          age_years: 2
+          money: -10
+          opinion: [{ toward: master, reason: mentor }]
+        result: "{name} was apprenticed to {master} for two years and learned to keep accounts."
+        chronicle: true
+      - text: Learn how to read people, and what they will not say
+        effects:
+          traits: { add: [street_2] }
+          stats_roll: { intrigue: { min: 0, max: 1 } }
+          age_years: 2
+          opinion: [{ toward: master, reason: mentor }]
+        result: "{name} was apprenticed to {master} for two years and learned to read people."
+        chronicle: true
+      - text: Learn letters and the little Latin the master has
+        effects:
+          traits: { add: [learned_1] }
+          stats_roll: { learning: { min: 0, max: 2 } }
+          age_years: 1
+          opinion: [{ toward: master, reason: mentor }]
+        on:
+          master: { opinion: [{ toward: hero, reason: gift }] }
+        result: "{name} spent a year in the house of {master}, learning letters and some Latin."
+        chronicle: true
+
+  - id: bs_train_service
+    deck: backstory
+    stage: training
+    weight: 7
+    mood: neutral
+    when: { sex: male }  # the army is closed to women (D-034)
+    roles:
+      sergeant: { pick: circle, where: { occupation: [sergeant, soldier, mercenary], age_min: 26 } }
+    text: "{sergeant} was gathering recruits, and the pay was better than at home. The drill was hard."
+    options:
+      - text: Serve the full term and take every lesson
+        effects:
+          traits: { add: [martial_2] }
+          stats_roll: { prowess: { min: 0, max: 1 } }
+          age_years: 2
+          opinion: [{ toward: sergeant, reason: mentor }]
+        mood: triumph
+        result: "{name} served two years under {sergeant} and learned the soldier's trade."
+        chronicle: true
+      - text: Keep your head down, learn what you must and leave early
+        effects:
+          traits: { add: [martial_1] }
+          stats_roll: { martial: { min: 0, max: 1 }, intrigue: { min: 0, max: 1 } }
+          age_years: 1
+          money: 20
+        result: "{name} served a year under {sergeant} and left early with a few coins."
+        chronicle: true
+      - text: Make a name by volunteering for the worst of the work
+        check: { stat: prowess, difficulty: 6 }
+        success:
+          effects:
+            traits: { add: [martial_3] }
+            age_years: 2
+            fame: 1
+            opinion: [{ toward: sergeant, reason: favour }]
+          on:
+            sergeant: { opinion: [{ toward: hero, reason: favour }] }
+          mood: triumph
+          result: "{name} volunteered for the worst of the work under {sergeant} and was remembered for it."
+          chronicle: true
+        failure:
+          effects:
+            traits: { add: [martial_1] }
+            age_years: 2
+            money: -10
+          on:
+            sergeant: { opinion: [{ toward: hero, reason: slighted }] }
+          mood: pain
+          result: "{name} volunteered for the worst of the work under {sergeant} and came out broken and poorer."
+          chronicle: true
+
+  - id: bs_train_books
+    deck: backstory
+    stage: training
+    weight: 8
+    mood: neutral
+    text: "Your people could spare you for a time. There was a school in the town, a court that took servants, and a road."
+    options:
+      - text: Go to the school and study three years
+        effects:
+          traits: { add: [learned_2] }
+          stats_roll: { learning: { min: 0, max: 1 } }
+          age_years: 3
+          money: -25
+        result: "{name} studied for three years at a town school."
+        chronicle: true
+      - text: Enter the household of a great man as a ward
+        effects:
+          traits: { add: [courtly_2] }
+          stats_roll: { diplomacy: { min: 0, max: 1 } }
+          age_years: 2
+          money: -10
+        result: "{name} served two years as a page in a great household and learned its manners."
+        chronicle: true
+      - text: Spend the years on the road and in the taverns
+        effects:
+          traits: { add: [street_1] }
+          stats_roll: { intrigue: { min: 0, max: 2 }, prowess: { min: 0, max: 1 } }
+          age_years: 1
+          money: 15
+        mood: threat
+        result: "{name} spent a year wandering from tavern to tavern and learned the ways of the road."
+        chronicle: true
+
+  # --- leaving ---
+  - id: bs_leave_reason
+    deck: backstory
+    stage: leaving
+    weight: 8
+    mood: neutral
+    text: "Nothing held you at home any longer. What drove you out?"
+    options:
+      - text: A hunger to see the world and be worth something in it
+        effects: { traits: { add: [ambitious] }, stats_roll: { diplomacy: { min: 0, max: 1 } }, money: 10 }
+        mood: joy
+        result: "{name} set out to see the world and to find a place in it."
+        chronicle: true
+      - text: A quarrel at home that could not be mended
+        effects: { stats_roll: { prowess: { min: 0, max: 1 }, intrigue: { min: 0, max: 1 } }, money: -10 }
+        mood: anger
+        result: "{name} left after a quarrel at home that could not be mended."
+        chronicle: true
+      - text: The wish to repay the family, and the need for money
+        effects: { stats_roll: { stewardship: { min: 0, max: 2 } }, money: 20 }
+        mood: loss
+        result: "{name} left home to earn money for the family."
+        chronicle: true
+
+  - id: bs_leave_farewell
+    deck: backstory
+    stage: leaving
+    weight: 7
+    mood: loss
+    roles:
+      patron: { pick: circle, where: { age_min: 35 } }
+    text: "On the last evening {patron}, whom everyone in the district knew, took you aside to give you some advice."
+    options:
+      - text: Listen and take the gift {patron.he} offers
+        effects:
+          money: 20
+          opinion: [{ toward: patron, reason: gift }]
+        on:
+          patron: { relation: [{ start: patron, with: hero }] }
+        mood: joy
+        result: "{name} took a farewell gift from {patron}, who promised to keep an eye on {him}."
+        chronicle: true
+      - text: Thank {patron.him} and refuse any gift
+        effects: { stats_roll: { diplomacy: { min: 0, max: 1 } }, traits: { add: [proud] } }
+        on:
+          patron: { opinion: [{ toward: hero, reason: favour }] }
+        result: "{name} refused a farewell gift from {patron} and left with nothing but pride."
+        chronicle: true
+      - text: Leave unseen before dawn
+        effects: { stats_roll: { intrigue: { min: 1, max: 2 } } }
+        mood: loss
+        result: "{name} left before dawn and said no farewells."
+        chronicle: true

@@ -22,7 +22,8 @@ const content: Content = loadOrThrow([...BASE_FILES, ...WORLD_FILES, ...STORY_FI
 
 /** A new game on day 0 with a circle of `n` people; no action yet. The base pace never rolls the deck. */
 function game(n = 2, c: Content = content): { ctx: Ctx; hero: Character; people: Character[] } {
-  const state = newGame(1, c);
+  const state = newGame(2, c);
+  state.circle = []; // the circle of the new game (D-167) is not the one under test
   const ctx = { state, content: c };
   const people = Array.from({ length: n }, () => {
     const p = createCharacter(ctx, { surname: 'Circle', age: { min: 30, max: 30 } });

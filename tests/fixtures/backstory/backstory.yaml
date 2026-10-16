@@ -1,0 +1,79 @@
+# Backstory of the fixture: exact numbers (stats_roll with min = max), goes on top of base, population and opinions.
+backstory:
+  base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
+  stages:
+    - id: origin
+      offer: { count: 2, variants: [va, vb, vc] }
+    - id: childhood
+    - id: training
+  texts:
+    leave: "{name}, aged {age}, went out."
+
+events:
+  - id: origin_scene
+    deck: backstory
+    stage: origin
+    weight: 1
+    mood: neutral
+    text: "You were born."
+    options:
+      - text: House A
+        when: { offered: va }
+        effects: { stats_roll: { martial: { min: 2, max: 2 } } }
+        result: "{name} was born in house A."
+        chronicle: true
+      - text: House B
+        when: { offered: vb }
+        effects: { stats_roll: { learning: { min: 2, max: 2 } } }
+        result: "{name} was born in house B."
+        chronicle: true
+      - text: House C
+        when: { offered: vc }
+        effects: { stats_roll: { diplomacy: { min: 2, max: 2 } } }
+        result: "{name} was born in house C."
+        chronicle: true
+      - text: Nowhere in particular
+        effects: { money: 5 }
+        result: "{name} was born nowhere in particular."
+        chronicle: true
+
+  - id: childhood_mentor
+    deck: backstory
+    stage: childhood
+    weight: 1000
+    mood: joy
+    roles:
+      mentor: { pick: circle, where: { occupation: [porter] } }
+    text: "{mentor} takes an interest in you."
+    options:
+      - text: Listen
+        effects: { stats_roll: { intrigue: { min: 1, max: 1 } } }
+        on: { mentor: { opinion: [{ toward: hero, reason: gift }] } }
+        result: "{name} learned from {mentor}."
+        chronicle: true
+        mood: joy
+      - text: Run off
+        result: "{name} ran off from {mentor}."
+        chronicle: true
+
+  - id: childhood_plain
+    deck: backstory
+    stage: childhood
+    weight: 1
+    text: "A quiet year."
+    options:
+      - text: Work
+        effects: { money: 3 }
+        result: "{name} worked through a quiet year."
+        chronicle: true
+
+  - id: training_school
+    deck: backstory
+    stage: training
+    weight: 1
+    text: "You are sent to school."
+    options:
+      - text: Go
+        effects: { age_years: 1, traits: { add: [courtly_1] } }
+        result: "{name} went to school."
+        chronicle: true

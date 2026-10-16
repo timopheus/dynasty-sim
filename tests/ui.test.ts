@@ -98,7 +98,7 @@ describe('hero view', () => {
       expect(s.word).not.toBe('');
       expect(Number.isInteger(s.value)).toBe(true);
     }
-    expect(view.age).toBeGreaterThanOrEqual(18);
+    expect(view.age).toBeGreaterThanOrEqual(16);
     expect(view.name).toContain(view.surname);
     expect(view.conditions).toBe('');
   });

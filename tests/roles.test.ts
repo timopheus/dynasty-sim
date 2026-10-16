@@ -23,6 +23,7 @@ const content: Content = loadOrThrow(FILES);
 /** A game with three people in the circle: poor, rich and richer, in that order. */
 function withCircle(): { ctx: Ctx; hero: Character; people: Character[] } {
   const state = newGame(1, content);
+  state.circle = []; // the circle of the new game (D-167) is not the one under test
   const ctx = { state, content };
   const people = [5, 100, 200].map((money) => {
     const c = createCharacter(ctx, { surname: 'Circle', age: { min: 30, max: 30 } });
@@ -69,7 +70,7 @@ describe('filling roles', () => {
     const two = roles({ a: { pick: 'circle', where: { money_min: 50 } }, b: { pick: 'circle', where: { money_min: 50 } } });
     for (let i = 0; i < 20; i++) {
       const scope = fillRoles(ctx, two, baseScope(hero, hero))!;
-      expect([scope.a, scope.b].sort()).toEqual([people[1]!.id, people[2]!.id]);
+      expect(new Set([scope.a, scope.b])).toEqual(new Set([people[1]!.id, people[2]!.id]));
     }
   });
 
