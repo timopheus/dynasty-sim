@@ -1,0 +1,23 @@
+# expect-error: health.conditions[0].stages[0].transitions[0].to /unknown stage "rotten"/
+health:
+  conditions:
+    - id: cut
+      name: Cut
+      kind: wound
+      cause: illness
+      stages:
+        - id: fresh
+          name: fresh
+          transitions:
+            - { to: rotten, per10k: 100 }
+      outcomes:
+        - { weight: 1 }
+  mortality:
+    - { per100k: 1000, cause: illness }
+  causes:
+    - { id: illness, text: "Illness took {him}." }
+  rest: { actions: [], better: 100, worse: 100 }
+  road: { actions: [], better: 100, worse: 100 }
+  texts:
+    interrupted: "{name} took to bed."
+    unfit: Too ill
