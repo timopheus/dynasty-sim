@@ -3,6 +3,7 @@ import type { PersonPage, RelationLine } from '../core/pages/person';
 import type { TextPart } from '../core/text/text';
 import { formatDate } from '../core/time/calendar';
 import { personHref } from './address';
+import { opinionLineText, withNumber } from './access';
 import { entryView } from './entry';
 
 type Make = <K extends keyof HTMLElementTagNameMap>(tag: K, props?: Partial<HTMLElementTagNameMap[K]>, ...children: (Node | string)[]) => HTMLElementTagNameMap[K];
@@ -31,15 +32,15 @@ function sexWord(p: PersonPage): string {
   return p.sex === 'male' ? 'Man' : 'Woman';
 }
 
-/** The page of a person (2.10): only what the player may know; the numbers sit in hover texts (D-031). */
-export function pageView(make: Make, page: PersonPage | null, heads: ReadonlySet<string>): HTMLElement {
+/** The page of a person (2.10): only what the player may know; the numbers sit beside the words on request, hover is a bonus (D-031, D-248). */
+export function pageView(make: Make, page: PersonPage | null, heads: ReadonlySet<string>, showNumbers = false): HTMLElement {
   if (!page) {
-    return make('section', { className: 'page' }, make('p', { className: 'meta' }, make('a', { href: '#' }, '← Your house')), make('h1', {}, 'Nobody by that name'));
+    return make('section', { className: 'page' }, make('p', { className: 'meta' }, make('a', { href: '#', className: 'back' }, '← Your house')), make('h1', {}, 'Nobody by that name'));
   }
   const intro = [sexWord(page), page.life, page.fame, page.occupation ?? ''].filter(Boolean).join(' · ');
   const knowledge: Record<string, string> = { self: 'Yours', close: 'A close acquaintance', known: 'An acquaintance', stranger: 'A stranger to you' };
   const nodes: (Node | string)[] = [
-    make('p', { className: 'meta' }, make('a', { href: '#' }, '← Your house')),
+    make('p', { className: 'meta' }, make('a', { href: '#', className: 'back' }, '← Your house')),
     make('h1', {}, page.name),
     make('p', { className: 'meta' }, `${knowledge[page.level] ?? ''}${page.alive ? '' : ' · dead'}`),
     make('p', {}, intro),
@@ -53,7 +54,7 @@ export function pageView(make: Make, page: PersonPage | null, heads: ReadonlySet
   if (page.stats) {
     nodes.push(make('dl', { className: 'stats' }, ...page.stats.flatMap((s) => [
       make('dt', {}, s.label),
-      make('dd', s.value === null ? {} : { title: String(s.value) }, s.word),
+      make('dd', s.value === null ? {} : { title: String(s.value) }, withNumber(s.word, s.value, showNumbers)),
     ])));
   }
   if (page.secrets.length) nodes.push(make('p', {}, `Secrets you know: ${page.secrets.join(', ')}.`));
@@ -61,11 +62,11 @@ export function pageView(make: Make, page: PersonPage | null, heads: ReadonlySet
     const o = page.opinion;
     nodes.push(
       make('h2', {}, 'Opinion of you'),
-      make('p', o.value === null ? {} : { title: String(o.value) }, o.word),
+      make('p', o.value === null ? {} : { title: String(o.value) }, withNumber(o.word, o.value, showNumbers)),
       ...(o.lines.length
         ? [make('ul', { className: 'plain' }, ...o.lines.map((l) =>
             make('li', l.value === null ? {} : { title: String(l.value) },
-              `${l.text}${l.year !== null ? `, ${l.year}` : ''}${l.lasting ? ' (never fades)' : ''}`)))]
+opinionLineText(l, showNumbers))))]
         : []),
     );
   }

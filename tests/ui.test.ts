@@ -164,7 +164,7 @@ describe('event screen', () => {
     expect(screen.text).toEqual(['A choice for ', { id: hero.id, name: `${hero.givenName} ${hero.surname}` }, '.']);
     expect(screen.options.map((o) => o.grey)).toEqual([false, true, false]);
     expect(screen.options[1]).toMatchObject({ reason: 'Requires 1000 crowns', chance: null });
-    expect(screen.options[2]!.chance).toEqual({ word: CHANCE_WORDS.risky, title: '25%' });
+    expect(screen.options[2]!.chance).toEqual({ word: CHANCE_WORDS.risky, percent: 25, title: '25%' });
   });
 
   it('leaves out an option whose reason the hero must not know', () => {
