@@ -41,12 +41,11 @@ function memory(opinions: OpinionsContent, holder: Character | null, kind: Reaso
 /** What a reason counts for on a day: from its date and the holder's memory, no daily recalculation (D-035). */
 export function reasonValue(opinions: OpinionsContent, record: OpinionReason, holder: Character | null, day: number): number {
   const def = opinions.reasons.find((r) => r.id === record.reason);
-  if (!def || (record.end !== null && day >= record.end)) return 0;
+  if (!def || day < record.day || (record.end !== null && day >= record.end)) return 0;
   const { fade, scale } = memory(opinions, holder, def.kind);
   const value = Math.trunc((record.value * scale) / 100);
   if (def.decay.kind !== 'fade' || fade === 0) return value;
   const total = def.decay.days * 100;
-  if (day < record.day) return 0;
   const passed = (day - record.day) * fade;
   if (passed >= total) return 0;
   return Math.trunc((value * (total - passed)) / total);
@@ -63,10 +62,10 @@ export function backgroundValue(opinions: OpinionsContent, holder: Character, ta
 }
 
 /** Opinion of an active relation between the two, if any, from the holder's side. */
-function relationValue(state: GameState, opinions: OpinionsContent, holderId: string, targetId: string): number {
+function relationValue(state: GameState, opinions: OpinionsContent, holderId: string, targetId: string, day: number): number {
   let sum = 0;
   for (const r of state.relations) {
-    if (r.end !== null) continue;
+    if (r.start > day || (r.end !== null && day >= r.end)) continue;
     const kind = opinions.relations.find((k) => k.id === r.kind);
     if (!kind) continue;
     if (r.a === holderId && r.b === targetId) sum += kind.opinion.a;
@@ -81,7 +80,10 @@ export interface OpinionCause {
   value: number;
 }
 
-/** Everything that makes up the opinion on a day, parts that are zero left out. */
+/**
+ * Everything that makes up the opinion on a day, parts that are zero left out. Reasons and relations are taken by their
+ * dates; the background and the memory come from the traits held now, and a refreshed reason keeps only its last date.
+ */
 export function opinionCauses(ctx: Ctx, holderId: string, targetId: string, day = ctx.state.day): OpinionCause[] {
   const { state, content } = ctx;
   const opinions = opinionsOf(content);
@@ -96,7 +98,7 @@ export function opinionCauses(ctx: Ctx, holderId: string, targetId: string, day 
   }
   const back = backgroundValue(opinions, holder, target);
   if (back !== 0) causes.push({ id: 'background', value: back });
-  const rel = relationValue(state, opinions, holderId, targetId);
+  const rel = relationValue(state, opinions, holderId, targetId, day);
   if (rel !== 0) causes.push({ id: 'relation', value: rel });
   return causes;
 }

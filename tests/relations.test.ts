@@ -130,6 +130,24 @@ describe('opinions', () => {
     y.traits = [];
     addOpinionReason(ctx, x.id, y.id, 'slight');
     expect(opinionValue(ctx, x.id, y.id, state.day - 1)).toBe(0);
+    addOpinionReason(ctx, x.id, y.id, 'insult');
+    addOpinionReason(ctx, x.id, y.id, 'debt');
+    x.traits = ['vengeful'];
+    expect(opinionValue(ctx, x.id, y.id, state.day - 1)).toBe(0);
+    expect(opinionValue(ctx, x.id, y.id, state.day)).toBe(-70);
+  });
+
+  it('count a relation only between its dates', () => {
+    const { state, ctx, x, y } = setup();
+    x.traits = [];
+    y.traits = [];
+    const rel = startRelation(ctx, 'friend', x.id, y.id);
+    const start = state.day;
+    state.day += 10;
+    endRelation(ctx, rel, 'drifted');
+    expect(opinionValue(ctx, x.id, y.id, start - 1)).toBe(0);
+    expect(opinionValue(ctx, x.id, y.id, start + 5)).toBe(25);
+    expect(opinionValue(ctx, x.id, y.id, start + 10)).toBe(0);
   });
 
   it('refresh a reason that still counts instead of doubling it', () => {

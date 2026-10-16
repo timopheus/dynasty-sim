@@ -114,9 +114,13 @@ export const checkRelations: CrossCheck = ({ opinions, traits }) => {
       if (!traitIds.has(id)) err(path, `unknown trait "${id}"`);
     };
     item.traitEffects.forEach((e, i) => known(`traitEffects[${i}].trait`, e.trait));
+    const rules = new Set<string>();
     item.background.rules.forEach((r, i) => {
       known(`background.rules[${i}].holder`, r.holder);
       known(`background.rules[${i}].target`, r.target);
+      const key = `${r.holder}/${r.target}`;
+      if (rules.has(key)) err(`background.rules[${i}]`, `duplicate rule for "${r.holder}" towards "${r.target}"`);
+      rules.add(key);
     });
     const pairs = new Set<string>();
     item.traitEffects.forEach((e, i) => {
