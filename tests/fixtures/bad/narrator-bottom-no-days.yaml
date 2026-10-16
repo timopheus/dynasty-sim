@@ -1,0 +1,9 @@
+# expect-error: narrator.bottom.forceAfterDays /.+/
+narrator:
+  eventChancePer10k: 100
+  minDaysBetweenEvents: 0
+  eventRepeatCooldownDays: 0
+  bottom:
+    when: { money_max: 5 }
+    wayUpFactor: 3
+    forceAfterDays: 0

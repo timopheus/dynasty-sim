@@ -10,7 +10,7 @@ import { serialize } from '../src/core/save/save';
 import { runSim } from '../src/core/sim';
 import { getPlayer } from '../src/core/helpers';
 import { ageYears } from '../src/core/time/calendar';
-import { fixtureContent } from './fixtures/content';
+import { fixtureContent, fixtureNarrator } from './fixtures/content';
 
 describe('metric helpers', () => {
   it('computes the spread of a list', () => {
@@ -85,6 +85,37 @@ describe('computeMetrics', () => {
     expect(m.deathCauses.reduce((n, d) => n + d.count, 0)).toBe(count('death'));
     expect(m.chronicle.chronicleLevel + m.chronicle.journalLevel).toBe(state.chronicle.length);
     expect(m.eventsPerYear).toBeCloseTo((m.events * 365.25) / state.day, 1);
+  });
+});
+
+describe('pace metrics (3.7)', () => {
+  const content = fixtureNarrator({ eventChancePer10k: 2000, longActionChancePer10k: 2000, minDaysBetweenEvents: 1 });
+
+  it('counts marks per head, heavy events, notices and events by the length of the action', () => {
+    const state = newGame(1, content);
+    const founder = getPlayer(state);
+    state.chronicle.push({ day: 5, subject: founder.id, kind: 'event', level: 'chronicle', parts: ['A choice.'], mark: true });
+    state.chronicle.push({ day: 6, subject: founder.id, kind: 'event', level: 'chronicle', parts: ['Another.'], mark: true });
+    state.narratorStats = { shortActions: 4, shortEvents: 2, longActions: 2, longEvents: 5, heavy: 3, notices: 7 };
+    state.day = 36525;
+    kill({ state, content }, founder, 'natural');
+    const m = computeMetrics(state);
+    expect(m.heads.marksPerLife.median).toBe(2);
+    expect(m.eventsPerShortAction).toBe(0.5);
+    expect(m.eventsPerLongAction).toBe(2.5);
+    expect(m.heavyPerYear).toBe(0.03);
+    expect(m.notices).toBe(7);
+    expect(flatten(m)['heads.marksPerLife.median']).toBe(2);
+  });
+
+  it('agrees with the counters after a run', () => {
+    const { state } = runSim(content, { seed: 2, years: 60 });
+    const stats = state.narratorStats;
+    const m = computeMetrics(state);
+    // An event still waiting for the player is counted but not yet written.
+    expect(stats.shortEvents + stats.longEvents - m.events).toBeLessThanOrEqual(1);
+    expect(stats.shortEvents + stats.longEvents).toBeGreaterThanOrEqual(m.events);
+    expect(m.eventsPerYear).toBeGreaterThan(0);
   });
 });
 

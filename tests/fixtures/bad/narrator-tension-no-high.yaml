@@ -1,0 +1,9 @@
+# expect-error: narrator.tension.high /.+/
+narrator:
+  eventChancePer10k: 100
+  minDaysBetweenEvents: 0
+  eventRepeatCooldownDays: 0
+  tension:
+    gain: { medium: 10, heavy: 40 }
+    decayPerDay: 1
+    lightFactor: 2
