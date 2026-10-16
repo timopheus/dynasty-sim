@@ -3,7 +3,7 @@ import { botCommand } from '../src/core/bot';
 import { entryText } from '../src/core/chronicle/log';
 import type { Content } from '../src/core/content/schema';
 import { chanceBand, checkChance, rollCheck } from '../src/core/events/checks';
-import type { EventDef } from '../src/core/events/content';
+import { DEFAULT_MOOD, moodOf, type EventDef } from '../src/core/events/content';
 import { eventWeight, findEvent, fireEvent, startEvent } from '../src/core/events/events';
 import { eventView } from '../src/core/events/view';
 import { apply, newGame } from '../src/core/game';
@@ -84,6 +84,7 @@ describe('options', () => {
     expect(view.options.map((o) => o.index)).toEqual([0, 1, 2]); // option 3 is hidden
     expect(view.options[1]).toMatchObject({ available: false, reasons: ['Requires 1000 crowns'] });
     expect(view.options[0]).toMatchObject({ available: true, reasons: [], chance: null });
+    expect(view.mood).toBe('neutral'); // the scene sets no mood (D-177)
     expect(() => apply(ctx.state, c, { type: 'choose', option: 1 })).toThrow(/not available/);
     expect(() => apply(ctx.state, c, { type: 'choose', option: 3 })).toThrow(/not available/);
   });
@@ -322,5 +323,14 @@ describe('wave 2 together: roles (3.3), texts (3.4) and the engine (3.2)', () =>
     let rich = 0;
     for (let seed = 1; seed <= 200; seed++) if (brawl(seed).bully.money >= 150 - 7) rich++;
     expect(rich).toBeGreaterThan(150); // ×5 for 200 and 300 against 60: about 10 of 11
+  });
+});
+
+describe('mood (D-177)', () => {
+  it('takes the outcome mood first, then the scene mood, then neutral', () => {
+    const scene = { text: 'x', mood: 'threat' } as EventDef;
+    expect(moodOf(scene, { mood: 'joy' })).toBe('joy');
+    expect(moodOf(scene, {})).toBe('threat');
+    expect(moodOf({ text: 'x' } as EventDef)).toBe(DEFAULT_MOOD);
   });
 });
