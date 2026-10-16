@@ -10,14 +10,14 @@ import { conditionMortality } from './course';
  * Integer table on purpose: no floating-point math in random rolls (D-003).
  */
 const ANNUAL_DEATHS_PER_100K: readonly (readonly [number, number])[] = [
-  [15, 800],
-  [30, 1000],
-  [40, 1400],
-  [50, 2000],
-  [60, 3500],
-  [70, 6000],
-  [80, 12000],
-  [90, 22000],
+  [15, 800], // children are not simulated before the Dynasty stage; kept from the old table
+  [30, 1800],
+  [40, 1850],
+  [50, 1950],
+  [60, 2700],
+  [70, 5600],
+  [80, 15000],
+  [90, 30000],
   [Infinity, 40000],
 ];
 

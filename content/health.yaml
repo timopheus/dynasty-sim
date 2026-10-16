@@ -170,10 +170,10 @@ health:
 
   # Annual deaths per 100,000 of the simulated, not counting conditions; multiplied by their stages.
   mortality:
-    - { below: 30, per100k: 500, cause: illness }
-    - { below: 40, per100k: 700, cause: illness }
-    - { below: 50, per100k: 1100, cause: illness }
-    - { below: 60, per100k: 1800, cause: illness }
+    - { below: 30, per100k: 300, cause: illness }
+    - { below: 40, per100k: 450, cause: illness }
+    - { below: 50, per100k: 750, cause: illness }
+    - { below: 60, per100k: 1300, cause: illness }
     - { below: 70, per100k: 3500, cause: old_age }
     - { below: 80, per100k: 8000, cause: old_age }
     - { below: 90, per100k: 16000, cause: old_age }
