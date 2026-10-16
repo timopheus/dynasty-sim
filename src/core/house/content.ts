@@ -40,6 +40,7 @@ function unique(errors: ContentError[], file: string, path: string, ids: string[
 export const checkHouse: CrossCheck = ({ house, traits, events, actions }) => {
   const errors: ContentError[] = [];
   const reputation = new Set(traits.filter((t) => t.item.category === 'reputation').map((t) => t.item.id));
+  const hidden = new Set(traits.filter((t) => t.item.visibility !== 'obvious').map((t) => t.item.id));
   for (const { file, item } of house) {
     const err = (path: string, message: string) => errors.push({ file, path: `house.${path}`, message });
     unique(errors, file, 'house.statuses', item.statuses.map((s) => s.id), 'status id');
@@ -49,6 +50,9 @@ export const checkHouse: CrossCheck = ({ house, traits, events, actions }) => {
     });
     unique(errors, file, 'house.renown.traits', item.renown.traits.map((t) => t.trait), 'trait');
     unique(errors, file, 'house.nicknames', item.nicknames.map((n) => n.trait), 'trait');
+    item.nicknames.forEach((n, i) => {
+      if (hidden.has(n.trait)) err(`nicknames[${i}].trait`, `trait "${n.trait}" is not obvious: a nickname would give it away`);
+    });
     for (const [path, list] of [['renown.traits', item.renown.traits], ['nicknames', item.nicknames]] as const) {
       list.forEach((e, i) => {
         if (!reputation.has(e.trait)) err(`${path}[${i}].trait`, `unknown reputation trait "${e.trait}"`);

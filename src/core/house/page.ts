@@ -5,6 +5,7 @@ import type { EntityPage } from '../pages/entity';
 import type { PageSection, PersonSection } from '../pages/person';
 import type { Ctx } from '../state';
 import type { TextPart } from '../text/text';
+import { isNear } from '../world/world';
 import { toYmd } from '../time/calendar';
 import { houseById, nicknameOf, renownWord, statusName } from './house';
 
@@ -55,7 +56,7 @@ export function housePage(ctx: Ctx, id: string): EntityPage | null {
     if (head.nickname !== null) parts.push(`, ${head.nickname}`);
     facts.push({ label: years, parts });
   }
-  const living = state.characters.filter((c) => c.house === id && isAlive(c));
+  const living = state.characters.filter((c) => c.house === id && isAlive(c) && isNear(state, c.id));
   if (living.length > 0) {
     const parts: TextPart[] = [];
     living.slice(0, MEMBER_LIMIT).forEach((c, i) => {

@@ -92,6 +92,12 @@ export function renownWord(content: Content, renown: number): string {
   return word;
 }
 
+/** The word of the lowest step that reaches the renown `n`, for a reason ("must be …"); the top word above all steps. */
+export function renownWordFor(content: Content, n: number): string {
+  const words = content.house?.renown.words ?? [];
+  return (words.find((w) => w.from >= n) ?? words.at(-1))?.word ?? '';
+}
+
 /** The nickname people give the person for their deeds: the first entry of `house.nicknames` whose reputation trait they hold. */
 export function nicknameOf(content: Content, c: Character): string | null {
   for (const n of content.house?.nicknames ?? []) if (hasTrait(c, n.trait)) return n.nickname;
@@ -133,14 +139,18 @@ export const houseOnDeath: DeathHook = ({ state, content }, c) => {
 
 /**
  * A marriage was made (MARRIAGE_HOOKS of hooks.ts, called by the marriage of family/, 4.5). The house of a spouse
- * who has none is made now, from their surname. Lives here, not in phases.ts: the marriage is an effect, and a file an
+ * who has none is made now, from their surname, when the other spouse is of the house of the hero (D-370). Lives here, not in phases.ts: the marriage is an effect, and a file an
  * effect reaches must not import events/ or lifecycle.ts.
  */
 export const houseOnMarriage: MarriageHook = (ctx, marriage) => {
-  for (const id of [marriage.a, marriage.b]) {
-    const spouse = findCharacter(ctx.state, id);
-    if (spouse && spouse.house === null) spouse.house = makeHouse(ctx, spouse.surname).id;
-  }
+  const { state } = ctx;
+  const a = findCharacter(state, marriage.a);
+  const b = findCharacter(state, marriage.b);
+  if (!a || !b) return;
+  // Lazily, by the plan: only a marriage into the house of the hero makes the house of the other spouse.
+  const heroHouse = findCharacter(state, state.playerId)?.house ?? null;
+  if (heroHouse === null || (a.house !== heroHouse && b.house !== heroHouse)) return;
+  for (const spouse of [a, b]) if (spouse.house === null) spouse.house = makeHouse(ctx, spouse.surname).id;
 };
 
 /**

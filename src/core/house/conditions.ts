@@ -1,9 +1,8 @@
-import { z } from 'zod';
 import type { Unmet } from '../condition-keys';
 import { fillReason } from '../conditions/reasons';
 import { Id, Int } from '../content/types';
 import type { Character, Ctx, Scope } from '../state';
-import { houseOf, renownWord, statusName, statusRank } from './house';
+import { houseOf, renownWordFor, statusName, statusRank } from './house';
 
 /**
  * Condition keys of this module (4.7, D-237, D-316), about the house of the character the condition is checked for; a
@@ -32,7 +31,7 @@ export function checkHouseConditions(ctx: Ctx, c: Character, when: HouseWhen, _s
     out.push({ text: fillReason(reasons.status_min, { status: statusName(content, when.house_status_min) }), hidden: false });
   }
   if (when.house_renown_min !== undefined && (!house || house.renown < when.house_renown_min)) {
-    out.push({ text: fillReason(reasons.renown_min, { renown: renownWord(content, when.house_renown_min) }), hidden: false });
+    out.push({ text: fillReason(reasons.renown_min, { renown: renownWordFor(content, when.house_renown_min) }), hidden: false });
   }
   return out;
 }

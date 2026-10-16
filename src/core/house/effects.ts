@@ -36,11 +36,13 @@ export function applyHouseEffects(ctx: Ctx, c: Character, effects: HouseEffects,
   if (!house || !content.house) return;
   const set = effects.house_status;
   if (set && statusRank(content, set.status) >= 0 && house.status !== set.status) {
+    const raised = statusRank(content, set.status) > statusRank(content, house.status);
     house.status = set.status;
+    // a secret of a status taken without the right only when the status was really raised
+    if (set.usurped === true && raised && !state.secrets.some((s) => s.about === c.id && s.kind === USURPED_STATUS)) addSecret(ctx, c.id, USURPED_STATUS, [c.id]);
     const values = { ...placeholderValues(c, state.day), house: { id: house.id, name: house.name }, status: statusName(content, set.status) };
     log(ctx, { subject: c, kind: 'house_status', level: 'chronicle', parts: fillTemplate(content.house.texts.status, values) });
   }
-  if (set?.usurped === true && !state.secrets.some((s) => s.about === c.id && s.kind === USURPED_STATUS)) addSecret(ctx, c.id, USURPED_STATUS, [c.id]);
   if (effects.house_renown !== undefined) house.renown += effects.house_renown;
 }
 

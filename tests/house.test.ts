@@ -73,6 +73,15 @@ describe('children and spouses', () => {
     expect(createCharacter(ctx, { surname: 'Other', age: { min: 1, max: 1 } }).house).toBeNull();
   });
 
+  it('a marriage outside the house of the hero makes no house', () => {
+    const { state, ctx } = setup();
+    const a = createCharacter(ctx, { surname: 'A', age: { min: 20, max: 20 } });
+    const b = createCharacter(ctx, { surname: 'B', age: { min: 20, max: 20 } });
+    afterMarriage(ctx, { a: a.id, b: b.id, start: state.day, end: null, endReason: null });
+    expect(state.houses).toHaveLength(1);
+    expect([a.house, b.house]).toEqual([null, null]);
+  });
+
   it('a marriage makes the house of a spouse who has none, from their surname', () => {
     const { state, ctx, hero } = setup();
     const bride = createCharacter(ctx, { surname: 'Bride', age: { min: 20, max: 20 } });
@@ -140,6 +149,15 @@ describe('status and renown by effects', () => {
     expect(serialize(state)).toBe(before);
   });
 
+  it('no secret when the status is not raised', () => {
+    const { state, ctx, hero } = setup();
+    applyEffects(ctx, hero, effects({ house_status: { status: 'guild' } }), { hero: hero.id });
+    applyEffects(ctx, hero, effects({ house_status: { status: 'guild', usurped: true } }), { hero: hero.id });
+    applyEffects(ctx, hero, effects({ house_status: { status: 'commoner', usurped: true } }), { hero: hero.id });
+    expect(state.houses[0]!.status).toBe('commoner');
+    expect(secretsAbout(state, hero.id)).toEqual([]);
+  });
+
   it('the schema refuses a renown change of 0', () => {
     expect(() => loadOrThrow([...BASE_FILES, { path: 'x.yaml', text: 'events: [{id: e, weight: 1, text: t, options: [{text: o, effects: {house_renown: 0}, result: r}]}]' }])).toThrow(/nothing/);
   });
@@ -160,6 +178,12 @@ describe('conditions', () => {
     expect(conditionReport(ctx, hero, when({ house_renown_min: 5 }), { hero: hero.id })).toEqual({ met: false, reasons: ['Needs a house that is Respected.'], hidden: false });
     applyEffects(ctx, hero, effects({ house_renown: 5 }), { hero: hero.id });
     expect(conditionReport(ctx, hero, when({ house_renown_min: 5 }), { hero: hero.id }).met).toBe(true);
+  });
+
+  it('the reason names the step the house must reach, not the one it has', () => {
+    const { ctx, hero } = setup();
+    applyEffects(ctx, hero, effects({ house_renown: 5 }), { hero: hero.id });
+    expect(conditionReport(ctx, hero, when({ house_renown_min: 6 }), { hero: hero.id }).reasons).toEqual(['Needs a house that is Respected.']);
   });
 
   it('a person with no house meets neither', () => {
@@ -260,6 +284,18 @@ describe('pages', () => {
     expect(page.chronicle.some((e) => e.kind === 'house_status')).toBe(true);
   });
 
+  it('the page lists only living members near the hero', () => {
+    const { ctx, hero } = setup();
+    const far = createCharacter(ctx, { surname: 'Far', age: { min: 20, max: 20 }, father: hero.id });
+    const near = createCharacter(ctx, { surname: 'Near', age: { min: 5, max: 5 }, father: hero.id });
+    ctx.state.household.push(near.id);
+    const found = entityPage(ctx, hero.house as string);
+    if (found?.type !== 'entity') throw new Error('no page');
+    const living = found.page.facts.find((f) => f.label === 'Living')!.parts.filter((p) => typeof p !== 'string').map((p) => (p as { id: string }).id);
+    expect(living).toContain(near.id);
+    expect(living).not.toContain(far.id);
+  });
+
   it('an unknown house has no page', () => {
     const { ctx } = setup();
     expect(entityPage(ctx, 'h999')).toBeNull();
@@ -284,10 +320,11 @@ describe('the real game', () => {
     expect(real.house?.nicknames.length).toBeGreaterThan(0);
   });
 
-  it('300 years with the heirs of D-007 keep the house consistent', () => {
+  it('forty heads in a row keep the house consistent', () => {
     const real = realContent();
     const state = newGame(1, real);
     for (let i = 0; i < 40 && state.status !== 'ended'; i++) {
+      state.day += 365;
       for (const c of [...state.characters]) if (c.id === state.playerId) kill({ state, content: real }, c, 'natural');
       expect(houseInvariants({ state, content: real })).toEqual([]);
     }
