@@ -1,9 +1,9 @@
 import { fullName } from '../character/character';
+import { allCharacters, allMarriages, anyCharacter } from '../archive/archive';
 import { findCharacter } from '../helpers';
 import type { PageSection, PersonSection } from '../pages/person';
 import type { Character, Ctx } from '../state';
 import type { TextPart } from '../text/text';
-import { marriagesOf, parentsOf, childrenOf } from './kin';
 import type { ProposeOrder } from './phases';
 import { proposalOptions } from './proposals';
 
@@ -28,14 +28,19 @@ export const familySection: PersonSection = (ctx, c, level) => {
   const { state } = ctx;
   const lines: PageSection['lines'] = [];
   if (level !== 'stranger') {
-    for (const p of parentsOf(state, c.id)) lines.push({ label: p.sex === 'male' ? 'Father' : 'Mother', parts: ref(p) });
-    for (const m of marriagesOf(state, c.id)) {
-      const spouse = findCharacter(state, m.a === c.id ? m.b : m.a);
+    // The whole history: parents, spouses and children may be in the archive (D-312).
+    for (const id of [c.father, c.mother]) {
+      const p = id === null ? null : anyCharacter(state, id);
+      if (p) lines.push({ label: p.sex === 'male' ? 'Father' : 'Mother', parts: ref(p) });
+    }
+    for (const m of allMarriages(state)) {
+      if (m.a !== c.id && m.b !== c.id) continue;
+      const spouse = anyCharacter(state, m.a === c.id ? m.b : m.a);
       if (!spouse) continue;
       const label = m.end === null ? (spouse.sex === 'male' ? 'Husband' : 'Wife') : spouse.sex === 'male' ? 'Late husband' : 'Late wife';
       lines.push({ label, parts: ref(spouse) });
     }
-    const children = childrenOf(state, c.id);
+    const children = allCharacters(state).filter((x) => x.father === c.id || x.mother === c.id);
     if (children.length > 0) lines.push({ label: 'Children', parts: list(children) });
   }
   for (const o of proposalOptions(ctx, c.id)) {

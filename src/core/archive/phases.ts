@@ -1,3 +1,4 @@
+import { marriagesHeld, takeMarriages } from '../family/archive';
 import { findCharacter } from '../helpers';
 import type { Character, Ctx, DayPhase, GameState } from '../state';
 import { relationsArchiveSize, relationsHeld, takeRelations } from '../relations/archive';
@@ -12,7 +13,7 @@ export const HOT_YEARS = 10;
 /**
  * Archive phase (D-312): on the first day of a year the phase sees (a stop earlier in the day does not skip the year),
  * it moves into a new chunk the chronicle older than HOT_YEARS full years and the people dead longer than that whom
- * no hot data refers to (HOT_REFS, closed over parents and the records of relations that stay), with their records
+ * no hot data refers to (HOT_REFS, closed over parents and the records of relations and marriages that stay), with their records
  * of relations. It spends no randomness and makes no ids, so the run stays the same. Never stops the day. Writes
  * chunks only; never reads them through archive.ts.
  */
@@ -55,8 +56,9 @@ function takeChunk(ctx: Ctx, cutoff: number): ArchiveChunk | null {
     state.characters = kept;
   }
   const relations = takeRelations(state, leaving, dead);
-  if (chronicle.length === 0 && characters.length === 0 && relationsArchiveSize(relations) === 0) return null;
-  return { day: state.day, chronicle, characters, relations };
+  const marriages = takeMarriages(state, leaving, dead);
+  if (chronicle.length === 0 && characters.length === 0 && relationsArchiveSize(relations) === 0 && marriages.length === 0) return null;
+  return { day: state.day, chronicle, characters, relations, marriages };
 }
 
 /**
@@ -71,5 +73,6 @@ function closeOver(state: GameState, leaving: Set<string>, dead: (id: string) =>
       for (const parent of [c.father, c.mother]) if (parent !== null && leaving.delete(parent)) changed = true;
     }
     for (const id of relationsHeld(state, leaving, dead)) if (leaving.delete(id)) changed = true;
+    for (const id of marriagesHeld(state, leaving, dead)) if (leaving.delete(id)) changed = true;
   }
 }

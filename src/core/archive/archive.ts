@@ -1,4 +1,5 @@
 import type { ChronicleEntry } from '../chronicle/log';
+import type { Marriage } from '../family/family';
 import type { Content } from '../content/schema';
 import type { Relation } from '../relations/types';
 import { findCharacter } from '../helpers';
@@ -28,6 +29,12 @@ export function allCharacters(state: GameState): readonly Character[] {
 export function allRelations(state: GameState): readonly Relation[] {
   if (state.archive.length === 0) return state.relations;
   return [...state.archive.flatMap((chunk) => chunk.relations.relations), ...state.relations];
+}
+
+/** Every marriage record, archived ones (of the dead, 4.5) first. The hot array itself while the archive is empty. */
+export function allMarriages(state: GameState): readonly Marriage[] {
+  if (state.archive.length === 0) return state.marriages;
+  return [...state.archive.flatMap((chunk) => chunk.marriages), ...state.marriages];
 }
 
 /** A character by id, hot or archived; null if there is no such person. */

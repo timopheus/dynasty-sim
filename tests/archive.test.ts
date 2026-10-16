@@ -15,6 +15,8 @@ import { fromYmd } from '../src/core/time/calendar';
 import { realContent } from './fixtures/content';
 
 const content = realContent();
+// Without families (4.5): `setup` skips 21 years at once, and the kin of the start would grow up without occupations.
+const noFamilies = { ...content, family: null };
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -22,7 +24,7 @@ afterEach(() => {
 
 /** A game on 1 January 1721 with people made for the test; the archive phase has not looked at 1721 yet. */
 function setup() {
-  const state = newGame(11, content);
+  const state = newGame(11, noFamilies);
   const ctx: Ctx = { state, content };
   state.day = fromYmd(1721, 1, 1);
   state.archiveYear = 1720;
