@@ -61,7 +61,7 @@ function render(state: GameState, title: string, keep: (e: ChronicleEntry) => bo
         lines.push('', `### ${y} · ${ageYears(head.birthDay, e.day)}`, '');
       }
       const when = dated ? formatDate(e.day).replace(/ \d+$/, '') : shortMonth(e.day);
-      const world = e.subject === head.id ? '' : '◆ ';
+      const world = e.subject !== head.id && e.level === 'chronicle' ? '◆ ' : '';
       lines.push(`- ${world}**${when}** — ${renderText(e.parts, head.id, heads)}${e.mark ? ' ▸' : ''}`);
     }
   }

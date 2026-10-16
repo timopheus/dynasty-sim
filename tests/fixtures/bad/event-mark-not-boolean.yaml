@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].mark /expected boolean/
+events:
+  - id: bad_mark
+    weight: 1
+    text: "x"
+    options:
+      - text: A
+        result: "{name} did."
+        mark: "yes"

@@ -95,8 +95,7 @@ describe('chronicle selection (D-019, D-130)', () => {
     const content = base;
     const state = newGame(1, content);
     const { ctx, near } = addCircle(state, content);
-    const ctx2 = ctx;
-    const famous = createCharacter(ctx2, { surname: 'Famous', age: { min: 40, max: 40 } });
+    const famous = createCharacter(ctx, { surname: 'Famous', age: { min: 40, max: 40 } });
     state.circle.push(famous.id);
     famous.fame = 2;
     kill(ctx, near, 'old_age');
@@ -162,6 +161,6 @@ describe('chronicle markdown', () => {
     expect(md).not.toMatch(/Near/);
     expect(md).toMatch(/<a id="c1"><\/a>\n## Anne Fixture \(1679–1700\)/);
     // The journal keeps the circle member's line, with a day.
-    expect(journalMarkdown(state)).toMatch(/- ◆ \*\*1 January\*\* — .*limps/);
+    expect(journalMarkdown(state)).toMatch(/- \*\*1 January\*\* — .*limps/);
   });
 });
