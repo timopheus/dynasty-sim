@@ -38,6 +38,7 @@ const content: Content = loadOrThrow([
 /** A new game whose hero has fixed stats, no traits and a circle with the given money; no action, no time runs. */
 function game(money: number[] = [5, 100, 200], c: Content = content): { ctx: Ctx; hero: Character; people: Character[] } {
   const state = newGame(1, c);
+  state.circle = []; // the circle of the new game (D-167) is not the one under test
   const ctx = { state, content: c };
   const hero = getPlayer(state);
   hero.traits = [];

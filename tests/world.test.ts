@@ -44,9 +44,9 @@ describe('day phases', () => {
 });
 
 describe('the circle', () => {
-  it('is empty at the start and filled to its lower bound on the first day', () => {
+  it('is filled to its lower bound at the start, before the backstory (D-167), and stays within bounds', () => {
     const state = newGame(5, content);
-    expect(state.circle).toEqual([]);
+    expect(state.circle.length).toBeGreaterThanOrEqual(pop.circle.min);
     apply(state, content, { type: 'start', actionId: 'rest' });
     expect(state.circle.length).toBeGreaterThanOrEqual(pop.circle.min);
     expect(state.circle.length).toBeLessThanOrEqual(pop.circle.max);

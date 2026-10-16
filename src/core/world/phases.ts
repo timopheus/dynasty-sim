@@ -130,6 +130,8 @@ export const worldPhase: DayPhase = {
 
 /**
  * New game hook (D-167): the circle is filled before the backstory, so scenes find people for their roles (3.11).
- * Empty in 3.1: the first world phase fills the circle.
+ * The first world phase then finds it full and only starts the yearly clock.
  */
-export const worldOnNewGame: NewGameHook = () => {};
+export const worldOnNewGame: NewGameHook = (ctx) => {
+  if (ctx.content.population) refillCircle(ctx, ctx.content.population);
+};

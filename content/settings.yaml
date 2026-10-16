@@ -1,10 +1,12 @@
 # Global simulation settings. Schema: src/core/content/schema.ts (SettingsSchema).
 # Text placeholders: {name}, {age}, and pronouns for the same character: {he} {him} {his} {He} {His}.
 settings:
-  startAge: { min: 18, max: 26 }
+  # The age the story starts at; the scenes of the backstory add up to 3 years (age_years), so the hero
+  # goes out into the world at 16-21 (D-038, checkBackstory).
+  startAge: { min: 16, max: 18 }
   heirAge: { min: 16, max: 25 } # placeholder heir until the Dynasty stage (D-007)
   startMoney: 50
   texts:
-    start: "{name}, aged {age}, set out into the world with a horse, a sword and a few coins."
+    start: "{name} comes into the world."
     death: "{name} died at the age of {age}."
     succession: "{name}, aged {age}, took up the name and the fortunes of the house."

@@ -1,12 +1,14 @@
 import type { Unmet } from '../condition-keys';
+import { Id } from '../content/types';
 import type { Character, Ctx, Scope } from '../state';
 
 /**
- * Condition keys of this module (3.11): for example which origins the backstory offers the player (D-167). Empty in
- * 3.1d, the point 3.11 fills. Must not import condition-keys.ts at run time.
+ * Condition keys of this module (3.11): `offered: <variant>` — the variant was among those offered to the player in
+ * this game (D-167). A variant that was not offered is a hidden reason (D-043): the option is not shown.
  */
-export const backstoryConditionShape = {};
+export const backstoryConditionShape = { offered: Id.optional() };
 
-export function checkBackstoryConditions(_ctx: Ctx, _c: Character, _when: object, _scope: Scope): Unmet[] {
-  return [];
+export function checkBackstoryConditions(ctx: Ctx, _c: Character, when: { offered?: string | undefined }, _scope: Scope): Unmet[] {
+  if (when.offered === undefined || ctx.state.backstory.offered.includes(when.offered)) return [];
+  return [{ text: `Not on offer: ${when.offered}`, hidden: true }];
 }
