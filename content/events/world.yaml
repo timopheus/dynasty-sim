@@ -67,7 +67,7 @@ events:
     options:
       - text: Send for a physician
         ai: { base: 6, traits: { diligent: 3, trusting: 3, craven: 3, greedy: -3 } }
-        check: { stat: learning, of: physician, difficulty: 5 }
+        check: { stat: learning, of: physician, difficulty: 2 }
         success:
           effects: { money: -10 }
           result: "{name} paid for a physician{physician?, {physician},} and got over a fever."
