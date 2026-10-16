@@ -1,0 +1,19 @@
+# expect-error: events[0].options[0].effects.story.roles.stranger /no event of story "probe_grudge" has a role "stranger" with pick: given/
+events:
+  - id: probe_opens
+    weight: 1
+    roles:
+      rival: { pick: circle }
+    text: "{rival} glares at you."
+    options:
+      - text: Swear revenge
+        effects:
+          story: { open: probe_grudge, days: 30, roles: { stranger: rival } }
+        result: "{name} swore revenge on {rival}."
+  - id: probe_settled
+    weight: 1
+    story: probe_grudge
+    text: "The grudge comes to a head."
+    options:
+      - text: Settle it
+        result: "{name} settled the grudge."

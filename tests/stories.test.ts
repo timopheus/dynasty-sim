@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { entryText } from '../src/core/chronicle/log';
 import { loadContent } from '../src/core/content/load';
 import type { Content } from '../src/core/content/schema';
-import { findEvent, fireEvent } from '../src/core/events/events';
+import { eventWeight, findEvent, fireEvent } from '../src/core/events/events';
 import { apply, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
@@ -155,16 +155,15 @@ describe('stories', () => {
     expect(storyWeight(run, 'feud', hero.id)).toBe(0);
   });
 
-  it('a story event from the deck does not fall when its person of the story is gone (D-178)', () => {
+  it('a story event from the deck weighs nothing once its person of the story is gone (D-178)', () => {
     const { ctx, hero } = game();
     answer(ctx, 'accusation');
-    const accuser = ctx.state.characters.find((p) => p.id === storyGiven(ctx.state, hero.id, 'feud').accuser)!;
-    kill(ctx, accuser, 'old_age');
-    const run = { state: ctx.state, content: { ...ctx.content, narrator: { ...ctx.content.narrator!, eventChancePer10k: 10000 } } };
-    ctx.state.activeAction = { actionId: 'wait', endDay: 100 };
-    ctx.state.day = 3;
-    narratorPhase.run(run);
-    expect(ctx.state.pendingEvent?.eventId).not.toBe('feud_settled');
+    const settled = findEvent(ctx.content, 'feud_settled');
+    const given = storyGiven(ctx.state, hero.id, 'feud');
+    expect(eventWeight(ctx, settled, hero, given)).toBeGreaterThan(0);
+    expect(eventWeight(ctx, settled, hero)).toBe(0); // without the people of the story the role cannot be filled
+    kill(ctx, ctx.state.characters.find((p) => p.id === given.accuser)!, 'old_age');
+    expect(eventWeight(ctx, settled, hero, given)).toBe(0);
   });
 
   it('an event of the story on the day it opens (inside later) closes it too', () => {

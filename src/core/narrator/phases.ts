@@ -96,7 +96,7 @@ function candidates(ctx: Ctx, pace: NarratorContent, hero: Character, bottom: bo
     if (Object.hasOwn(state.lastFired, event.id) && state.day - (state.lastFired[event.id] ?? 0) < cooldown) continue;
     const severity = event.severity ?? 'light';
     if (high && severity === 'heavy') continue;
-    const given = event.story === undefined ? {} : storyGiven(state, hero.id, event.story);
+    const given = event.story === undefined ? {} : ownGiven(event, storyGiven(state, hero.id, event.story));
     let weight = eventWeight(ctx, event, hero, given);
     if (weight <= 0) continue;
     if (event.story !== undefined) {
@@ -109,6 +109,16 @@ function candidates(ctx: Ctx, pace: NarratorContent, hero: Character, bottom: bo
     if (weight > 0) deck.push({ event, weight, given: {} });
   }
   return { deck, stories };
+}
+
+/** Only the people the event itself takes (its `pick: given` roles, D-178), not every person of the story. */
+function ownGiven(event: EventDef, people: Scope): Scope {
+  const out: Record<string, string> = {};
+  for (const [name, role] of Object.entries(event.roles ?? {})) {
+    const id = people[name];
+    if (role.pick === 'given' && id !== undefined) out[name] = id;
+  }
+  return out;
 }
 
 const pickFrom = (ctx: Ctx, pool: Candidate[]): Candidate => weightedPick(ctx.state.rng, pool, (c) => c.weight);

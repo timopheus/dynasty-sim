@@ -73,14 +73,15 @@ export const checkStories: CrossCheck = ({ actions, events }) => {
           if (!target) errors.push({ file, path: fpath, message: `unknown event "${id}"` });
           else if (target.story !== story.open) errors.push({ file, path: fpath, message: `fallback "${id}" is not an event of story "${story.open}" (it needs story: ${story.open})` });
         });
-        if (story.fallback?.length) {
-          // A role handed over must be a given role of some event of the story; each fallback must get its own given roles.
-          const targets = events.flatMap(({ item: e }) => (e.story === story.open ? [e] : []));
-          for (const name of Object.keys(story.roles ?? {})) {
-            if (targets.length > 0 && !targets.some((t) => givenRoles(t).some((g) => g.name === name))) {
-              errors.push({ file, path: `${path}.roles.${name}`, message: `no event of story "${story.open}" has a role "${name}" with pick: given` });
-            }
+        // A role handed over must be a given role of some event of the story (a fallback or one from the deck, D-178).
+        const targets = events.flatMap(({ item: e }) => (e.story === story.open ? [e] : []));
+        for (const name of Object.keys(story.roles ?? {})) {
+          if (targets.length > 0 && !targets.some((t) => givenRoles(t).some((g) => g.name === name))) {
+            errors.push({ file, path: `${path}.roles.${name}`, message: `no event of story "${story.open}" has a role "${name}" with pick: given` });
           }
+        }
+        if (story.fallback?.length) {
+          // Each fallback must get its own given roles.
           story.fallback.forEach((id, i) => {
             const target = byId.get(id);
             if (target?.story !== story.open) return;

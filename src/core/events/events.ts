@@ -87,7 +87,7 @@ export function eventWeight(ctx: Ctx, event: EventDef, protagonist: Character, g
   const base = baseScope(getPlayer(state), protagonist);
   if (!met(ctx, protagonist, event.when, base)) return 0;
   // People handed over (roles `pick: given`, D-178) count for filling the roles, not for the conditions of the weight.
-  if (event.roles && !canFillRoles(ctx, event.roles, { ...base, ...given })) return 0;
+  if (event.roles && !canFillRoles(ctx, event.roles, { ...given, ...base })) return 0;
   let num = event.weight;
   let den = 1;
   for (const mod of event.weight_mods ?? []) {
