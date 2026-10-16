@@ -10,7 +10,7 @@ describe('chronicle log', () => {
     const content = fixtureContent();
     const state = newGame(1, content);
     const hero = getPlayer(state);
-    const entry = log({ state, content }, { subject: hero, kind: 'test', level: 'journal', template: '{name}, {age}, met {name}.', money: 40 });
+    const entry = log({ state, content }, { subject: hero, kind: 'test', level: 'journal', template: '{name}, {age}, met {name}.', money: 40 })!;
     expect(entry.parts).toEqual([
       { id: hero.id, name: 'Anne Fixture' },
       ', 20, met ',
