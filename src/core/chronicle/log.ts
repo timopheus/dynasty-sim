@@ -109,6 +109,7 @@ export const chronicleInvariants: Invariant = ({ state }) => {
     if (entry.day < prevDay) problems.push(`chronicle goes back in time at ${formatDate(entry.day)}`);
     prevDay = entry.day;
     if (!ids.has(entry.subject)) problems.push(`chronicle refers to unknown character ${entry.subject}`);
+    if ('mark' in entry && entry.mark !== true) problems.push('chronicle entry has a mark that is not true');
     if (entry.level !== 'chronicle' && entry.level !== 'journal') problems.push(`chronicle entry has level ${String(entry.level)}`);
     for (const part of entry.parts) {
       if (typeof part !== 'string' && !ids.has(part.id)) problems.push(`chronicle links to unknown character ${part.id}`);
