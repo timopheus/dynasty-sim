@@ -1,5 +1,5 @@
 import { int } from '../rng';
-import type { Character, Ctx } from '../state';
+import type { Character, Ctx, Scope } from '../state';
 import { sceneOf, scenePath, ownOutcome, type EventDef, type OptionDef } from './content';
 import { answerOption, openEvent, optionState, resolveOutcome } from './events';
 
@@ -37,11 +37,11 @@ export function pickNpcOption(ctx: Ctx, options: readonly OptionDef[], person: C
  * Carries out the event of a person of the world at once (D-047, D-166): fills the roles (the hero never gets one), at
  * every scene with options the person chooses by their `ai` weights, a check is rolled with the person's stat, and the
  * outcomes apply as usual except for the effects on the hero (D-174). Nothing waits for the player. False, with
- * nothing changed, if a role could not be filled.
+ * nothing changed, if a role could not be filled. `given` — roles handed over by a follow-up or a story (3.8).
  */
-export function runNpcEvent(ctx: Ctx, event: EventDef, person: Character): boolean {
+export function runNpcEvent(ctx: Ctx, event: EventDef, person: Character, given: Scope = {}): boolean {
   const { state } = ctx;
-  const pending = openEvent(ctx, event, person);
+  const pending = openEvent(ctx, event, person, given);
   if (!pending) return false;
   while (state.pendingEvent) {
     const scene = sceneOf(event, pending.page);

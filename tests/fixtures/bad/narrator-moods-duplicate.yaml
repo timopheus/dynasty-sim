@@ -1,0 +1,6 @@
+# expect-error: narrator.moods /listed twice/
+narrator:
+  eventChancePer10k: 0
+  minDaysBetweenEvents: 0
+  eventRepeatCooldownDays: 0
+  moods: [neutral, joy, joy]

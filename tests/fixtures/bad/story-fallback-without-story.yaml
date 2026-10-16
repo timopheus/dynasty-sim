@@ -1,0 +1,15 @@
+# expect-error: events[0].options[0].effects.story.fallback[0] /fallback "plain_end" is not an event of story "feud"/
+events:
+  - id: bad_story
+    weight: 1
+    text: "Words are said."
+    options:
+      - text: Swear revenge
+        effects:
+          story: { open: feud, days: 30, fallback: [plain_end] }
+        result: "{name} swore revenge."
+  - id: plain_end
+    weight: 1
+    followup_only: true
+    text: "It is over."
+    result: "{name} let it go."

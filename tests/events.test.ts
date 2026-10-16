@@ -327,6 +327,14 @@ describe('wave 2 together: roles (3.3), texts (3.4) and the engine (3.2)', () =>
 });
 
 describe('mood (D-177)', () => {
+  it('shows the mood of the scene in the event view', () => {
+    const tense: EventDef = { ...findEvent(content, 'choices'), id: 'tense', mood: 'threat' };
+    const c = { ...content, events: [...content.events, tense] };
+    const { ctx, hero } = game(undefined, c);
+    fireEvent(ctx, tense, hero);
+    expect(eventView(ctx)!.mood).toBe('threat');
+  });
+
   it('takes the outcome mood first, then the scene mood, then neutral', () => {
     const scene = { text: 'x', mood: 'threat' } as EventDef;
     expect(moodOf(scene, { mood: 'joy' })).toBe('joy');

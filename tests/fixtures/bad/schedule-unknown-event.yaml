@@ -1,0 +1,10 @@
+# expect-error: events[0].options[0].effects.schedule[0].event /unknown event "no_such_duel"/
+events:
+  - id: bad_schedule
+    weight: 1
+    text: "A glove falls."
+    options:
+      - text: Pick it up
+        effects:
+          schedule: [{ event: no_such_duel, after_days: { min: 3, max: 5 } }]
+        result: "{name} picked up the glove."

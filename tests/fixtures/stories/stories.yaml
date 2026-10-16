@@ -1,0 +1,120 @@
+# Follow-ups and stories (3.8). Everything is followup_only or a story event, so the deck stays as in the base.
+events:
+  - id: challenge
+    weight: 1
+    followup_only: true
+    roles:
+      rival: { pick: circle }
+    text: "{rival} throws down a glove."
+    options:
+      - text: Accept the challenge of {rival}
+        effects:
+          schedule: [{ event: duel, after_days: { min: 5, max: 5 }, roles: { rival: rival } }]
+        result: "{name} accepted the challenge of {rival}."
+      - text: Refuse
+        result: "{name} refused {rival}."
+
+  - id: duel
+    weight: 1
+    followup_only: true
+    roles:
+      rival: { pick: given }
+    text: "Dawn. {rival} is waiting."
+    options:
+      - text: Fight {rival}
+        on: { rival: { money: -1 } }
+        result: "{name} fought a duel with {rival}."
+
+  - id: accusation
+    weight: 1
+    followup_only: true
+    roles:
+      accuser: { pick: circle }
+    text: "{accuser} calls you a thief."
+    options:
+      - text: Demand satisfaction
+        effects:
+          story: { open: feud, days: 30, fallback: [feud_fades, feud_forgotten], roles: { accuser: accuser } }
+        result: "{name} demanded satisfaction from {accuser}."
+
+  - id: feud_settled
+    weight: 1
+    story: feud
+    text: "The feud comes to a head."
+    options:
+      - text: Settle it
+        result: "{name} settled the feud."
+
+  - id: feud_fades
+    weight: 1
+    followup_only: true
+    story: feud
+    when: { money_min: 100000 }
+    roles:
+      accuser: { pick: given }
+    text: "Rich men do not quarrel."
+    result: "{name} bought peace from {accuser}."
+    chronicle: true
+
+  - id: feud_forgotten
+    weight: 1
+    followup_only: true
+    story: feud
+    roles:
+      accuser: { pick: given }
+    text: "The quarrel is forgotten."
+    effects: { money: 1 }
+    result: "{name} forgot the quarrel with {accuser}."
+
+  - id: slow_accusation
+    weight: 1
+    followup_only: true
+    roles:
+      accuser: { pick: circle }
+    text: "{accuser} mutters about you."
+    options:
+      - text: Let it simmer
+        effects:
+          later: [{ after_days: 3, effects: { story: { open: feud, days: 30, fallback: [feud_forgotten], roles: { accuser: accuser } } } }]
+        result: "{name} let {accuser} mutter."
+      - text: Send {accuser} to the hero's friend
+        on:
+          accuser:
+            schedule: [{ event: errand, after_days: { min: 2, max: 2 }, protagonist: hero }]
+        result: "{name} sent {accuser} away."
+
+  - id: errand
+    weight: 1
+    followup_only: true
+    text: "An errand."
+    effects: { money: 2 }
+    result: "{name} ran an errand."
+
+  # A person of the world schedules a follow-up of their own (3.8 with 3.9).
+  - id: npc_slight
+    weight: 1
+    who: npc
+    roles:
+      offender: { pick: circle }
+    text: "{offender} slights {name}."
+    options:
+      - text: Plan revenge
+        effects:
+          schedule: [{ event: npc_revenge, after_days: { min: 3, max: 3 }, roles: { offender: offender } }]
+
+  - id: npc_revenge
+    weight: 1
+    who: npc
+    followup_only: true
+    roles:
+      offender: { pick: given }
+    text: "{name} waits for {offender}."
+    options:
+      - text: Strike
+        on: { offender: { money: -7 } }
+        effects: { money: 7 }
+        result: "{name} took revenge on {offender}."
+        chronicle: true
+      - text: Forgive
+        when: { money_min: 100000 }
+        result: "{name} forgave {offender}."

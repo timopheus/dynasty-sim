@@ -1,0 +1,21 @@
+# expect-error: events[0].options[0].on.friend.schedule[0].roles.guest /"hero" cannot be handed over/
+events:
+  - id: bad_hand_over
+    weight: 1
+    roles:
+      friend: { pick: circle }
+    text: "{friend} smiles."
+    options:
+      - text: Smile back
+        on:
+          friend:
+            schedule: [{ event: bad_visit, after_days: { min: 2, max: 2 }, roles: { guest: hero } }]
+        result: "{name} smiled at {friend}."
+  - id: bad_visit
+    weight: 1
+    followup_only: true
+    who: npc
+    roles:
+      guest: { pick: given }
+    text: "A visit."
+    result: "{name} had a visit."
