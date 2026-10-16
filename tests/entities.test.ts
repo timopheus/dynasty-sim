@@ -65,8 +65,8 @@ describe('links in the chronicle point to entities of any kind', () => {
     expect(chronicleProblems(ctx).length).toBe(2);
     ctx.state.chronicle.pop();
     ctx.state.chronicle.pop();
-    ctx.state.chronicle.push({ day: ctx.state.day, subject: hero.id, kind: 'event', level: 'journal', parts: [{ id: 'h1', name: 'House' }] });
-    expect(checkInvariants(ctx.state, ctx.content).join('\n')).toMatch(/unknown entity h1/);
+    ctx.state.chronicle.push({ day: ctx.state.day, subject: hero.id, kind: 'event', level: 'journal', parts: [{ id: 'h999999', name: 'House' }] });
+    expect(checkInvariants(ctx.state, ctx.content).join('\n')).toMatch(/unknown entity h999999/);
   });
 });
 
