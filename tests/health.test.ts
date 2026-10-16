@@ -7,6 +7,9 @@ import { applyEffects } from '../src/core/effects';
 import { newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { annualDeathChance, DAILY_DEATH_DENOMINATOR, dailyDeathChance, deathCause } from '../src/core/health/mortality';
+import { conditionReport, WhenSchema } from '../src/core/condition-keys';
+import { loadContent } from '../src/core/content/load';
+import { createCharacter, kill } from '../src/core/lifecycle';
 import { deathPhase, HEALTH_WEEK, healthPhase } from '../src/core/health/phases';
 import { checkInvariants } from '../src/core/invariants';
 import type { Character, Ctx, GameState } from '../src/core/state';
@@ -216,5 +219,99 @@ describe('fit condition and interruption', () => {
     state.day += 1;
     expect(healthPhase.run(ctx)).toBe(false);
     expect(state.activeAction).not.toBeNull();
+  });
+});
+
+describe('condition keys of health (3.5)', () => {
+  const report = (hero: Character, ctx: Ctx, when: unknown) => conditionReport(ctx, hero, WhenSchema.parse(when), { hero: hero.id, protagonist: hero.id });
+
+  it('conditions_any: needs one of them, reason names the conditions', () => {
+    const { ctx, hero } = setup();
+    expect(report(hero, ctx, { conditions_any: ['flu', 'rot'] })).toEqual({ met: false, reasons: ['Needs Flu or Rot'], hidden: false });
+    applyEffects(ctx, hero, { disease: 'flu' }, {});
+    expect(report(hero, ctx, { conditions_any: ['flu', 'rot'] }).met).toBe(true);
+  });
+
+  it('conditions_none: unmet by a held one, naming only the held ones', () => {
+    const { ctx, hero } = setup();
+    expect(report(hero, ctx, { conditions_none: ['flu'] }).met).toBe(true);
+    applyEffects(ctx, hero, { disease: 'flu', wound: 'rot' }, {});
+    const r = report(hero, ctx, { conditions_none: ['flu', 'rot', 'cut'] });
+    expect(r.reasons).toEqual(['Not with Flu or Rot']);
+    expect(r.hidden).toBe(false);
+  });
+});
+
+describe('kill from an event (3.5, D-164)', () => {
+  /** A person of the circle of the hero: the base fixture has no population. */
+  const others = (state: GameState) => {
+    const c = createCharacter({ state, content }, { surname: 'Other', age: { min: 30, max: 30 } });
+    state.circle.push(c.id);
+    return [c];
+  };
+
+  it('puts a request that the death phase carries out with the cause and its line', () => {
+    const { state, ctx } = setup();
+    const victim = others(state)[0]!;
+    applyEffects(ctx, victim, { kill: 'killed_in_duel' }, {});
+    expect(state.deathRequests).toEqual([{ characterId: victim.id, cause: 'killed_in_duel' }]);
+    expect(victim.deathDay).toBeNull(); // not yet
+    expect(deathPhase.run(ctx)).toBe(false);
+    expect(victim.deathDay).toBe(state.day);
+    expect(victim.deathCause).toBe('killed_in_duel');
+    expect(state.deathRequests).toEqual([]);
+    expect(checkInvariants(state, content)).toEqual([]);
+  });
+
+  it('the death of the hero by a request hands the house to an heir', () => {
+    const { state, ctx, hero } = setup();
+    applyEffects(ctx, hero, { kill: 'killed' }, {});
+    expect(deathPhase.run(ctx)).toBe(true);
+    expect(hero.deathCause).toBe('killed');
+    expect(state.playerId).not.toBe(hero.id);
+    expect(state.chronicle.some((e) => e.kind === 'death_cause' && entryText(e) === (hero.sex === 'male' ? 'He was killed.' : 'She was killed.'))).toBe(true);
+    expect(checkInvariants(state, content)).toEqual([]);
+  });
+
+  it('a request for someone already dead the same day is dropped', () => {
+    const { state, ctx } = setup();
+    const victim = others(state)[0]!;
+    applyEffects(ctx, victim, { kill: 'killed' }, {});
+    ctx.state.day += 1;
+    kill(ctx, victim, 'illness'); // the illness got there first
+    expect(deathPhase.run(ctx)).toBe(false);
+    expect(victim.deathCause).toBe('illness');
+    expect(state.deathRequests).toEqual([]);
+    applyEffects(ctx, victim, { kill: 'killed' }, {}); // dead already: no request at all
+    expect(state.deathRequests).toEqual([]);
+  });
+
+  it('on: {hero: kill} works from the scope of an event of a person of the world', () => {
+    const { state, ctx, hero } = setup();
+    const npc = others(state)[0]!;
+    const scope = { hero: hero.id, protagonist: npc.id };
+    applyEffects(ctx, hero, { kill: 'killed' }, scope);
+    expect(state.deathRequests[0]?.characterId).toBe(hero.id);
+  });
+});
+
+describe('validator of kill (3.5)', () => {
+  const event = (extra: string, body: string) =>
+    loadContent([...BASE_FILES, { path: 'fixture/kill.yaml', text: `events:\n  - id: duel\n    weight: 1\n${extra}    text: "A duel."\n    options:\n${body}` }]);
+  const check = (failure: string) => `      - text: Fight\n        check: { stat: prowess, difficulty: 10 }\n        success: { result: "{name} won." }\n        failure:\n${failure}`;
+
+  it('accepts a hero kill in the failure of a heavy event without next', () => {
+    const r = event('    severity: heavy\n', check('          result: "{name} fell."\n          effects: { kill: killed_in_duel }\n'));
+    expect(r.ok, JSON.stringify(!r.ok && r.errors)).toBe(true);
+  });
+
+  it('accepts kill of a person of the world in any outcome, and of a role in any event', () => {
+    const npc = event('    who: npc\n', '      - text: Fight\n        effects: { kill: killed }\n');
+    expect(npc.ok, JSON.stringify(!npc.ok && npc.errors)).toBe(true);
+    const role = event(
+      '    roles:\n      rival: { pick: known }\n',
+      '      - text: Fight\n        result: "{name} won."\n        on: { rival: { kill: killed_in_duel } }\n',
+    );
+    expect(role.ok, JSON.stringify(!role.ok && role.errors)).toBe(true);
   });
 });

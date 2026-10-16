@@ -4,7 +4,7 @@ import { isInt } from '../helpers';
 import type { Character, CreateHook, DeathHook, Invariant } from '../state';
 import type { Sex } from './content';
 import { generateStatsAndTraits } from './generate';
-import { STAT_IDS, type Stats } from './stat-ids';
+import { BASE_STAT_MAX, STAT_IDS, type Stats } from './stat-ids';
 import { checkTraitHolding } from './holding';
 
 export interface CharacterBase {
@@ -63,7 +63,8 @@ export const characterInvariants: Invariant = (ctx) => {
     if (c.sex !== 'male' && c.sex !== 'female') problems.push(`${c.id} has unknown sex ${String(c.sex)}`);
     if (!isInt(c.fame) || c.fame < 0 || c.fame > 3) problems.push(`${c.id} fame out of range: ${c.fame}`);
     for (const stat of STAT_IDS) {
-      if (!isInt(c.baseStats[stat])) problems.push(`${c.id} base ${stat} is not an integer: ${c.baseStats[stat]}`);
+      const base = c.baseStats[stat];
+      if (!isInt(base) || base < 0 || base > BASE_STAT_MAX) problems.push(`${c.id} base ${stat} is not an integer within 0..${BASE_STAT_MAX}: ${base}`);
     }
     problems.push(...checkTraitHolding(ctx.content, c));
     if (!isInt(c.money)) problems.push(`${c.id} money is not an integer: ${c.money}`);

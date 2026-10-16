@@ -26,8 +26,12 @@ health:
     - { per100k: 1000, cause: illness }
   causes:
     - { id: illness, text: "Illness took {him}." }
+    - { id: killed_in_duel, text: "{He} fell in a duel." }
+    - { id: killed, text: "{He} was killed." }
   rest: { actions: [rest], better: 100, worse: 100 }
   road: { actions: [], better: 100, worse: 100 }
   texts:
     interrupted: "{name} took to bed."
     unfit: Too ill
+    conditions_any: "Needs {conditions}"
+    conditions_none: "Not with {conditions}"

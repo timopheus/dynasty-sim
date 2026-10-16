@@ -1,6 +1,10 @@
 import { z } from 'zod';
-import type { CrossCheck } from '../content/schema';
+import { PLACEHOLDERS } from '../character/text';
+import { checkReason } from '../conditions/reasons';
+import type { Effects } from '../effects';
+import type { CrossCheck, ContentSources } from '../content/schema';
 import { Id, Int, Text, type ContentError } from '../content/types';
+import type { EventDef, OutcomeDef } from '../events/content';
 
 /** What a reason is about: trait memory differs for wrongs done to a person and for favours (D-035). */
 const ReasonKind = z.enum(['harm', 'benefit']);
@@ -57,6 +61,27 @@ const RelationKindSchema = z.strictObject({
   opinion: z.strictObject({ a: Int.min(-100).max(100), b: Int.min(-100).max(100) }),
   /** Acquaintance the relation gives the hero at least. */
   acquaintance: z.enum(['known', 'close']),
+  /**
+   * Chronicle lines when an event starts or ends the hero's tie (GDD 8.9, D-121): `{name}` is the hero, `{other}` the
+   * other person. In a patron-protege pair these are for the hero as the patron; `...AsProtege` for the hero as the protege.
+   */
+  starts: Text,
+  ends: Text,
+  startsAsProtege: Text.optional(),
+  endsAsProtege: Text.optional(),
+});
+
+/** Texts of the reasons why a condition on opinions and relations is not met (D-043, D-221). */
+const ConditionTextsSchema = z.strictObject({
+  /** `{word}` opinion word of the bound, `{name}` the other person. */
+  opinionMin: Text,
+  opinionMax: Text,
+  /** `{kind}` name of the relation kind in lower case, `{name}` the other person. */
+  relation: Text,
+  relationNone: Text,
+  /** `{name}` the person the condition is about. */
+  acquaintedKnown: Text,
+  acquaintedClose: Text,
 });
 
 /** Acquaintance of the hero grows with time near the circle (2.4, D-037). */
@@ -82,6 +107,7 @@ export const OpinionsContentSchema = z.strictObject({
   words: z.array(WordSchema).min(1),
   relations: z.array(RelationKindSchema),
   acquaintance: AcquaintanceSchema,
+  texts: ConditionTextsSchema,
 });
 
 export type OpinionsContent = z.infer<typeof OpinionsContentSchema>;
@@ -90,7 +116,8 @@ export type RelationKindDef = z.infer<typeof RelationKindSchema>;
 export type ReasonKindId = z.infer<typeof ReasonKind>;
 
 /** Checks across modules, e.g. trait ids referenced from opinions (2.4). */
-export const checkRelations: CrossCheck = ({ opinions, traits }) => {
+export const checkRelations: CrossCheck = (sources) => {
+  const { opinions, traits } = sources;
   const errors: ContentError[] = [];
   const traitIds = new Set(traits.map((t) => t.item.id));
   for (const { file, item } of opinions) {
@@ -106,9 +133,33 @@ export const checkRelations: CrossCheck = ({ opinions, traits }) => {
     unique('relations', item.relations.map((r) => r.id), 'relation');
     item.relations.forEach((k, i) => {
       if (k.symmetric && k.opinion.a !== k.opinion.b) err(`relations[${i}].opinion`, 'a symmetric relation needs the same opinion on both sides');
+      const both = k.startsAsProtege !== undefined && k.endsAsProtege !== undefined;
+      const none = k.startsAsProtege === undefined && k.endsAsProtege === undefined;
+      if (k.symmetric && !none) err(`relations[${i}]`, 'a symmetric relation has no lines for the protege');
+      if (!k.symmetric && !both) err(`relations[${i}]`, 'a patron-protege relation needs startsAsProtege and endsAsProtege');
+      for (const key of ['starts', 'ends', 'startsAsProtege', 'endsAsProtege'] as const) {
+        const text = k[key];
+        const problem = text === undefined ? null : checkReason(text, [...PLACEHOLDERS, 'other']);
+        if (problem) err(`relations[${i}].${key}`, problem);
+      }
     });
+    const texts: [keyof typeof item.texts, string[]][] = [
+      ['opinionMin', ['word', 'name']],
+      ['opinionMax', ['word', 'name']],
+      ['relation', ['kind', 'name']],
+      ['relationNone', ['kind', 'name']],
+      ['acquaintedKnown', ['name']],
+      ['acquaintedClose', ['name']],
+    ];
+    for (const [key, allowed] of texts) {
+      const problem = checkReason(item.texts[key], allowed);
+      if (problem) err(`texts.${key}`, problem);
+    }
     item.reasons.forEach((r, i) => {
       if (r.value === 0) err(`reasons[${i}].value`, 'a reason must change the opinion');
+      if (r.decay.kind === 'held' && item.reasons.some((o) => o.id === (r.decay as { until: string }).until)) {
+        err(`reasons[${i}].decay.until`, 'the name an event ends a held reason by must not be a reason id');
+      }
     });
     const known = (path: string, id: string) => {
       if (!traitIds.has(id)) err(path, `unknown trait "${id}"`);
@@ -134,5 +185,108 @@ export const checkRelations: CrossCheck = ({ opinions, traits }) => {
       if (prev && w.from <= prev.from) err(`words[${i}].from`, 'words must rise strictly');
     });
   }
+  errors.push(...checkEventLinks(sources));
   return errors;
 };
+
+interface Walk {
+  reasons: Map<string, number>;
+  until: Set<string>;
+  kinds: Set<string>;
+  file: string;
+  errors: ContentError[];
+}
+
+function eachWhen(event: EventDef): [string, object][] {
+  const out: [string, object][] = [];
+  const add = (path: string, when: object | undefined) => {
+    if (when) out.push([path, when]);
+  };
+  add('when', event.when);
+  event.weight_mods?.forEach((m, i) => add(`weight_mods[${i}].when`, m.when));
+  for (const [name, role] of Object.entries(event.roles ?? {})) {
+    add(`roles.${name}.where`, role.where);
+    role.prefer?.forEach((p, i) => add(`roles.${name}.prefer[${i}].when`, p.when));
+  }
+  const scene = (prefix: string, s: EventDef | NonNullable<EventDef['pages']>[string]) => {
+    s.options?.forEach((o, i) => {
+      add(`${prefix}options[${i}].when`, o.when);
+      o.check?.bonus?.forEach((b, j) => add(`${prefix}options[${i}].check.bonus[${j}].when`, b.when));
+    });
+  };
+  scene('', event);
+  for (const [id, page] of Object.entries(event.pages ?? {})) scene(`pages.${id}.`, page);
+  return out;
+}
+
+function eachOutcome(event: EventDef): [string, OutcomeDef][] {
+  const out: [string, OutcomeDef][] = [];
+  const scene = (prefix: string, s: EventDef | NonNullable<EventDef['pages']>[string]) => {
+    if (!s.options) {
+      out.push([prefix.replace(/\.$/, ''), s]);
+      return;
+    }
+    s.options.forEach((o, i) => {
+      const at = `${prefix}options[${i}]`;
+      if (o.check) {
+        if (o.success) out.push([`${at}.success`, o.success]);
+        if (o.failure) out.push([`${at}.failure`, o.failure]);
+      } else {
+        out.push([at, o]);
+      }
+    });
+  };
+  scene('', event);
+  for (const [id, page] of Object.entries(event.pages ?? {})) scene(`pages.${id}.`, page);
+  return out;
+}
+
+function walkEffects(w: Walk, at: string, effects: Effects): void {
+  const err = (path: string, message: string) => w.errors.push({ file: w.file, path: `${at}.${path}`, message });
+  effects.opinion?.forEach((o, i) => {
+    const def = w.reasons.get(o.reason);
+    if (def === undefined) err(`opinion[${i}].reason`, `unknown opinion reason "${o.reason}"`);
+    else if (o.value !== undefined && (o.value === 0 || Math.sign(o.value) !== Math.sign(def))) {
+      err(`opinion[${i}].value`, `the value ${o.value} does not go the way of reason "${o.reason}" (${def > 0 ? 'positive' : 'negative'})`);
+    }
+  });
+  effects.opinion_end?.forEach((o, i) => {
+    if (!w.reasons.has(o.reason) && !w.until.has(o.reason)) err(`opinion_end[${i}].reason`, `unknown opinion reason or held name "${o.reason}"`);
+  });
+  effects.relation?.forEach((r, i) => {
+    const kind = r.start ?? r.end ?? '';
+    if (!w.kinds.has(kind)) err(`relation[${i}].${r.start === undefined ? 'end' : 'start'}`, `unknown kind of relation "${kind}"`);
+  });
+  effects.later?.forEach((entry, i) => walkEffects(w, `${at}.later[${i}].effects`, entry.effects as Effects));
+}
+
+/** Reasons, kinds of relations and held names that events name must exist (D-222). */
+function checkEventLinks({ opinions, events }: ContentSources): ContentError[] {
+  const errors: ContentError[] = [];
+  const reasons = new Map<string, number>();
+  const until = new Set<string>();
+  const kinds = new Set<string>();
+  for (const { item } of opinions) {
+    for (const r of item.reasons) {
+      reasons.set(r.id, r.value);
+      if (r.decay.kind === 'held') until.add(r.decay.until);
+    }
+    for (const k of item.relations) kinds.add(k.id);
+  }
+  for (const { file, index, item } of events) {
+    const base = `events[${index}]`;
+    const w: Walk = { reasons, until, kinds, file, errors };
+    for (const [path, when] of eachWhen(item)) {
+      const { relation, relation_none } = when as { relation?: { kind: string }; relation_none?: { kind: string } };
+      for (const [key, link] of [['relation', relation], ['relation_none', relation_none]] as const) {
+        if (link && !kinds.has(link.kind)) errors.push({ file, path: `${base}.${path}.${key}.kind`, message: `unknown kind of relation "${link.kind}"` });
+      }
+    }
+    for (const [path, outcome] of eachOutcome(item)) {
+      const at = path === '' ? base : `${base}.${path}`;
+      if (outcome.effects) walkEffects(w, `${at}.effects`, outcome.effects as Effects);
+      for (const [role, effects] of Object.entries(outcome.on ?? {})) walkEffects(w, `${at}.on.${role}`, effects as Effects);
+    }
+  }
+  return errors;
+}

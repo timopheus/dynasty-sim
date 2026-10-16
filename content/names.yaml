@@ -56,3 +56,18 @@ names:
   requiresSex:
     male: "Closed to women in this age."
     female: "Open only to women."
+  # Stat names in the reasons below.
+  stats:
+    diplomacy: Diplomacy
+    martial: Martial
+    stewardship: Stewardship
+    intrigue: Intrigue
+    learning: Learning
+    prowess: Prowess
+  # Why an option is grey (D-043). {traits}: trait names; {stat}, {value}; {fame}: the fame step.
+  reasons:
+    traits_any: "Needs to be {traits}"
+    traits_none: "Not for someone who is {traits}"
+    stat_min: "Needs {stat} {value} or more"
+    stat_max: "Needs {stat} {value} or less"
+    fame_min: "Needs to be: {fame}"

@@ -15,6 +15,19 @@ names:
   requiresSex:
     male: "Men only."
     female: "Women only."
+  stats:
+    diplomacy: Diplomacy
+    martial: Martial
+    stewardship: Stewardship
+    intrigue: Intrigue
+    learning: Learning
+    prowess: Prowess
+  reasons:
+    traits_any: "Needs {traits}"
+    traits_none: "Not for {traits}"
+    stat_min: "{stat} {value}+"
+    stat_max: "{stat} {value} at most"
+    fame_min: "Fame: {fame}"
 # Only `proud`/`humble` and `learned_2` are generated at random, so exact tests stay predictable.
 traits:
   - id: proud
@@ -59,3 +72,7 @@ traits:
     name: Coward
     category: reputation
     visibility: obvious
+  - id: poisoner
+    name: Poisoner
+    category: secret
+    visibility: secret

@@ -21,3 +21,5 @@ health:
   texts:
     interrupted: "{name} took to bed."
     unfit: "Too ill, {name}"
+    conditions_any: "Needs {conditions}"
+    conditions_none: "Not with {conditions}"

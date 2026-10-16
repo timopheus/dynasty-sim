@@ -2,6 +2,9 @@ import { z } from 'zod';
 import { STAT_IDS } from '../character/stat-ids';
 import type { CrossCheck } from '../content/schema';
 import { Id, Int, Text, type ContentError } from '../content/types';
+import { checkReason } from '../conditions/reasons';
+import { walkKeys } from '../conditions/walk';
+import type { EventDef, OutcomeDef as EventOutcome } from '../events/content';
 import { checkTemplate } from '../text/text';
 
 /** Weekly chances are out of 10000 (D-003: integers only). */
@@ -104,6 +107,9 @@ export const HealthContentSchema = z.strictObject({
     interrupted: Text,
     /** Reason shown for an action that needs `fit: true`; shown as is. */
     unfit: Text,
+    /** Reasons for `conditions_any` and `conditions_none` (3.5); placeholder `{conditions}`, a list of condition names. */
+    conditions_any: Text,
+    conditions_none: Text,
   }),
 });
 
@@ -131,7 +137,74 @@ function walkEffects(node: unknown, path: string, visit: (effects: EffectRefs, p
   }
 }
 
-export const checkHealth: CrossCheck = ({ health, traits, actions, events }) => {
+interface KillRefs {
+  kill?: unknown;
+  later?: { effects?: KillRefs }[];
+}
+
+/** Paths and causes of every `kill` in `effects`, the nested `later` included. */
+function killsIn(effects: KillRefs, path: string): { path: string; cause: unknown }[] {
+  const out: { path: string; cause: unknown }[] = effects.kill === undefined ? [] : [{ path: `${path}.kill`, cause: effects.kill }];
+  (effects.later ?? []).forEach((entry, i) => {
+    if (entry.effects) out.push(...killsIn(entry.effects, `${path}.later[${i}].effects`));
+  });
+  return out;
+}
+
+/**
+ * `kill` of a hero is only for the failure of a heavy event, and only where the outcome ends the event (D-164). The
+ * hero may be the target of `effects` (unless the event is `who: npc`, where the main participant is a person of the
+ * world), of `on: {hero: …}` and of `on: {protagonist: …}` (the same person as the main participant); the other roles
+ * come from the circle and are never the hero.
+ */
+function checkKills(event: EventDef, at: string, causeIds: Set<string>, file: string, errors: ContentError[]): void {
+  const main = event.who ?? 'hero';
+  const checkOutcome = (outcome: EventOutcome, path: string, mayKillHero: boolean) => {
+    const targets: [string, KillRefs | undefined, boolean][] = [
+      ['effects', outcome.effects as KillRefs | undefined, main !== 'npc'],
+      ...Object.entries(outcome.on ?? {}).map(([role, effects]): [string, KillRefs, boolean] => [
+        `on.${role}`,
+        effects as KillRefs,
+        role === 'hero' || (role === 'protagonist' && main !== 'npc'),
+      ]),
+    ];
+    for (const [key, effects, hero] of targets) {
+      if (!effects) continue;
+      for (const kill of killsIn(effects, `${path}.${key}`)) {
+        if (typeof kill.cause === 'string' && !causeIds.has(kill.cause)) {
+          errors.push({ file, path: kill.path, message: `unknown cause "${kill.cause}"` });
+        }
+        if (!hero) continue;
+        if (event.deck === 'backstory') continue; // 3.11 forbids kill in the scenes of the backstory
+        if (!mayKillHero) {
+          errors.push({ file, path: kill.path, message: 'kill of a hero is allowed only in the failure of a check in a heavy event' });
+        } else if (outcome.next !== undefined) {
+          errors.push({ file, path: kill.path, message: 'kill of a hero is allowed only in an outcome without next' });
+        }
+      }
+    }
+  };
+  const checkScene = (scene: EventDef | NonNullable<EventDef['pages']>[string], path: string) => {
+    const heavy = event.severity === 'heavy';
+    if (!scene.options) {
+      checkOutcome(scene, path, false);
+      return;
+    }
+    scene.options.forEach((option, i) => {
+      const optionPath = `${path}options[${i}]`;
+      if (option.check) {
+        if (option.success) checkOutcome(option.success, `${optionPath}.success`, false);
+        if (option.failure) checkOutcome(option.failure, `${optionPath}.failure`, heavy);
+      } else {
+        checkOutcome(option, optionPath, false);
+      }
+    });
+  };
+  checkScene(event, `${at}.`);
+  for (const [id, page] of Object.entries(event.pages ?? {})) checkScene(page, `${at}.pages.${id}.`);
+}
+
+export const checkHealth: CrossCheck = ({ health, traits, actions, events, grammar }) => {
   const errors: ContentError[] = [];
   const traitById = new Map(traits.map(({ item }) => [item.id, item]));
   const actionIds = new Set(actions.map(({ item }) => item.id));
@@ -233,6 +306,10 @@ export const checkHealth: CrossCheck = ({ health, traits, actions, events }) => 
     }
     const problem = checkTemplate(item.texts.interrupted);
     if (problem) errors.push({ file, path: 'health.texts.interrupted', message: problem });
+    for (const key of ['conditions_any', 'conditions_none'] as const) {
+      const reason = checkReason(item.texts[key], ['conditions']);
+      if (reason) errors.push({ file, path: `health.texts.${key}`, message: reason });
+    }
     if (/[{}]/.test(item.texts.unfit)) {
       errors.push({ file, path: 'health.texts.unfit', message: 'this text is shown as is; placeholders are not allowed' });
     }
@@ -255,5 +332,37 @@ export const checkHealth: CrossCheck = ({ health, traits, actions, events }) => 
   };
   for (const { file, index, item } of actions) checkRefs(file, item, `actions[${index}]`);
   for (const { file, index, item } of events) checkRefs(file, item, `events[${index}]`);
+
+  // `kill` (3.5): the cause is known, and a hero dies only where D-164 allows. Actions always run for the hero.
+  const causeIds = new Set(health.flatMap(({ item }) => item.causes.map((cause) => cause.id)));
+  for (const { file, index, item } of actions) {
+    const reported = new Set<string>();
+    walkKeys(item, `actions[${index}]`, ['effects'], (effects, at) => {
+      if (effects === null || typeof effects !== 'object') return;
+      for (const kill of killsIn(effects as KillRefs, at)) {
+        if (reported.has(kill.path)) continue;
+        reported.add(kill.path);
+        errors.push({ file, path: kill.path, message: 'kill is not allowed in an action' });
+      }
+    });
+  }
+  for (const { file, index, item } of events) checkKills(item, `events[${index}]`, causeIds, file, errors);
+
+  // Conditions named in `when` / `where` of actions, events and grammar.
+  const checkWhen = (file: string, root: unknown, path: string) => {
+    walkKeys(root, path, ['when', 'where'], (when, at) => {
+      if (when === null || typeof when !== 'object') return;
+      for (const key of ['conditions_any', 'conditions_none'] as const) {
+        const ids = (when as Record<string, unknown>)[key];
+        if (!Array.isArray(ids)) continue;
+        ids.forEach((id, i) => {
+          if (typeof id === 'string' && !conditionKinds.has(id)) errors.push({ file, path: `${at}.${key}[${i}]`, message: `unknown condition "${id}"` });
+        });
+      }
+    });
+  };
+  for (const { file, index, item } of actions) checkWhen(file, item, `actions[${index}]`);
+  for (const { file, index, item } of events) checkWhen(file, item, `events[${index}]`);
+  for (const { file, item } of grammar) checkWhen(file, item, 'grammar');
   return errors;
 };

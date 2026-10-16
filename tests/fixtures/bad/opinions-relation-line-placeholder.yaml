@@ -1,0 +1,9 @@
+# expect-error: opinions.relations[0].starts /unknown placeholder \{who\}/
+opinions:
+  reasons: []
+  traitEffects: []
+  background: { max: 10, rules: [] }
+  words: [{ from: -100, text: low }]
+  relations: [{ id: friend, name: Friend, symmetric: true, opinion: { a: 10, b: 10 }, acquaintance: close, starts: "{name} and {who}", ends: "{name} {other}" }]
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }
+  texts: { opinionMin: "a {word} {name}", opinionMax: "a {word} {name}", relation: "a {kind} {name}", relationNone: "a {kind} {name}", acquaintedKnown: "a {name}", acquaintedClose: "a {name}" }
