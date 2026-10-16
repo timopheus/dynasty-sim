@@ -115,7 +115,7 @@ export type DeathHook = (ctx: Ctx, c: Character, cause: string) => void;
  */
 export type NewGameHook = (ctx: Ctx) => void;
 
-/** Runs after a choice that left no event waiting (D-180): may start the next scene of the backstory (3.11, D-179). */
+/** Runs after a choice that left no event waiting (D-187): may start the next scene of the backstory (3.11, D-179). */
 export type AfterChoiceHook = (ctx: Ctx) => void;
 
 /** Returns broken rules of one module; empty means consistent. */
