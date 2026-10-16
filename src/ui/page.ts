@@ -3,6 +3,7 @@ import type { PersonPage, RelationLine } from '../core/pages/person';
 import type { TextPart } from '../core/text/text';
 import { formatDate } from '../core/time/calendar';
 import { personHref } from './address';
+import { entryView } from './entry';
 
 type Make = <K extends keyof HTMLElementTagNameMap>(tag: K, props?: Partial<HTMLElementTagNameMap[K]>, ...children: (Node | string)[]) => HTMLElementTagNameMap[K];
 
@@ -11,8 +12,9 @@ export function partNodes(make: Make, parts: readonly TextPart[]): (Node | strin
   return parts.map((p) => (typeof p === 'string' ? p : make('a', { href: personHref(p.id), className: 'person' }, p.name)));
 }
 
-export function entryItem(make: Make, e: ChronicleEntry): HTMLElement {
-  return make('li', {}, make('span', { className: 'date' }, formatDate(e.day)), ...partNodes(make, e.parts));
+export function entryItem(make: Make, e: ChronicleEntry, own: string | null, heads: ReadonlySet<string>): HTMLElement {
+  const v = entryView(e, own, heads);
+  return make('li', {}, make('span', { className: 'date' }, formatDate(e.day)), v.world ? '◆ ' : '', ...partNodes(make, v.parts), v.mark ? ' ▸' : '');
 }
 
 function relationItem(make: Make, line: RelationLine): HTMLElement {
@@ -30,7 +32,7 @@ function sexWord(p: PersonPage): string {
 }
 
 /** The page of a person (2.10): only what the player may know; the numbers sit in hover texts (D-031). */
-export function pageView(make: Make, page: PersonPage | null): HTMLElement {
+export function pageView(make: Make, page: PersonPage | null, heads: ReadonlySet<string>): HTMLElement {
   if (!page) {
     return make('section', { className: 'page' }, make('p', { className: 'meta' }, make('a', { href: '#' }, '← Your house')), make('h1', {}, 'Nobody by that name'));
   }
@@ -72,7 +74,7 @@ export function pageView(make: Make, page: PersonPage | null): HTMLElement {
   if (allies) nodes.push(allies);
   if (rivals) nodes.push(rivals);
   for (const [label, entries] of [['In the chronicle', page.chronicle], ['In the journal', page.journal]] as const) {
-    if (entries.length) nodes.push(make('h2', {}, label), make('ul', { className: 'chronicle' }, ...entries.slice().reverse().map((e) => entryItem(make, e))));
+    if (entries.length) nodes.push(make('h2', {}, label), make('ul', { className: 'chronicle' }, ...entries.slice().reverse().map((e) => entryItem(make, e, page.id, heads))));
   }
   return make('section', { className: 'page' }, ...nodes);
 }

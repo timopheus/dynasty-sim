@@ -1,18 +1,17 @@
-import { actionAvailability } from '../core/actions/actions';
 import type { ChronicleEntry } from '../core/chronicle/log';
 import { loadContent } from '../core/content/load';
 import type { Content } from '../core/content/schema';
-import { pendingEventDef } from '../core/events/events';
 import { apply, newGame, type Command } from '../core/game';
 import { isValidSeed } from '../core/rng';
 import type { GameState } from '../core/state';
-import { renderText } from '../core/text/text';
 import { formatDate } from '../core/time/calendar';
 import { getPlayer } from '../core/helpers';
 import { personPage } from '../core/pages/person';
 import { heroView } from './hero';
 import { personHref, personIdFromHash } from './address';
-import { entryItem, pageView } from './page';
+import { actionRows, eventScreen } from './event';
+import { headIds } from './entry';
+import { entryItem, partNodes, pageView } from './page';
 import { clearGame, loadGame, saveGame, seedFromSearch, startChoice, type KeyValueStore } from './storage';
 import './style.css';
 
@@ -64,9 +63,10 @@ function saveProblemText(reason: 'quota' | 'unavailable'): string {
     : 'Autosave is not available in this browser. The game goes on, but it will not survive a reload.';
 }
 
-function entriesList(entries: ChronicleEntry[]): HTMLElement {
+function entriesList(state: GameState, entries: ChronicleEntry[]): HTMLElement {
   const recent = entries.slice(-CHRONICLE_LIMIT).reverse();
-  return el('ul', { className: 'chronicle' }, ...recent.map((e) => entryItem(el, e)));
+  const heads = headIds(state.chronicle);
+  return el('ul', { className: 'chronicle' }, ...recent.map((e) => entryItem(el, e, state.playerId, heads)));
 }
 
 function render(session: Session): void {
@@ -78,7 +78,7 @@ function render(session: Session): void {
 
   const pageId = personIdFromHash(location.hash);
   if (pageId !== null) {
-    app?.replaceChildren(pageView(el, personPage({ state, content }, pageId)));
+    app?.replaceChildren(pageView(el, personPage({ state, content }, pageId), headIds(state.chronicle)));
     window.scrollTo(0, 0);
     return;
   }
@@ -103,27 +103,34 @@ function render(session: Session): void {
     ),
   );
 
-  const event = pendingEventDef(state, content);
-  if (event) {
+  const ctx = { state, content };
+  const screen = eventScreen(ctx);
+  if (screen) {
     parts.push(
       el('h2', {}, 'Event'),
       el('section', { className: 'event' },
-        el('p', {}, renderText(event.text, player, state.day)),
-        el('div', { className: 'choices' }, ...(event.options ?? [{ text: 'Continue' }]).map((option, i) =>
-          el('button', { onclick: () => act(session, { type: 'choose', option: i }) }, renderText(option.text, player, state.day)))),
+        el('p', {}, ...partNodes(el, screen.text)),
+        el('div', { className: 'choices' }, ...screen.options.map((o) => {
+          const label = partNodes(el, o.label);
+          const chance = o.chance ? [el('span', { className: 'chance', title: o.chance.title }, ` (${o.chance.word})`)] : [];
+          if (o.grey) {
+            return el('div', { className: 'unavailable' },
+              el('button', { disabled: true }, ...label),
+              el('span', { className: 'reason' }, o.reason));
+          }
+          return el('div', { className: 'option' },
+            el('button', { onclick: () => act(session, { type: 'choose', option: o.index }) }, ...label), ...chance);
+        })),
       ),
     );
   } else {
     parts.push(
       el('h2', {}, 'What next?'),
-      el('div', { className: 'choices' }, ...actionAvailability({ state, content }).map(({ action, unmet }) => {
-        const days = `${action.duration.min}–${action.duration.max} days`;
-        if (unmet.length === 0) {
-          return el('button', { onclick: () => act(session, { type: 'start', actionId: action.id }), title: days }, action.name);
-        }
+      el('div', { className: 'choices' }, ...actionRows(ctx).map((a) => {
+        if (!a.grey) return el('button', { onclick: () => act(session, { type: 'start', actionId: a.id }), title: a.days }, a.name);
         return el('div', { className: 'unavailable' },
-          el('button', { disabled: true, title: days }, action.name),
-          el('span', { className: 'reason' }, unmet.join('; ')));
+          el('button', { disabled: true, title: a.days }, a.name),
+          el('span', { className: 'reason' }, a.reason));
       })),
     );
   }
@@ -133,7 +140,7 @@ function render(session: Session): void {
   const level = session.tab === 'chronicle' ? 'chronicle' : 'journal';
   parts.push(
     el('div', { className: 'tabs' }, tabButton('chronicle', 'Chronicle'), tabButton('journal', 'Journal')),
-    entriesList(state.chronicle.filter((e) => e.level === level)),
+    entriesList(state, state.chronicle.filter((e) => e.level === level)),
   );
   app?.replaceChildren(...parts);
 }

@@ -1,6 +1,6 @@
 import { fullName, type CharacterBase } from '../character/character';
 import type { GameState } from '../state';
-import type { TextPart } from '../text/text';
+import { ownLine, type TextPart } from '../text/text';
 import { ageYears, formatDate, toYmd } from '../time/calendar';
 import type { ChronicleEntry } from './log';
 
@@ -62,7 +62,7 @@ function render(state: GameState, title: string, keep: (e: ChronicleEntry) => bo
       }
       const when = dated ? formatDate(e.day).replace(/ \d+$/, '') : shortMonth(e.day);
       const world = e.subject !== head.id && e.level === 'chronicle' ? '◆ ' : '';
-      lines.push(`- ${world}**${when}** — ${renderText(e.parts, head.id, heads)}${e.mark ? ' ▸' : ''}`);
+      lines.push(`- ${world}**${when}** — ${renderText(e.subject === head.id ? ownLine(e.parts, head.id) : e.parts, head.id, heads)}${e.mark ? ' ▸' : ''}`);
     }
   }
   return `${lines.join('\n')}\n`;
