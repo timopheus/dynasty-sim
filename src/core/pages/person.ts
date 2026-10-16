@@ -54,7 +54,10 @@ export interface PersonPage {
   level: PageLevel;
   sex: 'male' | 'female';
   alive: boolean;
-  /** Years of life such as "1679–1728" or "b. 1679", or a rough age such as "about 40" for strangers. */
+  /**
+   * Years of life with the exact age such as "1679–1728, died aged 48" or "b. 1679, aged 20" (D-324), or a rough age
+   * such as "about 40" for strangers.
+   */
   life: string;
   fame: string;
   occupation: string | null;
@@ -127,7 +130,8 @@ function roughAge(age: number): string {
 
 function lifeText(c: Character, day: number, exact: boolean): string {
   const born = year(c.birthDay);
-  if (exact) return c.deathDay === null ? `b. ${born}` : `${born}–${year(c.deathDay)}`;
+  // The exact year comes with the exact age (D-324): today for the living, at death for the dead.
+  if (exact) return c.deathDay === null ? `b. ${born}, aged ${ageYears(c.birthDay, day)}` : `${born}–${year(c.deathDay)}, died aged ${ageYears(c.birthDay, c.deathDay)}`;
   return c.deathDay === null ? roughAge(ageYears(c.birthDay, day)) : `died ${year(c.deathDay)}`;
 }
 

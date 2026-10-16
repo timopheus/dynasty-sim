@@ -6,7 +6,7 @@ actions:
   - id: seek_spouse
     name: Look for a spouse
     duration: { min: 20, max: 60 }
-    when: { married: false, money_min: 10 }
+    when: { age_min: 16, married: false, money_min: 10 }
     effects: { money: -10 }
     text: "{name} spent some weeks among matchmakers and families with daughters and sons to marry."
 

@@ -13,7 +13,7 @@ import { backstoryAfterChoice } from '../src/core/backstory/phases';
 import { stats } from '../src/core/character/stats';
 import type { GameState } from '../src/core/state';
 import { ageYears, fromYmd, toYmd } from '../src/core/time/calendar';
-import { applyBackstoryEffects } from '../src/core/backstory/effects';
+import { applyBackstoryEffects, shiftYears } from '../src/core/backstory/effects';
 import { readContentFiles } from '../tools/content-files';
 import { BASE_FILES, loadOrThrow, realContent } from './fixtures/content';
 
@@ -143,6 +143,8 @@ describe('the backstory of the first hero (D-167)', () => {
     expect(getPlayer(state).id).not.toBe(founder.id);
     backstoryAfterChoice(ctx);
     expect(state.backstory.running).toBe(false);
+    expect(state.backstory.lines).toEqual([]);
+    expect(state.chronicle.every((e) => e.day >= 0)).toBe(true);
     expect(state.pendingEvent).toBeNull();
     expect(state.status).toBe('awaiting_action');
     expect(checkInvariants(state, content)).toEqual([]);
@@ -161,6 +163,41 @@ describe('the backstory of the first hero (D-167)', () => {
       expect(b).toEqual(a);
     }
     expect(a.backstory.running).toBe(false);
+  });
+
+  it('dates the lines by the age of the stage: birth, 7, 15, then the start of the game (D-324)', () => {
+    for (let seed = 1; seed <= 6; seed++) {
+      const state = newGame(seed, content);
+      const hero = getPlayer(state);
+      playBackstory(state, content);
+      expect(state.day).toBe(0);
+      // the school added a year: the birthday the lines are dated by is the final one
+      expect(ageYears(hero.birthDay, state.day)).toBe(21);
+      const birth = hero.birthDay;
+      const dayOf = (re: RegExp) => state.chronicle.find((e) => re.test(entryText(e)))!.day;
+      expect(state.chronicle[0]!.kind).toBe('start');
+      expect(state.chronicle[0]!.day).toBe(birth);
+      expect(dayOf(/was born/)).toBe(birth);
+      expect(dayOf(/learned from|ran off|quiet year/)).toBe(shiftYears(birth, 7));
+      expect(toYmd(dayOf(/went to school/)).year).toBe(toYmd(birth).year + 15);
+      expect(state.chronicle.at(-1)!.kind).toBe('backstory_end');
+      expect(state.chronicle.at(-1)!.day).toBe(0);
+      const days = state.chronicle.map((e) => e.day);
+      expect(days).toEqual([...days].sort((a, b) => a - b));
+      expect(state.backstory.lines).toEqual([]);
+      expect(checkInvariants(state, content)).toEqual([]);
+    }
+  });
+
+  it('dates the lines of a stage without an age at the start of the game', () => {
+    const bs = content.backstory!;
+    const undated = { ...content, backstory: { ...bs, stages: bs.stages.map((s) => (s.id === 'training' ? { id: s.id } : s)) } };
+    const state = newGame(5, undated);
+    playBackstory(state, undated);
+    const school = state.chronicle.find((e) => /went to school/.test(entryText(e)))!;
+    expect(school.day).toBe(0);
+    expect(state.chronicle[0]!.day).toBe(getPlayer(state).birthDay);
+    expect(checkInvariants(state, undated)).toEqual([]);
   });
 
   it('is the same for the same seed', () => {

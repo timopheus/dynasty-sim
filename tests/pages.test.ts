@@ -9,6 +9,7 @@ import { addOpinionReason } from '../src/core/relations/opinions';
 import { addSecret } from '../src/core/relations/secrets';
 import { serialize } from '../src/core/save/save';
 import type { Character, Ctx, GameState } from '../src/core/state';
+import { fromYmd } from '../src/core/time/calendar';
 import { BASE_FILES, loadOrThrow } from './fixtures/content';
 import { readContentFiles } from '../tools/content-files';
 
@@ -58,7 +59,7 @@ describe('person page visibility (GDD 8.8)', () => {
     x.fame = 1;
     let page = personPage(ctx, x.id)!;
     expect(page.occupation).not.toBeNull();
-    expect(page.life).toMatch(/^b\. \d+$/);
+    expect(page.life).toMatch(/^b\. \d+, aged \d+$/);
     expect(page.traits).toEqual([]);
     x.fame = 2;
     page = personPage(ctx, x.id)!;
@@ -128,6 +129,21 @@ describe('person page visibility (GDD 8.8)', () => {
     expect(rival.end).not.toBeNull();
     // strangers show no relations
     expect(personPage(ctx, y.id)!.rivals).toEqual([]);
+  });
+
+  it('gives the exact age with the exact year: today for the living, at death for the dead (D-324)', () => {
+    const { ctx, state, hero, x } = setup();
+    hero.birthDay = fromYmd(1680, 3, 10);
+    state.day = fromYmd(1700, 3, 9);
+    expect(personPage(ctx, hero.id)!.life).toBe('b. 1680, aged 19');
+    state.day = fromYmd(1700, 3, 10);
+    expect(personPage(ctx, hero.id)!.life).toBe('b. 1680, aged 20');
+    x.fame = 1;
+    x.birthDay = fromYmd(1660, 6, 1);
+    kill(ctx, x, 'illness');
+    expect(personPage(ctx, x.id)!.life).toBe('1660–1700, died aged 39');
+    state.day = fromYmd(1750, 1, 1);
+    expect(personPage(ctx, x.id)!.life).toBe('1660–1700, died aged 39');
   });
 
   it('gives the cause of death to acquaintances and the very famous only', () => {

@@ -53,9 +53,10 @@ function nearCouples(ctx: Ctx): { husband: Character; wife: Character }[] {
  * the family phase skips that year's roll). People far away do not (stage 5). While the living reach `livingMax`, only
  * the couples of the hero's house do (D-313).
  */
-function conceive(ctx: Ctx, family: FamilyContent): void {
+function conceive(ctx: Ctx, family: FamilyContent, delivered: ReadonlySet<string>): void {
   const { state } = ctx;
-  const pregnant = new Set(state.pregnancies.map((p) => p.mother));
+  // A mother who gave birth today does not conceive the same day.
+  const pregnant = new Set([...state.pregnancies.map((p) => p.mother), ...delivered]);
   let crowded: boolean | null = null;
   for (const pair of nearCouples(ctx)) {
     if (pregnant.has(pair.wife.id)) continue;
@@ -93,12 +94,12 @@ export function giveBirth(ctx: Ctx, family: FamilyContent, p: Pregnancy): Charac
   return child;
 }
 
-/** Births due today, in the order the pregnancies began; true if a child was born. */
-function births(ctx: Ctx, family: FamilyContent): boolean {
+/** Births due today, in the order the pregnancies began; the mothers who gave birth. */
+function births(ctx: Ctx, family: FamilyContent): Set<string> {
   const { state } = ctx;
-  let born = false;
-  for (const p of state.pregnancies.filter((x) => x.due <= state.day)) born = giveBirth(ctx, family, p) !== null || born;
-  return born;
+  const mothers = new Set<string>();
+  for (const p of state.pregnancies.filter((x) => x.due <= state.day)) if (giveBirth(ctx, family, p) !== null) mothers.add(p.mother);
+  return mothers;
 }
 
 /**
@@ -159,8 +160,9 @@ export const familyPhase: DayPhase = {
     let born = false;
     if (family) {
       pedigrees(ctx);
-      born = births(ctx, family);
-      conceive(ctx, family);
+      const mothers = births(ctx, family);
+      born = mothers.size > 0;
+      conceive(ctx, family, mothers);
     }
     if (householdStale(ctx, born)) syncHousehold(ctx);
     else dropHouseholdFromCircle(ctx);
