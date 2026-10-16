@@ -135,18 +135,21 @@ button.link {
   font-size: 0.85em;
 }
 
-.stats {
+.stats,
+.facts {
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 0 1rem;
   margin: 0.5rem 0;
 }
 
-.stats dt {
+.stats dt,
+.facts dt {
   color: var(--muted);
 }
 
-.stats dd {
+.stats dd,
+.facts dd {
   margin: 0;
   cursor: default;
 }

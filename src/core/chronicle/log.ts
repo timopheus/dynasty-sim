@@ -1,3 +1,4 @@
+import { ENTITY_KINDS, entityExists, type EntityRegistry } from '../entities/registry';
 import type { Character, Ctx, GameState, Invariant, RefsFn } from '../state';
 import { characterParts, partsText, type TextPart } from '../text/text';
 import { formatDate } from '../time/calendar';
@@ -132,8 +133,16 @@ export const chronicleRefs: RefsFn = ({ state }) => {
   return out;
 };
 
-export const chronicleInvariants: Invariant = ({ state }) => {
+/** Problems of the hot chronicle; links may point to an entity of any kind of the registry (D-311). */
+export function chronicleProblems(ctx: Ctx, kinds: EntityRegistry = ENTITY_KINDS): string[] {
+  const { state } = ctx;
   const problems: string[] = [];
+  const known = new Map<string, boolean>();
+  const exists = (id: string): boolean => {
+    let ok = known.get(id);
+    if (ok === undefined) known.set(id, (ok = entityExists(ctx, id, kinds)));
+    return ok;
+  };
   const ids = new Set(state.characters.map((c) => c.id));
   let prevDay = -Infinity;
   for (const entry of state.chronicle) {
@@ -143,8 +152,10 @@ export const chronicleInvariants: Invariant = ({ state }) => {
     if ('mark' in entry && entry.mark !== true) problems.push('chronicle entry has a mark that is not true');
     if (entry.level !== 'chronicle' && entry.level !== 'journal') problems.push(`chronicle entry has level ${String(entry.level)}`);
     for (const part of entry.parts) {
-      if (typeof part !== 'string' && !ids.has(part.id)) problems.push(`chronicle links to unknown character ${part.id}`);
+      if (typeof part !== 'string' && !exists(part.id)) problems.push(`chronicle links to unknown ${part.id.startsWith('c') ? 'character' : 'entity'} ${part.id}`);
     }
   }
   return problems;
-};
+}
+
+export const chronicleInvariants: Invariant = (ctx) => chronicleProblems(ctx);

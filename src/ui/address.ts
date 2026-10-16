@@ -1,3 +1,5 @@
+import { wordOf } from '../core/entities/registry';
+
 /**
  * Addresses of pages (D-311): `#/<word of the kind>/<id>`, e.g. `#/person/c12`, `#/house/h40`. The id alone tells the
  * entity (its prefix is the kind), so any word reads; the word only makes the address readable. The registry of kinds
@@ -8,6 +10,11 @@ const PERSON_HASH = /^#\/person\/([a-z]+\d+)$/;
 
 export function personHref(id: string): string {
   return entityHref('person', id);
+}
+
+/** Address of the page of any entity: the word comes from the kind of the id (the registry, D-311). */
+export function hrefOf(id: string): string {
+  return entityHref(wordOf(id), id);
 }
 
 /** Address of the page of an entity of the kind with this word. */

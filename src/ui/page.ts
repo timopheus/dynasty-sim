@@ -1,9 +1,10 @@
 import type { Command } from '../core/game';
 import type { ChronicleEntry } from '../core/chronicle/log';
-import type { PersonPage, RelationLine } from '../core/pages/person';
+import type { AnyPage, EntityPage } from '../core/pages/entity';
+import type { PageSection, PersonPage, RelationLine } from '../core/pages/person';
 import type { TextPart } from '../core/text/text';
 import { formatDate } from '../core/time/calendar';
-import { personHref } from './address';
+import { hrefOf, personHref } from './address';
 import { opinionLineText, withNumber } from './access';
 import { entryView } from './entry';
 
@@ -11,7 +12,7 @@ type Make = <K extends keyof HTMLElementTagNameMap>(tag: K, props?: Partial<HTML
 
 /** Text parts of a chronicle line: strings as they are, references as links to the page (D-020). */
 export function partNodes(make: Make, parts: readonly TextPart[]): (Node | string)[] {
-  return parts.map((p) => (typeof p === 'string' ? p : make('a', { href: personHref(p.id), className: 'person' }, p.name)));
+  return parts.map((p) => (typeof p === 'string' ? p : make('a', { href: hrefOf(p.id), className: 'person' }, p.name)));
 }
 
 export function entryItem(make: Make, e: ChronicleEntry, own: string | null, heads: ReadonlySet<string>): HTMLElement {
@@ -33,10 +34,38 @@ function sexWord(p: PersonPage): string {
   return p.sex === 'male' ? 'Man' : 'Woman';
 }
 
+function sectionNodes(make: Make, sections: readonly PageSection[]): (Node | string)[] {
+  return sections.flatMap((s) => [
+    make('h2', {}, s.title),
+    make('dl', { className: 'facts' }, ...s.lines.flatMap((l) => [make('dt', {}, l.label), make('dd', {}, ...partNodes(make, l.parts))])),
+  ]);
+}
+
+/** The common page of an entity that is not a person (D-311): facts and the lines of the chronicle about it. */
+function entityView(make: Make, page: EntityPage, heads: ReadonlySet<string>): HTMLElement {
+  return make(
+    'section',
+    { className: 'page' },
+    make('p', { className: 'meta' }, make('a', { href: '#', className: 'back' }, '← Your house')),
+    make('h1', {}, page.title),
+    make('p', { className: 'meta' }, page.subtitle),
+    ...(page.facts.length
+      ? [make('dl', { className: 'facts' }, ...page.facts.flatMap((f) => [make('dt', {}, f.label), make('dd', {}, ...partNodes(make, f.parts))]))]
+      : []),
+    ...(page.chronicle.length
+      ? [make('h2', {}, 'In the chronicle'), make('ul', { className: 'chronicle' }, ...page.chronicle.slice().reverse().map((e) => entryItem(make, e, null, heads)))]
+      : []),
+  );
+}
+
 /** The page of a person (2.10): only what the player may know; the numbers sit beside the words on request, hover is a bonus (D-031, D-248). */
 /** `onCommand` sends a command from a button on the page (proposals, 4.5); the page itself never changes the state. */
-export function pageView(make: Make, page: PersonPage | null, heads: ReadonlySet<string>, showNumbers = false, onCommand: (cmd: Command) => void = () => {}): HTMLElement {
+export function pageView(make: Make, shown: AnyPage | PersonPage | null, heads: ReadonlySet<string>, showNumbers = false, onCommand: (cmd: Command) => void = () => {}): HTMLElement {
   void onCommand;
+  // main.ts passes the person page as it is; the page of any entity comes with its type (4.2)
+  const any: AnyPage | null = shown === null ? null : 'type' in shown ? shown : { type: 'person', page: shown };
+  if (any?.type === 'entity') return entityView(make, any.page, heads);
+  const page = any?.page ?? null;
   if (!page) {
     return make('section', { className: 'page' }, make('p', { className: 'meta' }, make('a', { href: '#', className: 'back' }, '← Your house')), make('h1', {}, 'Nobody by that name'));
   }
@@ -80,5 +109,6 @@ opinionLineText(l, showNumbers))))]
   for (const [label, entries, own] of [['In the chronicle', page.chronicle, page.id], ['In the journal', page.journal, null]] as const) {
     if (entries.length) nodes.push(make('h2', {}, label), make('ul', { className: 'chronicle' }, ...entries.slice().reverse().map((e) => entryItem(make, e, own, heads))));
   }
+  nodes.push(...sectionNodes(make, page.sections));
   return make('section', { className: 'page' }, ...nodes);
 }

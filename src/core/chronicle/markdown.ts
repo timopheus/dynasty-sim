@@ -40,6 +40,7 @@ function renderText(parts: readonly TextPart[], own: string, heads: ReadonlySet<
   return parts
     .map((p) => {
       if (typeof p === 'string') return p;
+      // Only heads of the house have anchors; links to a house, an heirloom or anyone else read as plain names.
       return p.id !== own && heads.has(p.id) ? `[${p.name}](#${anchor(p.id)})` : p.name;
     })
     .join('');
