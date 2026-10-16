@@ -48,15 +48,15 @@ describe('content', () => {
   });
 
   it('accepts the empty keys of later modules at most once', () => {
-    const file = { path: 'fixture/later.yaml', text: 'time: {}\npopulation: {}\nopinions: {}\nchronicle: {}\ntraits: []\n' };
+    const file = { path: 'fixture/later.yaml', text: 'population: {}\nopinions: {}\nchronicle: {}\ntraits: []\n' };
     const once = loadContent([...BASE_FILES, file]);
     expect(once.ok).toBe(true);
-    if (once.ok) expect(once.content.time).toEqual({});
+    if (once.ok) expect(once.content.population).toEqual({});
     const base = loadContent(BASE_FILES);
-    if (base.ok) expect(base.content.time).toBeNull();
+    if (base.ok) expect(base.content.population).toBeNull();
     const twice = loadContent([...BASE_FILES, file, { ...file, path: 'fixture/later2.yaml' }]);
     expect(twice.ok).toBe(false);
-    if (!twice.ok) expect(twice.errors.map((e) => e.path)).toContain('time');
+    if (!twice.ok) expect(twice.errors.map((e) => e.path)).toContain('population');
   });
 
   it('requires single keys exactly once', () => {

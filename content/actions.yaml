@@ -1,4 +1,5 @@
 # Actions the player can start. Duration is in days, rolled when the action starts.
+# `when` (optional) limits when the action can be started: season, money_min, age_min, age_max.
 # `text` is written to the chronicle when the action completes. Schema: ActionSchema.
 actions:
   - id: travel
@@ -10,12 +11,14 @@ actions:
   - id: serve_contract
     name: Serve under contract
     duration: { min: 60, max: 180 }
+    when: { age_min: 18 }
     effects: { health: -5, money: 60 }
     text: "{name} finished a contract of service and was paid off."
 
   - id: winter_quarters
     name: Winter in quarters
     duration: { min: 60, max: 120 }
+    when: { season: [autumn, winter], money_min: 20 }
     effects: { health: 20, money: -20 }
     text: "{name} wintered in quiet quarters and recovered strength."
 

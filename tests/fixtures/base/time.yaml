@@ -1,0 +1,15 @@
+# Seasons and the texts of conditions (`when` of actions). Schema: TimeContentSchema.
+# Reasons are shown next to an unavailable action. Placeholders: {seasons}, {amount}, {age}.
+time:
+  seasons:
+    - { id: winter, name: Winter, months: [12, 1, 2] }
+    - { id: spring, name: Spring, months: [3, 4, 5] }
+    - { id: summer, name: Summer, months: [6, 7, 8] }
+    - { id: autumn, name: Autumn, months: [9, 10, 11] }
+  reasons:
+    season: "Only in {seasons}"
+    money_min: "Requires {amount} crowns"
+    age_min: "Requires age {age} or older"
+    age_max: "Requires age {age} or younger"
+  texts:
+    interrupted: "{name} had to break off the course of the day."
