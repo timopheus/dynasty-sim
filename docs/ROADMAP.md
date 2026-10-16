@@ -161,7 +161,7 @@
 
 | ID | Задача | Модуль | Зависит от | Модель | Волна | Статус |
 |---|---|---|---|---|---|---|
-| 3.0 | План этапа | `docs/` | — | Opus | — | 🟡 |
+| 3.0 | План этапа | `docs/` | — | Opus | — | ✅ [#25](https://github.com/timopheus/dynasty-sim/pull/25) |
 | 3.1 | Точки подключения этапа 3 | весь `src/core`, `src/core/sim.ts`, `content/settings.yaml` → `content/narrator.yaml`, `tests/`, CLAUDE.md | 3.0 | Opus | 1 | ⬜ |
 | 3.2 | Движок: событие, страницы, варианты, проверки | `src/core/events/`, `src/core/bot.ts`, `tests/events.test.ts`, `tests/fixtures/events/`, `tests/fixtures/base/events.yaml`, `docs/event-format.md` | 3.1 | Opus | 2 | ⬜ |
 | 3.3 | Роли: подбор участников | `src/core/roles/`, `tests/roles.test.ts`, `tests/fixtures/roles/` | 3.1 | Sonnet | 2 | ⬜ |
