@@ -39,7 +39,7 @@
 | 2.5 | Население вокруг героя | `src/core/world/`, `content/population.yaml` | 2.3, 2.7 | Sonnet | 3 | 🟡 [#18](https://github.com/timopheus/dynasty-sim/pull/18) |
 | 2.6 | Хроника v1: отбор и markdown | `src/core/chronicle/`, `content/chronicle.yaml`, `src/core/events/` (пометка ▸), вывод журнала в `tools/sim.ts` | 2.9, 2.5 | Sonnet | 4 | ✅ [#22](https://github.com/timopheus/dynasty-sim/pull/22) |
 | 2.8 | Интерфейс v1 и автосохранение | `src/ui/`, `src/core/save/`, `package.json` и `package-lock.json` (если берём фреймворк) | 2.2, 2.3, 2.9 | Sonnet | 4 | 🟡 [#20](https://github.com/timopheus/dynasty-sim/pull/20) |
-| 2.4 | Мнения, отношения, знакомство | `src/core/relations/`, `content/opinions.yaml` | 2.3, 2.5 | Sonnet | 4 | 🟡 [#21](https://github.com/timopheus/dynasty-sim/pull/21) |
+| 2.4 | Мнения, отношения, знакомство | `src/core/relations/`, `content/opinions.yaml` | 2.3, 2.5 | Sonnet | 4 | ✅ [#21](https://github.com/timopheus/dynasty-sim/pull/21) |
 | 2.10 | Страницы людей и ссылки | `src/ui/`, `src/core/pages/` | 2.4, 2.6, 2.8 | Sonnet | 5 | ⬜ |
 
 Номера старой разбивки сохранены. Из 2.3 выделено здоровье (2.9), из 2.8 — страницы (2.10); версия сохранений перенесена из 2.1 в 2.8 (D-051). Колонка «Модуль» — полный список того, что задача правит; всё остальное — только через точки подключения 2.1 (D-052).
