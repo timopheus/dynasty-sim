@@ -1,0 +1,19 @@
+# expect-error: events[0].roles.x.prefer[0].when.occupation /unknown occupation "jester"/
+population:
+  circle: { min: 3, max: 5 }
+  newcomerAge: { min: 20, max: 30 }
+  driftPer10k: 0
+  arriveFromFarPer100: 0
+  far: { occupationChangePer10k: 0, returnPer10k: 0 }
+  occupationReason: "Only for {occupations}"
+  occupations: [{ id: porter, name: Porter, weight: 1 }]
+  moves: []
+events:
+  - id: bad_role
+    weight: 1
+    roles:
+      x: { pick: circle, prefer: [{ when: { occupation: [jester] }, factor: 2 }] }
+    text: "Hello."
+    options:
+      - text: Hello
+        result: "{name} said hello."
