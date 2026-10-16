@@ -2,17 +2,7 @@ import type { ChronicleEntry } from '../core/chronicle/log';
 import type { PersonPage, PersonRef, RelationLine } from '../core/pages/person';
 import type { TextPart } from '../core/text/text';
 import { formatDate } from '../core/time/calendar';
-
-const PERSON_HASH = /^#\/person\/([a-z]+\d+)$/;
-
-export function personHref(id: string): string {
-  return `#/person/${id}`;
-}
-
-/** Id of the person whose page the address asks for, or null for the main screen. */
-export function personIdFromHash(hash: string): string | null {
-  return PERSON_HASH.exec(hash)?.[1] ?? null;
-}
+import { personHref } from './address';
 
 type Make = <K extends keyof HTMLElementTagNameMap>(tag: K, props?: Partial<HTMLElementTagNameMap[K]>, ...children: (Node | string)[]) => HTMLElementTagNameMap[K];
 
@@ -44,7 +34,7 @@ export function pageView(make: Make, page: PersonPage | null): HTMLElement {
   if (!page) {
     return make('section', { className: 'page' }, make('p', { className: 'meta' }, make('a', { href: '#' }, '← Back')), make('h1', {}, 'Nobody by that name'));
   }
-  const intro = [sexWord(page), page.life, page.fame && page.fame !== 'Private' ? page.fame : '', page.occupation ?? ''].filter(Boolean).join(' · ');
+  const intro = [sexWord(page), page.life, page.fame, page.occupation ?? ''].filter(Boolean).join(' · ');
   const knowledge: Record<string, string> = { self: 'Yours', close: 'A close acquaintance', known: 'An acquaintance', stranger: 'A stranger to you' };
   const nodes: (Node | string)[] = [
     make('p', { className: 'meta' }, make('a', { href: '#' }, '← Back')),

@@ -11,7 +11,8 @@ import { formatDate } from '../core/time/calendar';
 import { getPlayer } from '../core/helpers';
 import { personPage } from '../core/pages/person';
 import { heroView } from './hero';
-import { entryItem, pageView, personHref, personIdFromHash } from './page';
+import { personHref, personIdFromHash } from './address';
+import { entryItem, pageView } from './page';
 import { clearGame, loadGame, saveGame, seedFromSearch, startChoice, type KeyValueStore } from './storage';
 import './style.css';
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { apply, newGame } from '../src/core/game';
 import { serialize } from '../src/core/save/save';
 import { heroView } from '../src/ui/hero';
-import { personHref, personIdFromHash } from '../src/ui/page';
+import { personHref, personIdFromHash } from '../src/ui/address';
 import { isValidSeed } from '../src/core/rng';
 import { SAVE_KEY, clearGame, loadGame, saveGame, seedFromSearch, startChoice, type KeyValueStore } from '../src/ui/storage';
 import { fixtureContent, realContent } from './fixtures/content';
