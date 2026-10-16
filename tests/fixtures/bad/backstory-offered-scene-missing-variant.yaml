@@ -1,0 +1,22 @@
+# expect-error: events[0].options /variant "vc" of stage "origin" has no option here/
+backstory:
+  base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
+  stages:
+    - id: origin
+      offer: { count: 2, variants: [va, vb, vc] }
+  texts:
+    leave: "{name}, aged {age}, went out."
+
+events:
+  - id: bad_origin
+    deck: backstory
+    stage: origin
+    weight: 1
+    text: "You were born."
+    options:
+      - text: House A
+        when: { offered: va }
+        result: "{name} was born in house A."
+      - text: House B
+        when: { offered: vb }
+        result: "{name} was born in house B."

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { BASE_STAT_MAX, STAT_IDS, type StatId } from '../character/stat-ids';
 import type { CrossCheck } from '../content/schema';
 import { Id, Int, Text, type ContentError } from '../content/types';
+import { offeredOnlyOptions } from '../events/content';
 import { checkTemplate } from '../text/text';
 
 const StageSchema = z.strictObject({
@@ -122,6 +123,19 @@ export const checkBackstory: CrossCheck = ({ backstory, events, actions, setting
       for (const where of findKeys(body, [key], at)) errors.push({ file: eventFile, path: where, message: `${key} is not allowed in a scene of the backstory (no action and no days pass)` });
     }
     for (const where of findKeys(findOn(item), ONLY_IN_SCENES, `${at}.on`)) errors.push({ file: eventFile, path: where, message: 'changes the main participant only: not in on' });
+    // A scene whose options are all offered variants (D-188): every variant its stage offers must have an option here,
+    // so whatever is drawn, the player sees `count` options.
+    const options = item.options ?? [];
+    if (offeredOnlyOptions(options)) {
+      const offer = bs.stages.find((s) => s.id === item.stage)?.offer;
+      if (!offer) errors.push({ file: eventFile, path: `${at}.options`, message: 'every option is an offered variant, but the stage offers none' });
+      else {
+        const shown = new Set(options.map((o) => o.when?.offered));
+        for (const v of offer.variants) {
+          if (!shown.has(v)) errors.push({ file: eventFile, path: `${at}.options`, message: `every option is an offered variant, but variant "${v}" of stage "${item.stage}" has no option here` });
+        }
+      }
+    }
     collectOffered(body).forEach((id) => {
       offeredUsed.add(id);
       if (!variants.has(id)) errors.push({ file: eventFile, path: at, message: `offered "${id}" is not a variant of any stage` });

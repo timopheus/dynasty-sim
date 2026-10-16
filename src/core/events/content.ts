@@ -35,6 +35,11 @@ const outcomeShape = {
   mood: Id.optional(),
 };
 
+/** Every option stands only under `offered` (a variant of origin, D-188): the scene shows what its stage offered. */
+export function offeredOnlyOptions(options: readonly { when?: When | undefined }[]): boolean {
+  return options.length > 0 && options.every((o) => o.when !== undefined && Object.keys(o.when).length === 1 && o.when.offered !== undefined);
+}
+
 /** Mood of a scene or outcome that sets none (D-177). `narrator.moods` must list it. */
 export const DEFAULT_MOOD = 'neutral';
 
@@ -259,7 +264,11 @@ function checkScene(env: EventEnv, path: string, scene: SceneDef): void {
   if (scene.options) {
     if (hasOutcomeFields(scene, ['mood'])) env.errors.push({ file: env.file, path: at, message: 'outcome fields belong to options; only a notice without options has them' });
     checkMood(env, at, scene.mood);
-    if (scene.options.every((o) => o.when !== undefined)) {
+    // The first scene of a backstory event whose options are all offered variants is the exception (D-188): its stage
+    // offers some of them every game, and checkBackstory makes sure every variant of the offer has an option here.
+    // Pages are not: nothing guarantees what is offered there.
+    const offeredOnly = env.event.deck === 'backstory' && scene === env.event && offeredOnlyOptions(scene.options);
+    if (!offeredOnly && scene.options.every((o) => o.when !== undefined)) {
       env.errors.push({ file: env.file, path: `${path}options`, message: 'at least one option must have no when, so the player always has a choice' });
     }
     scene.options.forEach((option, i) => checkOption(env, `${path}options[${i}]`, option));
