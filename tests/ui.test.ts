@@ -12,7 +12,7 @@ import { readContentFiles } from '../tools/content-files';
 import { apply, newGame } from '../src/core/game';
 import { deserialize, serialize } from '../src/core/save/save';
 import { heroView } from '../src/ui/hero';
-import { personHref, personIdFromHash } from '../src/ui/address';
+import { entityHref, entityIdFromHash, personHref, personIdFromHash } from '../src/ui/address';
 import { isValidSeed } from '../src/core/rng';
 import { SAVE_KEY, clearGame, loadGame, saveGame, seedFromSearch, startChoice, type KeyValueStore } from '../src/ui/storage';
 import { BASE_FILES, fixtureContent, loadOrThrow, realContent } from './fixtures/content';
@@ -127,6 +127,13 @@ describe('person page addresses', () => {
   it('round-trips an id through the address and rejects anything else', () => {
     expect(personIdFromHash(personHref('c12'))).toBe('c12');
     for (const bad of ['', '#', '#/person/', '#/person/c1/x', '#/person/<script>', '#person/c1']) expect(personIdFromHash(bad)).toBeNull();
+  });
+
+  it('reads an entity id under any word of the kind; the old person address still works (D-311)', () => {
+    expect(entityHref('house', 'h40')).toBe('#/house/h40');
+    expect(entityIdFromHash(entityHref('house', 'h40'))).toBe('h40');
+    expect(entityIdFromHash(personHref('c12'))).toBe('c12');
+    for (const bad of ['', '#', '#/house/', '#/house/h1/x', '#/House/h1', '#/house/<script>', '#house/h1']) expect(entityIdFromHash(bad)).toBeNull();
   });
 });
 
