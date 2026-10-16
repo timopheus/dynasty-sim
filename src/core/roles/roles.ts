@@ -3,8 +3,9 @@ import { factorParts } from '../content/types';
 import { weightedPick } from '../rng';
 import { acquaintanceLevel } from '../relations/acquaintance';
 import { activeRelationBetween } from '../relations/links';
+import { kinOf, type KinKindId } from '../family/kin';
 import type { Character, Ctx, Scope } from '../state';
-import { characterById } from '../world/world';
+import { characterById, isNear } from '../world/world';
 import type { RoleDef, RolesDef } from './content';
 
 /** Weight of a candidate before `prefer`; large and divisible by many small numbers so fractions stay exact. */
@@ -20,10 +21,17 @@ export function baseScope(hero: Character, protagonist: Character): Scope {
   return { hero: hero.id, protagonist: protagonist.id };
 }
 
-/** People who could take the role, before `where`: the circle (never the hero), narrowed by `pick`. */
+/**
+ * People who could take the role, before `where`: the circle (never the hero), narrowed by `pick`; for `pick: kin`,
+ * the living kin of the main participant who are near the hero — the household or the circle (4.5).
+ */
 function pool(ctx: Ctx, role: RoleDef, scope: Scope): Character[] {
   const { state, content } = ctx;
   const taken = new Set(Object.values(scope));
+  if (role.pick === 'kin') {
+    const of = scope.protagonist ?? state.playerId;
+    return kinOf(state, role.kind as KinKindId, of).filter((c) => c.deathDay === null && !taken.has(c.id) && isNear(state, c.id));
+  }
   const out: Character[] = [];
   for (const id of state.circle) {
     if (taken.has(id)) continue;
@@ -41,12 +49,18 @@ function fits(ctx: Ctx, c: Character, when: When | undefined, scope: Scope): boo
   return !when || conditionReport(ctx, c, when, scope).met;
 }
 
-/** A person handed over as `given` counts if alive, in the circle and not already holding another role (D-044). */
+/**
+ * A person handed over as `given` counts if alive, near the hero (the household or the circle) and not already
+ * holding another role (D-044). The hero may be handed over too, though the hero holds the built-in roles: only the
+ * command `propose` does it (the hero as the suitor, 4.5) — stories never hand the hero over (their validator).
+ */
 function givenPerson(ctx: Ctx, name: string, scope: Scope): Character | null {
+  const { state } = ctx;
   const id = scope[name];
-  if (id === undefined || !ctx.state.circle.includes(id)) return null;
-  if (Object.entries(scope).some(([other, otherId]) => other !== name && otherId === id)) return null;
-  const c = characterById(ctx.state, id);
+  if (id === undefined || !isNear(state, id)) return null;
+  const builtIn = (role: string) => id === scope.hero && (role === 'hero' || role === 'protagonist');
+  if (Object.entries(scope).some(([other, otherId]) => other !== name && otherId === id && !builtIn(other))) return null;
+  const c = characterById(state, id);
   return c && c.deathDay === null ? c : null;
 }
 

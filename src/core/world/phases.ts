@@ -7,8 +7,9 @@ import type { Character, Ctx, DayPhase, GameState, NewGameHook } from '../state'
 import { ageYears, toYmd } from '../time/calendar';
 import { occupationsForAge, type MoveDef, type PopulationContent } from './content';
 
+/** Alive and far: not the hero, not in the circle, not in the household (the household is near, D-313, D-354). */
 function isFarAlive(state: GameState, c: Character, inCircle: ReadonlySet<string>): boolean {
-  return c.deathDay === null && c.id !== state.playerId && !inCircle.has(c.id);
+  return c.deathDay === null && c.id !== state.playerId && !inCircle.has(c.id) && !state.household.includes(c.id);
 }
 
 function pickOccupation(ctx: Ctx, population: PopulationContent, age: number): string {
@@ -73,7 +74,8 @@ function yearlyTick(ctx: Ctx, population: PopulationContent): void {
   const inCircle = new Set(state.circle);
   // Deaths do not add characters, and nobody far is the hero, so the list is stable while we walk it.
   for (const c of state.characters) {
-    if (c.deathDay !== null || c.id === state.playerId) continue;
+    // The hero and the household are simulated day by day (D-313, D-354): no yearly roll of the far for them.
+    if (c.deathDay !== null || c.id === state.playerId || state.household.includes(c.id)) continue;
     const age = ageYears(c.birthDay, state.day);
     if (inCircle.has(c.id)) {
       if (chancePer(state.rng, population.driftPer10k, 10000)) {

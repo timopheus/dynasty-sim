@@ -1,0 +1,10 @@
+# expect-error: events[0].roles.cousin.kind /unknown kind of kin "cousin"/
+events:
+  - id: kin_unknown_kind
+    weight: 1
+    roles:
+      cousin: { pick: kin, kind: cousin }
+    text: "{cousin} comes by."
+    options:
+      - text: Greet
+        result: "{name} greeted {cousin}."
