@@ -1,0 +1,17 @@
+# Event with roles for tests of the roles module (3.3); goes on top of tests/fixtures/base, population and opinions.
+events:
+  - id: debt_collector
+    weight: 1
+    roles:
+      creditor:
+        pick: circle
+        where: { occupation: [porter, guard], money_min: 50 }
+        prefer:
+          - { when: { age_min: 35 }, factor: 3 }
+          - { when: { money_max: 100 }, factor: "1/2" }
+      rival: { pick: relation, kind: rival, optional: true }
+      witness: { pick: known, optional: true }
+    text: "{creditor} comes for the money."
+    options:
+      - text: Pay
+        result: "{name} paid {creditor}."

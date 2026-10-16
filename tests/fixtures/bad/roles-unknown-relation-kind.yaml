@@ -1,0 +1,17 @@
+# expect-error: events[0].roles.x.kind /unknown kind of relation "enemy"/
+opinions:
+  reasons: []
+  traitEffects: []
+  background: { max: 0, rules: [] }
+  words: [{ from: -100, text: low }]
+  relations: [{ id: friend, name: Friend, symmetric: true, opinion: { a: 25, b: 25 }, acquaintance: close }]
+  acquaintance: { meetPer100: 0, closeAfterDays: 0, closePer100: 0 }
+events:
+  - id: bad_role
+    weight: 1
+    roles:
+      x: { pick: relation, kind: enemy }
+    text: "Hello."
+    options:
+      - text: Hello
+        result: "{name} said hello."

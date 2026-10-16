@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { CrossCheck } from '../content/schema';
 import { Id, Int, Range, Text, type ContentError } from '../content/types';
+import { checkReason } from '../conditions/reasons';
 import { checkTemplate } from '../text/text';
 
 const Per10k = Int.min(0).max(10000);
@@ -42,6 +43,8 @@ export const PopulationContentSchema = z.strictObject({
     /** Yearly chance (out of 10000) that a person far away returns to the circle if there is room. */
     returnPer10k: Per10k,
   }),
+  /** Why a condition `occupation` is not met; `{occupations}` is the list of names, "a, b or c" (3.3). */
+  occupationReason: Text,
   occupations: z.array(OccupationSchema).min(1),
   moves: z.array(MoveSchema),
 });
@@ -72,6 +75,8 @@ export const checkWorld: CrossCheck = ({ population, actions }) => {
         break;
       }
     }
+    const reasonProblem = checkReason(item.occupationReason, ['occupations']);
+    if (reasonProblem) err('occupationReason', reasonProblem);
     const moved = new Set<string>();
     item.moves.forEach((m, i) => {
       if (!actionIds.has(m.action)) err(`moves[${i}].action`, `unknown action "${m.action}"`);

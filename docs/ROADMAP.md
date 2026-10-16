@@ -164,7 +164,7 @@
 | 3.0 | План этапа | `docs/` | — | Opus | — | ✅ [#25](https://github.com/timopheus/dynasty-sim/pull/25) |
 | 3.1 | Точки подключения этапа 3 | весь `src/core`, `content/settings.yaml` → `content/narrator.yaml`, `content/time.yaml` (текст `money_max`), `tests/`, CLAUDE.md | 3.0 | Opus | 1 | ✅ [#26](https://github.com/timopheus/dynasty-sim/pull/26) |
 | 3.2 | Движок: событие, страницы, варианты, проверки | `src/core/events/`, `src/core/bot.ts`, `tests/events.test.ts`, `tests/fixtures/events/`, `tests/fixtures/base/events.yaml`, `docs/event-format.md` | 3.1 | Opus | 2 | ⬜ |
-| 3.3 | Роли: подбор участников | `src/core/roles/`, `src/core/world/content.ts` и `content/population.yaml` (только текст причины `occupation`), `tests/roles.test.ts`, `tests/fixtures/roles/` | 3.1 | Sonnet | 2 | ⬜ |
+| 3.3 | Роли: подбор участников | `src/core/roles/`, `src/core/world/content.ts` и `content/population.yaml` (только текст причины `occupation`), `tests/roles.test.ts`, `tests/fixtures/roles/` | 3.1 | Sonnet | 2 | ✅ [#27](https://github.com/timopheus/dynasty-sim/pull/27) |
 | 3.4 | Тексты: роли в шаблонах и мини-грамматика | `src/core/text/`, `content/grammar.yaml` (новый), `tests/text.test.ts` | 3.1 | Sonnet | 2 | ✅ [#29](https://github.com/timopheus/dynasty-sim/pull/29) |
 | 3.5 | Персонаж и здоровье в событиях | `src/core/character/`, `src/core/health/`, `src/core/conditions/`, `content/health.yaml` (причины смерти, тексты причин), `content/names.yaml` (тексты причин), `tests/character.test.ts`, `tests/health.test.ts` | 3.1 | Sonnet | 3 | ⬜ |
 | 3.6 | Мнения и связи в событиях | `src/core/relations/`, `content/opinions.yaml`, `tests/relations.test.ts` | 3.1 | Sonnet | 3 | ⬜ |
@@ -252,6 +252,8 @@
 - Строки о начале и конце дружбы, соперничества, покровительства героя — в хронику (GDD §8.9, D-121), тексты в `opinions.relations`.
 - Стартовый набор причин мнений под контент этапа (спас, предал, наставник, друг детства, унизил, пощадил, назвал трусом…): дальше задачи волны 5 причины не добавляют, кроме 3.12.
 - Готово, когда: тесты на фикстуре — эффект через `on` и область ролей; роли берутся только из окружения, поэтому `startRelation` и `addOpinionReason` в прогоне не бросают исключений; строка о новой связи героя; плохие примеры: неизвестная причина, `with` без роли; прогон 300 лет без нарушений; размер сохранения в PR.
+- Заполняет реестр `conditionRoleRefs` ключом `toward`/`with`: добавить плохой пример `tests/fixtures/bad/roles-ref-below.yaml` («роль ссылается на роль ниже», проверка уже есть в `checkRoles`, D-192) и убрать подмену из `tests/roles-refs.test.ts`.
+- Ключ `occupation` (3.3) проверяет неизвестные занятия только в ролях: проверка `when` событий и вариантов — в 3.2.
 
 **3.7. Рассказчик** (D-014, D-045; D-166).
 - Ключ `narrator:` (`content/narrator.yaml`): шанс события в день от длительности действия (цель D-168: 6–12 событий с выбором в год; на действиях от 60 дней — 2–4, на коротких — 0–1), минимальный промежуток, напряжение (тяжёлое поднимает, спадает со временем, при высоком тяжёлые не выпадают, лёгкие чаще), повтор события не раньше `cooldown_days`, `once: life|game`.

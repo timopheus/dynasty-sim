@@ -7,6 +7,7 @@ population:
   far:
     occupationChangePer10k: 2000
     returnPer10k: 1500
+  occupationReason: "Only for {occupations}"
   occupations:
     - { id: porter, name: Porter, weight: 3, age: { min: 16, max: 50 } }
     - { id: elder, name: Elder, weight: 1, age: { min: 41, max: 99 } }

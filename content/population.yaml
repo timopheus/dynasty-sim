@@ -9,6 +9,9 @@ population:
     occupationChangePer10k: 400     # yearly chance for a person far away
     returnPer10k: 150               # yearly chance to come back into the circle when there is room
 
+  # Reason shown when a condition `occupation` is not met; {occupations} is the list of names (3.3).
+  occupationReason: "Only for {occupations}"
+
   # Weight is the relative chance for a person of fitting age; age limits are where the occupation is taken up.
   occupations:
     - { id: soldier, name: Soldier, weight: 8, age: { min: 16, max: 45 } }
