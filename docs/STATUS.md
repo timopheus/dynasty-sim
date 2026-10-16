@@ -17,7 +17,7 @@
 - Для 4.3: вкладка хроники и `headIds` в `src/ui/main.ts` читают горячую часть (`state.chronicle`); после архива — перевести на `allChronicle`.
 
 ## Боты с характерами (4.4, D-345, D-349)
-- `random`, `cautious`, `greedy`, `duelist`; `botCommand(state, content, rng, character)`, `sim --bot`, отчёт `npx tsx tools/bot-report.ts` (10 × 300 лет ≈ 15–25 мин, в воротах CI его нет). Замер: деньги/смерть главы/строк — random 6163/48,75/43; cautious −2815/62/106; greedy 34974/46,75/15; duelist −4006/65/128; доминирующего нет; мёртвых вариантов 6 (список в D-349).
+- `random`, `cautious`, `greedy`, `duelist`; `botCommand(state, content, rng, character)`, `sim --bot`, отчёт `npx tsx tools/bot-report.ts` (10 × 300 лет ≈ 15–25 мин, в воротах CI его нет). Замер: деньги/смерть главы/строк — random 6163/48,75/43; cautious 2668/47,25/27; greedy 20100/34,75/21; duelist 9588/62,75/98; доминирующего нет; мёртвых вариантов 3 (список в D-349).
 - Для 4.6: бот пока не пишет завещание и не сватает — добавить в `bot.ts` вместе с командами `will` и `propose`.
 
 ## Итог этапа 3 «Движок событий» (для Тима)
