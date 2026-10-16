@@ -438,6 +438,7 @@ events:
   # --- Hunting --------------------------------------------------------------------------------------------------
   - id: wild_boar
     weight: 8
+    cooldown_days: 730
     actions: [hunt]
     when: { fit: true }
     mood: threat
@@ -494,6 +495,7 @@ events:
 
   - id: poacher_charge
     weight: 6
+    cooldown_days: 730
     actions: [hunt]
     roles:
       warden: { pick: circle, where: { occupation: [farmhand, servant, soldier] } }
