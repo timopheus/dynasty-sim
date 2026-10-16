@@ -1,4 +1,4 @@
-# expect-error: events /both added and removed/
+# expect-error: events[0].options[0].effects.traits /both added and removed/
 events:
   - id: tt_event
     weight: 1
