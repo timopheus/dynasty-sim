@@ -11,6 +11,7 @@ import { formatDate } from '../core/time/calendar';
 import { getPlayer } from '../core/helpers';
 import { entityPage } from '../core/pages/entity';
 import { heroView } from './hero';
+import { heirLine, willCommandOf, willForm, type PersonChoice, type WillForm } from './will';
 import { entityIdFromHash, personHref } from './address';
 import { actionRows, eventScreen } from './event';
 import { actionControl, eventPageKey, chronicleAnnouncement, eventAnnouncement, numbersToggle, optionControl, pickableAt, shortcutPosition, withNumber, type Control } from './access';
@@ -92,6 +93,8 @@ interface Session {
   queue: string[];
   /** `data-focus` key of the control to focus again after a render that replaced it (switch, tabs). */
   refocus: string | null;
+  /** The will screen is open in place of the list of actions (4.6). */
+  willOpen: boolean;
 }
 
 function saveProblemText(outcome: SaveOutcome): string | null {
@@ -154,6 +157,49 @@ function numbersButton(session: Session): HTMLElement {
   return b;
 }
 
+/** A list of people to pick one from; the empty value leaves the term to the law. */
+function willSelect(id: string, label: string, empty: string, people: PersonChoice[], value: string | null): { field: HTMLElement; input: HTMLSelectElement } {
+  const input = document.createElement('select');
+  input.id = id;
+  input.append(el('option', { value: '' }, empty));
+  for (const p of people) input.append(el('option', { value: p.id, selected: p.id === value }, p.label));
+  return { field: el('p', {}, el('label', { htmlFor: id }, label), ' ', input), input };
+}
+
+/** The will screen (D-314): heir and guardian, the price, "Go to the notary" and "Cancel". */
+function willView(form: WillForm, onCommand: (cmd: Command) => void, cancel: () => void): HTMLElement {
+  const lawHeir = form.heirs[0];
+  const heir = willSelect('will-heir', 'Main heir:', lawHeir ? `Leave it to the law (${lawHeir.label})` : 'Leave it to the law', form.heirs, form.current?.heir ?? null);
+  const guardian = willSelect('will-guardian', 'Guardian of an heir under age:', 'Leave it to the law', form.guardians, form.current?.guardian ?? null);
+  const status = form.current
+    ? form.current.stale ? 'Your will is out of date: write a new one, or the law fills what it no longer says.' : 'You have a will. A new one replaces it.'
+    : 'You have no will: the law decides who inherits.';
+  const go = el('button', { className: 'choice', type: 'button' }, `Go to the notary (${form.cost} crowns, a few days)`);
+  const parts: (Node | string)[] = [el('h2', { tabIndex: -1 }, 'Your will'), el('p', {}, status), heir.field, guardian.field];
+  if (form.heirs.length === 0 && form.endsWithoutKin) parts.push(el('p', {}, 'You have no kin to name: without kin the house will end with you.'));
+  if (form.reasons.length > 0) {
+    go.className = 'choice grey';
+    go.setAttribute('aria-disabled', 'true');
+    parts.push(el('div', { className: 'unavailable' }, go, el('span', { className: 'reason' }, form.reasons.join('; '))));
+  } else {
+    go.onclick = () => onCommand(willCommandOf(heir.input.value, guardian.input.value));
+    parts.push(el('div', { className: 'option' }, go));
+  }
+  parts.push(el('button', { className: 'link', type: 'button', onclick: cancel }, 'Cancel'));
+  return el('section', { className: 'will' }, ...parts);
+}
+
+/** Who inherits now, by law or by will (D-018, D-314). */
+function heirParagraph(session: Session): HTMLElement {
+  const line = heirLine(session.state);
+  if (!line) {
+    // Until 4.13 a namesake from afar takes a house without kin (D-315); then the house ends.
+    const placeholder = session.content.succession?.temporaryHeir ?? true;
+    return el('p', {}, placeholder ? 'Heir: nobody of the blood; a namesake from afar would take up the house.' : 'Heir: nobody. The house would end with you.');
+  }
+  return el('p', {}, 'Heir: ', el('a', { href: personHref(line.id), className: 'person' }, line.name), ` (${line.by}).`);
+}
+
 function render(session: Session): void {
   const { state, content } = session;
   const player = getPlayer(state);
@@ -194,10 +240,12 @@ function render(session: Session): void {
       ])),
       hero.education.length ? el('p', {}, `Education: ${hero.education.join(', ')}.`) : '',
       hero.traits.length ? el('p', {}, `Traits: ${hero.traits.join(', ')}.`) : '',
+      heirParagraph(session),
     ),
   );
 
   const ctx = { state, content };
+  const form = willForm(state, content);
   const screen = eventScreen(ctx);
   let focusTarget: HTMLElement;
   if (screen) {
@@ -212,13 +260,23 @@ function render(session: Session): void {
       el('p', {}, ...partNodes(el, screen.text)),
       el('div', { className: 'choices' }, ...controls.map((c, i) => choiceNode(session, c, session.keymap[i] ?? null))));
     parts.push(el('h2', {}, 'Event'), focusTarget);
+  } else if (session.willOpen && form && state.status === 'awaiting_action') {
+    session.announcedEvent = '';
+    session.keymap = [];
+    const view = willView(form, (cmd) => { session.willOpen = false; void act(session, cmd); }, () => { session.willOpen = false; session.focusAfterRender = true; rerender(); });
+    focusTarget = view.querySelector('h2') ?? view;
+    parts.push(view);
   } else {
     session.announcedEvent = '';
+    session.willOpen = false;
     const rows = actionRows(ctx);
     const controls = rows.map((a, i) => actionControl(a, i));
     session.keymap = rows.map((a) => (a.grey ? null : { type: 'start', actionId: a.id }));
     focusTarget = el('h2', { tabIndex: -1 }, 'What next?');
     parts.push(focusTarget, el('div', { className: 'choices' }, ...controls.map((c, i) => choiceNode(session, c, session.keymap[i] ?? null))));
+    if (form && state.status === 'awaiting_action') {
+      parts.push(el('p', {}, el('button', { className: 'link', type: 'button', onclick: () => { session.willOpen = true; session.focusAfterRender = true; rerender(); } }, 'Make a will…')));
+    }
   }
 
   const tabButton = (tab: Tab, label: string) =>
@@ -307,7 +365,7 @@ async function boot(content: Content, version: string): Promise<void> {
   const session: Session = {
     state, content, contentVersion: version, store,
     journal: loadedGame?.journal ?? newJournal(state.seed, version), saved: loadedGame?.saved ?? { game: '', chunks: 0, commands: 0 }, busy: false, lostJournal: null,
-    notice: null, saveProblem: null, tab: 'chronicle', showNumbers: false, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null,
+    notice: null, saveProblem: null, tab: 'chronicle', showNumbers: false, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false,
   };
   current = session;
   if (choice === 'continue' || (choice === 'ask_replace' && !confirm(`The address asks for seed ${String(requested)}, which replaces your saved dynasty. Replace it?`))) {

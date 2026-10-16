@@ -78,13 +78,14 @@ function entityView(make: Make, page: EntityPage, heads: ReadonlySet<string>): H
   );
 }
 
-/** The page of a person (2.10): only what the player may know; the numbers sit beside the words on request, hover is a bonus (D-031, D-248). */
-/** `onCommand` sends a command from a button on the page (proposals, 4.5); the page itself never changes the state. */
-export function pageView(make: Make, shown: AnyPage | PersonPage | null, heads: ReadonlySet<string>, showNumbers = false, onCommand: (cmd: Command) => void = () => {}): HTMLElement {
-  // main.ts passes the person page as it is; the page of any entity comes with its type (4.2)
-  const any: AnyPage | null = shown === null ? null : 'type' in shown ? shown : { type: 'person', page: shown };
-  if (any?.type === 'entity') return entityView(make, any.page, heads);
-  const page = any?.page ?? null;
+/**
+ * The page of a person (2.10) or of another entity (4.2): only what the player may know; the numbers sit beside the
+ * words on request, hover is a bonus (D-031, D-248). `onCommand` sends a command from a button on the page
+ * (proposals, 4.5); the page itself never changes the state.
+ */
+export function pageView(make: Make, shown: AnyPage | null, heads: ReadonlySet<string>, showNumbers = false, onCommand: (cmd: Command) => void = () => {}): HTMLElement {
+  if (shown?.type === 'entity') return entityView(make, shown.page, heads);
+  const page = shown?.page ?? null;
   if (!page) {
     return make('section', { className: 'page' }, make('p', { className: 'meta' }, make('a', { href: '#', className: 'back' }, '← Your house')), make('h1', {}, 'Nobody by that name'));
   }

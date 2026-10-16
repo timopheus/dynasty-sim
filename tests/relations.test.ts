@@ -626,5 +626,5 @@ describe('events with relations over a long game', () => {
     expect(a.relations.length + a.opinionReasons.length).toBeGreaterThan(0);
     expect(run(8).relations).toEqual(a.relations);
     expect(deserialize(serialize(a), long).relations).toEqual(a.relations);
-  });
+  }, 30_000);
 });

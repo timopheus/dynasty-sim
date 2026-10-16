@@ -13,7 +13,8 @@
 src/core/          симуляция: без DOM, без Node API, без интерфейса
   rng.ts           seed-генератор (sfc32); состояние лежит в GameState
   helpers.ts       isInt, newId, getPlayer, findCharacter — для всех модулей
-  bot.ts, sim.ts   случайный бот и прогон без интерфейса
+  bot.ts, sim.ts   бот (random и характеры cautious, greedy, duelist) и прогон без интерфейса
+  bots/            характеры ботов (D-345): оценка вариантов по признакам контента (features.ts, characters.ts), отчёт (report.ts)
   сборочные файлы (D-052, D-060): собирают части модулей, правятся только между волнами
   game.ts          newGame и хуки новой партии, apply(команда: start, choose, end, will, propose) и хуки после выбора, фазы дня DAY_PHASES (D-053, D-173, D-187)
   state.ts         GameState и Character из частей модулей, Scope (область ролей), статус (`ended` — род пресёкся), типы хуков
@@ -40,6 +41,7 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   relations/       мнения и отношения (2.4)
   chronicle/       log() — единственная запись в хронику, markdown (2.6)
   archive/         архив (D-312, D-335): куски состояния (chunks.ts), фаза архива раз в год (phases.ts), проверка куска (check.ts), чтение всей истории allChronicle/allCharacters/anyCharacter и проверка архива (archive.ts) — только для страниц, markdown, метрик, итога, сохранения
+  entities/        реестр видов сущностей (registry.ts): префикс id → вид, слово адреса, exists по горячему состоянию; страницы видов (D-311, D-330)
   family/          семья (4.5): father/mother/spouse, записи браков, запросы родства (kin.ts), кто может жениться (rules.ts), брак (marriage.ts), дом героя (household.ts), родословная своим потоком (pedigree.ts), фаза рождений, команда propose (phases.ts), proposalOptions (proposals.ts), раздел «Семья» и кнопки предложений (page.ts), браки умерших в архив (archive.ts)
   succession/      смена главы (4.6): chooseHeir, succeed, endHouse, команда will, фаза succession, хук смерти (phases.ts)
   house/           род (4.7): роды, поле house, хук брака (house.ts), раздел и страница рода (page.ts)
@@ -68,6 +70,8 @@ npm test                                # vitest
 npm run validate                        # проверка контента по схеме
 npm run sim -- --years 300 --seed 42    # прогон; хроника в out/chronicle-seed42-300y.md, журнал в out/journal-seed42-300y.md, метрики в конце
 npm run sim -- --years 300 --seed 1 --runs 10          # seeds 1..10, метрики: min / медиана / max
+npm run sim -- --years 300 --seed 1 --bot cautious     # бот с характером: random (по умолчанию), cautious, greedy, duelist (D-319, D-345)
+npx tsx tools/bot-report.ts --runs 10                  # отчёт по ботам: 4 характера × seeds 1..10, «мёртвые» варианты, «доминирующий» характер (только отчёт, D-349; в CI — работа `bots`, 5 seeds, PR не валит)
 npm run -s sim -- --years 300 --seed 1 --runs 10 --json > a.json   # то же в JSON; -s нужен, иначе npm пишет заголовок в файл
 npm run -s sim -- --compare a.json b.json # медианы двух файлов рядом, только изменившиеся
 npm run check                           # typecheck + test + validate + sim 50 лет
@@ -77,7 +81,7 @@ npm run replay -- --record out/j.json --seed 1 --years 50   # записать �
 npm run save-bench                      # размер и время записи горячей части и кусков по seeds 1…10 (D-312, D-337)
 npm run build                           # сборка в dist/
 ```
-CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck, test, validate, sim 50 лет (seed 1), build. Хроника прогона — артефакт `chronicle`. Вторая работа CI `gates` параллельно прогоняет 300 лет на seeds 1…10 и сверяет метрики с коридорами из `tools/metrics-gates.ts` (D-203): валят инварианты, горячая часть сохранения > 300 КБ (D-337) и медиана строк хроники на жизнь главы вне 25–50 (D-205, D-318), остальное — таблица в summary (⚠️). Коридор или признак «валит / только отчёт» меняются только вместе с записью DECISIONS.
+CI (`.github/workflows/ci.yml`) на каждый PR и push в main: работа `bots` — отчёт по ботам в summary, не валит (D-349); typecheck, test, validate, sim 50 лет (seed 1), build. Хроника прогона — артефакт `chronicle`. Вторая работа CI `gates` параллельно прогоняет 300 лет на seeds 1…10 и сверяет метрики с коридорами из `tools/metrics-gates.ts` (D-203): валят инварианты, горячая часть сохранения > 300 КБ (D-337) и медиана строк хроники на жизнь главы вне 25–50 (D-205, D-318), остальное — таблица в summary (⚠️). Коридор или признак «валит / только отчёт» меняются только вместе с записью DECISIONS.
 
 ## Правила ядра (src/core)
 - Ядро импортирует только свои модули, `yaml` и `zod`. Запрещены DOM, Node API, `Math.random`, `Date`, `performance`. Это проверяют `tests/architecture.test.ts` и отдельный `src/core/tsconfig.json` без DOM и Node.

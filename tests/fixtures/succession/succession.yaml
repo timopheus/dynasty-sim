@@ -1,0 +1,28 @@
+# Succession for the tests of 4.6: goes on top of tests/fixtures/base, population, opinions/traits.yaml.
+succession:
+  temporaryHeir: false
+  willAction: notary
+  willCost: 10
+  heirPercent: 50
+  passedOverReason: passed_over
+  guardianRelation: guardian
+  texts:
+    byLaw: "{name} took over by law from {deceased}."
+    byWill: "{name} took over by the will of {deceased}."
+    ended: "The house of {house} ended with {name}."
+    willSigned: "{name} named {heir} heir."
+    willSignedNoHeir: "{name} left it to the law."
+    willStaleBirth: "The will of {name} is out of date."
+    willStaleDeath: "With {other} dead, the will of {name} is out of date."
+actions:
+  - id: notary
+    name: Notary
+    duration: { min: 5, max: 5 }
+    when: { will_command: true }
+    effects: { will_signed: true }
+    text: "{name} saw the notary."
+  - id: grow_up
+    name: Grow up
+    duration: { min: 365, max: 365 }
+    when: { age_max: 14 }
+    text: "{name} grew up a year."
