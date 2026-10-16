@@ -38,6 +38,8 @@ export interface WillForm {
   heirs: PersonChoice[];
   /** Grown-ups near the hero who may be named guardian of an heir under age. */
   guardians: PersonChoice[];
+  /** Without kin the house ends (D-315); false while the placeholder heir stands in (`temporaryHeir`). */
+  endsWithoutKin: boolean;
   /** The terms of the current will, to start the form from. */
   current: { heir: string | null; guardian: string | null; stale: boolean } | null;
 }
@@ -56,6 +58,7 @@ export function willForm(state: GameState, content: Content): WillForm | null {
     cost: pace.willCost,
     heirs: willHeirs(state, hero.id).map(choice),
     guardians: willGuardians(ctx, hero).map(choice),
+    endsWithoutKin: !pace.temporaryHeir,
     current: will ? { heir: will.heir, guardian: will.guardian, stale: will.stale } : null,
   };
 }

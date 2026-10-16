@@ -176,7 +176,7 @@ function willView(form: WillForm, onCommand: (cmd: Command) => void, cancel: () 
     : 'You have no will: the law decides who inherits.';
   const go = el('button', { className: 'choice', type: 'button' }, `Go to the notary (${form.cost} crowns, a few days)`);
   const parts: (Node | string)[] = [el('h2', { tabIndex: -1 }, 'Your will'), el('p', {}, status), heir.field, guardian.field];
-  if (form.heirs.length === 0) parts.push(el('p', {}, 'You have no kin to name: without kin the house will end with you.'));
+  if (form.heirs.length === 0 && form.endsWithoutKin) parts.push(el('p', {}, 'You have no kin to name: without kin the house will end with you.'));
   if (form.reasons.length > 0) {
     go.className = 'choice grey';
     go.setAttribute('aria-disabled', 'true');
