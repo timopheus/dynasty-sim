@@ -1,0 +1,23 @@
+# expect-error: succession.texts.willSigned /unknown placeholder \{deceased\}/
+succession:
+  temporaryHeir: true
+  willAction: notary
+  willCost: 10
+  heirPercent: 50
+  passedOverReason: passed_over
+  guardianRelation: guardian
+  texts:
+    byLaw: "{name} by law."
+    byWill: "{name} by will."
+    ended: "{house} ended."
+    willSigned: "{name} named {deceased}."
+    willSignedNoHeir: "{name} left it."
+    willStaleBirth: "{name} stale."
+    willStaleDeath: "{other} dead, {name} stale."
+actions:
+  - id: notary
+    name: Notary
+    duration: { min: 5, max: 5 }
+    when: { will_command: true }
+    effects: { will_signed: true }
+    text: "{name} saw the notary."

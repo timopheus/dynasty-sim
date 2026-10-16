@@ -28,6 +28,8 @@ opinions:
     - { id: nursed_me, name: Nursed me, value: 30, kind: benefit, decay: { kind: fade, days: 1825 } }
     - { id: no_spine, name: Showed no spine, value: -20, kind: harm, decay: { kind: fade, days: 1460 } }
     - { id: stood_by_me, name: Stood by me when it counted, value: 40, kind: benefit, decay: { kind: fade, days: 1825 } }
+    # Added by 4.6: the heir by law whom a will passed over (D-314); disputes over the inheritance are events (4.15).
+    - { id: passed_over, name: Passed over in the will, value: -40, kind: harm, decay: { kind: never } }
 
   # Memory of the holder: fade 0 never forgets, 200 forgets twice as fast; scale is the weight of the reason.
   traitEffects:
@@ -102,6 +104,17 @@ opinions:
       acquaintance: close
       starts: "{name} and {other} became lovers."
       ends: "{name} and {other} parted as lovers."
+    # Guardian of a head under age (4.6, D-314): `a` is the guardian; it ends when the ward comes of age. Events take the
+    # guardian as a role with `pick: relation, kind: guardian`.
+    - id: guardian
+      name: Guardian
+      symmetric: false
+      opinion: { a: 15, b: 10 }
+      acquaintance: close
+      starts: "{name} became the guardian of {other}."
+      ends: "{name} was no longer the guardian of {other}."
+      startsAsProtege: "{other} became the guardian of {name}."
+      endsAsProtege: "{name} came of age and left the guardianship of {other}."
 
   # Time near the hero (D-037): the chances are checked once a week against the circle of 2.5.
   acquaintance:
