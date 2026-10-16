@@ -47,9 +47,7 @@ events:
           on:
             stranger:
               opinion: [{ toward: hero, reason: humiliated }]
-              relation: [{ start: rival, with: hero }]
           result: "{name} caught {stranger} cheating at cards and took 25 crowns off {stranger.him}."
-          chronicle: true
           mood: triumph
         failure:
           effects: { money: -20 }
@@ -103,7 +101,6 @@ events:
               traits: { add: [thief] }
               opinion: [{ toward: hero, reason: humiliated }]
           result: "{name} ran down {thief}, a pickpocket, in the market and took the purse back."
-          chronicle: true
           mood: triumph
         failure:
           effects: { money: -10 }
@@ -139,7 +136,6 @@ events:
         success:
           effects: { fame: 1 }
           result: "{name} talked a tavern brawl down before blood was drawn."
-          chronicle: true
           mood: triumph
         failure:
           effects: { wound: light_wound }
@@ -149,7 +145,8 @@ events:
         result: "{name} slipped out of a tavern brawl unharmed."
 
   - id: slighted_at_the_inn
-    weight: 6
+    weight: 2
+    cooldown_days: 730
     severity: medium
     roles:
       rival:
@@ -210,6 +207,7 @@ events:
           chronicle: true
           mood: pain
       - text: Fight to the death
+        when: { traits_any: [vengeful, wrathful] }
         check: { stat: prowess, against: { role: rival, stat: prowess }, bonus: [{ when: { traits_any: [duelist] }, add: 2 }] }
         success:
           effects: { fame: 1 }
@@ -230,7 +228,8 @@ events:
         mood: shame
 
   - id: lend_to_a_comrade
-    weight: 6
+    weight: 2
+    cooldown_days: 1095
     roles:
       debtor:
         pick: circle
@@ -298,7 +297,6 @@ events:
           effects: { money: 25, opinion_end: [{ toward: debtor, reason: debt_repaid }] }
           on: { debtor: { money: -25, opinion: [{ toward: hero, reason: humiliated }] } }
           result: "{name} ran {debtor} to ground and got the 25 crowns back."
-          chronicle: true
           mood: triumph
         failure:
           effects: { opinion_end: [{ toward: debtor, reason: debt_repaid }], opinion: [{ toward: debtor, reason: wronged }] }
@@ -327,7 +325,6 @@ events:
           effects: { money: 22 }
           on: { priest: { opinion: [{ toward: hero, reason: favour }] } }
           result: "{name} asked {priest} for work instead of alms and was given a copying job for the parish."
-          chronicle: true
           mood: joy
         failure:
           effects: { money: 5 }

@@ -76,14 +76,14 @@ opinions:
       symmetric: true
       opinion: { a: 25, b: 25 }
       acquaintance: close
-      starts: "{name} and {other} became friends."
+      starts: "{name} befriended {other}."
       ends: "{name} and {other} ceased to be friends."
     - id: rival
       name: Rival
       symmetric: true
       opinion: { a: -30, b: -30 }
       acquaintance: known
-      starts: "{name} and {other} became rivals."
+      starts: "{name} made a rival of {other}."
       ends: "{name} and {other} ceased to be rivals."
     - id: patron
       name: Patron

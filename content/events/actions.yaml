@@ -17,7 +17,6 @@ events:
         failure:
           effects: { wound: light_wound, money: -25 }
           result: "{name} was beaten and robbed by highwaymen on the road."
-          chronicle: true
           mood: pain
       - text: Pay them off
         effects: { money: -20 }
@@ -56,8 +55,7 @@ events:
         check: { stat: diplomacy, difficulty: 6, bonus: [{ when: { traits_any: [generous, trusting] }, add: 1 }] }
         success:
           effects: { relation: [{ start: friend, with: companion }] }
-          result: "{name} shared a long road with {companion}, and the two became friends."
-          chronicle: true
+          result: "{name} shared a long road with {companion}."
           mood: joy
         failure:
           on: { companion: { opinion: [{ toward: hero, reason: slighted }] } }
@@ -145,7 +143,7 @@ events:
         result: "{name} waited out a late payday on credit."
 
   - id: escort_ambush
-    weight: 4
+    weight: 1
     severity: heavy
     actions: [serve_contract]
     when: { fit: true }
@@ -181,7 +179,8 @@ events:
           mood: pain
           next: shamed
       - text: Charge the ambushers alone
-        check: { stat: prowess, difficulty: 11, bonus: [{ when: { traits_any: [duelist] }, add: 2 }, { when: { traits_any: [brave] }, add: 2 }] }
+        when: { traits_any: [brave, wrathful] }
+        check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [duelist] }, add: 2 }, { when: { traits_any: [brave] }, add: 2 }] }
         success:
           effects: { money: 40, fame: 1 }
           on: { employer: { opinion: [{ toward: hero, reason: saved_life }] } }
@@ -211,15 +210,15 @@ events:
                 traits: { add: [coward] }
                 opinion: [{ toward: hero, reason: insulted_in_public }]
                 relation: [{ start: rival, with: hero }]
-            result: "{name} publicly named {coward} a coward and a liar."
+            result: "{He} publicly named {coward} a coward and a liar."
             chronicle: true
             mood: anger
           - text: Say nothing
             on: { coward: { opinion: [{ toward: hero, reason: favour }] } }
-            result: "{name} kept quiet about {coward}."
+            result: "{He} kept quiet about {coward}."
 
   - id: skirmish_at_the_ford
-    weight: 4
+    weight: 1
     severity: heavy
     actions: [serve_contract]
     when: { fit: true }
@@ -234,15 +233,14 @@ events:
           effects: { money: 25 }
           on: { sergeant: { opinion: [{ toward: hero, reason: comrade }] } }
           result: "{name} held the river bank with the picket and drove the skirmishers off."
-          chronicle: true
           mood: triumph
         failure:
           effects: { wound: light_wound, money: -10 }
           result: "{name} was beaten back from the river bank and wounded."
-          chronicle: true
           mood: pain
       - text: Lead a sortie across the ford
-        check: { stat: prowess, difficulty: 10, bonus: [{ when: { traits_any: [horseman, duelist] }, add: 2 }] }
+        when: { traits_any: [brave, ambitious] }
+        check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [horseman, duelist] }, add: 2 }] }
         success:
           effects: { money: 40, fame: 1 }
           on: { sergeant: { opinion: [{ toward: hero, reason: stood_by_me }] } }
@@ -260,7 +258,7 @@ events:
         mood: shame
 
   - id: mutiny_in_camp
-    weight: 3
+    weight: 1
     severity: heavy
     actions: [serve_contract]
     when: { fit: true }
@@ -277,7 +275,7 @@ events:
         check: { stat: diplomacy, difficulty: 8 }
         success:
           effects: { money: 20, relation: [{ start: friend, with: ringleader }] }
-          result: "{name} sided with {ringleader} in a mutiny over pay and the back wages were paid."
+          result: "{name} sided with {ringleader} in a mutiny over pay, and the back wages were paid."
           chronicle: true
           mood: triumph
         failure:
@@ -286,7 +284,8 @@ events:
           chronicle: true
           mood: shame
       - text: Draw your sword on the mob
-        check: { stat: prowess, difficulty: 10, bonus: [{ when: { traits_any: [duelist] }, add: 2 }] }
+        when: { traits_any: [brave, wrathful] }
+        check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [duelist] }, add: 2 }] }
         success:
           effects: { fame: 1, money: 15 }
           on: { ringleader: { wound: light_wound, opinion: [{ toward: hero, reason: defeated_me }] } }
@@ -345,16 +344,14 @@ events:
       - text: Spread word that {rival} gives short measure
         check: { stat: intrigue, difficulty: 8 }
         success:
-          effects: { money: 20, relation: [{ start: rival, with: rival }] }
+          effects: { money: 20 }
           on: { rival: { money: -10, opinion: [{ toward: hero, reason: wronged }] } }
           result: "{name} ruined the custom of {rival} in the market with a whispering campaign."
-          chronicle: true
           mood: triumph
         failure:
           effects: { money: -5 }
           on: { rival: { opinion: [{ toward: hero, reason: insulted_in_public }], relation: [{ start: rival, with: hero }] } }
-          result: "{name} was caught slandering {rival} in the market and made an enemy of {rival.him}."
-          chronicle: true
+          result: "{name} was caught slandering {rival} in the market."
           mood: shame
       - text: Share the market peaceably
         result: "{name} traded beside {rival} without a quarrel."
@@ -395,9 +392,9 @@ events:
       - text: Agree
         check: { stat: diplomacy, difficulty: 6 }
         success:
-          effects: { money: 10, relation: [{ start: friend, with: lodger }] }
-          result: "{name} shared winter lodgings with {lodger}, and the two became friends."
-          chronicle: true
+          effects: { money: 10 }
+          on: { lodger: { opinion: [{ toward: hero, reason: comrade }] } }
+          result: "{name} shared winter lodgings with {lodger} and split the costs."
           mood: joy
         failure:
           effects: { money: -12 }
@@ -418,7 +415,7 @@ events:
 
   # --- Rest -----------------------------------------------------------------------------------------------------
   - id: kindly_nurse
-    weight: 6
+    weight: 4
     actions: [rest]
     roles:
       nurse: { pick: circle, where: { occupation: [servant, innkeeper, priest, physician] } }
@@ -427,8 +424,7 @@ events:
       - text: Accept the broth gratefully
         effects: { heal: all, relation: [{ start: friend, with: nurse }] }
         on: { nurse: { opinion: [{ toward: hero, reason: gift }] } }
-        result: "{name} was nursed back to strength by {nurse}, and they became friends."
-        chronicle: true
+        result: "{name} was nursed back to strength by {nurse}."
         mood: joy
       - text: Send {nurse} away, you want no fuss
         on: { nurse: { opinion: [{ toward: hero, reason: slighted }] } }
@@ -457,7 +453,7 @@ events:
         result: "{name} waited out a wild boar from the branches of a tree."
 
   - id: bear_in_the_thicket
-    weight: 3
+    weight: 1
     severity: heavy
     actions: [hunt]
     when: { fit: true }
@@ -465,7 +461,8 @@ events:
     text: "The dogs go quiet, then yelp. In the thicket ahead something very large rises on its hind legs: a bear, and it has seen you."
     options:
       - text: Face the bear with a spear
-        check: { stat: prowess, difficulty: 10, bonus: [{ when: { traits_any: [brave, duelist] }, add: 2 }] }
+        when: { traits_any: [brave, ambitious] }
+        check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [brave, duelist] }, add: 2 }] }
         success:
           effects: { money: 25, fame: 1, traits: { add: [bear_slayer] } }
           result: "{name} killed a bear with a boar spear, to the wonder of the neighbourhood."
@@ -481,12 +478,10 @@ events:
         success:
           effects: { money: 15 }
           result: "{name} shot a bear from the trees and sold the pelt."
-          chronicle: true
           mood: triumph
         failure:
           effects: { wound: severe_wound }
           result: "{name} wounded a bear with an arrow and was badly clawed for it."
-          chronicle: true
           mood: pain
       - text: Back away slowly
         result: "{name} backed away from a bear and left the dogs to their luck."
@@ -510,7 +505,6 @@ events:
           effects: { money: -25 }
           on: { warden: { opinion: [{ toward: hero, reason: insulted_in_public }] } }
           result: "{name} was caught by {warden} with a poached deer and fined heavily."
-          chronicle: true
           mood: shame
       - text: Talk your way out of it
         check: { stat: diplomacy, difficulty: 8, bonus: [{ when: { traits_any: [linguist] }, add: 1 }] }
