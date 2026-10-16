@@ -32,7 +32,7 @@ export interface GrammarProblem {
   message: string;
 }
 
-/** Symbols a text uses, in order of appearance (inside optional segments too); null if the text does not parse. */
+/** Symbols a text uses, in order of appearance (inside optional segments too); none if the text does not parse. */
 export function symbolsOf(template: string): string[] {
   const parsed = parseTemplate(template);
   const out: string[] = [];
@@ -45,7 +45,7 @@ export function symbolsOf(template: string): string[] {
  * is a good text of an event with these roles, a `when` names only these roles, a symbol has a wording without
  * `when` (so some wording always fits), and no symbol reaches itself through other symbols.
  */
-export function grammarProblems(own: GrammarDef, all: GrammarDef, roles: readonly string[]): GrammarProblem[] {
+export function grammarProblems(own: GrammarDef, all: GrammarDef, roles: readonly string[], optional: readonly string[] = []): GrammarProblem[] {
   const problems: GrammarProblem[] = [];
   const symbols = Object.keys(all);
   const known = new Set(['hero', 'protagonist', ...roles]);
@@ -55,7 +55,7 @@ export function grammarProblems(own: GrammarDef, all: GrammarDef, roles: readonl
     }
     wordings.forEach((w, i) => {
       const at = `${name}[${i}]`;
-      const problem = checkEventTemplate(wordingText(w), { roles, symbols });
+      const problem = checkEventTemplate(wordingText(w), { roles, optional, symbols });
       if (problem) problems.push({ path: at, message: problem });
       const when = wordingWhen(w);
       for (const role of when ? conditionRoleRefs(when) : []) {
@@ -83,7 +83,8 @@ interface EventTexts {
   roles?: Record<string, { optional?: boolean | undefined }> | undefined;
   grammar?: GrammarDef | undefined;
   text: string;
-  options: { text: string; result: string }[];
+  /** Absent in a notice (an event without options, 3.2). */
+  options?: { text: string; result?: string; success?: { result?: string }; failure?: { result?: string } }[] | undefined;
 }
 
 /**
@@ -102,11 +103,15 @@ export const checkGrammar: CrossCheck = (sources) => {
     const optional = roleNames.filter((r) => event.roles?.[r]?.optional);
     const all: GrammarDef = { ...general, ...event.grammar };
     const at = `events[${index}]`;
-    for (const p of grammarProblems(event.grammar ?? {}, all, roleNames)) {
+    for (const p of grammarProblems(event.grammar ?? {}, all, roleNames, optional)) {
       errors.push({ file, path: `${at}.grammar.${p.path}`, message: p.message });
     }
     const texts: [string, string][] = [[`${at}.text`, event.text]];
-    event.options.forEach((o, i) => texts.push([`${at}.options[${i}].text`, o.text], [`${at}.options[${i}].result`, o.result]));
+    (event.options ?? []).forEach((o, i) => {
+      texts.push([`${at}.options[${i}].text`, o.text]);
+      const results: [string, string | undefined][] = [['result', o.result], ['success.result', o.success?.result], ['failure.result', o.failure?.result]];
+      for (const [key, result] of results) if (result !== undefined) texts.push([`${at}.options[${i}].${key}`, result]);
+    });
     for (const [path, text] of texts) {
       if (checkEventTemplate(text, { roles: roleNames })) continue;
       const problem = checkEventTemplate(text, { roles: roleNames, optional, symbols: Object.keys(all) });

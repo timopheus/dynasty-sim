@@ -18,6 +18,7 @@ const SYMBOL_RE = /^<([A-Za-z][A-Za-z0-9_]*)>/;
 const UNBALANCED_BRACES = 'unbalanced { or }';
 const UNBALANCED_ANGLES = 'unbalanced < or > (a grammar symbol is <name>)';
 
+// Keyed by the texts of the content (a few thousand strings), so it stays small; not part of the game state.
 const cache = new Map<string, ParsedTemplate>();
 
 export function parseTemplate(template: string): ParsedTemplate {

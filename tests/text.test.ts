@@ -5,7 +5,7 @@ import { getPlayer } from '../src/core/helpers';
 import { createCharacter } from '../src/core/lifecycle';
 import { runSim } from '../src/core/sim';
 import { checkEventTemplate } from '../src/core/text/check';
-import type { GrammarDef } from '../src/core/text/grammar';
+import { grammarProblems, type GrammarDef } from '../src/core/text/grammar';
 import { renderTemplate, textStream } from '../src/core/text/render';
 import { ownLine, partsText, type TextPart } from '../src/core/text/text';
 import { seasonAt } from '../src/core/time/seasons';
@@ -157,6 +157,27 @@ describe('checkEventTemplate', () => {
     expect(checkEventTemplate('{second?{ghost}}', env)).toMatch(/unknown placeholder \{ghost\}/);
     expect(checkEventTemplate('{ghost?x}', env)).toMatch(/unknown role "ghost"/);
     expect(checkEventTemplate('{second?, with {second}', env)).toMatch(/unbalanced/);
+  });
+});
+
+describe('grammarProblems', () => {
+  const messages = (own: GrammarDef, all: GrammarDef = own, roles: string[] = ['second'], optional: string[] = ['second']) =>
+    grammarProblems(own, all, roles, optional).map((p) => `${p.path}: ${p.message}`);
+
+  it('keeps an optional role inside {role?…} in a wording', () => {
+    expect(messages({ meet: ['you meet {second}'] })).toEqual([expect.stringMatching(/^meet\[0\]: role "second" may be empty/)]);
+    expect(messages({ meet: ['you meet{second?, {second}}'] })).toEqual([]);
+  });
+
+  it('finds an own wording that closes a cycle through the general grammar', () => {
+    const general: GrammarDef = { dawn: ['at first light <weather>'], weather: ['in rain'] };
+    const own: GrammarDef = { weather: ['<dawn>'] };
+    expect(messages(own, { ...general, ...own })).toEqual([expect.stringMatching(/cycle in the grammar: <weather> -> <dawn> -> <weather>/)]);
+  });
+
+  it('knows the roles of the event and the fallback wording', () => {
+    expect(messages({ a: ['{friend} came'] }, { a: ['{friend} came'] }, [], [])).toEqual([expect.stringMatching(/unknown placeholder \{friend\}/)]);
+    expect(messages({ a: [{ text: 'x', when: { season: ['winter'] } }] })).toEqual([expect.stringMatching(/without "when"/)]);
   });
 });
 
