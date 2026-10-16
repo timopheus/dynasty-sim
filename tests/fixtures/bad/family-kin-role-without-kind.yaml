@@ -1,0 +1,10 @@
+# expect-error: events[0].roles.son.kind /needs a kind of kin/
+events:
+  - id: kin_without_kind
+    weight: 1
+    roles:
+      son: { pick: kin }
+    text: "{son} comes by."
+    options:
+      - text: Greet
+        result: "{name} greeted {son}."

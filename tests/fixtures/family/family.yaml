@@ -1,0 +1,74 @@
+# Families for tests of the family module (4.5); goes on top of tests/fixtures/base and tests/fixtures/population.
+# Chances are certain or never, so tests get exact families; tests change the numbers they need.
+family:
+  livingMax: 1000
+  conception:
+    - { below: 16, per10k: 0 }
+    - { below: 46, per10k: 10000 }
+    - { per10k: 0 }
+  pregnancyDays: { min: 270, max: 270 }
+  childbirthDeathPer10k: 0
+  proposalEvent: proposal
+  pedigree:
+    alive:
+      - { per10k: 10000 }
+    married:
+      - { below: 25, per10k: 0 }
+      - { per10k: 10000 }
+    parentGap: { min: 25, max: 25 }
+    spouseGap: { min: 2, max: 2 }
+    siblings: { min: 2, max: 2 }
+    siblingSpread: 5
+    childrenPer10Years: { min: 2, max: 2 }
+  texts:
+    married: "{name} married {other}."
+    born: "{name}'s wife {other} bore a {kind}, {child}."
+    bornToHer: "{name} bore a {kind}, {child}."
+    childDied: "{name} lost {his} {kind} {other}."
+    spouseDied: "{name} was widowed by {other}."
+    reasons:
+      married: Married only
+      unmarried: Unmarried only
+      kin: "{name}'s {kind} only"
+      childrenMin: "{count} children at least"
+      canMarry: "Cannot marry {name}"
+    kinds: { spouse: spouse, child: child, parent: parent, sibling: sibling }
+
+events:
+  - id: proposal
+    followup_only: true
+    weight: 1
+    roles:
+      suitor: { pick: given }
+      target: { pick: given }
+    text: "A proposal for {target}."
+    options:
+      - text: Agree
+        on: { suitor: { marry: target } }
+        result: "{name} made a match for {target}."
+      - text: Withdraw
+        result: "{name} withdrew."
+
+  - id: wedding
+    followup_only: true
+    weight: 1
+    roles:
+      groom: { pick: given }
+      bride: { pick: given }
+    text: "A wedding."
+    options:
+      - text: Wed
+        on: { groom: { marry: bride } }
+        result: "{name} saw a wedding."
+      - text: No
+        result: "{name} saw none."
+
+  - id: kin_visit
+    followup_only: true
+    weight: 1
+    roles:
+      son: { pick: kin, kind: child }
+    text: "{son} visits."
+    options:
+      - text: Greet
+        result: "{name} greeted {son}."

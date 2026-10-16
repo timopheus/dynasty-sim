@@ -40,7 +40,7 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   relations/       мнения и отношения (2.4)
   chronicle/       log() — единственная запись в хронику, markdown (2.6)
   archive/         архив (D-312, D-335): куски состояния (chunks.ts), фаза архива раз в год (phases.ts), проверка куска (check.ts), чтение всей истории allChronicle/allCharacters/anyCharacter и проверка архива (archive.ts) — только для страниц, markdown, метрик, итога, сохранения
-  family/          браки и родство (4.5): father/mother, записи браков, запросы родства (kin.ts), proposalOptions (proposals.ts), раздел «Семья» (page.ts)
+  family/          семья (4.5): father/mother/spouse, записи браков, запросы родства (kin.ts), кто может жениться (rules.ts), брак (marriage.ts), дом героя (household.ts), родословная своим потоком (pedigree.ts), фаза рождений, команда propose (phases.ts), proposalOptions (proposals.ts), раздел «Семья» и кнопки предложений (page.ts), браки умерших в архив (archive.ts)
   succession/      смена главы (4.6): chooseHeir, succeed, endHouse, команда will, фаза succession, хук смерти (phases.ts)
   house/           род (4.7): роды, поле house, хук брака (house.ts), раздел и страница рода (page.ts)
   heirloom/        родовая вещь (4.9), страница вещи (page.ts)
@@ -77,7 +77,7 @@ npm run replay -- --record out/j.json --seed 1 --years 50   # записать �
 npm run save-bench                      # размер и время записи горячей части и кусков по seeds 1…10 (D-312, D-337)
 npm run build                           # сборка в dist/
 ```
-CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck, test, validate, sim 50 лет (seed 1), build. Хроника прогона — артефакт `chronicle`. Вторая работа CI `gates` параллельно прогоняет 300 лет на seeds 1…10 и сверяет метрики с коридорами из `tools/metrics-gates.ts` (D-203): валят инварианты, горячая часть сохранения > 300 КБ (D-337) и медиана строк хроники на жизнь главы вне 25–45 (D-205), остальное — таблица в summary (⚠️). Коридор или признак «валит / только отчёт» меняются только вместе с записью DECISIONS.
+CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck, test, validate, sim 50 лет (seed 1), build. Хроника прогона — артефакт `chronicle`. Вторая работа CI `gates` параллельно прогоняет 300 лет на seeds 1…10 и сверяет метрики с коридорами из `tools/metrics-gates.ts` (D-203): валят инварианты, горячая часть сохранения > 300 КБ (D-337) и медиана строк хроники на жизнь главы вне 25–50 (D-205, D-318), остальное — таблица в summary (⚠️). Коридор или признак «валит / только отчёт» меняются только вместе с записью DECISIONS.
 
 ## Правила ядра (src/core)
 - Ядро импортирует только свои модули, `yaml` и `zod`. Запрещены DOM, Node API, `Math.random`, `Date`, `performance`. Это проверяют `tests/architecture.test.ts` и отдельный `src/core/tsconfig.json` без DOM и Node.
