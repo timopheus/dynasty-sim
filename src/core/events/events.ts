@@ -99,7 +99,7 @@ export type FireResult = 'waiting' | 'done' | 'failed';
 
 /**
  * Fires the event: fills the roles on top of `given` (roles handed over by a follow-up), gives it a number, makes the
- * participants known to the hero (D-041) and shows the first scene. A notice without a chronicle line is carried out
+ * participants known to the hero (D-041) and shows the first scene. A notice without a chronicle line and without `next` is carried out
  * at once and nothing waits (D-045). 'failed' changes nothing: a role could not be filled.
  */
 export function fireEvent(ctx: Ctx, event: EventDef, protagonist: Character, given: Scope = {}): FireResult {
@@ -112,7 +112,7 @@ export function fireEvent(ctx: Ctx, event: EventDef, protagonist: Character, giv
     for (const [role, id] of Object.entries(scope)) if (role !== 'hero' && role !== 'protagonist' && id !== state.playerId) introduce(ctx, id);
   }
   state.pendingEvent = pending;
-  if (!event.options && event.chronicle !== true && event.mark !== true) {
+  if (!event.options && event.chronicle !== true && event.mark !== true && event.next === undefined) {
     // A quiet notice: its line goes to the journal and time runs on.
     resolveOutcome(ctx, event, pending, ownOutcome(event), '', false);
     if (!state.pendingEvent) return 'done';
