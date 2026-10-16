@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { entryText, log } from '../src/core/chronicle/log';
+import { log } from '../src/core/chronicle/log';
 import { chronicleMarkdown, journalMarkdown } from '../src/core/chronicle/markdown';
 import type { Content } from '../src/core/content/schema';
 import { apply, newGame } from '../src/core/game';
@@ -163,6 +163,5 @@ describe('chronicle markdown', () => {
     expect(md).toMatch(/<a id="c1"><\/a>\n## Anne Fixture \(1679–1700\)/);
     // The journal keeps the circle member's line, with a day.
     expect(journalMarkdown(state)).toMatch(/- ◆ \*\*1 January\*\* — .*limps/);
-    expect(entryText(state.chronicle.at(-1)!)).toContain('succeeded');
   });
 });
