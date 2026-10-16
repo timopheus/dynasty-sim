@@ -52,8 +52,10 @@ export const OutcomeSchema = z.strictObject(outcomeShape);
 
 /** A check of a stat (D-042): against a difficulty, or against a stat of a role. */
 export const CheckSchema = z.strictObject({
-  /** Stat of the main participant. */
+  /** Stat of the main participant, or of the role `of`. */
   stat: z.enum(STAT_IDS),
+  /** Role whose stat is checked instead of the main participant's (a physician's Learning, D-193); not optional. */
+  of: Id.optional(),
   difficulty: Int.optional(),
   against: z.strictObject({ role: Id, stat: z.enum(STAT_IDS) }).optional(),
   /** Bonuses to the stat in this check when the main participant meets `when` (traits, skills). */
@@ -244,6 +246,11 @@ function checkOption(env: EventEnv, path: string, option: OptionDef): void {
       const def = env.event.roles?.[role];
       if (!env.known.has(role)) errors.push({ file, path: `${path}.check.against.role`, message: `unknown role "${role}"` });
       else if (def?.optional) errors.push({ file, path: `${path}.check.against.role`, message: `role "${role}" is optional and may be empty` });
+    }
+    if (check.of !== undefined) {
+      const def = env.event.roles?.[check.of];
+      if (!env.known.has(check.of)) errors.push({ file, path: `${path}.check.of`, message: `unknown role "${check.of}"` });
+      else if (def?.optional) errors.push({ file, path: `${path}.check.of`, message: `role "${check.of}" is optional and may be empty` });
     }
     check.bonus?.forEach((b, i) => checkWhen(env, `${path}.check.bonus[${i}].when`, b.when));
     if (hasOutcomeFields(option)) errors.push({ file, path, message: 'an option with a check keeps its outcome in success and failure' });

@@ -25,10 +25,20 @@ export const CHANCE_BANDS = [
 
 export type ChanceBand = (typeof CHANCE_BANDS)[number]['id'];
 
-/** Stat of the main participant in the check: today's stat plus the bonuses whose conditions are met. */
+/** Who is checked: the main participant, or the role `of` (D-193). */
+function checkedPerson(ctx: Ctx, check: CheckDef, protagonist: Character, scope: Scope): Character {
+  if (check.of === undefined) return protagonist;
+  const id = scope[check.of];
+  const person = id === undefined ? null : findCharacter(ctx.state, id);
+  if (!person) throw new Error(`Check: role "${check.of}" is not filled`);
+  return person;
+}
+
+/** Stat in the check: today's stat of the person checked plus the bonuses whose conditions that person meets. */
 export function checkStat(ctx: Ctx, check: CheckDef, protagonist: Character, scope: Scope): number {
-  let value = stats(ctx, protagonist)[check.stat];
-  for (const b of check.bonus ?? []) if (conditionReport(ctx, protagonist, b.when, scope).met) value += b.add;
+  const person = checkedPerson(ctx, check, protagonist, scope);
+  let value = stats(ctx, person)[check.stat];
+  for (const b of check.bonus ?? []) if (conditionReport(ctx, person, b.when, scope).met) value += b.add;
   return value;
 }
 

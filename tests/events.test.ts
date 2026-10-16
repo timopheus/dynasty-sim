@@ -152,6 +152,21 @@ describe('checks (D-042)', () => {
     expect(rival.money).toBe(95);
   });
 
+  it('checks the stat of the role `of`, with the bonuses that role meets (D-193)', () => {
+    const { ctx, hero, people } = game([5, 100, 30]);
+    const physician = people[1]!;
+    const scope = { hero: hero.id, protagonist: hero.id, physician: physician.id };
+    const ofRole = { ...check, of: 'physician' };
+    hero.baseStats.prowess = 0;
+    physician.baseStats.prowess = 10;
+    expect(checkChance(ctx, ofRole, hero, scope)).toBe(70); // 10 + 4 (the physician has 100 crowns) against 10
+    physician.money = 0;
+    hero.money = 100;
+    expect(checkChance(ctx, ofRole, hero, scope)).toBe(50); // the hero's money gives the physician nothing
+    expect(checkChance(ctx, check, hero, scope)).toBe(20); // without `of` the hero is checked: 0 + 4 against 10
+    expect(() => checkChance(ctx, ofRole, hero, { hero: hero.id, protagonist: hero.id })).toThrow(/not filled/);
+  });
+
   it('makes the participants known to the hero', () => {
     const { ctx, hero, people } = game();
     expect(acquaintanceLevel(ctx.state, content, hero.id, people[1]!.id)).toBeNull();

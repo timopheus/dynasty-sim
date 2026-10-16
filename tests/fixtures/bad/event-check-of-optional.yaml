@@ -1,0 +1,12 @@
+# expect-error: events[0].options[0].check.of /optional and may be empty/
+events:
+  - id: bad_check_of_optional
+    weight: 1
+    roles:
+      physician: { pick: circle, optional: true }
+    text: "{name} is ill."
+    options:
+      - text: Call for help
+        check: { stat: learning, of: physician, difficulty: 10 }
+        success: { result: "{name} got well." }
+        failure: { result: "{name} stayed ill." }

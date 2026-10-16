@@ -1,0 +1,10 @@
+# expect-error: events[0].options[0].check.of /unknown role "physician"/
+events:
+  - id: bad_check_of_unknown
+    weight: 1
+    text: "{name} is ill."
+    options:
+      - text: Call for help
+        check: { stat: learning, of: physician, difficulty: 10 }
+        success: { result: "{name} got well." }
+        failure: { result: "{name} stayed ill." }
