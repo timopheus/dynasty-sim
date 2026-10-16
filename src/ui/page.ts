@@ -1,5 +1,5 @@
 import type { ChronicleEntry } from '../core/chronicle/log';
-import type { PersonPage, PersonRef, RelationLine } from '../core/pages/person';
+import type { PersonPage, RelationLine } from '../core/pages/person';
 import type { TextPart } from '../core/text/text';
 import { formatDate } from '../core/time/calendar';
 import { personHref } from './address';
@@ -32,12 +32,12 @@ function sexWord(p: PersonPage): string {
 /** The page of a person (2.10): only what the player may know; the numbers sit in hover texts (D-031). */
 export function pageView(make: Make, page: PersonPage | null): HTMLElement {
   if (!page) {
-    return make('section', { className: 'page' }, make('p', { className: 'meta' }, make('a', { href: '#' }, '← Back')), make('h1', {}, 'Nobody by that name'));
+    return make('section', { className: 'page' }, make('p', { className: 'meta' }, make('a', { href: '#' }, '← Your house')), make('h1', {}, 'Nobody by that name'));
   }
   const intro = [sexWord(page), page.life, page.fame, page.occupation ?? ''].filter(Boolean).join(' · ');
   const knowledge: Record<string, string> = { self: 'Yours', close: 'A close acquaintance', known: 'An acquaintance', stranger: 'A stranger to you' };
   const nodes: (Node | string)[] = [
-    make('p', { className: 'meta' }, make('a', { href: '#' }, '← Back')),
+    make('p', { className: 'meta' }, make('a', { href: '#' }, '← Your house')),
     make('h1', {}, page.name),
     make('p', { className: 'meta' }, `${knowledge[page.level] ?? ''}${page.alive ? '' : ' · dead'}`),
     make('p', {}, intro),
@@ -71,10 +71,8 @@ export function pageView(make: Make, page: PersonPage | null): HTMLElement {
   const rivals = refList(make, 'Rivals', page.rivals);
   if (allies) nodes.push(allies);
   if (rivals) nodes.push(rivals);
-  if (page.entries.length) {
-    nodes.push(make('h2', {}, 'In the chronicle'), make('ul', { className: 'chronicle' }, ...page.entries.slice().reverse().map((e) => entryItem(make, e))));
+  for (const [label, entries] of [['In the chronicle', page.chronicle], ['In the journal', page.journal]] as const) {
+    if (entries.length) nodes.push(make('h2', {}, label), make('ul', { className: 'chronicle' }, ...entries.slice().reverse().map((e) => entryItem(make, e))));
   }
   return make('section', { className: 'page' }, ...nodes);
 }
-
-export type { PersonRef };

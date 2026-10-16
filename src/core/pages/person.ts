@@ -63,13 +63,15 @@ export interface PersonPage {
   money: number | null;
   allies: RelationLine[];
   rivals: RelationLine[];
-  /** What this person thinks of the current hero; null for the hero and for people the hero does not know. */
+  /** What this person thinks of the current hero; null for the hero, for people the hero does not know and for the dead. */
   opinion: { word: string; value: number | null; lines: OpinionLine[] } | null;
   death: { year: number; cause: string | null } | null;
   /** Kinds of secrets about the person that the hero knows. */
   secrets: string[];
   /** Chronicle lines about the person already shown to the player, newest last. */
-  entries: ChronicleEntry[];
+  chronicle: ChronicleEntry[];
+  /** Journal lines; only for the hero and former heads, so everyday detail never crowds out the chronicle. */
+  journal: ChronicleEntry[];
 }
 
 const ENTRY_LIMIT = 30;
@@ -160,10 +162,9 @@ function visibleTraits(ctx: Ctx, c: Character, level: PageLevel): string[] {
   });
 }
 
-function entriesAbout(ctx: Ctx, id: string, level: PageLevel): ChronicleEntry[] {
-  const own = level === 'self';
-  const out = ctx.state.chronicle.filter((e) => (own || e.level === 'chronicle') && (e.subject === id || e.parts.some((p: TextPart) => typeof p !== 'string' && p.id === id)));
-  return out.slice(-ENTRY_LIMIT);
+function entriesAbout(ctx: Ctx, id: string, level: ChronicleEntry['level']): ChronicleEntry[] {
+  const about = (e: ChronicleEntry) => e.subject === id || e.parts.some((p: TextPart) => typeof p !== 'string' && p.id === id);
+  return ctx.state.chronicle.filter((e) => e.level === level && about(e)).slice(-ENTRY_LIMIT);
 }
 
 /**
@@ -184,7 +185,8 @@ export function personPage(ctx: Ctx, id: string): PersonPage | null {
   const fameStep = c.fame;
   const exactYears = acquainted || fameStep >= 1;
   const occupation = c.occupation === null ? null : (content.population?.occupations.find((o) => o.id === c.occupation)?.name ?? null);
-  const values = stats(ctx, c);
+  // the dead do not go on ageing: stats are counted on the day of death
+  const values = stats(c.deathDay === null ? ctx : { state: { ...state, day: c.deathDay }, content }, c);
   const numbers = full || level === 'close';
   const rel = acquainted ? relationLines(ctx, c) : { allies: [], rivals: [] };
   const causeText = content.health.causes.find((x) => x.id === c.deathCause)?.text;
@@ -207,9 +209,10 @@ export function personPage(ctx: Ctx, id: string): PersonPage | null {
     money: full ? c.money : null,
     allies: rel.allies,
     rivals: rel.rivals,
-    opinion: !hero && !full && acquainted ? opinionOfHero(ctx, c, level === 'close') : null,
+    opinion: !hero && !full && acquainted && isAlive(c) ? opinionOfHero(ctx, c, level === 'close') : null,
     death: c.deathDay === null ? null : { year: year(c.deathDay), cause: knowsCause && causeText ? renderText(causeText, c, c.deathDay) : null },
     secrets: secretsKnownBy(state, state.playerId).filter((s) => s.about === id).map((s) => s.kind.replace(/_/g, ' ')),
-    entries: entriesAbout(ctx, id, level),
+    chronicle: entriesAbout(ctx, id, 'chronicle'),
+    journal: full ? entriesAbout(ctx, id, 'journal') : [],
   };
 }

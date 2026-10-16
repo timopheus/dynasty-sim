@@ -152,4 +152,23 @@ describe('person page visibility (GDD 8.8)', () => {
     expect(serialize(state)).toBe(before);
     expect(personPage(ctx, 'c999999')).toBeNull();
   });
+
+  it('keeps the chronicle of a head apart from the journal and counts the dead at the age of death', () => {
+    const { ctx, state, hero } = setup();
+    for (let i = 0; i < 40; i++) state.chronicle.push({ day: state.day, subject: hero.id, kind: 'event', level: 'journal', parts: ['noise'] });
+    const page = personPage(ctx, hero.id)!;
+    expect(page.journal).toHaveLength(30);
+    expect(page.chronicle.every((e) => e.level === 'chronicle')).toBe(true);
+    expect(page.chronicle.some((e) => e.kind === 'start')).toBe(true);
+    // a stranger gets no journal
+    const other = state.characters.find((c) => c.id !== hero.id)!;
+    expect(personPage(ctx, other.id)!.journal).toEqual([]);
+    // the dead stay as they were
+    other.birthDay = hero.birthDay;
+    introduce(ctx, other.id, 'known');
+    kill(ctx, other, 'illness');
+    const atDeath = personPage(ctx, other.id)!.stats;
+    state.day += 365 * 80;
+    expect(personPage(ctx, other.id)!.stats).toEqual(atDeath);
+  });
 });

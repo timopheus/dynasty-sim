@@ -79,6 +79,7 @@ function render(session: Session): void {
   const pageId = personIdFromHash(location.hash);
   if (pageId !== null) {
     app?.replaceChildren(pageView(el, personPage({ state, content }, pageId)));
+    window.scrollTo(0, 0);
     return;
   }
 
@@ -90,7 +91,7 @@ function render(session: Session): void {
     el('p', { className: 'meta' }, `${formatDate(state.day)} · seed ${state.seed} · `,
       el('button', { className: 'link', onclick: () => newGameWithConfirm(session) }, 'New game')),
     el('section', { className: 'hero' },
-      el('h2', {}, el('a', { href: personHref(player.id) }, hero.name)),
+      el('h2', {}, el('a', { href: personHref(player.id), className: 'person' }, hero.name)),
       el('p', {}, `${hero.sex === 'male' ? 'Man' : 'Woman'}, aged ${hero.age}${hero.fame ? `, ${hero.fame}` : ''}. Money ${hero.money}.`),
       el('p', {}, `Health: ${hero.conditions || 'healthy'}.`),
       el('dl', { className: 'stats' }, ...hero.stats.flatMap((s) => [
