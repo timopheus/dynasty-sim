@@ -58,7 +58,7 @@ export const CheckSchema = z.strictObject({
   of: Id.optional(),
   difficulty: Int.optional(),
   against: z.strictObject({ role: Id, stat: z.enum(STAT_IDS) }).optional(),
-  /** Bonuses to the stat in this check when the main participant meets `when` (traits, skills). */
+  /** Bonuses to the stat in this check when the person checked (the main participant, or the role `of`) meets `when`. */
   bonus: z.array(z.strictObject({ when: WhenSchema, add: Int })).min(1).optional(),
 });
 
@@ -248,6 +248,7 @@ function checkOption(env: EventEnv, path: string, option: OptionDef): void {
       else if (def?.optional) errors.push({ file, path: `${path}.check.against.role`, message: `role "${role}" is optional and may be empty` });
     }
     if (check.of !== undefined && !env.known.has(check.of)) errors.push({ file, path: `${path}.check.of`, message: `unknown role "${check.of}"` });
+    else if (check.of !== undefined && check.of === check.against?.role) errors.push({ file, path: `${path}.check.of`, message: `role "${check.of}" would be checked against itself` });
     check.bonus?.forEach((b, i) => checkWhen(env, `${path}.check.bonus[${i}].when`, b.when));
     if (hasOutcomeFields(option)) errors.push({ file, path, message: 'an option with a check keeps its outcome in success and failure' });
     for (const key of ['success', 'failure'] as const) {

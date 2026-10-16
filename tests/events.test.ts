@@ -165,6 +165,10 @@ describe('checks (D-042)', () => {
     expect(checkChance(ctx, ofRole, hero, scope)).toBe(50); // the hero's money gives the physician nothing
     expect(checkChance(ctx, check, hero, scope)).toBe(20); // without `of` the hero is checked: 0 + 4 against 10
     expect(() => checkChance(ctx, ofRole, hero, { hero: hero.id, protagonist: hero.id })).toThrow(/not filled/);
+    const rival = people[2]!;
+    rival.baseStats.prowess = 6;
+    const opposed = { stat: 'prowess' as const, of: 'physician', against: { role: 'rival', stat: 'prowess' as const } };
+    expect(checkChance(ctx, opposed, hero, { ...scope, rival: rival.id })).toBe(70); // the physician's 10 against the rival's 6
   });
 
   it('hides an option that checks an empty optional role (D-193)', () => {
