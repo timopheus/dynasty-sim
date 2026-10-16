@@ -1,0 +1,142 @@
+# Education (D-032): one for life, levels 1-4, +2 to the stat per level.
+# `weight` is the chance of a level when an education is generated at random; level 4 is rare.
+traits:
+  - id: courtly_1
+    name: Courtly education I
+    category: education
+    visibility: normal
+    weight: 4
+    education: { stat: diplomacy, level: 1 }
+
+  - id: courtly_2
+    name: Courtly education II
+    category: education
+    visibility: normal
+    weight: 4
+    education: { stat: diplomacy, level: 2 }
+
+  - id: courtly_3
+    name: Courtly education III
+    category: education
+    visibility: normal
+    weight: 2
+    education: { stat: diplomacy, level: 3 }
+
+  - id: courtly_4
+    name: Courtly education IV
+    category: education
+    visibility: normal
+    weight: 1
+    education: { stat: diplomacy, level: 4 }
+
+  - id: martial_1
+    name: Military education I
+    category: education
+    visibility: normal
+    weight: 4
+    education: { stat: martial, level: 1 }
+
+  - id: martial_2
+    name: Military education II
+    category: education
+    visibility: normal
+    weight: 4
+    education: { stat: martial, level: 2 }
+
+  - id: martial_3
+    name: Military education III
+    category: education
+    visibility: normal
+    weight: 2
+    education: { stat: martial, level: 3 }
+
+  - id: martial_4
+    name: Military education IV
+    category: education
+    visibility: normal
+    weight: 1
+    education: { stat: martial, level: 4 }
+
+  - id: stewardship_1
+    name: Counting-house education I
+    category: education
+    visibility: normal
+    weight: 4
+    education: { stat: stewardship, level: 1 }
+
+  - id: stewardship_2
+    name: Counting-house education II
+    category: education
+    visibility: normal
+    weight: 4
+    education: { stat: stewardship, level: 2 }
+
+  - id: stewardship_3
+    name: Counting-house education III
+    category: education
+    visibility: normal
+    weight: 2
+    education: { stat: stewardship, level: 3 }
+
+  - id: stewardship_4
+    name: Counting-house education IV
+    category: education
+    visibility: normal
+    weight: 1
+    education: { stat: stewardship, level: 4 }
+
+  - id: street_1
+    name: Street and chancery education I
+    category: education
+    visibility: normal
+    weight: 4
+    education: { stat: intrigue, level: 1 }
+
+  - id: street_2
+    name: Street and chancery education II
+    category: education
+    visibility: normal
+    weight: 4
+    education: { stat: intrigue, level: 2 }
+
+  - id: street_3
+    name: Street and chancery education III
+    category: education
+    visibility: normal
+    weight: 2
+    education: { stat: intrigue, level: 3 }
+
+  - id: street_4
+    name: Street and chancery education IV
+    category: education
+    visibility: normal
+    weight: 1
+    education: { stat: intrigue, level: 4 }
+
+  - id: learned_1
+    name: Learned education I
+    category: education
+    visibility: normal
+    weight: 4
+    education: { stat: learning, level: 1 }
+
+  - id: learned_2
+    name: Learned education II
+    category: education
+    visibility: normal
+    weight: 4
+    education: { stat: learning, level: 2 }
+
+  - id: learned_3
+    name: Learned education III
+    category: education
+    visibility: normal
+    weight: 2
+    education: { stat: learning, level: 3 }
+
+  - id: learned_4
+    name: Learned education IV
+    category: education
+    visibility: normal
+    weight: 1
+    education: { stat: learning, level: 4 }

@@ -1,7 +1,9 @@
 import { botCommand } from './bot';
-import { formatDate, fromYmd, START_YEAR } from './calendar';
+import { formatDate, fromYmd, START_YEAR } from './time/calendar';
 import type { Content } from './content/schema';
-import { apply, checkInvariants, newGame, type GameState } from './game';
+import { apply, newGame } from './game';
+import { checkInvariants } from './invariants';
+import type { GameState } from './state';
 import { seedRng } from './rng';
 
 export interface SimOptions {

@@ -1,3 +1,4 @@
+# expect-error: actions[0].duration /max must be >= min/
 actions:
   - id: backwards
     name: Backwards

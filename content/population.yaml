@@ -1,0 +1,38 @@
+# People around the hero (D-056, D-110). Schema: src/core/world/content.ts (PopulationContentSchema).
+# The circle is the 30-50 people simulated day by day; everyone else alive is "far" and is touched on 1 January.
+population:
+  circle: { min: 30, max: 50 }      # refilled with new people up to min; max is a hard cap
+  newcomerAge: { min: 16, max: 55 } # age of people who appear in the circle
+  driftPer10k: 500                  # yearly chance that a member of the circle drifts away from it
+  arriveFromFarPer100: 75           # share of arrivals taken from living people far away
+  far:
+    occupationChangePer10k: 400     # yearly chance for a person far away
+    returnPer10k: 150               # yearly chance to come back into the circle when there is room
+
+  # Weight is the relative chance for a person of fitting age; age limits are where the occupation is taken up.
+  occupations:
+    - { id: soldier, name: Soldier, weight: 8, age: { min: 16, max: 45 } }
+    - { id: sergeant, name: Sergeant, weight: 2, age: { min: 28, max: 60 } }
+    - { id: mercenary, name: Mercenary, weight: 5, age: { min: 18, max: 50 } }
+    - { id: teamster, name: Teamster, weight: 3 }
+    - { id: farmhand, name: Farmhand, weight: 4, age: { min: 16, max: 65 } }
+    - { id: craftsman, name: Craftsman, weight: 4, age: { min: 18, max: 70 } }
+    - { id: merchant, name: Merchant, weight: 4, age: { min: 20, max: 70 } }
+    - { id: sailor, name: Sailor, weight: 2, age: { min: 16, max: 55 } }
+    - { id: innkeeper, name: Innkeeper, weight: 2, age: { min: 25, max: 70 } }
+    - { id: clerk, name: Clerk, weight: 2, age: { min: 18, max: 65 } }
+    - { id: servant, name: Servant, weight: 3 }
+    - { id: scout, name: Scout, weight: 1, age: { min: 18, max: 45 } }
+    - { id: physician, name: Physician, weight: 1, age: { min: 28, max: 70 } }
+    - { id: priest, name: Priest, weight: 1, age: { min: 24, max: 75 } }
+
+  # Actions that move the circle: when the hero completes one, `leave` people stay behind and `arrive` join.
+  moves:
+    - action: travel
+      leave: { min: 4, max: 10 }
+      arrive: { min: 4, max: 10 }
+      text: "{name} left old companions behind and fell in with new people along the road."
+    - action: serve_contract
+      leave: { min: 2, max: 5 }
+      arrive: { min: 2, max: 5 }
+      text: "{name} parted with some of the company when the contract ended, and others took their place."

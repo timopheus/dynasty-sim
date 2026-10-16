@@ -1,9 +1,16 @@
-import { ageYears, formatDate } from '../core/calendar';
-import { fullName, renderText } from '../core/character';
+import { availableActions } from '../core/actions/actions';
+import { fullName } from '../core/character/character';
+import { entryText } from '../core/chronicle/log';
 import { loadContent } from '../core/content/load';
 import type { Content } from '../core/content/schema';
-import { apply, availableActions, getPlayer, newGame, pendingEventDef, type Command, type GameState } from '../core/game';
+import { pendingEventDef } from '../core/events/events';
+import { conditionsText } from '../core/health/course';
+import { apply, newGame, type Command } from '../core/game';
 import { isValidSeed } from '../core/rng';
+import { getPlayer } from '../core/helpers';
+import type { GameState } from '../core/state';
+import { renderText } from '../core/text/text';
+import { ageYears, formatDate } from '../core/time/calendar';
 import './style.css';
 
 const CHRONICLE_LIMIT = 60;
@@ -35,7 +42,7 @@ function render(state: GameState, content: Content, act: (cmd: Command) => void)
   const parts: Node[] = [
     el('h1', {}, `House of ${player.surname}`),
     el('p', { className: 'meta' }, `${formatDate(state.day)} · seed ${state.seed} · `, el('a', { href: `?seed=${state.seed}` }, 'restart'), ' · ', el('a', { href: '?' }, 'new seed')),
-    el('p', {}, `${fullName(player)}, aged ${age}. Health ${player.health}/100. Money ${player.money}.`),
+    el('p', {}, `${fullName(player)}, aged ${age}. Health: ${conditionsText(content, player) || 'healthy'}. Money ${player.money}.`),
   ];
 
   const event = pendingEventDef(state, content);
@@ -51,7 +58,7 @@ function render(state: GameState, content: Content, act: (cmd: Command) => void)
   } else {
     parts.push(
       el('h2', {}, 'What next?'),
-      el('div', { className: 'choices' }, ...availableActions(state, content).map((a) =>
+      el('div', { className: 'choices' }, ...availableActions({ state, content }).map((a) =>
         el('button', { onclick: () => act({ type: 'start', actionId: a.id }), title: `${a.duration.min}–${a.duration.max} days` }, a.name))),
     );
   }
@@ -60,7 +67,7 @@ function render(state: GameState, content: Content, act: (cmd: Command) => void)
   parts.push(
     el('h2', {}, 'Chronicle'),
     el('ul', { className: 'chronicle' }, ...recent.map((e) =>
-      el('li', {}, el('span', { className: 'date' }, formatDate(e.day)), e.text))),
+      el('li', {}, el('span', { className: 'date' }, formatDate(e.day)), entryText(e)))),
   );
   app?.replaceChildren(...parts);
 }

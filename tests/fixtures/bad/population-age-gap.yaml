@@ -1,0 +1,11 @@
+# expect-error: population.occupations /no occupation fits newcomers of age 30/
+population:
+  circle: { min: 3, max: 5 }
+  newcomerAge: { min: 20, max: 40 }
+  driftPer10k: 0
+  arriveFromFarPer100: 0
+  far: { occupationChangePer10k: 0, returnPer10k: 0 }
+  occupations:
+    - { id: young, name: Young, weight: 1, age: { min: 16, max: 29 } }
+    - { id: old, name: Old, weight: 1, age: { min: 31, max: 70 } }
+  moves: []

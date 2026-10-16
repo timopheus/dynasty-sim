@@ -1,3 +1,4 @@
+# expect-error: actions[0] /colour/
 actions:
   - id: paint
     name: Paint

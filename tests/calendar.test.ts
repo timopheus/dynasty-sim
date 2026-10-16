@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ageYears, birthDayRange, formatDate, fromYmd, isLeapYear, toYmd } from '../src/core/calendar';
+import { ageYears, birthDayRange, formatDate, fromYmd, isLeapYear, toYmd } from '../src/core/time/calendar';
 
 describe('calendar', () => {
   it('starts on 1 January 1700', () => {

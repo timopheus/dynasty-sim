@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].effects.traits /both added and removed/
+events:
+  - id: tt_event
+    weight: 1
+    text: "Something happens."
+    options:
+      - text: Go on
+        result: "{name} went on."
+        effects: { traits: { add: [brave], remove: [brave] } }

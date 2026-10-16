@@ -1,0 +1,7 @@
+# expect-error: names.fame[0] /placeholders are not allowed/
+names:
+  given: { male: [A], female: [B] }
+  surnames: [S]
+  statScale: [{ from: 0, word: Poor }]
+  fame: ["{name}", B, C, D]
+  requiresSex: { male: "m", female: "f" }

@@ -1,0 +1,33 @@
+# Innate traits of the body. Injuries are added by the health module (content/traits/injuries.yaml).
+traits:
+  - id: strong
+    name: Strong
+    category: body
+    opposite: weak
+    stats: { prowess: 3 }
+    visibility: obvious
+    weight: 2
+
+  - id: weak
+    name: Weak
+    category: body
+    opposite: strong
+    stats: { prowess: -3 }
+    visibility: obvious
+    weight: 2
+
+  - id: handsome
+    name: Handsome
+    category: body
+    opposite: plain
+    stats: { diplomacy: 2 }
+    visibility: obvious
+    weight: 2
+
+  - id: plain
+    name: Plain
+    category: body
+    opposite: handsome
+    stats: { diplomacy: -1 }
+    visibility: obvious
+    weight: 2

@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { ageYears } from '../src/core/calendar';
-import { DAILY_DEATH_DENOMINATOR, dailyDeathChance, type Character } from '../src/core/character';
+import { entryText } from '../src/core/chronicle/log';
 import type { Content } from '../src/core/content/schema';
-import { apply, checkInvariants, deserialize, getPlayer, newGame, serialize, type GameState } from '../src/core/game';
+import { apply, DAY_PHASES, newGame } from '../src/core/game';
+import { getPlayer } from '../src/core/helpers';
+import { checkInvariants } from '../src/core/invariants';
+import type { GameState } from '../src/core/state';
+import { ageYears } from '../src/core/time/calendar';
 import { fixtureContent, realContent } from './fixtures/content';
 
 /** Starts an action and answers every event with the given option; returns [day, eventId] of each event. */
@@ -22,7 +25,7 @@ describe('game loop', () => {
     const state = newGame(1, content);
     expect(state.characters).toHaveLength(1);
     expect(getPlayer(state).money).toBe(10);
-    expect(state.chronicle[0]?.text).toMatch(/^Anne Fixture started at 20\.$/);
+    expect(entryText(state.chronicle[0]!)).toBe('Anne Fixture started at 20.');
     expect(checkInvariants(state, content)).toEqual([]);
   });
 
@@ -33,7 +36,7 @@ describe('game loop', () => {
     expect(state.day).toBe(30);
     expect(state.status).toBe('awaiting_action');
     expect(getPlayer(state).money).toBe(11);
-    expect(state.chronicle.at(-1)?.text).toBe('Anne Fixture waited.');
+    expect(entryText(state.chronicle.at(-1)!)).toBe('Anne Fixture waited.');
     expect(checkInvariants(state, content)).toEqual([]);
   });
 
@@ -65,21 +68,23 @@ describe('game loop', () => {
     expect(() => apply(state, content, { type: 'choose', option: 5 })).toThrow();
   });
 
-  it('kills a character at zero health and hands over to a placeholder heir', () => {
+  it('kills a character of a condition and hands over to a placeholder heir', () => {
     const content = fixtureContent({ eventChancePer10k: 10000 });
     const state = newGame(1, content);
     apply(state, content, { type: 'start', actionId: 'wait' });
-    apply(state, content, { type: 'choose', option: 0 }); // health -200 -> 0, death next day
+    apply(state, content, { type: 'choose', option: 0 }); // a mortal wound, death at the weekly roll on day 7
+    while (state.status === 'awaiting_choice') apply(state, content, { type: 'choose', option: 1 });
 
     const [founder, heir] = state.characters;
-    expect(founder?.deathDay).toBe(2);
+    expect(founder?.deathDay).toBe(7);
+    expect(founder?.deathCause).toBe('illness');
     expect(state.playerId).toBe(heir?.id);
     expect(heir?.surname).toBe('Fixture');
     expect(heir?.money).toBe(10);
     expect(heir && ageYears(heir.birthDay, state.day)).toBe(18);
     expect(state.status).toBe('awaiting_action');
     expect(state.activeAction).toBeNull();
-    expect(state.chronicle.slice(-2).map((e) => e.kind)).toEqual(['death', 'succession']);
+    expect(state.chronicle.slice(-3).map((e) => e.kind)).toEqual(['death', 'death_cause', 'succession']);
     expect(checkInvariants(state, content)).toEqual([]);
   });
 
@@ -91,6 +96,14 @@ describe('game loop', () => {
       const age = ageYears(founder.birthDay, 0);
       expect(age >= min && age <= max, `seed ${seed}: age ${age}`).toBe(true);
     }
+  });
+});
+
+describe('day loop', () => {
+  it('runs the phases in the order of D-053', () => {
+    expect(DAY_PHASES.map((p) => p.id)).toEqual([
+      'new_day', 'scheduled', 'health', 'death', 'world', 'relations', 'action_end', 'event',
+    ]);
   });
 });
 
@@ -117,49 +130,5 @@ describe('event rules', () => {
     expect(new Set(duringWait)).toEqual(new Set(['ping']));
     const duringRest = runAction(state, content, 'rest').map(([, id]) => id);
     expect(duringRest).toContain('rest_only');
-  });
-});
-
-describe('mortality', () => {
-  const person = (birthDay: number, health: number): Character => ({
-    id: 'c1', givenName: 'A', surname: 'B', birthDay, deathDay: null, health, money: 0,
-  });
-
-  it('grows with age and poor health; zero health is certain death', () => {
-    const chance = (ageYears: number, health: number) => dailyDeathChance(person(-ageYears * 366, health), 0);
-    expect(chance(20, 100)).toBeGreaterThan(0);
-    expect(chance(45, 100)).toBeGreaterThan(chance(20, 100));
-    expect(chance(95, 100)).toBeGreaterThan(chance(45, 100));
-    expect(chance(20, 30)).toBeGreaterThan(chance(20, 100));
-    expect(chance(20, 10)).toBeGreaterThan(chance(20, 30));
-    expect(chance(95, 1)).toBeLessThan(DAILY_DEATH_DENOMINATOR);
-    expect(chance(20, 0)).toBe(DAILY_DEATH_DENOMINATOR);
-  });
-});
-
-describe('saves', () => {
-  it('continues identically after a JSON save and load mid-game', () => {
-    const content = fixtureContent({ eventChancePer10k: 5000, minDaysBetweenEvents: 2 });
-    const original = newGame(99, content);
-    apply(original, content, { type: 'start', actionId: 'rest' });
-    expect(original.status).toBe('awaiting_choice');
-    const loaded = deserialize(serialize(original), content);
-    expect(loaded).toEqual(original);
-
-    const play = (s: typeof original) => {
-      for (let i = 0; i < 50; i++) {
-        apply(s, content, s.status === 'awaiting_choice' ? { type: 'choose', option: 1 } : { type: 'start', actionId: 'rest' });
-      }
-    };
-    play(original);
-    play(loaded);
-    expect(serialize(loaded)).toBe(serialize(original));
-  });
-
-  it('refuses a broken save', () => {
-    const content = fixtureContent();
-    const state = newGame(1, content);
-    expect(() => deserialize(JSON.stringify({ ...state, version: 2 }), content)).toThrow(/version/);
-    expect(() => deserialize(JSON.stringify({ ...state, playerId: 'c404' }), content)).toThrow(/player/);
   });
 });

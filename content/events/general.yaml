@@ -7,10 +7,10 @@ events:
     options:
       - text: Send for a physician
         result: "{name} paid a physician and got over a fever."
-        effects: { health: -5, money: -10 }
+        effects: { money: -10 }
       - text: Rest and hope
         result: "{name} lay sick with fever for weeks."
-        effects: { health: -15 }
+        effects: { disease: fever }
 
   - id: card_game
     weight: 8
@@ -42,10 +42,9 @@ events:
     options:
       - text: Ignore it
         result: "{name} ignored an aching old wound."
-        effects: { health: -5 }
       - text: Rest for a few days
         result: "{name} rested an old wound for a few days."
-        effects: { health: 3, money: -3 }
+        effects: { heal: old_wound, money: -3 }
 
   - id: pickpocket
     weight: 6
@@ -53,7 +52,6 @@ events:
     options:
       - text: Give chase
         result: "{name} chased a pickpocket through the market."
-        effects: { health: -3 }
       - text: Let it go
         result: "{name} was robbed by a pickpocket at the market."
         effects: { money: -10 }
@@ -64,6 +62,6 @@ events:
     options:
       - text: Join in
         result: "{name} was bruised in a tavern brawl."
-        effects: { health: -8 }
+        effects: { wound: light_wound }
       - text: Slip out
         result: "{name} slipped out of a tavern brawl unharmed."

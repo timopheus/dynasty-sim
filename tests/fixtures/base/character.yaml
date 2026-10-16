@@ -1,0 +1,61 @@
+# One name per sex pool and the same name in both, so exact-text tests do not depend on the hero's sex.
+names:
+  given:
+    male: [Anne]
+    female: [Anne]
+  surnames: [Fixture]
+  statScale:
+    - { from: 0, word: Wretched }
+    - { from: 4, word: Poor }
+    - { from: 8, word: Average }
+    - { from: 12, word: Good }
+    - { from: 16, word: Excellent }
+    - { from: 20, word: Brilliant }
+  fame: [Private, Local, Realm, All]
+  requiresSex:
+    male: "Men only."
+    female: "Women only."
+# Only `proud`/`humble` and `learned_2` are generated at random, so exact tests stay predictable.
+traits:
+  - id: proud
+    name: Proud
+    category: character
+    opposite: humble
+    stats: { diplomacy: -1, martial: 1 }
+    visibility: normal
+    weight: 1
+    gained: "{name} grew proud."
+  - id: humble
+    name: Humble
+    category: character
+    opposite: proud
+    stats: { diplomacy: 1 }
+    visibility: normal
+    weight: 1
+    gained: "{name} put pride aside, as {he} had to."
+  - id: brave
+    name: Brave
+    category: character
+    visibility: normal
+    stats: { prowess: 2 }
+    gained: "{name} found courage."
+  - id: strong
+    name: Strong
+    category: body
+    visibility: obvious
+    stats: { prowess: 3 }
+  - id: learned_2
+    name: Learned education II
+    category: education
+    visibility: normal
+    weight: 1
+    education: { stat: learning, level: 2 }
+  - id: courtly_1
+    name: Courtly education I
+    category: education
+    visibility: normal
+    education: { stat: diplomacy, level: 1 }
+  - id: coward
+    name: Coward
+    category: reputation
+    visibility: obvious

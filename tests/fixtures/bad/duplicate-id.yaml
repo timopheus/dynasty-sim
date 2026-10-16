@@ -1,3 +1,4 @@
+# expect-error: actions[0].id /duplicate action id "wait"/
 actions:
   - id: wait
     name: Wait again

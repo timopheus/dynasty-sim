@@ -1,0 +1,4 @@
+# expect-error: traits /does not name "tt_a" as its opposite back/
+traits:
+  - { id: tt_a, name: A, category: body, opposite: tt_b, visibility: obvious }
+  - { id: tt_b, name: B, category: body, visibility: obvious }
