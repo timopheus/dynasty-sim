@@ -8,6 +8,7 @@ import { familyLines, familySection, proposalButton } from '../src/core/family/p
 import { makePedigree } from '../src/core/family/pedigree';
 import { syncHousehold } from '../src/core/family/household';
 import { familyPhase } from '../src/core/family/phases';
+import { worldPhase } from '../src/core/world/phases';
 import { proposalOptions } from '../src/core/family/proposals';
 import { apply, newGame } from '../src/core/game';
 import { findCharacter, getPlayer } from '../src/core/helpers';
@@ -164,6 +165,23 @@ describe('births (4.5)', () => {
     familyPhase.run(ctx);
     expect(childrenOf(state, hero.id)).toHaveLength(1);
     expect(state.pregnancies).toEqual([]);
+  });
+
+  it('a mother who gives birth on her birthday does not conceive the same day', () => {
+    const { state, ctx, hero, spouse } = couple(content);
+    state.pregnancies.push({ mother: spouse.id, father: hero.id, due: state.day });
+    familyPhase.run(ctx);
+    expect(childrenOf(state, hero.id)).toHaveLength(1);
+    expect(state.pregnancies).toEqual([]);
+  });
+
+  it('the yearly tick of people far away leaves the household alone: they die only day by day (D-354)', () => {
+    const { state, ctx, hero } = couple(content);
+    const old = Array.from({ length: 30 }, () => person(ctx, 'female', 100, { father: hero }));
+    state.household.push(...old.map((c) => c.id));
+    state.lastTickYear = toYmd(state.day).year - 1;
+    worldPhase.run(ctx);
+    expect(old.filter((c) => c.deathDay !== null)).toEqual([]);
   });
 
   it('a heroine-head gives her child her own surname (D-313)', () => {
