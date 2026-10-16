@@ -60,7 +60,8 @@ describe('saves', () => {
       steps += 1;
     }
     expect(steps).toBeGreaterThan(100);
-  });
+    // ~3 s alone, more under the load of the whole suite: the default 5 s is too tight.
+  }, 30_000);
 
   it('readSave refuses another version before looking at the rest, and never throws', () => {
     const content = fixtureContent();
