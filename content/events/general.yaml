@@ -18,7 +18,7 @@ events:
     options:
       - text: "{physician?Send for {physician}}"
         # Hidden while no physician is known: the check names the role, which is empty (D-193).
-        check: { stat: learning, of: physician, difficulty: 7 }
+        check: { stat: learning, of: physician, difficulty: 5 }
         success:
           effects: { money: -10 }
           on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
