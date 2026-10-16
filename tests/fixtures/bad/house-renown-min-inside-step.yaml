@@ -1,0 +1,15 @@
+# expect-error: events[0].when.house_renown_min /start \(from\) of a renown word/
+house:
+  statuses: [{ id: commoner, name: Commoner }]
+  renown: { words: [{ from: -100, word: Low }, { from: 5, word: High }], fame: [0, 0, 0, 0], traits: [] }
+  nicknames: []
+  texts: { status: "{name} rose to {status}." }
+  reasons: { status_min: "Needs {status}.", renown_min: "Needs {renown}." }
+events:
+  - id: bad_min
+    weight: 1
+    when: { house_renown_min: 6 }
+    text: "{name} waits."
+    options:
+      - text: Wait
+        result: "{name} waited."

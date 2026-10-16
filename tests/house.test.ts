@@ -5,7 +5,7 @@ import { applyEffects, type Effects } from '../src/core/effects';
 import { newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { afterMarriage } from '../src/core/hooks';
-import { houseById, houseInvariants, nicknameOf, renownShift, renownWord } from '../src/core/house/house';
+import { houseById, houseInvariants, makeHouse, nicknameOf, renownShift, renownWord } from '../src/core/house/house';
 import { checkInvariants } from '../src/core/invariants';
 import { createCharacter, kill } from '../src/core/lifecycle';
 import { entityPage } from '../src/core/pages/entity';
@@ -101,9 +101,9 @@ describe('children and spouses', () => {
 
 /** A house made by hand for a person. */
 function afterHouse(ctx: Ctx, name: string): string {
-  const c = createCharacter(ctx, { surname: name, age: { min: 20, max: 20 } });
-  afterMarriage(ctx, { a: c.id, b: c.id, start: ctx.state.day, end: null, endReason: null });
-  return c.house as string;
+  const id = makeHouse(ctx, name).id;
+  expect(id).toMatch(/^h\d+$/);
+  return id;
 }
 
 describe('status and renown by effects', () => {
@@ -183,7 +183,10 @@ describe('conditions', () => {
   it('the reason names the step the house must reach, not the one it has', () => {
     const { ctx, hero } = setup();
     applyEffects(ctx, hero, effects({ house_renown: 5 }), { hero: hero.id });
-    expect(conditionReport(ctx, hero, when({ house_renown_min: 6 }), { hero: hero.id }).reasons).toEqual(['Needs a house that is Respected.']);
+    expect(conditionReport(ctx, hero, when({ house_renown_min: -1 }), { hero: hero.id }).met).toBe(true);
+    applyEffects(ctx, hero, effects({ house_renown: -10 }), { hero: hero.id });
+    expect(conditionReport(ctx, hero, when({ house_renown_min: -1 }), { hero: hero.id }).reasons).toEqual(['Needs a house that is Unremarked.']);
+    expect(conditionReport(ctx, hero, when({ house_renown_min: 5 }), { hero: hero.id }).reasons).toEqual(['Needs a house that is Respected.']);
   });
 
   it('a person with no house meets neither', () => {

@@ -92,10 +92,10 @@ export function renownWord(content: Content, renown: number): string {
   return word;
 }
 
-/** The word of the lowest step that reaches the renown `n`, for a reason ("must be …"); the top word above all steps. */
+/** The word of the step that starts at the renown `n` (a threshold of a condition is always the start of a step, D-374). */
 export function renownWordFor(content: Content, n: number): string {
   const words = content.house?.renown.words ?? [];
-  return (words.find((w) => w.from >= n) ?? words.at(-1))?.word ?? '';
+  return (words.find((w) => w.from === n) ?? words.find((w) => w.from >= n) ?? words.at(-1))?.word ?? '';
 }
 
 /** The nickname people give the person for their deeds: the first entry of `house.nicknames` whose reputation trait they hold. */

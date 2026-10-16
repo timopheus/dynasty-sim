@@ -81,7 +81,13 @@ export const checkHouse: CrossCheck = ({ house, traits, events, actions }) => {
     };
     walkKeys(item, base, ['house_status'], (v, path) => check((v as { status?: unknown }).status, `${path}.status`));
     walkKeys(item, base, ['house_status_min'], check);
-    walkKeys(item, base, ['house_renown', 'house_renown_min'], (_v, path) => check(null, path));
+    walkKeys(item, base, ['house_renown'], (_v, path) => check(null, path));
+    // the reason of an unmet threshold names a step, so the threshold is the start of one
+    walkKeys(item, base, ['house_renown_min'], (v, path) => {
+      check(null, path);
+      const starts = house.flatMap((h) => h.item.renown.words.map((w) => w.from));
+      if (house.length > 0 && !starts.includes(v as number)) errors.push({ file, path, message: `house_renown_min ${String(v)} must be the start (from) of a renown word: ${starts.join(', ')}` });
+    });
   }
   return errors;
 };
