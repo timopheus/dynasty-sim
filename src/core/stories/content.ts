@@ -25,12 +25,20 @@ function givenRoles(event: EventDef): { name: string; optional: boolean }[] {
  * Stories have no content key of their own: this check looks at `schedule` and `story` in the effects of actions and
  * events (D-244). Events named must exist; the roles handed over must be `pick: given` roles of the event they go to,
  * and every given role that may not stay empty must be handed over; a fallback must be an event of the same story; an
- * event of a story must have some effect that opens the story.
+ * event of a story must have some effect that opens the story; a story event of the deck has no required given role
+ * (the narrator does not hand the people of the story over, D-241); `hero` and `protagonist` are never handed over.
  */
 export const checkStories: CrossCheck = ({ actions, events }) => {
   const errors: ContentError[] = [];
   const byId = new Map(events.map(({ item }) => [item.id, item]));
   const opened = new Set<string>();
+
+  // The hero and the main participant already have their roles in every event: a given role cannot take them.
+  const builtIn = (file: string, path: string, roles: Record<string, string> | undefined) => {
+    for (const [name, role] of Object.entries(roles ?? {})) {
+      if (role === 'hero' || role === 'protagonist') errors.push({ file, path: `${path}.roles.${name}`, message: `"${role}" cannot be handed over: a given role takes a person of the circle` });
+    }
+  };
 
   const handed = (file: string, path: string, target: EventDef, roles: Record<string, string> | undefined) => {
     const given = givenRoles(target);
@@ -46,6 +54,7 @@ export const checkStories: CrossCheck = ({ actions, events }) => {
     walkKeys(item, at, ['schedule', 'story'], (value, path) => {
       if (path.endsWith('.schedule') && Array.isArray(value)) {
         (value as ScheduleRef[]).forEach((entry, i) => {
+          builtIn(file, `${path}[${i}]`, entry.roles);
           const target = byId.get(entry.event);
           if (!target) errors.push({ file, path: `${path}[${i}].event`, message: `unknown event "${entry.event}"` });
           else handed(file, `${path}[${i}]`, target, entry.roles);
@@ -55,6 +64,7 @@ export const checkStories: CrossCheck = ({ actions, events }) => {
       if (path.endsWith('.story') && value !== null && typeof value === 'object') {
         const story = value as StoryRef;
         opened.add(story.open);
+        builtIn(file, path, story.roles);
         (story.fallback ?? []).forEach((id, i) => {
           const target = byId.get(id);
           const fpath = `${path}.fallback[${i}]`;
@@ -84,7 +94,13 @@ export const checkStories: CrossCheck = ({ actions, events }) => {
   for (const { file, index, item } of actions) visit(file, item, `actions[${index}]`);
   for (const { file, index, item } of events) visit(file, { ...item, story: undefined }, `events[${index}]`);
   for (const { file, index, item } of events) {
-    if (item.story !== undefined && !opened.has(item.story)) errors.push({ file, path: `events[${index}].story`, message: `no effect opens story "${item.story}"` });
+    if (item.story === undefined) continue;
+    if (!opened.has(item.story)) errors.push({ file, path: `events[${index}].story`, message: `no effect opens story "${item.story}"` });
+    // The narrator starts story events without the people of the story (D-241): a required given role makes it impossible.
+    const required = givenRoles(item).filter((g) => !g.optional);
+    if (!item.followup_only && required.length > 0) {
+      errors.push({ file, path: `events[${index}].roles.${required[0]?.name}`, message: `a story event from the deck gets no given roles (D-241): make the role optional or the event followup_only (a fallback)` });
+    }
   }
   return errors;
 };

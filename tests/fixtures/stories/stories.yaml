@@ -65,3 +65,27 @@ events:
     text: "The quarrel is forgotten."
     effects: { money: 1 }
     result: "{name} forgot the quarrel with {accuser}."
+
+  - id: slow_accusation
+    weight: 1
+    followup_only: true
+    roles:
+      accuser: { pick: circle }
+    text: "{accuser} mutters about you."
+    options:
+      - text: Let it simmer
+        effects:
+          later: [{ after_days: 3, effects: { story: { open: feud, days: 30, fallback: [feud_forgotten], roles: { accuser: accuser } } } }]
+        result: "{name} let {accuser} mutter."
+      - text: Send {accuser} to the hero's friend
+        on:
+          accuser:
+            schedule: [{ event: errand, after_days: { min: 2, max: 2 }, protagonist: hero }]
+        result: "{name} sent {accuser} away."
+
+  - id: errand
+    weight: 1
+    followup_only: true
+    text: "An errand."
+    effects: { money: 2 }
+    result: "{name} ran an errand."

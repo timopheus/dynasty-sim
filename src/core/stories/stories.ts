@@ -33,6 +33,8 @@ export interface OpenStory {
   fallback: string[];
   /** Roles handed over to the events of the story. */
   given: Scope;
+  /** `lastFired` of the story's events when it opened: a change means one of them has fired since (D-241). */
+  seen: Record<string, number>;
 }
 
 export interface StoriesState {
@@ -61,13 +63,24 @@ export function dueEvents({ state }: Ctx): DueEvent[] {
   return state.followups.filter((f) => f.offered === state.day).map((f) => ({ eventId: f.eventId, protagonist: f.protagonist, given: f.given }));
 }
 
+/** `lastFired` of the events of the story now, for `OpenStory.seen`. */
+export function storyEventsFired(state: GameState, content: Content, storyId: string): Record<string, number> {
+  const seen: Record<string, number> = {};
+  for (const e of content.events) {
+    const day = state.lastFired[e.id];
+    if (e.story === storyId && day !== undefined) seen[e.id] = day;
+  }
+  return seen;
+}
+
 /**
- * An event of the story has fired after it opened (D-241): the narrator records every event it starts in
- * `lastFired`, and starts story events only for the hero, so only the hero's stories close this way.
+ * An event of the story has fired since it opened, the same day included (D-241): its `lastFired` differs from the one
+ * seen at opening. The narrator records every event it starts in `lastFired` and starts story events only for the
+ * hero, so only the hero's stories close this way.
  */
 export function storyResolved(state: GameState, content: Content, story: OpenStory): boolean {
   if (story.owner !== state.playerId) return false;
-  return content.events.some((e) => e.story === story.id && (state.lastFired[e.id] ?? -1) > story.openedDay);
+  return content.events.some((e) => e.story === story.id && (state.lastFired[e.id] ?? -1) !== (story.seen[e.id] ?? -1));
 }
 
 export function findStory(state: GameState, characterId: string, storyId: string): OpenStory | null {

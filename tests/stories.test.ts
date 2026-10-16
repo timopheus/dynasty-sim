@@ -86,6 +86,15 @@ describe('follow-ups', () => {
     expect(ctx.state.followups).toEqual([]);
   });
 
+  it('goes to the role named protagonist', () => {
+    const { ctx, hero } = game();
+    answer(ctx, 'slow_accusation', 1);
+    expect(ctx.state.followups).toMatchObject([{ eventId: 'errand', protagonist: hero.id, dueDay: 2, given: {} }]);
+    const money = hero.money;
+    apply(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
+    expect(hero.money).toBe(money + 2 + 1);
+  });
+
   it('is handed over again the next day if the narrator could not start it, and only once a day per event', () => {
     const { ctx, people } = game(2);
     ctx.state.activeAction = { actionId: 'wait', endDay: 100 };
@@ -141,6 +150,24 @@ describe('stories', () => {
     apply(ctx.state, c, { type: 'choose', option: 0 });
     expect(isStoryOpen(ctx.state, hero.id, 'feud')).toBe(false);
     expect(storyWeight(run, 'feud', hero.id)).toBe(0);
+  });
+
+  it('an event of the story on the day it opens (inside later) closes it too', () => {
+    const { ctx, hero } = game();
+    answer(ctx, 'slow_accusation');
+    // Every day rolls an event, but the deck holds nothing else: the story event falls the day the story opens.
+    const events = ctx.content.events.filter((e) => e.id !== 'ping');
+    const c = { ...ctx.content, events, narrator: { ...ctx.content.narrator!, eventChancePer10k: 10000, eventRepeatCooldownDays: 1000 } };
+    apply(ctx.state, c, { type: 'start', actionId: 'wait' });
+    expect(ctx.state.day).toBe(3);
+    expect(ctx.state.pendingEvent?.eventId).toBe('feud_settled');
+    apply(ctx.state, c, { type: 'choose', option: 0 });
+    expect(isStoryOpen(ctx.state, hero.id, 'feud')).toBe(false);
+    for (let i = 0; i < 3 && ctx.state.day < 40; i++) {
+      if (ctx.state.status === 'awaiting_choice') apply(ctx.state, c, { type: 'choose', option: 0 });
+      else apply(ctx.state, c, { type: 'start', actionId: 'wait' });
+    }
+    expect(texts({ ...ctx, content: c }).some((t) => t.includes('forgot the quarrel'))).toBe(false);
   });
 
   it('at the deadline the first fallback that fits ends it', () => {

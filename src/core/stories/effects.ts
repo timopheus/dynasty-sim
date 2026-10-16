@@ -3,7 +3,7 @@ import { DayRange, Id, Int } from '../content/types';
 import { findCharacter } from '../helpers';
 import { int } from '../rng';
 import type { Character, Ctx, Scope } from '../state';
-import type { Followup } from './stories';
+import { storyEventsFired, type Followup } from './stories';
 
 /**
  * Effect keys of this module (D-240, D-241), applied to the character of the block:
@@ -68,6 +68,7 @@ export function applyStoriesEffects(ctx: Ctx, c: Character, effects: StoriesEffe
       deadline: state.day + story.days,
       fallback: [...(story.fallback ?? [])],
       given: handOver(story.roles, scope),
+      seen: storyEventsFired(state, ctx.content, story.open),
     });
   }
 }
