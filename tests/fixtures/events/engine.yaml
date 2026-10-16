@@ -1,0 +1,118 @@
+# Events of the engine tests (3.2): grey options, checks, roles, pages, notices, factors.
+events:
+  - id: choices
+    weight: 1
+    followup_only: true
+    text: "A choice for {name}."
+    options:
+      - text: Take it
+        result: "{name} took it."
+      - text: Buy it
+        when: { money_min: 1000 }
+        effects: { money: -1000 }
+        result: "{name} bought it."
+      - text: Fight for it
+        check: { stat: prowess, difficulty: 10, bonus: [{ when: { money_min: 50 }, add: 4 }] }
+        success: { result: "{name} won a fight.", chronicle: true }
+        failure: { result: "{name} lost a fight.", effects: { money: -1 } }
+
+  - id: duel
+    weight: 1
+    followup_only: true
+    roles:
+      rival: { pick: circle, where: { money_min: 50 } }
+    text: "{rival} draws a blade."
+    options:
+      - text: Cross blades with {rival}
+        check: { stat: prowess, against: { role: rival, stat: prowess } }
+        success:
+          on: { rival: { money: -5 } }
+          result: "{name} beat {rival} in a duel."
+        failure:
+          result: "{name} lost a duel to {rival}."
+      - text: Walk away
+        result: "{name} walked away from {rival}."
+
+  - id: two_pages
+    weight: 1
+    followup_only: true
+    roles:
+      friend: { pick: circle }
+    text: "{friend} calls you over."
+    options:
+      - text: Go
+        effects: { money: 2 }
+        result: "{name} met {friend}."
+        next: talk
+    pages:
+      talk:
+        text: "{friend} talks of old times."
+        options:
+          - text: Listen
+            effects: { money: 3 }
+            result: "{name} listened to {friend.his} stories."
+          - text: Leave
+            next: farewell
+      farewell:
+        text: "You leave."
+        result: "{name} left early."
+
+  - id: loud_notice
+    weight: 1
+    followup_only: true
+    text: "News reaches you."
+    effects: { money: 3 }
+    result: "{name} heard great news."
+    chronicle: true
+
+  - id: quiet_notice
+    weight: 1
+    followup_only: true
+    text: "A quiet day."
+    effects: { money: 1 }
+    result: "{name} had a quiet day."
+
+  - id: weighted
+    weight: 5
+    followup_only: true
+    severity: medium
+    who: both
+    once: life
+    cooldown_days: 30
+    tags: [way_up]
+    roles:
+      patron: { pick: circle, optional: true }
+    weight_mods:
+      - { when: { money_max: 100 }, factor: "1/2" }
+      - { role: patron, when: { money_min: 150 }, factor: 3 }
+    text: "A weighted event."
+    options:
+      - text: Ok
+        result: "{name} was weighed."
+        ai: { base: 10, traits: { brave: 5 } }
+
+  # Integration of wave 2 (3.2 + 3.3 + 3.4): a role picked by weight, an opposed check, texts with own grammar.
+  - id: tavern_brawl
+    weight: 1
+    followup_only: true
+    severity: medium
+    roles:
+      bully:
+        pick: circle
+        where: { occupation: [porter], money_min: 50 }
+        prefer:
+          - { when: { money_min: 150 }, factor: 5 }
+      witness: { pick: circle, optional: true }
+    grammar:
+      tavern: ["a smoky tavern", "a crowded inn"]
+    text: "{bully} shoves you in <tavern>.{witness? {witness} looks on.}"
+    options:
+      - text: Hit {bully} back
+        check: { stat: prowess, against: { role: bully, stat: prowess } }
+        success:
+          on: { bully: { money: -7 } }
+          result: "{name} knocked down {bully} in <tavern>."
+        failure:
+          result: "{name} was beaten by {bully} in <tavern>."
+      - text: Leave
+        result: "{name} left <tavern> to {bully}."

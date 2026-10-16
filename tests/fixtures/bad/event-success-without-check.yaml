@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0] /success and failure need a check/
+events:
+  - id: bad_success
+    weight: 1
+    text: "A gate."
+    options:
+      - text: Open it
+        result: "{name} opened a gate."
+        success: { result: "{name} opened a gate easily." }

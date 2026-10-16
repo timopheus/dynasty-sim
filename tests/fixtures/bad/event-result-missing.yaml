@@ -1,0 +1,7 @@
+# expect-error: events[0].options[0] /needs a result line/
+events:
+  - id: bad_no_result
+    weight: 1
+    text: "Silence."
+    options:
+      - text: Listen

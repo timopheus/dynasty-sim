@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].on.stranger /unknown role "stranger"/
+events:
+  - id: bad_on_role
+    weight: 1
+    text: "Someone waves."
+    options:
+      - text: Wave back
+        on: { stranger: { money: 1 } }
+        result: "{name} waved."

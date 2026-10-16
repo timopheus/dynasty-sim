@@ -1,0 +1,12 @@
+# expect-error: events[0].options /at least one option must have no when/
+events:
+  - id: bad_all_when
+    weight: 1
+    text: "A choice."
+    options:
+      - text: Pay
+        when: { money_min: 10 }
+        result: "{name} paid."
+      - text: Pay more
+        when: { money_min: 20 }
+        result: "{name} paid more."

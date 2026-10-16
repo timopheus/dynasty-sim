@@ -1,0 +1,14 @@
+# expect-error: events[0].options[0].next /unknown page "nowhere"/
+events:
+  - id: bad_next
+    weight: 1
+    text: "A door."
+    options:
+      - text: Go through
+        next: nowhere
+    pages:
+      somewhere:
+        text: "A room."
+        options:
+          - text: Leave
+            result: "{name} left."

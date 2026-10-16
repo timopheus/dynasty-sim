@@ -1,0 +1,12 @@
+# expect-error: events[0].options[0].check.against.role /optional and may be empty/
+events:
+  - id: bad_check_optional
+    weight: 1
+    roles:
+      foe: { pick: circle, optional: true }
+    text: "Someone glares."
+    options:
+      - text: Stare back
+        check: { stat: prowess, against: { role: foe, stat: prowess } }
+        success: { result: "{name} won." }
+        failure: { result: "{name} lost." }
