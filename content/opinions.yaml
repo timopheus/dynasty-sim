@@ -1,5 +1,5 @@
 # Opinions, relations and acquaintance (D-035…D-037). Schema: src/core/relations/content.ts (OpinionsContentSchema).
-# Events add and take away reasons and relations through the effects `opinion`, `opinion_end`, `relation` (3.6, D-220…D-229).
+# Events add and take away reasons and relations through the effects `opinion`, `opinion_end`, `relation` (3.6, D-220…D-225).
 opinions:
   # Causes of an opinion. kind: harm or benefit decides which trait memory applies. decay: fade (days), never, or
   # held (until an event ends it by name).
@@ -86,7 +86,7 @@ opinions:
       acquaintance: close
       starts: "{name} took {other} under {his} wing."
       ends: "{name} no longer looked after {other}."
-      startsAsProtege: "{other} took {name} under the wing."
+      startsAsProtege: "{other} became {name}'s patron."
       endsAsProtege: "{other} no longer looked after {name}."
     - id: lover
       name: Lover

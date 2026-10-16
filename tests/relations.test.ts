@@ -394,7 +394,7 @@ describe('a long game', () => {
   });
 });
 
-// Opinions, relations and secrets in events (3.6, D-220…D-229): the keys see people only through the scope of roles.
+// Opinions, relations and secrets in events (3.6, D-220…D-225): the keys see people only through the scope of roles.
 const eventContent = loadOrThrow([
   ...BASE_FILES,
   ...readContentFiles('tests/fixtures/population'),
@@ -488,9 +488,9 @@ describe('effects of events on roles', () => {
     expect(state.relations[1]).toMatchObject({ kind: 'patron', a: y.id, b: one.hero.id });
     expect(relationLines(state).map((t) => /wing/.test(t))).toEqual([true, false]);
     expect(relationLines(state)[1]).toMatch(/took .* in\.$/);
-    fireEvent(ctx, findEvent(eventContent, 'kindness'), one.hero, { pupil: x.id });
-    if (state.pendingEvent!.scope.pupil !== x.id) return;
-    choose(ctx, 2);
+    // the end of the tie is applied with the scope written by hand: the engine would pick the pupil again
+    const drop = findEvent(eventContent, 'kindness').options![2]!;
+    applyEffects(ctx, one.hero, drop.effects as Effects, { hero: one.hero.id, protagonist: one.hero.id, pupil: x.id });
     expect(state.relations[0]?.endReason).toBe('event');
     expect(relationLines(state)[2]).toMatch(/dropped/);
     expect(checkInvariants(state, eventContent)).toEqual([]);
@@ -502,9 +502,8 @@ describe('effects of events on roles', () => {
     choose(ctx, 3);
     const x = one.who('pupil');
     expect(opinionCauses(ctx, x.id, one.hero.id).map((c) => c.id)).toContain('debt');
-    fireEvent(ctx, findEvent(eventContent, 'kindness'), one.hero, { pupil: x.id });
-    if (state.pendingEvent!.scope.pupil !== x.id) return;
-    choose(ctx, 4);
+    const repaid = findEvent(eventContent, 'kindness').options![4]!;
+    applyEffects(ctx, x, repaid.on!.pupil as Effects, { hero: one.hero.id, protagonist: one.hero.id, pupil: x.id });
     expect(opinionCauses(ctx, x.id, one.hero.id).map((c) => c.id)).not.toContain('debt');
     expect(state.opinionReasons[0]?.end).toBe(state.day);
   });
