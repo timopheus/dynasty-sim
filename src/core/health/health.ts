@@ -3,6 +3,7 @@ import { log } from '../chronicle/log';
 import { Id } from '../content/types';
 import { isInt } from '../helpers';
 import type { Unmet } from '../condition-keys';
+import { fillReason, joinOr } from '../conditions/reasons';
 import type { Character, CreateHook, Ctx, DeathHook, Invariant, Scope } from '../state';
 import { addCondition, healStep, isSeverelyIll, stageOf, type HealthCondition } from './course';
 
@@ -48,12 +49,15 @@ export const healthEffectShape = {
   disease: Id.optional(),
   /** One stage back for the condition, or for all of them; recovery from the first stage. */
   heal: Id.optional(),
+  /** Death of the character by the cause (an id of `health.causes`): a request the death phase carries out (D-164, 3.5). */
+  kill: Id.optional(),
 };
 
 interface HealthEffects {
   wound?: string | undefined;
   disease?: string | undefined;
   heal?: string | undefined;
+  kill?: string | undefined;
 }
 
 /** Order: heal, then new wounds and diseases, so `heal: all` with a new wound keeps the wound. */
@@ -65,16 +69,37 @@ export function applyHealthEffects(ctx: Ctx, c: Character, effects: HealthEffect
   }
   if (effects.wound !== undefined) addCondition(ctx, c, effects.wound);
   if (effects.disease !== undefined) addCondition(ctx, c, effects.disease);
+  if (effects.kill !== undefined && c.deathDay === null) ctx.state.deathRequests.push({ characterId: c.id, cause: effects.kill });
 }
 
-/** Condition keys of this module (D-054): `fit: true` needs no condition at a severe stage. */
+/**
+ * Condition keys of this module (D-054): `fit: true` needs no condition at a severe stage; `conditions_any` and
+ * `conditions_none` name conditions of `health.conditions` the character has or has not (3.5).
+ */
 export const healthConditionShape = {
   fit: z.literal(true).optional(),
+  conditions_any: z.array(Id).min(1).optional(),
+  conditions_none: z.array(Id).min(1).optional(),
 };
 
-export function checkHealthConditions({ content }: Ctx, c: Character, when: { fit?: true | undefined }, _scope: Scope): Unmet[] {
-  if (when.fit && isSeverelyIll(content, c)) return [{ text: content.health.texts.unfit, hidden: false }];
-  return [];
+interface HealthWhen {
+  fit?: true | undefined;
+  conditions_any?: string[] | undefined;
+  conditions_none?: string[] | undefined;
+}
+
+export function checkHealthConditions({ content }: Ctx, c: Character, when: HealthWhen, _scope: Scope): Unmet[] {
+  const { texts, conditions } = content.health;
+  const out: Unmet[] = [];
+  const name = (id: string) => conditions.find((d) => d.id === id)?.name ?? id;
+  const has = (id: string) => c.conditions.some((hc) => hc.id === id);
+  if (when.fit && isSeverelyIll(content, c)) out.push({ text: texts.unfit, hidden: false });
+  if (when.conditions_any && !when.conditions_any.some(has)) {
+    out.push({ text: fillReason(texts.conditions_any, { conditions: joinOr(when.conditions_any.map(name)) }), hidden: false });
+  }
+  const held = (when.conditions_none ?? []).filter(has);
+  if (held.length > 0) out.push({ text: fillReason(texts.conditions_none, { conditions: joinOr(held.map(name)) }), hidden: false });
+  return out;
 }
 
 /** Stage penalties of all conditions, summed (D-080: stats.ts adds them). */
