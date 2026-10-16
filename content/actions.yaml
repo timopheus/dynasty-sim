@@ -1,4 +1,6 @@
 # Actions the player can start. Duration is in days, rolled when the action starts.
+# Grown-up actions need `age_min: 16` (settings.adultAge): a hero under age plays the actions of a child (D-314);
+# resting is for everyone (a sick child must be able to recover, D-366).
 # `when` (optional) limits when the action can be started: season, money_min, age_min, age_max,
 # sex (D-034: paths closed by the customs of 1700), fit (no severe wound or illness).
 # Rest and the road change the course of conditions: lists in content/health.yaml.
@@ -7,7 +9,7 @@ actions:
   - id: travel
     name: Travel the roads
     duration: { min: 10, max: 40 }
-    when: { fit: true }
+    when: { age_min: 16, fit: true }
     effects: { money: -5 }
     text: "{name} came back from a journey on the roads."
 
@@ -21,7 +23,7 @@ actions:
   - id: winter_quarters
     name: Winter in quarters
     duration: { min: 60, max: 120 }
-    when: { season: [autumn, winter], money_min: 20 }
+    when: { age_min: 16, season: [autumn, winter], money_min: 20 }
     effects: { money: -20, heal: all }
     text: "{name} wintered in quiet quarters and recovered strength."
 
@@ -34,13 +36,35 @@ actions:
   - id: trade
     name: Try a small trade
     duration: { min: 20, max: 60 }
-    when: { fit: true }
+    when: { age_min: 16, fit: true }
     effects: { money: 10 }
     text: "{name} wound up a small trading venture with a modest profit."
 
   - id: hunt
     name: Go hunting
     duration: { min: 3, max: 14 }
-    when: { fit: true }
+    when: { age_min: 16, fit: true }
     effects: { money: 5 }
     text: "{name} returned from the hunt with game to sell."
+
+  # Only the `will` command starts it (D-314, D-360): the will takes effect at its end; content/succession.yaml.
+  - id: notary
+    name: Draw up a will at the notary
+    duration: { min: 3, max: 7 }
+    when: { will_command: true }
+    effects: { will_signed: true }
+    text: "{name} came back from the notary with a will drawn up and sealed."
+
+  # A hero under age (D-314): years under the guardian and lessons. Events of upbringing are bound to them (4.13).
+  - id: grow_up
+    name: Grow up under guardianship
+    duration: { min: 365, max: 365 }
+    when: { age_max: 14 }
+    text: "{name} grew another year older under the care of {his} guardian."
+
+  - id: lessons
+    name: Take lessons
+    duration: { min: 90, max: 150 }
+    when: { age_min: 7, age_max: 15 }
+    effects: { money: -3, stats: { learning: 1 } }
+    text: "{name} spent a season at {his} lessons."
