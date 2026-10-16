@@ -1,0 +1,16 @@
+# expect-error: succession.willAction /unknown action "scribe"/
+succession:
+  temporaryHeir: true
+  willAction: scribe
+  willCost: 10
+  heirPercent: 50
+  passedOverReason: passed_over
+  guardianRelation: guardian
+  texts:
+    byLaw: "{name} by law."
+    byWill: "{name} by will."
+    ended: "{house} ended."
+    willSigned: "{name} named {heir}."
+    willSignedNoHeir: "{name} left it."
+    willStaleBirth: "{name} stale."
+    willStaleDeath: "{other} dead, {name} stale."

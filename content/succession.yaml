@@ -1,0 +1,26 @@
+# Succession (4.6, D-314, D-315, D-360…D-363). Schema: src/core/succession/content.ts (SuccessionContentSchema).
+# The law: the eldest son, then the eldest daughter; without children the lines of dead children, then brothers and
+# sisters and their lines, then parents and their lines. A will (the `will` command, the action `notary`) names another
+# heir of the kin and a guardian. Without any living kin the house comes to an end.
+succession:
+  # Scaffolding until 4.13 (D-315): with no living kin a generated adult of the same surname takes the house (D-007).
+  # 4.13 sets it to false together with the content of matchmaking.
+  temporaryHeir: true
+  temporaryHeirAge: { min: 16, max: 25 }
+  willAction: notary
+  willCost: 15
+  # Half to the main heir, the other half in equal parts to the other children and the widow (D-314).
+  heirPercent: 50
+  passedOverReason: passed_over
+  guardianRelation: guardian
+  texts:
+    # {name} is the new head, {deceased} the dead one.
+    byLaw: "{name}, aged {age}, took up the house by law after {deceased}."
+    byWill: "{name}, aged {age}, took up the house by the will of {deceased}."
+    # {name} is the last head, {house} the surname.
+    ended: "With {name} the house of {house} came to an end."
+    # Journal lines of the hero; {heir} is the named heir, {other} a person the will named who died.
+    willSigned: "{name} named {heir} heir in a will."
+    willSignedNoHeir: "{name} made a will and left the choice of the heir to the law."
+    willStaleBirth: "With a child born since, the will of {name} no longer said all it should."
+    willStaleDeath: "With {other} dead, the will of {name} was out of date."

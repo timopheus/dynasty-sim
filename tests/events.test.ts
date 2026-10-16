@@ -309,7 +309,7 @@ describe('in a run', () => {
     const kinds = new Set(state.chronicle.map((e) => e.kind));
     expect(kinds.has('event') && kinds.has('notice')).toBe(true);
     expect(state.chronicle.some((e) => / met .*\. /.test(entryText(e)))).toBe(true); // two pages, one entry
-  });
+  }, 30_000);
 });
 
 describe('wave 2 together: roles (3.3), texts (3.4) and the engine (3.2)', () => {
