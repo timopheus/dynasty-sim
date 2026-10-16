@@ -73,8 +73,8 @@ export function pageView(make: Make, page: PersonPage | null, heads: ReadonlySet
   const rivals = refList(make, 'Rivals', page.rivals);
   if (allies) nodes.push(allies);
   if (rivals) nodes.push(rivals);
-  for (const [label, entries] of [['In the chronicle', page.chronicle], ['In the journal', page.journal]] as const) {
-    if (entries.length) nodes.push(make('h2', {}, label), make('ul', { className: 'chronicle' }, ...entries.slice().reverse().map((e) => entryItem(make, e, page.id, heads))));
+  for (const [label, entries, own] of [['In the chronicle', page.chronicle, page.id], ['In the journal', page.journal, null]] as const) {
+    if (entries.length) nodes.push(make('h2', {}, label), make('ul', { className: 'chronicle' }, ...entries.slice().reverse().map((e) => entryItem(make, e, own, heads))));
   }
   return make('section', { className: 'page' }, ...nodes);
 }

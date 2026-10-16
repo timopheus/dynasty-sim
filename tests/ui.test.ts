@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { entryText } from '../src/core/chronicle/log';
-import { chronicleMarkdown } from '../src/core/chronicle/markdown';
+import { chronicleMarkdown, journalMarkdown } from '../src/core/chronicle/markdown';
 import type { Content } from '../src/core/content/schema';
 import { findEvent, fireEvent } from '../src/core/events/events';
 import { getPlayer } from '../src/core/helpers';
@@ -10,7 +10,7 @@ import { CHANCE_WORDS, actionRows, eventScreen } from '../src/ui/event';
 import { entryView, headIds } from '../src/ui/entry';
 import { readContentFiles } from '../tools/content-files';
 import { apply, newGame } from '../src/core/game';
-import { serialize } from '../src/core/save/save';
+import { deserialize, serialize } from '../src/core/save/save';
 import { heroView } from '../src/ui/hero';
 import { personHref, personIdFromHash } from '../src/ui/address';
 import { isValidSeed } from '../src/core/rng';
@@ -183,7 +183,7 @@ describe('event screen', () => {
 
     fireEvent(ctx, findEvent(eventContent, 'two_pages'), hero);
     apply(ctx.state, eventContent, { type: 'choose', option: 0 });
-    const reloaded = { state: JSON.parse(serialize(ctx.state)), content: eventContent } as Ctx;
+    const reloaded: Ctx = { state: deserialize(serialize(ctx.state), eventContent), content: eventContent };
     expect(ctx.state.pendingEvent!.page).toBe('talk');
     expect(eventScreen(reloaded)).toEqual(eventScreen(ctx));
     expect(eventScreen(ctx)!.options.map((o) => o.label.join(''))).toEqual(['Listen', 'Leave']);
@@ -216,6 +216,7 @@ describe('chronicle lines', () => {
     expect(entryView(other, hero.id, heads)).toMatchObject({ parts: other.parts, mark: false, world: true });
     const md = chronicleMarkdown(ctx.state);
     expect(md).toContain('— Bought a horse. ▸');
+    expect(journalMarkdown(ctx.state)).toContain(`${name} bought a horse.`);
     expect(md).not.toContain(`${name} bought`);
     expect(entryText(other)).toBe('Circle died.');
   });

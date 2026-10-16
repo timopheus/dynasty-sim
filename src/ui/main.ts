@@ -63,10 +63,11 @@ function saveProblemText(reason: 'quota' | 'unavailable'): string {
     : 'Autosave is not available in this browser. The game goes on, but it will not survive a reload.';
 }
 
-function entriesList(state: GameState, entries: ChronicleEntry[]): HTMLElement {
+/** Own lines lose the subject in the chronicle only; the journal mixes people, so names stay (D-162). */
+function entriesList(state: GameState, entries: ChronicleEntry[], ownLines: boolean): HTMLElement {
   const recent = entries.slice(-CHRONICLE_LIMIT).reverse();
   const heads = headIds(state.chronicle);
-  return el('ul', { className: 'chronicle' }, ...recent.map((e) => entryItem(el, e, state.playerId, heads)));
+  return el('ul', { className: 'chronicle' }, ...recent.map((e) => entryItem(el, e, ownLines ? state.playerId : null, heads)));
 }
 
 function render(session: Session): void {
@@ -111,7 +112,8 @@ function render(session: Session): void {
       el('section', { className: 'event' },
         el('p', {}, ...partNodes(el, screen.text)),
         el('div', { className: 'choices' }, ...screen.options.map((o) => {
-          const label = partNodes(el, o.label);
+          // plain names: a link inside a button would choose the option when clicked
+          const label = [o.label.map((p) => (typeof p === 'string' ? p : p.name)).join('')];
           const chance = o.chance ? [el('span', { className: 'chance', title: o.chance.title }, ` (${o.chance.word})`)] : [];
           if (o.grey) {
             return el('div', { className: 'unavailable' },
@@ -140,7 +142,7 @@ function render(session: Session): void {
   const level = session.tab === 'chronicle' ? 'chronicle' : 'journal';
   parts.push(
     el('div', { className: 'tabs' }, tabButton('chronicle', 'Chronicle'), tabButton('journal', 'Journal')),
-    entriesList(state, state.chronicle.filter((e) => e.level === level)),
+    entriesList(state, state.chronicle.filter((e) => e.level === level), level === 'chronicle'),
   );
   app?.replaceChildren(...parts);
 }
