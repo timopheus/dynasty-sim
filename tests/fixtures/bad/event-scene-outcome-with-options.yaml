@@ -1,0 +1,9 @@
+# expect-error: events[0] /outcome fields belong to options/
+events:
+  - id: bad_scene_outcome
+    weight: 1
+    text: "A road."
+    result: "{name} walked."
+    options:
+      - text: Walk
+        result: "{name} walked on."

@@ -1,0 +1,12 @@
+# expect-error: events[0].pages.lost /page "lost" is never reached/
+events:
+  - id: bad_unreached
+    weight: 1
+    text: "A hall."
+    options:
+      - text: Leave
+        result: "{name} left a hall."
+    pages:
+      lost:
+        text: "Nobody comes here."
+        result: "{name} got lost."

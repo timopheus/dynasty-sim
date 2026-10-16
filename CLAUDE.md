@@ -29,7 +29,7 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   time/            calendar.ts, фазы нового дня и назначенного (2.2)
   actions/         действия: начало, конец, прерывание (2.2)
   conditions/      общие ключи условий (2.2)
-  events/          события: eventWeight, startEvent, выбор варианта (2.2, 3.2)
+  events/          события: схема и проверки контента (content.ts), eventWeight, fireEvent/startEvent, страницы и извещения (events.ts), проверки D-042 (checks.ts), eventView для интерфейса и бота (view.ts) (2.2, 3.2)
   narrator/        рассказчик: темп (ключ narrator:), бросок колоды (phases.ts) (3.7)
   roles/           роли события: RoleSchema, checkRoles (content.ts), fillRoles, canFillRoles, anyCandidate (roles.ts) (3.3)
   stories/         продолжения и истории со сроком; фаза историй (phases.ts) (3.8)

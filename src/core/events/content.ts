@@ -259,11 +259,13 @@ function checkEvent(sources: ContentSources, file: string, at: string, event: Ev
   const roles = Object.keys(event.roles ?? {});
   const env: EventEnv = { file, at, event, known: new Set(['hero', 'protagonist', ...roles]), roles, errors };
   if (event.roles) errors.push(...checkRoles(event.roles, { file, path: `${at}.roles`, sources }));
-  checkWhen(env, `${at}.when`, event.when);
+  // The weight is counted before the roles are filled (D-184): its conditions see only the built-in roles.
+  const weightEnv: EventEnv = { ...env, known: new Set(['hero', 'protagonist']) };
+  checkWhen(weightEnv, `${at}.when`, event.when);
   event.weight_mods?.forEach((mod, i) => {
     const path = `${at}.weight_mods[${i}]`;
     if (mod.role !== undefined && !roles.includes(mod.role)) errors.push({ file, path: `${path}.role`, message: `unknown role "${mod.role}"; a factor by role names a declared role` });
-    checkWhen(env, `${path}.when`, mod.when);
+    checkWhen(weightEnv, `${path}.when`, mod.when);
   });
   checkScene(env, `${at}.`, event);
   for (const [id, page] of Object.entries(event.pages ?? {})) checkScene(env, `${at}.pages.${id}.`, page);

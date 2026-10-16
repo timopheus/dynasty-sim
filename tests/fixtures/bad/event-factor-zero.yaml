@@ -1,4 +1,4 @@
-# expect-error: events[0].weight_mods[0].factor /./
+# expect-error: events[0].weight_mods[0].factor /Too small/
 events:
   - id: bad_factor
     weight: 1

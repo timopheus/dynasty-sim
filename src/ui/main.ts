@@ -109,7 +109,7 @@ function render(session: Session): void {
       el('h2', {}, 'Event'),
       el('section', { className: 'event' },
         el('p', {}, renderText(event.text, player, state.day)),
-        el('div', { className: 'choices' }, ...(event.options ?? []).map((option, i) =>
+        el('div', { className: 'choices' }, ...(event.options ?? [{ text: 'Continue' }]).map((option, i) =>
           el('button', { onclick: () => act(session, { type: 'choose', option: i }) }, renderText(option.text, player, state.day)))),
       ),
     );

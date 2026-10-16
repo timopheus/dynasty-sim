@@ -1,0 +1,10 @@
+# expect-error: events[0].weight_mods[0].role /unknown role "patron"/
+events:
+  - id: bad_mod_role
+    weight: 2
+    weight_mods:
+      - { role: patron, when: { money_min: 1 }, factor: 2 }
+    text: "A favour."
+    options:
+      - text: Ask
+        result: "{name} asked a favour."

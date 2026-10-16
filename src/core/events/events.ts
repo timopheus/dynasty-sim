@@ -182,7 +182,8 @@ function resolveOutcome(ctx: Ctx, event: EventDef, pending: PendingEvent, outcom
   }
   state.pendingEvent = null;
   if (pending.lines.length === 0) return;
-  const notice = !event.options;
+  // A notice is an event without any choice: no options and no pages to choose on.
+  const notice = !event.options && !event.pages;
   log(ctx, {
     subject: protagonist,
     kind: notice ? 'notice' : 'event',
