@@ -206,6 +206,28 @@ describe('stories', () => {
   });
 });
 
+describe('a person of the world (3.9)', () => {
+  it('an event of a person of the world schedules a follow-up: it comes with the same people and never waits for the player', () => {
+    const { ctx, hero } = game(3);
+    const roll = { ...ctx.content, narrator: { ...ctx.content.narrator!, npcChancePer10k: 10000 } };
+    narratorPhase.run({ state: ctx.state, content: roll });
+    const f = ctx.state.followups[0]!;
+    expect(f).toMatchObject({ eventId: 'npc_revenge', dueDay: 3 });
+    expect(f.protagonist).not.toBe(hero.id);
+    expect(f.given.offender).not.toBe(f.protagonist);
+    const [actor, offender] = [f.protagonist, f.given.offender!].map((id) => ctx.state.characters.find((c) => c.id === id)!);
+    const money = [actor!.money, offender!.money];
+    apply(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
+    expect(ctx.state.status).toBe('awaiting_action');
+    expect(ctx.state.followups).toEqual([]);
+    expect([actor!.money, offender!.money]).toEqual([money[0]! + 7, money[1]! - 7]);
+    const line = ctx.state.chronicle.find((e) => e.kind === 'npc_event');
+    expect(line).toMatchObject({ day: 3, subject: actor!.id });
+    expect(entryText(line!)).toContain('took revenge on');
+    expect(checkInvariants(ctx.state, ctx.content)).toEqual([]);
+  });
+});
+
 describe('the deck', () => {
   it('never gives a follow-up, nor a story event while the story is not open', () => {
     for (let seed = 1; seed <= 20; seed++) {

@@ -4,6 +4,7 @@ narrator:
   eventChancePer10k: 200        # chance per day that an event fires, on actions shorter than longActionDays
   longActionDays: 60            # nominal length (mean of the action's range) from which an action is long
   longActionChancePer10k: 600   # the same chance on long actions
+  npcChancePer10k: 150          # chance per day that one event of a person of the circle fires (D-166); about 5 a year
   minDaysBetweenEvents: 10      # quiet days after any event
   eventRepeatCooldownDays: 365  # the same event cannot repeat within this time (cooldown_days of an event replaces it)
   tension:                      # heavy events raise it, it fades by itself (D-231)

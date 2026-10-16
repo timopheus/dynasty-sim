@@ -89,3 +89,32 @@ events:
     text: "An errand."
     effects: { money: 2 }
     result: "{name} ran an errand."
+
+  # A person of the world schedules a follow-up of their own (3.8 with 3.9).
+  - id: npc_slight
+    weight: 1
+    who: npc
+    roles:
+      offender: { pick: circle }
+    text: "{offender} slights {name}."
+    options:
+      - text: Plan revenge
+        effects:
+          schedule: [{ event: npc_revenge, after_days: { min: 3, max: 3 }, roles: { offender: offender } }]
+
+  - id: npc_revenge
+    weight: 1
+    who: npc
+    followup_only: true
+    roles:
+      offender: { pick: given }
+    text: "{name} waits for {offender}."
+    options:
+      - text: Strike
+        on: { offender: { money: -7 } }
+        effects: { money: 7 }
+        result: "{name} took revenge on {offender}."
+        chronicle: true
+      - text: Forgive
+        when: { money_min: 100000 }
+        result: "{name} forgave {offender}."

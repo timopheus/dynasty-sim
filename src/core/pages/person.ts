@@ -70,7 +70,10 @@ export interface PersonPage {
   secrets: string[];
   /** Chronicle lines about the person already shown to the player, newest last. */
   chronicle: ChronicleEntry[];
-  /** Journal lines; only for the hero and former heads, so everyday detail never crowds out the chronicle. */
+  /**
+   * Journal lines; the hero's and former heads' in full, so everyday detail never crowds out the chronicle. For other
+   * people the hero knows: only the events the person had themselves (D-166, 3.9).
+   */
   journal: ChronicleEntry[];
 }
 
@@ -167,6 +170,11 @@ function entriesAbout(ctx: Ctx, id: string, level: ChronicleEntry['level']): Chr
   return ctx.state.chronicle.filter((e) => e.level === level && about(e)).slice(-ENTRY_LIMIT);
 }
 
+/** Journal lines of events that happened to the person themselves, newest last. */
+function ownEvents(ctx: Ctx, id: string): ChronicleEntry[] {
+  return ctx.state.chronicle.filter((e) => e.level === 'journal' && e.subject === id && e.kind === 'npc_event').slice(-ENTRY_LIMIT);
+}
+
 /**
  * The page of a person as the player may see it, or null for an unknown id (D-150).
  * - hero and former heads: everything, including secret traits and numbers;
@@ -213,6 +221,6 @@ export function personPage(ctx: Ctx, id: string): PersonPage | null {
     death: c.deathDay === null ? null : { year: year(c.deathDay), cause: knowsCause && causeText ? renderText(causeText, c, c.deathDay) : null },
     secrets: secretsKnownBy(state, state.playerId).filter((s) => s.about === id).map((s) => s.kind.replace(/_/g, ' ')),
     chronicle: entriesAbout(ctx, id, 'chronicle'),
-    journal: full ? entriesAbout(ctx, id, 'journal') : [],
+    journal: full ? entriesAbout(ctx, id, 'journal') : acquainted ? ownEvents(ctx, id) : [],
   };
 }

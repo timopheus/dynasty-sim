@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].on.hero /who: npc cannot change the hero/
+events:
+  - id: bad_npc
+    weight: 1
+    who: npc
+    text: "{name} goes about the day."
+    options:
+      - text: Walk
+        on: { hero: { money: 5 } }

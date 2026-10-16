@@ -28,6 +28,8 @@ export function flatten(m: RunMetrics): Record<string, number> {
     eventsPerLongAction: m.eventsPerLongAction,
     heavyPerYear: m.heavyPerYear,
     notices: m.notices,
+    npcEventsPerYear: m.npcEventsPerYear,
+    npcStoredShare: m.npcStoredShare,
     'chronicle.total': m.chronicle.total,
     'chronicle.chronicleLevel': m.chronicle.chronicleLevel,
     'chronicle.journalLevel': m.chronicle.journalLevel,

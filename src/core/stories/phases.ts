@@ -4,6 +4,7 @@ import { log } from '../chronicle/log';
 import { conditionReport } from '../condition-keys';
 import type { EventDef } from '../events/content';
 import { fireEvent } from '../events/events';
+import { runNpcEvent } from '../events/npc';
 import { findCharacter, getPlayer } from '../helpers';
 import { baseScope, canFillRoles } from '../roles/roles';
 import type { Character, Ctx, DayPhase, Scope } from '../state';
@@ -50,6 +51,11 @@ function remember(ctx: Ctx, event: EventDef): void {
   if (!state.lifeFired.includes(event.id)) state.lifeFired.push(event.id);
 }
 
+/** What the narrator remembers of an event of a person of the world (3.9): only what `once: game` and `cooldown_days` need. */
+function rememberNpc(ctx: Ctx, event: EventDef): void {
+  if (event.once === 'game' || event.cooldown_days !== undefined) ctx.state.lastFired[event.id] = ctx.state.day;
+}
+
 /** A fallback ending fits now: bound action, `when`, `once` and the roles with the people of the story (D-044). */
 function fits(ctx: Ctx, event: EventDef, owner: Character, given: Scope): boolean {
   const { state } = ctx;
@@ -62,9 +68,10 @@ function fits(ctx: Ctx, event: EventDef, owner: Character, given: Scope): boolea
 }
 
 /**
- * Follow-ups (D-242): the ones the narrator started yesterday or earlier leave the queue; the due ones whose roles can
- * still be filled are handed to the narrator for today, the others are cancelled with a journal line. One follow-up
- * of an event a day: whether it was started is told by `lastFired` of the event.
+ * Follow-ups (D-242, D-245): the ones the narrator started yesterday or earlier leave the queue; the due ones whose roles
+ * can still be filled are handed to the narrator for today, the others are cancelled with a journal line. One follow-up
+ * of an event a day: whether it was started is told by `lastFired` of the event. A follow-up of a person of the world
+ * is carried out here at once, by their own choice (3.9): the narrator starts only the hero's.
  */
 function handOverFollowups(ctx: Ctx): void {
   const { state } = ctx;
@@ -77,6 +84,7 @@ function handOverFollowups(ctx: Ctx): void {
     kept.push(f);
   }
   const offered = new Set<string>();
+  const npc: { f: Followup; event: EventDef; protagonist: Character }[] = [];
   state.followups = kept.filter((f) => {
     if (f.dueDay > state.day || offered.has(f.eventId)) return true;
     const protagonist = findCharacter(state, f.protagonist);
@@ -86,10 +94,18 @@ function handOverFollowups(ctx: Ctx): void {
       cancel(ctx, f, protagonist);
       return false;
     }
+    if (protagonist.id !== state.playerId) {
+      npc.push({ f, event, protagonist });
+      return false;
+    }
     f.offered = state.day;
     offered.add(f.eventId);
     return true;
   });
+  // Run after the queue is cut: these events may schedule follow-ups of their own.
+  for (const { f, event, protagonist } of npc) {
+    if (protagonist.deathDay === null && runNpcEvent(ctx, event, protagonist, f.given)) rememberNpc(ctx, event);
+  }
 }
 
 /** Ends a story at its deadline: the first fallback that fits fires, or the story closes quietly (D-044). */
@@ -99,6 +115,11 @@ function endStory(ctx: Ctx, story: OpenStory): boolean {
   for (const id of story.fallback) {
     const event = findEvent(ctx, id);
     if (!event || !fits(ctx, event, owner, story.given)) continue;
+    if (owner.id !== ctx.state.playerId) {
+      if (!runNpcEvent(ctx, event, owner, story.given)) continue;
+      rememberNpc(ctx, event);
+      return false;
+    }
     const result = fireEvent(ctx, event, owner, story.given);
     if (result === 'failed') continue;
     remember(ctx, event);

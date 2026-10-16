@@ -3,8 +3,9 @@ import { conditionReport } from '../condition-keys';
 import { factorParts, type FactorValue } from '../content/types';
 import type { EventDef } from '../events/content';
 import { eventWeight, findEvent, fireEvent, type FireResult } from '../events/events';
+import { runNpcEvent } from '../events/npc';
 import { findCharacter, getPlayer } from '../helpers';
-import { chancePer, weightedPick } from '../rng';
+import { chancePer, pick, weightedPick } from '../rng';
 import { baseScope } from '../roles/roles';
 import type { Character, Ctx, DayPhase, GameState, Scope } from '../state';
 import { dueEvents, storyWeight } from '../stories/stories';
@@ -109,6 +110,43 @@ function candidates(ctx: Ctx, pace: NarratorContent, hero: Character, bottom: bo
 
 const pickFrom = (ctx: Ctx, pool: Candidate[]): EventDef => weightedPick(ctx.state.rng, pool, (c) => c.weight).event;
 
+/** Events a person of the world can have now: `who: npc|both`, not from the hero's own list (3.9). */
+function npcPool(ctx: Ctx, person: Character): Candidate[] {
+  const { state, content } = ctx;
+  const pool: Candidate[] = [];
+  for (const event of content.events) {
+    if (event.who === undefined || event.who === 'hero') continue;
+    if (event.followup_only || event.deck === 'backstory' || event.story !== undefined || event.actions || event.once === 'life') continue;
+    if (event.once === 'game' && Object.hasOwn(state.lastFired, event.id)) continue;
+    if (event.cooldown_days !== undefined && Object.hasOwn(state.lastFired, event.id) && state.day - (state.lastFired[event.id] ?? 0) < event.cooldown_days) continue;
+    const weight = eventWeight(ctx, event, person);
+    if (weight > 0) pool.push({ event, weight });
+  }
+  return pool;
+}
+
+/**
+ * The roll of the day for the whole circle (D-166): one chance, then one living person of the circle other than the
+ * hero, then an event that fits them. The event is carried out at once by `runNpcEvent`; the pace of the hero's
+ * narrator (gaps, tension) is not touched.
+ */
+function rollNpcEvent(ctx: Ctx, pace: NarratorContent): void {
+  const { state } = ctx;
+  if (!pace.npcChancePer10k || !chancePer(state.rng, pace.npcChancePer10k, 10000)) return;
+  const people = state.circle.flatMap((id) => {
+    const c = id === state.playerId ? undefined : findCharacter(state, id);
+    return c && c.deathDay === null ? [c] : [];
+  });
+  if (people.length === 0) return;
+  const person = pick(state.rng, people);
+  const pool = npcPool(ctx, person);
+  if (pool.length === 0) return;
+  const event = pickFrom(ctx, pool);
+  if (!runNpcEvent(ctx, event, person)) return;
+  // Only what the event itself asks for is remembered, so that a both-event of the hero is not held back by it.
+  if (event.once === 'game' || event.cooldown_days !== undefined) state.lastFired[event.id] = state.day;
+}
+
 /**
  * The narrator (D-045, D-230): during the hero's action it starts, in this order, the follow-ups due today, then —
  * if the pace allows — an event of an open story, then one of the main deck. Last phase of the day, so an event
@@ -118,9 +156,10 @@ export const narratorPhase: DayPhase = {
   id: 'narrator',
   run(ctx) {
     const { state } = ctx;
+    const pace = narratorContent(ctx.content);
+    if (!state.pendingEvent) rollNpcEvent(ctx, pace);
     const active = state.activeAction;
     if (!active) return false;
-    const pace = narratorContent(ctx.content);
     syncLife(state);
     const hero = getPlayer(state);
     const days = nominalDays(ctx, active.actionId);
