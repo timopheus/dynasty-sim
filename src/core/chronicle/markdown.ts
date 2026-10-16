@@ -1,6 +1,6 @@
 import { fullName, type CharacterBase } from '../character/character';
 import type { GameState } from '../state';
-import type { TextPart } from '../text/text';
+import { ownLine, type TextPart } from '../text/text';
 import { ageYears, formatDate, toYmd } from '../time/calendar';
 import type { ChronicleEntry } from './log';
 
@@ -45,7 +45,7 @@ function renderText(parts: readonly TextPart[], own: string, heads: ReadonlySet<
     .join('');
 }
 
-function render(state: GameState, title: string, keep: (e: ChronicleEntry) => boolean, dated: boolean): string {
+function render(state: GameState, title: string, keep: (e: ChronicleEntry) => boolean, dated: boolean, ownLines: boolean): string {
   const founder = state.characters[0];
   const house = founder ? founder.surname : 'Unknown';
   const lines: string[] = [`# ${title} of the House of ${house}`, '', `Seed ${state.seed} · ${formatDate(0)} – ${formatDate(state.day)}`];
@@ -62,7 +62,7 @@ function render(state: GameState, title: string, keep: (e: ChronicleEntry) => bo
       }
       const when = dated ? formatDate(e.day).replace(/ \d+$/, '') : shortMonth(e.day);
       const world = e.subject !== head.id && e.level === 'chronicle' ? '◆ ' : '';
-      lines.push(`- ${world}**${when}** — ${renderText(e.parts, head.id, heads)}${e.mark ? ' ▸' : ''}`);
+      lines.push(`- ${world}**${when}** — ${renderText(ownLines && e.subject === head.id ? ownLine(e.parts, head.id) : e.parts, head.id, heads)}${e.mark ? ' ▸' : ''}`);
     }
   }
   return `${lines.join('\n')}\n`;
@@ -73,10 +73,10 @@ function render(state: GameState, title: string, keep: (e: ChronicleEntry) => bo
  * links to other heads, ◆ for the deaths of known people of the circle, ▸ for marked choices.
  */
 export function chronicleMarkdown(state: GameState): string {
-  return render(state, 'Chronicle', (e) => e.level === 'chronicle', false);
+  return render(state, 'Chronicle', (e) => e.level === 'chronicle', false, true);
 }
 
 /** Journal: every stored line, the everyday detail the chronicle leaves out, with days. */
 export function journalMarkdown(state: GameState): string {
-  return render(state, 'Journal', () => true, true);
+  return render(state, 'Journal', () => true, true, false);
 }

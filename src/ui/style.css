@@ -175,3 +175,15 @@ ul.plain {
 .page h2 {
   margin-top: 1.5rem;
 }
+
+.option {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.chance {
+  color: var(--muted);
+  font-size: 0.85em;
+  cursor: help;
+}
