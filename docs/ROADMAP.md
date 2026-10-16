@@ -183,7 +183,7 @@
 | 3.13 | Контент, пачка 2, и замеры этапа | `content/events/`, `content/opinions.yaml`, `content/grammar.yaml`, `content/narrator.yaml` (только числа), `content/chronicle.yaml` (только числа) | 3.12 | content-writer (Sonnet) | 6 | ✅ [#49](https://github.com/timopheus/dynasty-sim/pull/49) все четыре цели: строки 44, смерть 47,8, глав 11, 24 с, 1,41 МБ (D-290…D-293) |
 | 3.14 | Компактная запись сохранения | `src/core/save/`, `src/core/metrics/` (мера), `tests/save.test.ts` | 3.12 | Opus | 6 | ✅ сохранение 300 лет: медиана 2,18 → 1,32 МБ (D-195) |
 | 3.15 | Ворота по метрикам в CI | `tools/` (сим и ворота), `.github/workflows/ci.yml`, `tests/` (свои), `CLAUDE.md` (раздел «Команды»: команда и абзац о CI) | 3.14 | Sonnet | 6 (идея I-008, D-203) | ✅ |
-| 3.16 | Телефон и доступность | `src/ui/`, `tests/` (свои) | 3.10 | Sonnet | 6 (идея I-017, D-248) | ⬜ |
+| 3.16 | Телефон и доступность | `src/ui/`, `tests/` (свои) | 3.10 | Sonnet | 6 (идея I-017, D-248) | ✅ |
 
 Колонка «Модуль» — полный список того, что задача правит, плюс свои тесты, фикстуры и плохие примеры в `tests/`; всё остальное — только через точки подключения 3.1 (D-052). Новые модули-папки этапа: `roles/`, `narrator/`, `stories/`, `backstory/`; грамматика живёт в `text/`, проверки — в `events/`. Общие доки (STATUS, CHANGELOG, ROADMAP, DECISIONS) правят все; `docs/event-format.md` — ведущая сессия и 3.2 (см. «Волны»).
 

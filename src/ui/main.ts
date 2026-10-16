@@ -132,8 +132,8 @@ function render(session: Session): void {
 
   parts.push(
     el('h1', {}, `House of ${hero.surname}`),
-    el('p', { className: 'meta' }, `${formatDate(state.day)} · seed ${state.seed} · `,
-      el('button', { className: 'link', type: 'button', onclick: () => newGameWithConfirm(session) }, 'New game'), ' · ', numbersButton(session)),
+    el('div', { className: 'meta bar' }, el('span', {}, `${formatDate(state.day)} · seed ${state.seed}`),
+      el('button', { className: 'link', type: 'button', onclick: () => newGameWithConfirm(session) }, 'New game'), numbersButton(session)),
     el('section', { className: 'hero' },
       el('h2', {}, el('a', { href: personHref(player.id), className: 'person' }, hero.name)),
       el('p', {}, `${hero.sex === 'male' ? 'Man' : 'Woman'}, aged ${hero.age}${hero.fame ? `, ${hero.fame}` : ''}. Money ${hero.money}.`),
