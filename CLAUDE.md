@@ -69,7 +69,7 @@ CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck,
 - Обходить массивы контента, а не ключи объектов.
 - Состояние меняет только `apply(state, content, command)`. Функции-запросы (`availableActions`, `pendingEventDef`) случайность не тратят.
 - Новое правило согласованности — в инварианты своего модуля (они собраны в `invariants.ts`): ими пользуются прогон и тесты.
-- Хроника пишется только через `log(state, {subject, kind, level, template})` из `chronicle/log.ts` (D-057). Запись хранит части текста: строки и ссылки `{id, name}`.
+- Хроника пишется только через `log(ctx, {subject, kind, level, template, money?})` из `chronicle/log.ts` (D-057, D-064). Запись хранит части текста: строки и ссылки `{id, name}`; `money` — изменение денег субъекта для отбора, в записи не хранится.
 - id сущностей — `newId(state, prefix)`; сущности не удаляются.
 
 ## Владение файлами (D-052, D-060)
