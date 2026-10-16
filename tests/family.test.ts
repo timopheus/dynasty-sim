@@ -370,3 +370,43 @@ describe('proposals (D-313)', () => {
     expect(lines.at(-1)?.parts).toEqual([{ id: son.id, name: 'Anne Smith' }, ' (dead)']);
   });
 });
+
+describe('wave 2 together: family (4.5) and succession (4.6)', () => {
+  const both = loadOrThrow([
+    ...BASE_FILES,
+    ...readContentFiles('tests/fixtures/population'),
+    ...readContentFiles('tests/fixtures/opinions').filter((f) => f.path.endsWith('traits.yaml')),
+    ...readContentFiles('tests/fixtures/succession'),
+    ...readContentFiles('tests/fixtures/family'),
+  ]);
+
+  it('marriage → child → death of the head → the child inherits by law, the mother in the household', () => {
+    const state = newGame(3, both);
+    const ctx: Ctx = { state, content: both };
+    const hero = getPlayer(state);
+    hero.sex = 'male';
+    const bride = person(ctx, 'female', 22);
+    state.circle.push(bride.id);
+    bride.kinKnown = true;
+    // Marriage by the command from the page of the bride.
+    apply(state, both, { type: 'propose', suitor: hero.id, target: bride.id });
+    apply(state, both, { type: 'choose', option: 0 });
+    expect(hero.spouse).toBe(bride.id);
+    // A child: the conception on her birthday, the birth 270 days later.
+    birthdayToday(state, bride, 22);
+    familyPhase.run(ctx);
+    state.day += 270;
+    familyPhase.run(ctx);
+    const son = childrenOf(state, hero.id)[0] ?? fail('no child');
+    expect(state.household).toEqual([bride.id, son.id]);
+    expect(checkInvariants(state, both)).toEqual([]);
+    // The head dies: the law puts his child first, before his brothers and sisters from the pedigree.
+    kill(ctx, hero, 'illness');
+    expect(state.status).toBe('awaiting_action');
+    expect(state.playerId).toBe(son.id);
+    expect(state.chronicle.some((e) => e.kind === 'succession' && e.subject === son.id)).toBe(true);
+    // A head under age: the living parent is the household (D-313).
+    expect(state.household).toEqual([bride.id]);
+    expect(checkInvariants(state, both)).toEqual([]);
+  });
+});
