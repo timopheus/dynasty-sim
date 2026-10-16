@@ -1,0 +1,15 @@
+# expect-error: events[0].options[0].effects.house_status.status /unknown house status "baron"/
+house:
+  statuses: [{ id: commoner, name: Commoner }]
+  renown: { words: [{ from: -100, word: Low }], fame: [0, 0, 0, 0], traits: [] }
+  nicknames: []
+  texts: { status: "{name} rose to {status}." }
+  reasons: { status_min: "Needs {status}.", renown_min: "Needs {renown}." }
+events:
+  - id: bad_status
+    weight: 1
+    text: "{name} petitions."
+    options:
+      - text: Petition
+        effects: { house_status: { status: baron } }
+        result: "{name} petitioned."

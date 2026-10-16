@@ -1,0 +1,42 @@
+# The house: status (a right), renown (a memory), nicknames from reputation (4.7, D-237, D-316).
+house:
+  statuses:
+    - { id: commoner, name: Commoner }
+    - { id: guild, name: Guild house }
+    - { id: noble, name: Noble }
+  renown:
+    words:
+      - { from: -1000, word: Disgraced }
+      - { from: -10, word: Ill-spoken-of }
+      - { from: -2, word: Unremarked }
+      - { from: 5, word: Respected }
+      - { from: 15, word: Renowned }
+      - { from: 30, word: Illustrious }
+    # Shift when a head dies, by their fame step (private, local, realm, all).
+    fame: [0, 1, 3, 6]
+    traits:
+      - { trait: coward, value: -2 }
+      - { trait: bankrupt, value: -2 }
+      - { trait: traitor, value: -5 }
+      - { trait: thief, value: -3 }
+      - { trait: deserter, value: -3 }
+      - { trait: brawler, value: -1 }
+      - { trait: fair_dealer, value: 2 }
+      - { trait: bear_slayer, value: 3 }
+      - { trait: oath_keeper, value: 3 }
+  # The first held trait wins: the worst name sticks.
+  nicknames:
+    - { trait: traitor, nickname: the Traitor }
+    - { trait: thief, nickname: the Thief }
+    - { trait: deserter, nickname: the Deserter }
+    - { trait: coward, nickname: the Coward }
+    - { trait: bankrupt, nickname: the Bankrupt }
+    - { trait: bear_slayer, nickname: Bearslayer }
+    - { trait: oath_keeper, nickname: the Faithful }
+    - { trait: fair_dealer, nickname: the Fair }
+    - { trait: brawler, nickname: the Brawler }
+  texts:
+    status: "The {house} house is now counted as {status}."
+  reasons:
+    status_min: "The house must be {status} or higher."
+    renown_min: "The house must be {renown}."

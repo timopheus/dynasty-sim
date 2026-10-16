@@ -91,9 +91,10 @@ describe('common page of an entity', () => {
     expect(serialize(ctx.state)).toBe(before);
   });
 
-  it('house and heirloom pages are wired to their prefixes and stay empty until 4.7 and 4.9', () => {
+  it('house and heirloom pages are wired to their prefixes; the heirloom stays empty until 4.9', () => {
     const { ctx } = setup();
-    expect(entityPage(ctx, 'h1')).toBeNull();
+    expect(entityPage(ctx, ctx.state.houses[0]!.id)?.type).toBe('entity');
+    expect(entityPage(ctx, 'h999')).toBeNull();
     expect(entityPage(ctx, 'i1')).toBeNull();
   });
 });

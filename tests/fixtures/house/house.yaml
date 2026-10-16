@@ -1,0 +1,26 @@
+# Exact numbers for the house tests; goes on top of tests/fixtures/base.
+traits:
+  - { id: brawler, name: Brawler, category: reputation, visibility: obvious }
+  - { id: oath_keeper, name: Oath-keeper, category: reputation, visibility: obvious }
+house:
+  statuses:
+    - { id: commoner, name: Commoner }
+    - { id: guild, name: Guild house }
+    - { id: noble, name: Noble }
+  renown:
+    words:
+      - { from: -100, word: Disgraced }
+      - { from: -1, word: Unremarked }
+      - { from: 5, word: Respected }
+    fame: [0, 1, 2, 4]
+    traits:
+      - { trait: coward, value: -3 }
+      - { trait: oath_keeper, value: 2 }
+  nicknames:
+    - { trait: coward, nickname: the Coward }
+    - { trait: oath_keeper, nickname: the Faithful }
+  texts:
+    status: "{name} led the {house} house to {status}."
+  reasons:
+    status_min: "Needs {status}."
+    renown_min: "Needs a house that is {renown}."

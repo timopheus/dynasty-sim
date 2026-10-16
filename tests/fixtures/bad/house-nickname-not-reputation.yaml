@@ -1,0 +1,7 @@
+# expect-error: house.nicknames[0].trait /unknown reputation trait "proud"/
+house:
+  statuses: [{ id: commoner, name: Commoner }]
+  renown: { words: [{ from: -100, word: Low }], fame: [0, 0, 0, 0], traits: [] }
+  nicknames: [{ trait: proud, nickname: the Proud }]
+  texts: { status: "{name} rose to {status}." }
+  reasons: { status_min: "Needs {status}.", renown_min: "Needs {renown}." }

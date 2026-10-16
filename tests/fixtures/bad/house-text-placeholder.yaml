@@ -1,0 +1,7 @@
+# expect-error: house.texts.status /unknown placeholder \{castle\}/
+house:
+  statuses: [{ id: commoner, name: Commoner }]
+  renown: { words: [{ from: -100, word: Low }], fame: [0, 0, 0, 0], traits: [] }
+  nicknames: []
+  texts: { status: "{name} rose in {castle}." }
+  reasons: { status_min: "Needs {status}.", renown_min: "Needs {renown}." }
