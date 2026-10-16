@@ -147,3 +147,53 @@ describe('time content', () => {
     expect(dup.ok).toBe(false);
   });
 });
+
+describe('event options', () => {
+  const eventContent: Content = {
+    ...content,
+    settings: { ...content.settings, eventChancePer10k: 10000, minDaysBetweenEvents: 0 },
+    events: content.events.filter((e) => e.id === 'stop'),
+  };
+
+  it('end_action and later in an option take effect after the answer', () => {
+    const state = newGame(1, eventContent);
+    apply(state, eventContent, { type: 'start', actionId: 'wait' });
+    expect(state.status).toBe('awaiting_choice');
+    const money = getPlayer(state).money;
+    apply(state, eventContent, { type: 'choose', option: 0 });
+    expect(state.activeAction).toBeNull();
+    expect(state.status).toBe('awaiting_action');
+    expect(getPlayer(state).money).toBe(money); // the action's own effects are skipped
+    expect(state.scheduled).toHaveLength(1);
+    expect(state.chronicle.at(-1)!.kind).toBe('interrupt');
+    expect(entryText(state.chronicle.at(-1)!)).toBe('Anne Fixture had to break off the course of the day.');
+    expect(checkInvariants(state, eventContent)).toEqual([]);
+  });
+
+  it('end_action takes a text of its own', () => {
+    const state = newGame(1, eventContent);
+    apply(state, eventContent, { type: 'start', actionId: 'wait' });
+    apply(state, eventContent, { type: 'choose', option: 1 });
+    expect(entryText(state.chronicle.at(-1)!)).toBe('Anne Fixture gave up the road.');
+    expect(state.activeAction).toBeNull();
+  });
+});
+
+describe('time content checks', () => {
+  const errorsOf = (files: typeof BASE_FILES) => {
+    const result = loadContent(files);
+    return result.ok ? [] : result.errors.map((e) => `${e.path}: ${e.message}`);
+  };
+
+  it('requires the time section', () => {
+    const files = BASE_FILES.filter((f) => !f.path.endsWith('time.yaml'));
+    expect(errorsOf(files).some((e) => /^time: .*required/.test(e))).toBe(true);
+  });
+
+  it('rejects unknown placeholders in reasons and the interrupt text', () => {
+    const edit = (from: string, to: string) =>
+      BASE_FILES.map((f) => (f.path.endsWith('time.yaml') ? { ...f, text: f.text.replace(from, to) } : f));
+    expect(errorsOf(edit('Requires {amount}', 'Requires {age}')).some((e) => /time\.reasons\.money_min: unknown placeholder/.test(e))).toBe(true);
+    expect(errorsOf(edit('"{name} had', '"{pronoun} had')).some((e) => /time\.texts\.interrupted: unknown placeholder/.test(e))).toBe(true);
+  });
+});

@@ -62,6 +62,7 @@ export function startAction(ctx: Ctx, actionId: string): void {
  */
 export function interruptAction(ctx: Ctx, template?: string): void {
   const { state, content } = ctx;
+  if (!state.activeAction) return;
   log(state, {
     subject: getPlayer(state),
     kind: 'interrupt',

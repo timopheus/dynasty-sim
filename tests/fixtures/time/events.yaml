@@ -1,0 +1,13 @@
+# Event used by tests/time.test.ts to interrupt the `wait` action.
+events:
+  - id: stop
+    weight: 1
+    actions: [wait]
+    text: "A messenger stops {name}."
+    options:
+      - text: Turn back
+        result: "{name} turned back."
+        effects: { end_action: true, later: [{ after_days: 3, effects: { money: 7 } }] }
+      - text: Turn back with a word
+        result: "{name} turned back at once."
+        effects: { end_action: "{name} gave up the road." }
