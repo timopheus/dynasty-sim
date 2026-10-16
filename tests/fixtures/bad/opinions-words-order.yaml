@@ -1,0 +1,8 @@
+# expect-error: opinions.words[2].from /rise strictly/
+opinions:
+  reasons: [{ id: slight, name: Slight, value: -10, kind: harm, decay: { kind: never } }]
+  traitEffects: []
+  background: { max: 10, rules: [] }
+  words: [{ from: -100, text: a }, { from: 0, text: b }, { from: 0, text: c }]
+  relations: []
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }

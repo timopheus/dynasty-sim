@@ -1,0 +1,68 @@
+# Opinions, relations and acquaintance (D-035…D-037). Schema: src/core/relations/content.ts (OpinionsContentSchema).
+# No event of stage 2 adds a reason or a relation (D-051): the model waits for the events with roles of stage 3.
+opinions:
+  # Causes of an opinion. kind: harm or benefit decides which trait memory applies. decay: fade (days), never, or
+  # held (until an event ends it by name).
+  reasons:
+    - { id: insulted_in_public, name: Insulted in public, value: -60, kind: harm, decay: { kind: never } }
+    - { id: killed_kin, name: Killed kin, value: -90, kind: harm, decay: { kind: never } }
+    - { id: father_enemy, name: Enemy of my father, value: -30, kind: harm, decay: { kind: never } }
+    - { id: wronged, name: Did me wrong, value: -35, kind: harm, decay: { kind: fade, days: 1460 } }
+    - { id: slighted, name: Slighted me, value: -15, kind: harm, decay: { kind: fade, days: 365 } }
+    - { id: gift, name: Gave a gift, value: 20, kind: benefit, decay: { kind: fade, days: 365 } }
+    - { id: favour, name: Did me a service, value: 35, kind: benefit, decay: { kind: fade, days: 1460 } }
+    - { id: saved_life, name: Saved my life, value: 70, kind: benefit, decay: { kind: never } }
+    - { id: owes_me, name: Owes me, value: 15, kind: benefit, decay: { kind: held, until: debt_repaid } }
+    - { id: shamed_me, name: Shamed me, value: -40, kind: harm, decay: { kind: held, until: debt_repaid } }
+
+  # Memory of the holder: fade 0 never forgets, 200 forgets twice as fast; scale is the weight of the reason.
+  traitEffects:
+    - { trait: vengeful, kind: harm, fade: 0 }
+    - { trait: forgiving, kind: harm, fade: 200 }
+    - { trait: generous, kind: benefit, scale: 70 }
+    - { trait: greedy, kind: benefit, scale: 140 }
+    - { trait: wrathful, kind: harm, scale: 130 }
+    - { trait: trusting, kind: harm, scale: 80 }
+
+  # Constant part from traits of the holder towards traits of the other person; `max` limits their sum.
+  background:
+    max: 30
+    rules:
+      - { holder: proud, target: proud, value: -8 }
+      - { holder: honest, target: honest, value: 8 }
+      - { holder: honest, target: deceitful, value: -12 }
+      - { holder: deceitful, target: deceitful, value: 5 }
+      - { holder: brave, target: craven, value: -8 }
+      - { holder: craven, target: brave, value: -4 }
+      - { holder: generous, target: greedy, value: -6 }
+      - { holder: greedy, target: generous, value: 4 }
+      - { holder: ambitious, target: ambitious, value: -6 }
+      - { holder: diligent, target: lazy, value: -10 }
+      - { holder: lazy, target: diligent, value: -4 }
+      - { holder: wrathful, target: calm, value: -4 }
+      - { holder: calm, target: wrathful, value: -6 }
+      - { holder: trusting, target: honest, value: 6 }
+      - { holder: suspicious, target: suspicious, value: -5 }
+
+  # Opinion in words, from the lowest value up (GDD 8.6).
+  words:
+    - { from: -100, text: hatred }
+    - { from: -60, text: dislike }
+    - { from: -30, text: coolness }
+    - { from: -10, text: indifference }
+    - { from: 10, text: liking }
+    - { from: 30, text: friendship }
+    - { from: 60, text: devotion }
+
+  # Relations are made and broken by events (D-036). In a pair `a` is the patron; opinion is what a thinks of b and b of a.
+  relations:
+    - { id: friend, name: Friend, symmetric: true, opinion: { a: 25, b: 25 }, acquaintance: close }
+    - { id: rival, name: Rival, symmetric: true, opinion: { a: -30, b: -30 }, acquaintance: known }
+    - { id: patron, name: Patron, symmetric: false, opinion: { a: 10, b: 20 }, acquaintance: close }
+    - { id: lover, name: Lover, symmetric: true, opinion: { a: 30, b: 30 }, acquaintance: close }
+
+  # Time near the hero (D-037): the chances are checked once a week against the circle of 2.5.
+  acquaintance:
+    meetPer100: 20
+    closeAfterDays: 365
+    closePer100: 4

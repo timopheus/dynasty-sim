@@ -1,0 +1,8 @@
+# expect-error: opinions.traitEffects[1] /duplicate effect of trait "proud"/
+opinions:
+  reasons: [{ id: slight, name: Slight, value: -10, kind: harm, decay: { kind: never } }]
+  traitEffects: [{ trait: proud, kind: harm, fade: 0 }, { trait: proud, kind: harm, fade: 200 }]
+  background: { max: 10, rules: [] }
+  words: [{ from: -100, text: low }]
+  relations: []
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }

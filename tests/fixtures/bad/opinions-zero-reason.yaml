@@ -1,0 +1,8 @@
+# expect-error: opinions.reasons[0].value /must change the opinion/
+opinions:
+  reasons: [{ id: slight, name: A, value: 0, kind: harm, decay: { kind: never } }]
+  traitEffects: []
+  background: { max: 10, rules: [] }
+  words: [{ from: -100, text: low }]
+  relations: []
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }

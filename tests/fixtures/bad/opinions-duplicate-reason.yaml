@@ -1,0 +1,8 @@
+# expect-error: opinions.reasons[1].id /duplicate reason id "slight"/
+opinions:
+  reasons: [{ id: slight, name: A, value: -10, kind: harm, decay: { kind: never } }, { id: slight, name: B, value: 10, kind: benefit, decay: { kind: never } }]
+  traitEffects: []
+  background: { max: 10, rules: [] }
+  words: [{ from: -100, text: low }]
+  relations: []
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }
