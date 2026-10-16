@@ -106,12 +106,15 @@ export function utf8Bytes(text: string): number {
   return bytes;
 }
 
-/** Heads of the house are the subjects of "start" and "succession" lines, in order. */
+/**
+ * Heads of the house are the subjects of "start" and "succession" lines, in order. The founder rules from the start
+ * of the game, day 0: the "start" line is dated at the birth by the backstory (D-324).
+ */
 function headStarts(state: GameState): { id: string; startDay: number }[] {
   const heads: { id: string; startDay: number }[] = [];
   for (const e of allChronicle(state)) {
     if ((e.kind === 'start' || e.kind === 'succession') && !heads.some((h) => h.id === e.subject)) {
-      heads.push({ id: e.subject, startDay: e.day });
+      heads.push({ id: e.subject, startDay: e.kind === 'start' ? Math.max(e.day, 0) : e.day });
     }
   }
   return heads;
