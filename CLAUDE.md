@@ -70,7 +70,7 @@ CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck,
 - Ядро импортирует только свои модули, `yaml` и `zod`. Запрещены DOM, Node API, `Math.random`, `Date`, `performance`. Это проверяют `tests/architecture.test.ts` и отдельный `src/core/tsconfig.json` без DOM и Node.
 - Вся случайность — через `src/core/rng.ts` и `state.rng`. Отдельный поток (например, для бота) — `seedRng(seed, stream)`, мировой поток не трогать.
 - В состоянии и вероятностях только целые числа (`chancePer(r, n, d)`). Никаких `Math.exp/pow/log/sin…` в расчётах: результат может отличаться между движками.
-- GameState — только JSON-данные: без классов, Map/Set и `undefined` (вместо него `null`). Сохранение — `serialize` из `save/` (`JSON.stringify` с проверкой, что состояние — чистый JSON).
+- GameState — только JSON-данные: без классов, Map/Set и `undefined` (вместо него `null`). Сохранение — `serialize` из `save/`: проверка, что состояние — чистый JSON, и компактная запись `{version, shapes, state}` (D-195).
 - Обходить массивы контента, а не ключи объектов. Исключение — роли события и символы грамматики: по контракту это карты (D-161), порядок их ключей задан файлом (id начинаются с буквы).
 - Состояние меняет только `apply(state, content, command)`. Функции-запросы (`availableActions`, `pendingEventDef`) случайность не тратят.
 - Новое правило согласованности — в инварианты своего модуля (они собраны в `invariants.ts`): ими пользуются прогон и тесты.
