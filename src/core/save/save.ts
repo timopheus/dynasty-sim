@@ -2,6 +2,7 @@ import type { Content } from '../content/schema';
 import { checkInvariants } from '../invariants';
 import type { GameState } from '../state';
 
+import { decodeCompact, encodeCompact } from './compact';
 import { SAVE_VERSION } from './version';
 
 export { SAVE_VERSION };
@@ -19,10 +20,16 @@ export function jsonProblems(value: unknown, path = 'state'): string[] {
   return [`${path} is ${typeof value}`];
 }
 
+/**
+ * The save: `{version, shapes, state}`, where `state` is the game state in the compact form of
+ * compact.ts (D-195). The version stays a plain top-level field, so a save of any format is refused
+ * by it before anything else is read (D-058).
+ */
 export function serialize(state: GameState): string {
   const problems = jsonProblems(state);
   if (problems.length > 0) throw new Error(`State is not plain JSON: ${problems.slice(0, 5).join('; ')}`);
-  return JSON.stringify(state);
+  const { shapes, data } = encodeCompact(state);
+  return JSON.stringify({ version: SAVE_VERSION, shapes, state: data });
 }
 
 export type SaveFailure = 'old_version' | 'corrupt';
@@ -48,13 +55,18 @@ export function readSave(json: string, content: Content): SaveResult {
   if (version !== SAVE_VERSION) {
     return { ok: false, reason: 'old_version', message: `Save has format version ${String(version)}, this game reads ${SAVE_VERSION}` };
   }
+  let state: GameState;
   try {
-    const problems = checkInvariants(data as GameState, content);
+    const { shapes, state: compact } = data as { shapes?: unknown; state?: unknown };
+    const decoded = decodeCompact(shapes, compact);
+    if (typeof decoded !== 'object' || decoded === null || Array.isArray(decoded)) throw new Error('state is not an object');
+    state = decoded as GameState;
+    const problems = checkInvariants(state, content);
     if (problems.length > 0) return { ok: false, reason: 'corrupt', message: `Invalid save: ${problems.join('; ')}` };
   } catch (error) {
     return { ok: false, reason: 'corrupt', message: `Invalid save: ${error instanceof Error ? error.message : String(error)}` };
   }
-  return { ok: true, state: data as GameState };
+  return { ok: true, state };
 }
 
 export function deserialize(json: string, content: Content): GameState {
