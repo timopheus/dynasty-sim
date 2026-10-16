@@ -2,6 +2,11 @@
 
 Новые записи сверху: дата, ID задачи, что изменилось.
 
+## 2026-10-16 · 3.14 Компактная запись сохранения
+- Сохранение — `{version, shapes, state}`: наборы ключей объектов записаны один раз, объект — массив значений (`src/core/save/compact.ts`, D-195). Без потерь: порядок ключей прежний, повторное сохранение даёт тот же текст.
+- 10 прогонов × 300 лет: сохранение медиана 2,18 → 1,32 МБ, максимум 2,33 → 1,38 МБ; время прогона прежнее. `SAVE_VERSION` = 9.
+- Тесты `tests/save.test.ts`: кодирование и разбор, порядок ключей, испорченные сжатые записи — `corrupt`, прежний формат — `old_version`.
+
 ## 2026-10-16 · 3.12 Контент: события с ролями, пачка 1
 - 13 нынешних событий переведены на новый формат (текст во втором лице, роли, проверки, `chronicle`, `mood`); `old_wound` — с `conditions_any: [old_wound]`; `fever` — с необязательной ролью лекаря (D-283).
 - 24 новых события с ролями на все действия: 5 тяжёлых со смертельным риском для героя (`escort_ambush`, `skirmish_at_the_ford`, `mutiny_in_camp`, `bear_in_the_thicket`, `duel_at_dawn`; D-282); связи (друг, соперник, покровитель) в `fellow_traveller`, `kindly_nurse`, `mutiny_in_camp`, `market_rival`, `patron_offer` и др.; цепочки: вызов → дуэль через `schedule` (`slighted_at_the_inn` → `duel_at_dawn`) и история с долгом (`lend_to_a_comrade` → `debtor_repays` / `debtor_defaults`); 4 события людей мира (`npc_quarrel`, `npc_kindness`, `npc_fever`, `npc_theft`, `ai` по чертам); 3 извещения (`lucky_find`, `news_of_an_old_comrade`, `cold_snap`); 3 события `way_up` (`priest_alms`, `odd_job_offer`, `patron_offer`).
