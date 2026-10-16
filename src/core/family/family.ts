@@ -174,7 +174,8 @@ export const familyInvariants: Invariant = (ctx) => {
     if (!findCharacter(state, p.father)) problems.push(`pregnancy of ${p.mother}: unknown father ${p.father}`);
     if (mothers.has(p.mother)) problems.push(`${p.mother} is pregnant twice`);
     mothers.add(p.mother);
-    if (!isInt(p.due) || p.due < state.day) problems.push(`pregnancy of ${p.mother} is overdue (${p.due})`);
+    // The birth comes in the first family phase on or after `due`: a day may stop before that phase (a death).
+    if (!isInt(p.due)) problems.push(`pregnancy of ${p.mother} has an invalid due day ${String(p.due)}`);
   }
   return problems;
 };

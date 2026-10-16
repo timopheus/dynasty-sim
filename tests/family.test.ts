@@ -156,6 +156,16 @@ describe('births (4.5)', () => {
     expect(checkInvariants(state, content)).toEqual([]);
   });
 
+  it('a birth the family phase missed on its day comes in the next one; meanwhile the invariants hold', () => {
+    const { state, ctx, hero } = couple(content);
+    familyPhase.run(ctx);
+    state.day += 272;
+    expect(checkInvariants(state, content)).toEqual([]);
+    familyPhase.run(ctx);
+    expect(childrenOf(state, hero.id)).toHaveLength(1);
+    expect(state.pregnancies).toEqual([]);
+  });
+
   it('a heroine-head gives her child her own surname (D-313)', () => {
     const { state, ctx, hero, spouse } = couple(content, 'female');
     familyPhase.run(ctx);
