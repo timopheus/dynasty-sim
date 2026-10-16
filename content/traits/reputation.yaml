@@ -23,3 +23,34 @@ traits:
     category: reputation
     stats: { diplomacy: -2 }
     visibility: obvious
+
+  # Added by 3.12 (D-281): earned by public acts in events, never generated at random.
+  - id: brawler
+    name: Brawler
+    category: reputation
+    stats: { diplomacy: -1, prowess: 1 }
+    visibility: obvious
+
+  - id: fair_dealer
+    name: Fair dealer
+    category: reputation
+    stats: { diplomacy: 1, stewardship: 1 }
+    visibility: obvious
+
+  - id: bear_slayer
+    name: Bear-slayer
+    category: reputation
+    stats: { prowess: 1 }
+    visibility: obvious
+
+  - id: oath_keeper
+    name: Keeper of oaths
+    category: reputation
+    stats: { diplomacy: 1 }
+    visibility: obvious
+
+  - id: deserter
+    name: Deserter
+    category: reputation
+    stats: { martial: -1, diplomacy: -2 }
+    visibility: obvious

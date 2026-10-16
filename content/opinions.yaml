@@ -14,13 +14,20 @@ opinions:
     - { id: saved_life, name: Saved my life, value: 70, kind: benefit, decay: { kind: never } }
     - { id: owes_me, name: Owes me, value: 15, kind: benefit, decay: { kind: held, until: debt_repaid } }
     - { id: shamed_me, name: Shamed me, value: -40, kind: harm, decay: { kind: held, until: debt_repaid } }
-    # Starting set for the events of stage 3 (D-223); after 3.6 only 3.12 adds reasons.
+    # Starting set for the events of stage 3 (D-223); after 3.6 only 3.12 and 3.13 add reasons.
     - { id: betrayed, name: Betrayed me, value: -70, kind: harm, decay: { kind: never } }
     - { id: humiliated, name: Humiliated me, value: -50, kind: harm, decay: { kind: fade, days: 1825 } }
     - { id: called_coward, name: Called me a coward, value: -35, kind: harm, decay: { kind: fade, days: 1460 } }
     - { id: spared, name: Spared me, value: 45, kind: benefit, decay: { kind: never } }
     - { id: mentor, name: Taught me, value: 40, kind: benefit, decay: { kind: fade, days: 3650 } }
     - { id: childhood_friend, name: Friend since childhood, value: 30, kind: benefit, decay: { kind: never } }
+    # Added by 3.12 for the first batch of events with roles (D-280).
+    - { id: defeated_me, name: Defeated me, value: -25, kind: harm, decay: { kind: fade, days: 1460 } }
+    - { id: cheated_me, name: Cheated me, value: -45, kind: harm, decay: { kind: fade, days: 1825 } }
+    - { id: comrade, name: Stood beside me, value: 25, kind: benefit, decay: { kind: fade, days: 1825 } }
+    - { id: nursed_me, name: Nursed me, value: 30, kind: benefit, decay: { kind: fade, days: 1825 } }
+    - { id: no_spine, name: Showed no spine, value: -20, kind: harm, decay: { kind: fade, days: 1460 } }
+    - { id: stood_by_me, name: Stood by me when it counted, value: 40, kind: benefit, decay: { kind: fade, days: 1825 } }
 
   # Memory of the holder: fade 0 never forgets, 200 forgets twice as fast; scale is the weight of the reason.
   traitEffects:
@@ -70,14 +77,14 @@ opinions:
       symmetric: true
       opinion: { a: 25, b: 25 }
       acquaintance: close
-      starts: "{name} and {other} became friends."
+      starts: "{name} befriended {other}."
       ends: "{name} and {other} ceased to be friends."
     - id: rival
       name: Rival
       symmetric: true
       opinion: { a: -30, b: -30 }
       acquaintance: known
-      starts: "{name} and {other} became rivals."
+      starts: "{name} made a rival of {other}."
       ends: "{name} and {other} ceased to be rivals."
     - id: patron
       name: Patron
