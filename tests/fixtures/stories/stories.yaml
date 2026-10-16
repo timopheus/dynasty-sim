@@ -1,0 +1,67 @@
+# Follow-ups and stories (3.8). Everything is followup_only or a story event, so the deck stays as in the base.
+events:
+  - id: challenge
+    weight: 1
+    followup_only: true
+    roles:
+      rival: { pick: circle }
+    text: "{rival} throws down a glove."
+    options:
+      - text: Accept the challenge of {rival}
+        effects:
+          schedule: [{ event: duel, after_days: { min: 5, max: 5 }, roles: { rival: rival } }]
+        result: "{name} accepted the challenge of {rival}."
+      - text: Refuse
+        result: "{name} refused {rival}."
+
+  - id: duel
+    weight: 1
+    followup_only: true
+    roles:
+      rival: { pick: given }
+    text: "Dawn. {rival} is waiting."
+    options:
+      - text: Fight {rival}
+        on: { rival: { money: -1 } }
+        result: "{name} fought a duel with {rival}."
+
+  - id: accusation
+    weight: 1
+    followup_only: true
+    roles:
+      accuser: { pick: circle }
+    text: "{accuser} calls you a thief."
+    options:
+      - text: Demand satisfaction
+        effects:
+          story: { open: feud, days: 30, fallback: [feud_fades, feud_forgotten], roles: { accuser: accuser } }
+        result: "{name} demanded satisfaction from {accuser}."
+
+  - id: feud_settled
+    weight: 1
+    story: feud
+    text: "The feud comes to a head."
+    options:
+      - text: Settle it
+        result: "{name} settled the feud."
+
+  - id: feud_fades
+    weight: 1
+    followup_only: true
+    story: feud
+    when: { money_min: 100000 }
+    roles:
+      accuser: { pick: given }
+    text: "Rich men do not quarrel."
+    result: "{name} bought peace from {accuser}."
+    chronicle: true
+
+  - id: feud_forgotten
+    weight: 1
+    followup_only: true
+    story: feud
+    roles:
+      accuser: { pick: given }
+    text: "The quarrel is forgotten."
+    effects: { money: 1 }
+    result: "{name} forgot the quarrel with {accuser}."
