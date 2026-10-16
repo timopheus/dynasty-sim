@@ -1,5 +1,6 @@
 # Actions the player can start. Duration is in days, rolled when the action starts.
-# Grown-up actions need `age_min: 16` (settings.adultAge): a hero under age plays the actions of a child (D-314).
+# Grown-up actions need `age_min: 16` (settings.adultAge): a hero under age plays the actions of a child (D-314);
+# resting is for everyone (a sick child must be able to recover, D-366).
 # `when` (optional) limits when the action can be started: season, money_min, age_min, age_max,
 # sex (D-034: paths closed by the customs of 1700), fit (no severe wound or illness).
 # Rest and the road change the course of conditions: lists in content/health.yaml.
@@ -29,7 +30,6 @@ actions:
   - id: rest
     name: Rest and recover
     duration: { min: 7, max: 28 }
-    when: { age_min: 16 }
     effects: { money: -3 }
     text: "{name} spent a few quiet weeks resting."
 
@@ -59,7 +59,7 @@ actions:
   - id: grow_up
     name: Grow up under guardianship
     duration: { min: 365, max: 365 }
-    when: { age_max: 15 }
+    when: { age_max: 14 }
     text: "{name} grew another year older under the care of {his} guardian."
 
   - id: lessons

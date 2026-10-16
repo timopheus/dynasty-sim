@@ -192,7 +192,11 @@ function willView(form: WillForm, onCommand: (cmd: Command) => void, cancel: () 
 /** Who inherits now, by law or by will (D-018, D-314). */
 function heirParagraph(session: Session): HTMLElement {
   const line = heirLine(session.state);
-  if (!line) return el('p', {}, 'Heir: nobody of the blood.');
+  if (!line) {
+    // Until 4.13 a namesake from afar takes a house without kin (D-315); then the house ends.
+    const placeholder = session.content.succession?.temporaryHeir ?? true;
+    return el('p', {}, placeholder ? 'Heir: nobody of the blood; a namesake from afar would take up the house.' : 'Heir: nobody. The house would end with you.');
+  }
   return el('p', {}, 'Heir: ', el('a', { href: personHref(line.id), className: 'person' }, line.name), ` (${line.by}).`);
 }
 

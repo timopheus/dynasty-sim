@@ -1,7 +1,5 @@
-import { findCharacter, getPlayer, isInt } from '../helpers';
-import { activeRelationBetween } from '../relations/links';
+import { findCharacter, isInt } from '../helpers';
 import type { Invariant, RefsFn } from '../state';
-import { ageYears } from '../time/calendar';
 
 /**
  * Succession part of the game state (stage 4, D-236, D-314, D-315, D-360).
@@ -52,7 +50,7 @@ function termsRefs(terms: WillDraft | null): string[] {
 /** People the succession part refers to (D-312): those named in the wills and the draft, and the guardian. */
 export const successionRefs: RefsFn = ({ state }) => [...termsRefs(state.will), ...termsRefs(state.executedWill), ...termsRefs(state.willDraft), ...(state.guardian === null ? [] : [state.guardian])];
 
-export const successionInvariants: Invariant = ({ state, content }) => {
+export const successionInvariants: Invariant = ({ state }) => {
   const problems: string[] = [];
   const terms = (what: string, t: WillDraft) => {
     for (const id of termsRefs(t)) if (!findCharacter(state, id)) problems.push(`${what} names unknown character ${id}`);
@@ -70,14 +68,9 @@ export const successionInvariants: Invariant = ({ state, content }) => {
     const guardian = findCharacter(state, guardianId);
     if (!guardian) problems.push(`guardian ${guardianId} is unknown`);
     else if (guardian.deathDay !== null) problems.push(`guardian ${guardianId} is dead`);
-    if (state.status !== 'ended') {
-      const hero = getPlayer(state);
-      if (ageYears(hero.birthDay, state.day) >= content.settings.adultAge) problems.push(`the hero ${hero.id} is of age but has a guardian`);
-      const kind = content.succession?.guardianRelation;
-      if (kind !== undefined && guardian && guardian.deathDay === null && !activeRelationBetween(state, guardianId, hero.id, kind)) {
-        problems.push(`guardian ${guardianId} has no ${kind} relation with the hero`);
-      }
-    }
+    // Coming of age and an ended relation are settled by the succession phase, which a day cut short by illness does
+    // not reach (D-366): the guardian may outlast them by some days, so they are not broken rules.
+    if (state.status !== 'ended' && guardianId === state.playerId) problems.push('the hero is their own guardian');
   }
   return problems;
 };

@@ -89,6 +89,12 @@ function appoint(ctx: Ctx, ward: Character, guardian: Character | null): void {
   log(ctx, { subject: ward, kind: 'guardian', level: 'chronicle', parts });
 }
 
+/** An event may end the relation (the guardian removed, 4.13): then there is no guardian any more (D-366). */
+function guarding(ctx: Ctx, guardian: string, ward: Character): boolean {
+  const kindId = ctx.content.succession?.guardianRelation;
+  return kindId === undefined || findRelationKind(ctx.content, kindId) === null || activeRelationBetween(ctx.state, guardian, ward.id, kindId) !== null;
+}
+
 /** The hero has come of age: the guardianship ends (D-314). */
 function endGuardianship(ctx: Ctx, hero: Character): void {
   const { state, content } = ctx;
@@ -189,6 +195,7 @@ export const successionPhase: DayPhase = {
     if (state.willDraft && state.activeAction?.actionId !== content.succession?.willAction) state.willDraft = null;
     const hero = getPlayer(state);
     if (state.guardian !== null && !isMinor(ctx, hero)) endGuardianship(ctx, hero);
+    else if (state.guardian !== null && !guarding(ctx, state.guardian, hero)) state.guardian = null;
     const will = state.will;
     if (will && !will.stale) {
       const born = state.household.some((id) => {
@@ -234,15 +241,16 @@ export interface WillOrder {
 }
 
 /**
- * Whether the hero may go to the notary now (D-314): of age and able to pay. The reasons are the texts of the usual
- * conditions (`age_min`, `money_min`); null when wills are not in the content. Never consumes randomness.
+ * Whether the hero may go to the notary now (D-314): of age, able to pay and not severely ill (the health phase would cut
+ * the action short, D-366). The reasons are the texts of the usual conditions (`age_min`, `money_min`, `fit`); null when
+ * wills are not in the content. Never consumes randomness.
  */
 export function willReasons(ctx: Ctx): string[] | null {
   const { state, content } = ctx;
   const pace = content.succession;
   if (!pace) return null;
   const hero = getPlayer(state);
-  const when = { age_min: content.settings.adultAge, money_min: pace.willCost };
+  const when = { age_min: content.settings.adultAge, money_min: pace.willCost, fit: true as const };
   return conditionReport(ctx, hero, when, { hero: hero.id, protagonist: hero.id }).reasons;
 }
 

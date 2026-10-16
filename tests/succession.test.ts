@@ -7,7 +7,7 @@ import { checkInvariants } from '../src/core/invariants';
 import { createCharacter, kill } from '../src/core/lifecycle';
 import { narratorContent } from '../src/core/narrator/content';
 import { narratorPhase } from '../src/core/narrator/phases';
-import { activeRelationBetween } from '../src/core/relations/links';
+import { activeRelationBetween, endRelation } from '../src/core/relations/links';
 import { opinionCauses } from '../src/core/relations/opinions';
 import { seedRng } from '../src/core/rng';
 import { deserialize, serialize } from '../src/core/save/save';
@@ -220,6 +220,19 @@ describe('the will (D-314, D-360)', () => {
     expect(state.activeAction).toBeNull();
   });
 
+  it('a severely ill hero is told so and cannot go to the notary (D-366)', () => {
+    const sick: Content = structuredClone(quiet);
+    const mortal = sick.health.conditions.find((c) => c.id === 'mortal')!;
+    mortal.stages[0]!.severe = true;
+    const { state, ctx, hero } = setup(sick);
+    child(ctx, hero, 'male', 20);
+    hero.money = 50;
+    hero.conditions.push({ id: 'mortal', stage: 'fatal', start: state.day } as (typeof hero.conditions)[number]);
+    expect(willForm(state, sick)?.reasons).toEqual(['Too ill']);
+    expect(() => apply(state, sick, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/Too ill/);
+    expect(botCommand(state, sick, seedRng(1, 7))).not.toMatchObject({ type: 'will' });
+  });
+
   it('the notary action is not offered in the list of actions', () => {
     const { ctx } = setup();
     expect(willForm(ctx.state, quiet)).not.toBeNull();
@@ -289,6 +302,22 @@ describe('the guardian (D-314, D-362)', () => {
     successionPhase.run(ctx);
     expect(state.guardian).toBeNull();
     expect(activeRelationBetween(state, guardian, son.id, 'guardian')).toBeNull();
+    expect(checkInvariants(state, quiet)).toEqual([]);
+  });
+
+  it('an event that ends the guardianship leaves no guardian; a few days past coming of age break no rule (D-366)', () => {
+    const { state, ctx, hero } = setup();
+    hero.sex = 'male';
+    const mother = person(ctx, 'female', 35);
+    const son = person(ctx, 'male', 12, { father: hero.id, mother: mother.id });
+    kill(ctx, hero, 'natural');
+    expect(state.guardian).toBe(mother.id);
+    son.birthDay = state.day - 16 * 365 - 3;
+    expect(checkInvariants(state, quiet)).toEqual([]);
+    son.birthDay = state.day - 12 * 365;
+    endRelation(ctx, state.relations.find((r) => r.kind === 'guardian' && r.end === null)!, 'removed');
+    successionPhase.run(ctx);
+    expect(state.guardian).toBeNull();
     expect(checkInvariants(state, quiet)).toEqual([]);
   });
 
