@@ -40,6 +40,7 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   relations/       мнения и отношения (2.4)
   chronicle/       log() — единственная запись в хронику, markdown (2.6)
   archive/         архив (D-312, D-335): куски состояния (chunks.ts), фаза архива раз в год (phases.ts), проверка куска (check.ts), чтение всей истории allChronicle/allCharacters/anyCharacter и проверка архива (archive.ts) — только для страниц, markdown, метрик, итога, сохранения
+  entities/        реестр видов сущностей (registry.ts): префикс id → вид, слово адреса, exists по горячему состоянию; страницы видов (D-311, D-330)
   family/          браки и родство (4.5): father/mother, записи браков, запросы родства (kin.ts), proposalOptions (proposals.ts), раздел «Семья» (page.ts)
   succession/      смена главы (4.6): chooseHeir, succeed, endHouse, команда will, фаза succession, хук смерти (phases.ts)
   house/           род (4.7): роды, поле house, хук брака (house.ts), раздел и страница рода (page.ts)
