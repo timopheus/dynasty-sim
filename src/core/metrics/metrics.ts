@@ -27,6 +27,8 @@ export interface HeadsMetrics {
   chronicleLinesPerLife: Dist;
   /** Journal-level lines about one head, for heads who have died. */
   journalLinesPerLife: Dist;
+  /** Lines with ▸ (a choice that mattered) about one head, for heads who have died (3.7). */
+  marksPerLife: Dist;
 }
 
 export interface RunMetrics {
@@ -41,6 +43,12 @@ export interface RunMetrics {
   /** Events per completed action and per year, two decimals. */
   eventsPerAction: number;
   eventsPerYear: number;
+  /** Events with a choice per action the narrator saw, short (under 60 days) and long (D-168, 3.7); two decimals. */
+  eventsPerShortAction: number;
+  eventsPerLongAction: number;
+  /** Heavy events per year, and notices (events without a choice) started over the run. */
+  heavyPerYear: number;
+  notices: number;
   chronicle: { total: number; chronicleLevel: number; journalLevel: number };
   characters: { total: number; alive: number };
   money: { currentHead: number; atDeath: Dist };
@@ -53,6 +61,11 @@ const DAYS_PER_YEAR_X100 = 36525;
 /** a / b to two decimals; 0 when b is 0. */
 export function ratio(a: number, b: number): number {
   return b === 0 ? 0 : Math.round((a * 100) / b) / 100;
+}
+
+/** Count per year of a run of `days` days, two decimals. */
+function perYear(count: number, days: number): number {
+  return days === 0 ? 0 : Math.round((count * DAYS_PER_YEAR_X100) / days) / 100;
 }
 
 export function dist(values: number[]): Dist {
@@ -94,6 +107,7 @@ function headStarts(state: GameState): { id: string; startDay: number }[] {
 export function computeMetrics(state: GameState): RunMetrics {
   const byId = new Map(state.characters.map((c) => [c.id, c]));
   const linesBySubject = new Map<string, { chronicle: number; journal: number }>();
+  const marksBySubject = new Map<string, number>();
   let actions = 0;
   let events = 0;
   let chronicleLevel = 0;
@@ -104,6 +118,7 @@ export function computeMetrics(state: GameState): RunMetrics {
     const lines = linesBySubject.get(e.subject) ?? { chronicle: 0, journal: 0 };
     lines[e.level] += 1;
     linesBySubject.set(e.subject, lines);
+    if (e.mark) marksBySubject.set(e.subject, (marksBySubject.get(e.subject) ?? 0) + 1);
   }
 
   const heads = headStarts(state);
@@ -127,6 +142,7 @@ export function computeMetrics(state: GameState): RunMetrics {
       tenure: dist(dead.map((d) => ageYears(d.startDay, d.deathDay))),
       chronicleLinesPerLife: dist(dead.map((d) => lines(d.c.id).chronicle)),
       journalLinesPerLife: dist(dead.map((d) => lines(d.c.id).journal)),
+      marksPerLife: dist(dead.map((d) => marksBySubject.get(d.c.id) ?? 0)),
     },
     deathCauses: [...causes.entries()]
       .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
@@ -134,7 +150,11 @@ export function computeMetrics(state: GameState): RunMetrics {
     actions,
     events,
     eventsPerAction: ratio(events, actions),
-    eventsPerYear: state.day === 0 ? 0 : Math.round((events * DAYS_PER_YEAR_X100) / state.day) / 100,
+    eventsPerYear: perYear(events, state.day),
+    eventsPerShortAction: ratio(state.narratorStats.shortEvents, state.narratorStats.shortActions),
+    eventsPerLongAction: ratio(state.narratorStats.longEvents, state.narratorStats.longActions),
+    heavyPerYear: perYear(state.narratorStats.heavy, state.day),
+    notices: state.narratorStats.notices,
     chronicle: { total: state.chronicle.length, chronicleLevel, journalLevel: state.chronicle.length - chronicleLevel },
     characters: { total: state.characters.length, alive: state.characters.filter((c) => c.deathDay === null).length },
     money: { currentHead: player?.money ?? 0, atDeath: dist(dead.map((d) => d.c.money)) },

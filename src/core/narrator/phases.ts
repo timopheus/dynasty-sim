@@ -1,40 +1,162 @@
+import { findAction } from '../actions/actions';
+import { conditionReport } from '../condition-keys';
+import { factorParts, type FactorValue } from '../content/types';
 import type { EventDef } from '../events/content';
-import { eventWeight, startEvent } from '../events/events';
-import { getPlayer } from '../helpers';
+import { eventWeight, findEvent, fireEvent, type FireResult } from '../events/events';
+import { findCharacter, getPlayer } from '../helpers';
 import { chancePer, weightedPick } from '../rng';
-import type { Ctx, DayPhase } from '../state';
-import { narratorContent } from './content';
+import { baseScope } from '../roles/roles';
+import type { Character, Ctx, DayPhase, GameState, Scope } from '../state';
+import { dueEvents, storyWeight } from '../stories/stories';
+import { DEFAULT_LONG_ACTION_DAYS, narratorContent, type NarratorContent } from './content';
 
-/** One roll of the hero's deck: the pace first, then a weighted pick among the possible events. */
-function rollDeck(ctx: Ctx): EventDef | null {
-  const { state, content } = ctx;
-  const pace = narratorContent(content);
-  if (state.lastEventDay !== null && state.day - state.lastEventDay < pace.minDaysBetweenEvents) return null;
-  if (!chancePer(state.rng, pace.eventChancePer10k, 10000)) return null;
-  const hero = getPlayer(state);
-  const weighted: { event: EventDef; weight: number }[] = [];
-  for (const event of content.events) {
-    if (Object.hasOwn(state.lastFired, event.id) && state.day - (state.lastFired[event.id] ?? 0) < pace.eventRepeatCooldownDays) continue;
-    const weight = eventWeight(ctx, event, hero);
-    if (weight > 0) weighted.push({ event, weight });
-  }
-  if (weighted.length === 0) return null;
-  return weightedPick(state.rng, weighted, (w) => w.weight).event;
+interface Candidate {
+  event: EventDef;
+  weight: number;
 }
 
+const scale = (weight: number, factor: FactorValue): number => {
+  const f = factorParts(factor);
+  return Math.floor((weight * f.num) / f.den);
+};
+
+/** The tension now: it fades by `decayPerDay` with the days since it was last set (D-231). */
+function currentTension(state: GameState, pace: NarratorContent): number {
+  return Math.max(0, state.tension - (pace.tension?.decayPerDay ?? 0) * (state.day - state.tensionDay));
+}
+
+/** `once: life` is about the head of the house: a new head starts with an empty list. */
+function syncLife(state: GameState): void {
+  if (state.lifeHero === state.playerId) return;
+  state.lifeHero = state.playerId;
+  state.lifeFired = [];
+}
+
+/** Nominal length of the action: the mean of its range (D-168 speaks of the length of an action, not of its roll). */
+function nominalDays(ctx: Ctx, actionId: string): number {
+  const { min, max } = findAction(ctx.content, actionId).duration;
+  return Math.floor((min + max) / 2);
+}
+
+const isLong = (pace: NarratorContent, days: number): boolean => days >= (pace.longActionDays ?? DEFAULT_LONG_ACTION_DAYS);
+
+const isNotice = (event: EventDef): boolean => !event.options && !event.pages;
+
+/** Records a fired event: pace memory, tension, counters. */
+function remember(ctx: Ctx, pace: NarratorContent, event: EventDef, long: boolean): void {
+  const { state } = ctx;
+  state.lastFired[event.id] = state.day;
+  state.lastEventDay = state.day;
+  if (event.once === 'life' && !state.lifeFired.includes(event.id)) state.lifeFired.push(event.id);
+  if (event.tags?.includes('way_up')) state.lastWayUpDay = state.day;
+  const severity = event.severity ?? 'light';
+  if (pace.tension && severity !== 'light') {
+    state.tension = currentTension(state, pace) + pace.tension.gain[severity];
+    state.tensionDay = state.day;
+  }
+  const stats = state.narratorStats;
+  if (severity === 'heavy') stats.heavy += 1;
+  if (isNotice(event)) stats.notices += 1;
+  else if (long) stats.longEvents += 1;
+  else stats.shortEvents += 1;
+}
+
+function launch(ctx: Ctx, pace: NarratorContent, event: EventDef, protagonist: Character, long: boolean, given: Scope = {}): FireResult {
+  const result = fireEvent(ctx, event, protagonist, given);
+  if (result !== 'failed') remember(ctx, pace, event, long);
+  return result;
+}
+
+/** Whether the hero is at the bottom now; keeps `bottomSince` (D-233). Pure with respect to randomness. */
+function atBottom(ctx: Ctx, pace: NarratorContent, hero: Character): boolean {
+  const { state } = ctx;
+  const bottom = pace.bottom;
+  const yes = bottom !== undefined && conditionReport(ctx, hero, bottom.when, baseScope(hero, hero)).met;
+  if (!yes) state.bottomSince = null;
+  else state.bottomSince ??= state.day;
+  return yes;
+}
+
+/** Deck events and story events that can fall now, with weights (D-232). Never consumes randomness. */
+function candidates(ctx: Ctx, pace: NarratorContent, hero: Character, bottom: boolean): { deck: Candidate[]; stories: Candidate[] } {
+  const { state, content } = ctx;
+  syncLife(state);
+  const tension = pace.tension ? currentTension(state, pace) : 0;
+  const high = pace.tension !== undefined && tension >= pace.tension.high;
+  const deck: Candidate[] = [];
+  const stories: Candidate[] = [];
+  for (const event of content.events) {
+    if (event.followup_only || event.deck === 'backstory' || event.who === 'npc') continue;
+    if (event.once === 'game' && Object.hasOwn(state.lastFired, event.id)) continue;
+    if (event.once === 'life' && state.lifeFired.includes(event.id)) continue;
+    const cooldown = event.cooldown_days ?? pace.eventRepeatCooldownDays;
+    if (Object.hasOwn(state.lastFired, event.id) && state.day - (state.lastFired[event.id] ?? 0) < cooldown) continue;
+    const severity = event.severity ?? 'light';
+    if (high && severity === 'heavy') continue;
+    let weight = eventWeight(ctx, event, hero);
+    if (weight <= 0) continue;
+    if (event.story !== undefined) {
+      weight = storyWeight(ctx, event.story, hero.id);
+      if (weight > 0) stories.push({ event, weight });
+      continue;
+    }
+    if (high && severity === 'light' && pace.tension) weight = scale(weight, pace.tension.lightFactor);
+    if (bottom && pace.bottom && event.tags?.includes('way_up')) weight = scale(weight, pace.bottom.wayUpFactor);
+    if (weight > 0) deck.push({ event, weight });
+  }
+  return { deck, stories };
+}
+
+const pickFrom = (ctx: Ctx, pool: Candidate[]): EventDef => weightedPick(ctx.state.rng, pool, (c) => c.weight).event;
+
 /**
- * The narrator (D-045): during the hero's action rolls the deck; a fired event waits for the player's choice.
- * Last phase of the day, so an event never fires on the day an action ends.
+ * The narrator (D-045, D-230): during the hero's action it starts, in this order, the follow-ups due today, then —
+ * if the pace allows — an event of an open story, then one of the main deck. Last phase of the day, so an event
+ * never fires on the day an action ends.
  */
 export const narratorPhase: DayPhase = {
   id: 'narrator',
   run(ctx) {
     const { state } = ctx;
-    if (!state.activeAction) return false;
-    const event = rollDeck(ctx);
-    if (!event || !startEvent(ctx, event, getPlayer(state))) return false;
-    state.lastFired[event.id] = state.day;
-    state.lastEventDay = state.day;
-    return true;
+    const active = state.activeAction;
+    if (!active) return false;
+    const pace = narratorContent(ctx.content);
+    const hero = getPlayer(state);
+    const days = nominalDays(ctx, active.actionId);
+    const long = isLong(pace, days);
+    if (state.seenActionEnd !== active.endDay) {
+      state.seenActionEnd = active.endDay;
+      if (long) state.narratorStats.longActions += 1;
+      else state.narratorStats.shortActions += 1;
+    }
+    const bottom = atBottom(ctx, pace, hero);
+
+    // 1. Follow-ups due today go first, whatever the pace.
+    for (const due of dueEvents(ctx)) {
+      const protagonist = findCharacter(state, due.protagonist);
+      if (!protagonist) continue;
+      const result = launch(ctx, pace, findEvent(ctx.content, due.eventId), protagonist, long, due.given);
+      if (result !== 'failed') return result === 'waiting';
+    }
+
+    if (state.lastEventDay !== null && state.day - state.lastEventDay < pace.minDaysBetweenEvents) return false;
+
+    // 2. After a long time at the bottom one way-up event is due outside the usual chance (D-017).
+    if (bottom && pace.bottom && state.bottomSince !== null) {
+      const since = Math.max(state.bottomSince, state.lastWayUpDay ?? 0);
+      if (state.day - since >= pace.bottom.forceAfterDays) {
+        const wayUp = [...candidates(ctx, pace, hero, true).deck].filter((c) => c.event.tags?.includes('way_up'));
+        if (wayUp.length > 0) return launch(ctx, pace, pickFrom(ctx, wayUp), hero, long) === 'waiting';
+      }
+    }
+
+    // 3. The chance of the day, by the length of the action (D-168).
+    if (!chancePer(state.rng, long ? (pace.longActionChancePer10k ?? pace.eventChancePer10k) : pace.eventChancePer10k, 10000)) return false;
+
+    // 4. Events of open stories first, then the deck.
+    const { deck, stories } = candidates(ctx, pace, hero, bottom);
+    const pool = stories.length > 0 ? stories : deck;
+    if (pool.length === 0) return false;
+    return launch(ctx, pace, pickFrom(ctx, pool), hero, long) === 'waiting';
   },
 };
