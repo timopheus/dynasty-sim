@@ -1,0 +1,10 @@
+# expect-error: events[0].weight_mods[0].factor /./
+events:
+  - id: bad_factor
+    weight: 1
+    weight_mods:
+      - { when: { money_min: 1 }, factor: 0 }
+    text: "Nothing."
+    options:
+      - text: Ok
+        result: "{name} shrugged."

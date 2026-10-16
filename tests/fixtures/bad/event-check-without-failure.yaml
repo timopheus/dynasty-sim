@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].failure /an option with a check needs failure/
+events:
+  - id: bad_check
+    weight: 1
+    text: "A wall."
+    options:
+      - text: Climb
+        check: { stat: prowess, difficulty: 10 }
+        success: { result: "{name} climbed a wall." }

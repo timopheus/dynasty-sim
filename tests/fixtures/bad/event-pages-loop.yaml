@@ -1,0 +1,19 @@
+# expect-error: events[0].pages.a /pages loop: a -> b -> a/
+events:
+  - id: bad_loop
+    weight: 1
+    text: "Start."
+    options:
+      - text: Go
+        next: a
+    pages:
+      a:
+        text: "A."
+        options:
+          - text: On
+            next: b
+      b:
+        text: "B."
+        options:
+          - text: Back
+            next: a
