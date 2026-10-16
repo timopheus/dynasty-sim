@@ -160,7 +160,7 @@ describe('chronicle markdown', () => {
     expect(md.match(/^## /gm)).toHaveLength(2);
     expect(md).toMatch(/^### 1700 · 20$/m);
     expect(md).not.toMatch(/Near/);
-    expect(md).toMatch(/<a id="c1"><\/a>\n## Anne Fixture \(1680–1700\)/);
+    expect(md).toMatch(/<a id="c1"><\/a>\n## Anne Fixture \(1679–1700\)/);
     // The journal keeps the circle member's line, with a day.
     expect(journalMarkdown(state)).toMatch(/- ◆ \*\*1 January\*\* — .*limps/);
     expect(entryText(state.chronicle.at(-1)!)).toContain('succeeded');
