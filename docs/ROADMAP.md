@@ -172,9 +172,10 @@
 | 3.8 | Продолжения и истории со сроком | `src/core/stories/`, `tests/stories.test.ts` | 3.2, 3.3, 3.7 | Opus | 4 | ✅ [#34](https://github.com/timopheus/dynasty-sim/pull/34) |
 | 3.9 | События людей мира | `src/core/events/` (выбор варианта человеком мира), `src/core/narrator/` (бросок для окружения), `content/narrator.yaml` (`npcChancePer10k`), `src/core/chronicle/log.ts`, `src/core/pages/` (строки событий на странице человека), `src/core/metrics/`, `tests/npc-events.test.ts` | 3.2, 3.3, 3.7 | Sonnet | 4 | ✅ [#35](https://github.com/timopheus/dynasty-sim/pull/35) |
 | 3.10 | Интерфейс событий | `src/ui/`, `src/core/chronicle/markdown.ts`, `tests/ui.test.ts` | 3.2, 3.4 | Sonnet | 4 | ✅ [#36](https://github.com/timopheus/dynasty-sim/pull/36) |
-| 3.11 | Предыстория первого героя | `src/core/backstory/`, `src/core/world/phases.ts` (мир до предыстории), `content/backstory/` (новый), `content/settings.yaml` (возраст начала, строка `start`), `tests/backstory.test.ts` | 3.2, 3.3, 3.5, 3.6, 3.1c | Sonnet (+ content-writer для сцен) | 5 | ⬜ |
+| 3.11 | Предыстория первого героя | `src/core/backstory/`, `src/core/world/phases.ts` (мир до предыстории), `content/backstory/` (новый), `content/settings.yaml` (возраст начала, строка `start`), `tests/backstory.test.ts` | 3.2, 3.3, 3.5, 3.6, 3.1c, 3.1d | Sonnet (+ content-writer для сцен) | 5 | ⬜ |
 | 3.1c | Тег настроения события (`mood`) | `src/core/content/`, `src/core/events/`, `src/core/narrator/content.ts`, `content/narrator.yaml` (список `moods`), `docs/event-format.md`, `tests/` | 3.2 | ведущая сессия этапа 3 (Opus) | между 4 и 5 | ✅ [#39](https://github.com/timopheus/dynasty-sim/pull/39) |
-| 3.12 | Контент: события с ролями, пачка 1 | `content/events/`, `content/actions.yaml`, `content/opinions.yaml`, `content/grammar.yaml`, `content/traits/reputation.yaml`, `.claude/agents/content-writer.md` | 3.2–3.9, 3.1c | content-writer (Sonnet) | 5 | ⬜ |
+| 3.1d | Люди истории в событиях из колоды; ключи условий предыстории | `src/core/events/events.ts`, `src/core/narrator/phases.ts`, `src/core/stories/content.ts`, `src/core/backstory/conditions.ts`, `src/core/condition-keys.ts`, `docs/event-format.md`, `tests/` | 3.8 | ведущая сессия этапа 3 (Opus) | между 4 и 5 | ✅ [#40](https://github.com/timopheus/dynasty-sim/pull/40) |
+| 3.12 | Контент: события с ролями, пачка 1 | `content/events/`, `content/actions.yaml`, `content/opinions.yaml`, `content/grammar.yaml`, `content/traits/reputation.yaml`, `.claude/agents/content-writer.md` | 3.2–3.9, 3.1c, 3.1d | content-writer (Sonnet) | 5 | ⬜ |
 | 3.13 | Контент, пачка 2, и замеры этапа | `content/events/`, `content/opinions.yaml`, `content/grammar.yaml`, `content/narrator.yaml` (только числа) | 3.12 | content-writer (Sonnet) | 6 | ⬜ |
 
 Колонка «Модуль» — полный список того, что задача правит, плюс свои тесты, фикстуры и плохие примеры в `tests/`; всё остальное — только через точки подключения 3.1 (D-052). Новые модули-папки этапа: `roles/`, `narrator/`, `stories/`, `backstory/`; грамматика живёт в `text/`, проверки — в `events/`. Общие доки (STATUS, CHANGELOG, ROADMAP, DECISIONS) правят все; `docs/event-format.md` — ведущая сессия и 3.2 (см. «Волны»).
@@ -316,7 +317,7 @@
 | 2 | 3.2, 3.3, 3.4 | ядро события, роли и тексты — разные папки; связаны контрактами 3.1 с простейшими реализациями |
 | 3 | 3.5, 3.6, 3.7 | ключи и эффекты персонажа, здоровья и связей — свои папки; рассказчику нужен `eventWeight` и `startEvent` из 3.2 |
 | 4 | 3.8, 3.9, 3.10 | истории подключаются к рассказчику через заглушки 3.1; события людей мира — `events/`, `narrator/`, `chronicle/log.ts`; интерфейс — `src/ui/` и `chronicle/markdown.ts`; общих файлов нет |
-| 4½ | 3.1c | ведущая сессия правит `docs/event-format.md` и схему события между волнами 4 и 5 (как `[3.1a]`) |
+| 4½ | 3.1c, 3.1d | ведущая сессия правит `docs/event-format.md`, схему события и точки подключения между волнами 4 и 5 (как `[3.1a]`); 3.1d — люди истории в событиях из колоды (D-178) и ключи условий предыстории для 3.11 (D-179) |
 | 5 | 3.11, 3.12 | предыстории и контенту нужен весь движок; файлы контента разведены (`content/backstory/` против `content/events/`), причины мнений добавляет только 3.12 |
 | 6 | 3.13 | те же файлы контента, что у 3.12, и замеры итога |
 

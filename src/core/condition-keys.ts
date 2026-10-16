@@ -9,6 +9,7 @@
  * (a secret trait, the opinion of a stranger) is hidden: the option is not shown.
  */
 import { z } from 'zod';
+import { backstoryConditionShape, checkBackstoryConditions } from './backstory/conditions';
 import { characterConditionShape, checkCharacterConditions } from './character/conditions';
 import { checkCommonConditions, commonConditionShape } from './conditions/conditions';
 import { checkHealthConditions, healthConditionShape } from './health/health';
@@ -25,6 +26,7 @@ export const WhenSchema = z.strictObject({
   ...healthConditionShape,
   ...relationsConditionShape,
   ...rolesConditionShape,
+  ...backstoryConditionShape,
 });
 
 export type When = z.infer<typeof WhenSchema>;
@@ -43,6 +45,7 @@ const CONDITION_CHECKS: readonly ((ctx: Ctx, c: Character, when: When, scope: Sc
   checkHealthConditions,
   checkRelationsConditions,
   checkRolesConditions,
+  checkBackstoryConditions,
 ];
 
 /** Roles each module's keys refer to, for the cross-check of events. */

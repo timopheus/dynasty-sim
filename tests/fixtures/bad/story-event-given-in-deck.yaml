@@ -1,4 +1,4 @@
-# expect-error: events[1].roles.accuser /a story event from the deck gets no given roles/
+# expect-error: events[1].roles.accuser /is not handed over by every effect that opens story/
 events:
   - id: bad_opens
     weight: 1

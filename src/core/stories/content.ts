@@ -25,13 +25,15 @@ function givenRoles(event: EventDef): { name: string; optional: boolean }[] {
  * Stories have no content key of their own: this check looks at `schedule` and `story` in the effects of actions and
  * events (D-244). Events named must exist; the roles handed over must be `pick: given` roles of the event they go to,
  * and every given role that may not stay empty must be handed over; a fallback must be an event of the same story; an
- * event of a story must have some effect that opens the story; a story event of the deck has no required given role
- * (the narrator does not hand the people of the story over, D-241); `hero` and `protagonist` are never handed over.
+ * event of a story must have some effect that opens the story; a story event of the deck gets the people of the story
+ * (D-178), so every effect that opens the story hands over its required given roles; `hero` and `protagonist` are
+ * never handed over.
  */
 export const checkStories: CrossCheck = ({ actions, events }) => {
   const errors: ContentError[] = [];
   const byId = new Map(events.map(({ item }) => [item.id, item]));
-  const opened = new Set<string>();
+  /** Story id -> the roles each effect that opens it hands over. */
+  const opened = new Map<string, Record<string, string>[]>();
 
   // The hero and the main participant already have their roles in every event: a given role cannot take them.
   const builtIn = (file: string, path: string, roles: Record<string, string> | undefined) => {
@@ -63,7 +65,7 @@ export const checkStories: CrossCheck = ({ actions, events }) => {
       // `story` of an event is the story it belongs to (a string); the effect `story` is an object.
       if (path.endsWith('.story') && value !== null && typeof value === 'object') {
         const story = value as StoryRef;
-        opened.add(story.open);
+        opened.set(story.open, [...(opened.get(story.open) ?? []), story.roles ?? {}]);
         builtIn(file, path, story.roles);
         (story.fallback ?? []).forEach((id, i) => {
           const target = byId.get(id);
@@ -71,14 +73,15 @@ export const checkStories: CrossCheck = ({ actions, events }) => {
           if (!target) errors.push({ file, path: fpath, message: `unknown event "${id}"` });
           else if (target.story !== story.open) errors.push({ file, path: fpath, message: `fallback "${id}" is not an event of story "${story.open}" (it needs story: ${story.open})` });
         });
-        if (story.fallback?.length) {
-          // A role handed over must be a given role of some fallback; each fallback must get its own given roles.
-          const targets = story.fallback.flatMap((id) => (byId.get(id)?.story === story.open ? [byId.get(id) as EventDef] : []));
-          for (const name of Object.keys(story.roles ?? {})) {
-            if (targets.length > 0 && !targets.some((t) => givenRoles(t).some((g) => g.name === name))) {
-              errors.push({ file, path: `${path}.roles.${name}`, message: `no fallback of story "${story.open}" has a role "${name}" with pick: given` });
-            }
+        // A role handed over must be a given role of some event of the story (a fallback or one from the deck, D-178).
+        const targets = events.flatMap(({ item: e }) => (e.story === story.open ? [e] : []));
+        for (const name of Object.keys(story.roles ?? {})) {
+          if (targets.length > 0 && !targets.some((t) => givenRoles(t).some((g) => g.name === name))) {
+            errors.push({ file, path: `${path}.roles.${name}`, message: `no event of story "${story.open}" has a role "${name}" with pick: given` });
           }
+        }
+        if (story.fallback?.length) {
+          // Each fallback must get its own given roles.
           story.fallback.forEach((id, i) => {
             const target = byId.get(id);
             if (target?.story !== story.open) return;
@@ -96,10 +99,12 @@ export const checkStories: CrossCheck = ({ actions, events }) => {
   for (const { file, index, item } of events) {
     if (item.story === undefined) continue;
     if (!opened.has(item.story)) errors.push({ file, path: `events[${index}].story`, message: `no effect opens story "${item.story}"` });
-    // The narrator starts story events without the people of the story (D-241): a required given role makes it impossible.
-    const required = givenRoles(item).filter((g) => !g.optional);
-    if (!item.followup_only && required.length > 0) {
-      errors.push({ file, path: `events[${index}].roles.${required[0]?.name}`, message: `a story event from the deck gets no given roles (D-241): make the role optional or the event followup_only (a fallback)` });
+    // The narrator starts a story event with the people of the story (D-178): every effect that opens it hands them over.
+    if (item.followup_only) continue;
+    for (const g of givenRoles(item).filter((r) => !r.optional)) {
+      if ((opened.get(item.story) ?? []).some((roles) => !Object.hasOwn(roles, g.name))) {
+        errors.push({ file, path: `events[${index}].roles.${g.name}`, message: `role "${g.name}" is not handed over by every effect that opens story "${item.story}" (story.roles)` });
+      }
     }
   }
   return errors;
