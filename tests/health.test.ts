@@ -146,6 +146,16 @@ describe('death', () => {
     expect(entryText(state.chronicle.at(-2)!)).toMatch(/^Old age took (him|her)\.$/);
   });
 
+  it('carries out death requests first in the death phase (D-164), dropping those for the dead', () => {
+    const { state, ctx, hero } = setup();
+    state.deathRequests.push({ characterId: hero.id, cause: 'rot_death' }, { characterId: hero.id, cause: 'old_age' });
+    expect(deathPhase.run(ctx)).toBe(true);
+    expect(hero.deathCause).toBe('rot_death');
+    expect(state.deathRequests).toEqual([]);
+    expect(state.chronicle.slice(-3).map((e) => e.kind)).toEqual(['death', 'death_cause', 'succession']);
+    expect(checkInvariants(state, content)).toEqual([]);
+  });
+
   it('keeps the annual chance for people far away by age', () => {
     expect(annualDeathChance(20)).toBe(1800);
     expect(annualDeathChance(65)).toBe(5600);

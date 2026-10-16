@@ -7,7 +7,9 @@ import type { Content } from '../src/core/content/schema';
 import { apply, DAY_PHASES, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
-import { kill } from '../src/core/lifecycle';
+import { conditionReport, unmetConditions } from '../src/core/condition-keys';
+import { applyEffects } from '../src/core/effects';
+import { createCharacter, kill } from '../src/core/lifecycle';
 import { seedRng } from '../src/core/rng';
 import { deserialize, serialize } from '../src/core/save/save';
 import type { GameState } from '../src/core/state';
@@ -52,6 +54,15 @@ describe('conditions', () => {
     getPlayer(state).money = 100;
     expect(reasons(state, 'rich')).toEqual([]);
     expect(state.rng).toEqual(rng);
+  });
+
+  it('gates by money_max (3.1) with a reason from content', () => {
+    const state = newGame(1, content); // 10 crowns
+    const ctx = { state, content };
+    const hero = getPlayer(state);
+    expect(unmetConditions(ctx, hero, { money_max: 10 }, {})).toEqual([]);
+    expect(unmetConditions(ctx, hero, { money_max: 9 }, {})).toEqual(['Only with 9 crowns or less']);
+    expect(conditionReport(ctx, hero, { money_max: 9 }, {})).toEqual({ met: false, reasons: ['Only with 9 crowns or less'], hidden: false });
   });
 
   it('refuses to start an unavailable action', () => {
@@ -108,6 +119,30 @@ describe('scheduled effects', () => {
     start(other, 'pay_later');
     kill({ state: other, content }, getPlayer(other), 'natural');
     expect(other.scheduled).toEqual([]);
+  });
+});
+
+describe('scope of roles in later (3.1)', () => {
+  it('keeps the roles of the block for the queued effects, through a save', () => {
+    const state = newGame(1, content);
+    const ctx = { state, content };
+    const hero = getPlayer(state);
+    const friend = createCharacter(ctx, { surname: 'Friend', age: { min: 30, max: 30 } });
+    const scope = { hero: hero.id, protagonist: hero.id, friend: friend.id };
+    applyEffects(ctx, hero, { later: [{ after_days: 3, effects: { money: 7, later: [{ after_days: 2, effects: { money: 1 } }] } }] }, scope);
+    expect(state.scheduled).toEqual([{ dueDay: 3, characterId: hero.id, effects: expect.anything(), scope }]);
+    expect(deserialize(serialize(state), content).scheduled[0]?.scope).toEqual(scope);
+    const money = hero.money;
+    while (state.day < 3) start(state, 'tick');
+    expect(hero.money).toBe(money + 7);
+    // The nested later was queued by the phase with the same scope.
+    expect(state.scheduled).toEqual([{ dueDay: 5, characterId: hero.id, effects: { money: 1 }, scope }]);
+  });
+
+  it('reports a role given to an unknown character', () => {
+    const state = newGame(1, content);
+    state.scheduled.push({ dueDay: 5, characterId: state.playerId, effects: {}, scope: { friend: 'c999' } });
+    expect(checkInvariants(state, content).some((p) => p.includes('role friend'))).toBe(true);
   });
 });
 

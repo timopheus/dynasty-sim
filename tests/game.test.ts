@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { entryText } from '../src/core/chronicle/log';
 import type { Content } from '../src/core/content/schema';
 import { apply, DAY_PHASES, newGame } from '../src/core/game';
+import { findEvent, startEvent } from '../src/core/events/events';
 import { getPlayer } from '../src/core/helpers';
+import { deserialize, serialize } from '../src/core/save/save';
 import { checkInvariants } from '../src/core/invariants';
 import type { GameState } from '../src/core/state';
 import { ageYears } from '../src/core/time/calendar';
@@ -96,6 +98,36 @@ describe('game loop', () => {
       const age = ageYears(founder.birthDay, 0);
       expect(age >= min && age <= max, `seed ${seed}: age ${age}`).toBe(true);
     }
+  });
+});
+
+describe('choice outside an action (3.1)', () => {
+  it('waits for the choice without an action, then lets the player pick one without running days', () => {
+    const content = fixtureNarrator({ eventChancePer10k: 0 });
+    const state = newGame(1, content);
+    const ctx = { state, content };
+    // As a scene of the backstory will: an event before the first action.
+    expect(startEvent(ctx, findEvent(content, 'ping'), getPlayer(state))).toBe(true);
+    expect(state.status).toBe('awaiting_choice');
+    expect(state.activeAction).toBeNull();
+    expect(checkInvariants(state, content)).toEqual([]);
+    const loaded = deserialize(serialize(state), content);
+    expect(loaded).toEqual(state);
+    apply(state, content, { type: 'choose', option: 1 });
+    expect(state.day).toBe(0);
+    expect(state.status).toBe('awaiting_action');
+    expect(state.pendingEvent).toBeNull();
+    expect(entryText(state.chronicle.at(-1)!)).toBe('Anne Fixture ignored it.');
+    expect(checkInvariants(state, content)).toEqual([]);
+    apply(state, content, { type: 'start', actionId: 'wait' });
+    expect(state.day).toBe(30);
+  });
+
+  it('keeps the scope of the event for its effects and line', () => {
+    const content = fixtureNarrator({ eventChancePer10k: 10000 });
+    const state = newGame(1, content);
+    apply(state, content, { type: 'start', actionId: 'wait' });
+    expect(state.pendingEvent).toEqual({ eventId: 'ping', protagonist: state.playerId, scope: { hero: state.playerId, protagonist: state.playerId } });
   });
 });
 

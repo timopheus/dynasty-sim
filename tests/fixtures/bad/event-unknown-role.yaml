@@ -1,0 +1,10 @@
+# expect-error: events[0].options[0].result /unknown placeholder \{stranger\}/
+events:
+  - id: bad_role
+    weight: 1
+    roles:
+      friend: { pick: circle }
+    text: "{friend} waves."
+    options:
+      - text: Wave back
+        result: "{name} waved at {stranger}."
