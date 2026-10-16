@@ -11,7 +11,7 @@ import { narratorPhase } from '../src/core/narrator/phases';
 import { deserialize, serialize } from '../src/core/save/save';
 import type { Character, Ctx } from '../src/core/state';
 import { storiesPhase } from '../src/core/stories/phases';
-import { dueEvents, isStoryOpen, STORY_WEIGHT_MAX, STORY_WEIGHT_MIN, storyWeight } from '../src/core/stories/stories';
+import { dueEvents, isStoryOpen, storyGiven, STORY_WEIGHT_MAX, STORY_WEIGHT_MIN, storyWeight } from '../src/core/stories/stories';
 import { BASE_FILES, loadOrThrow } from './fixtures/content';
 import { readContentFiles } from '../tools/content-files';
 
@@ -119,6 +119,7 @@ describe('stories', () => {
     expect(storyWeight(ctx, 'feud', hero.id)).toBe(0);
     answer(ctx, 'accusation');
     expect(isStoryOpen(ctx.state, hero.id, 'feud')).toBe(true);
+    expect(Object.keys(storyGiven(ctx.state, hero.id, 'feud'))).toEqual(['accuser']);
     expect(ctx.state.chronicle.at(-1)?.mark).toBe(true);
     expect(storyWeight(ctx, 'feud', hero.id)).toBe(STORY_WEIGHT_MIN);
     ctx.state.day = 15;

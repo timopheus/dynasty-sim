@@ -79,6 +79,14 @@ export function isStoryOpen(state: GameState, characterId: string, storyId: stri
   return findStory(state, characterId, storyId) !== null;
 }
 
+/**
+ * People the story hands to its events (`story.roles`), as `given` (D-241). The narrator does not use it yet: its
+ * story events start without them (a proposal for the lead session, see STATUS).
+ */
+export function storyGiven(state: GameState, characterId: string, storyId: string): Scope {
+  return findStory(state, characterId, storyId)?.given ?? {};
+}
+
 /** Weight of a story event on the day the story opens; it grows by steps to STORY_WEIGHT_MAX at the deadline. */
 export const STORY_WEIGHT_MIN = 1;
 export const STORY_WEIGHT_MAX = 10;
