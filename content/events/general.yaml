@@ -4,7 +4,7 @@
 # outcomes that are not neutral (D-177).
 events:
   - id: fever
-    weight: 10
+    weight: 7
     mood: pain
     roles:
       physician:
