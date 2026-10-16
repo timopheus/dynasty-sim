@@ -1,5 +1,6 @@
 import type { ChronicleEntry } from '../chronicle/log';
 import type { Content } from '../content/schema';
+import type { Relation } from '../relations/types';
 import { findCharacter } from '../helpers';
 import type { Character, GameState } from '../state';
 import { chunkProblems } from './check';
@@ -21,6 +22,12 @@ export function allChronicle(state: GameState): readonly ChronicleEntry[] {
 export function allCharacters(state: GameState): readonly Character[] {
   if (state.archive.length === 0) return state.characters;
   return [...state.archive.flatMap((chunk) => chunk.characters), ...state.characters];
+}
+
+/** Every relation, archived ones (ended, of the dead, D-335) first. The hot array itself while the archive is empty. */
+export function allRelations(state: GameState): readonly Relation[] {
+  if (state.archive.length === 0) return state.relations;
+  return [...state.archive.flatMap((chunk) => chunk.relations.relations), ...state.relations];
 }
 
 /** A character by id, hot or archived; null if there is no such person. */

@@ -264,10 +264,15 @@ async function act(session: Session, cmd: Command): Promise<void> {
   }
 }
 
+/** A mark unique to a new game (D-339): a tab still playing a replaced game cannot write into it. */
+function newGameMark(): string {
+  return Array.from(crypto.getRandomValues(new Uint32Array(4)), (n) => n.toString(16).padStart(8, '0')).join('');
+}
+
 async function startSession(session: Session, seed: number): Promise<void> {
   session.state = newGame(seed, session.content);
   session.journal = newJournal(seed, session.contentVersion);
-  const started = await startGame(session.store, session.state, session.journal, session.contentVersion);
+  const started = await startGame(session.store, session.state, session.journal, session.contentVersion, newGameMark());
   session.saved = started.saved;
   session.saveProblem = saveProblemText(started.outcome);
   render(session);
@@ -301,7 +306,7 @@ async function boot(content: Content, version: string): Promise<void> {
   const state = loadedGame?.state ?? newGame(pickSeed(), content);
   const session: Session = {
     state, content, contentVersion: version, store,
-    journal: loadedGame?.journal ?? newJournal(state.seed, version), saved: loadedGame?.saved ?? { chunks: 0, commands: 0 }, busy: false, lostJournal: null,
+    journal: loadedGame?.journal ?? newJournal(state.seed, version), saved: loadedGame?.saved ?? { game: '', chunks: 0, commands: 0 }, busy: false, lostJournal: null,
     notice: null, saveProblem: null, tab: 'chronicle', showNumbers: false, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null,
   };
   current = session;

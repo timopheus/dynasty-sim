@@ -46,7 +46,7 @@ describe('hero view', () => {
 
 describe('start choice', () => {
   const content = fixtureContent();
-  const saved = { kind: 'loaded' as const, state: newGame(7, content), journal: newJournal(7, ''), saved: { chunks: 0, commands: 0 } };
+  const saved = { kind: 'loaded' as const, state: newGame(7, content), journal: newJournal(7, ''), saved: { game: 'g', chunks: 0, commands: 0 } };
 
   it('reads the seed from the address only when it is there and valid', () => {
     for (const search of ['', '?', '?seed=', '?foo=1', '?seed=abc', '?seed=-1']) expect(seedFromSearch(search, isValidSeed)).toBeNull();

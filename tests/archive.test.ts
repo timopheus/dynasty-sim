@@ -8,6 +8,7 @@ import { findCharacter } from '../src/core/helpers';
 import { createCharacter } from '../src/core/hooks';
 import { checkInvariants } from '../src/core/invariants';
 import { computeMetrics } from '../src/core/metrics';
+import { personPage } from '../src/core/pages/person';
 import { runSim } from '../src/core/sim';
 import type { Character, Ctx } from '../src/core/state';
 import { fromYmd } from '../src/core/time/calendar';
@@ -96,6 +97,12 @@ describe('archive phase (D-312, D-335)', () => {
     expect(state.rng).toEqual(rng);
     expect(checkInvariants(state, content)).toEqual([]);
     expect(archiveProblems(state, content)).toEqual([]);
+
+    // Pages read archived relations too: the ended tie of two of the long dead still shows (for someone the hero knows).
+    state.acquaintances.push({ holder: hero.id, other: old.id, level: 'known', since: state.day, closeSince: null });
+    const page = personPage(ctx, old.id);
+    expect([...(page?.allies ?? []), ...(page?.rivals ?? [])].map((l) => l.person.id)).toEqual([oldFriend.id]);
+    state.acquaintances.pop();
 
     // Once a year.
     expect(archivePhase.run(ctx)).toBe(false);
