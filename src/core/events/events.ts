@@ -214,11 +214,9 @@ export function resolveOutcome(ctx: Ctx, event: EventDef, pending: PendingEvent,
       mark: !npc && pending.mark,
       important: pending.important,
     });
-    if (npc) {
-      state.narratorStats.npcEvents += 1;
-      if (entry) state.narratorStats.npcStored += 1;
-    }
+    if (npc && entry) state.narratorStats.npcStored += 1;
   }
+  if (npc) state.narratorStats.npcEvents += 1;
   flushAfter(state, pending);
 }
 

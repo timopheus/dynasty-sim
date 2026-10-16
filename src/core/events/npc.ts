@@ -51,7 +51,7 @@ export function runNpcEvent(ctx: Ctx, event: EventDef, person: Character): boole
       continue;
     }
     const index = pickNpcOption(ctx, scene.options, person, pending.scope);
-    // The validator wants an option without `when` in every scene, so this does not happen; end the event if it does.
+    // The validator wants an option without `when` in every scene, so this does not happen.
     if (index === null) throw new Error(`Event "${event.id}": no option is available to ${person.id}`);
     answerOption(ctx, event, pending, scene.options[index] as OptionDef, `${path}options.${index}.`, person);
   }

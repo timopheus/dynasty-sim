@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].effects /who: npc cannot change the hero.*reveal.to/
+events:
+  - id: bad_npc
+    weight: 1
+    who: npc
+    text: "{name} goes about the day."
+    options:
+      - text: Walk
+        effects: { reveal: { kind: debt, to: [hero] } }

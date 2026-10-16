@@ -203,6 +203,13 @@ describe('the line of an event of a person of the world (D-166)', () => {
     expect(m.npcStoredShare).toBe(0.5);
     expect(m.events).toBe(0);
   });
+
+  it('counts an event whose outcomes write no line', () => {
+    const bare = ev('bare', { who: 'npc', options: [{ text: 'Ok', effects: { money: 1 } }] } as Partial<EventDef>);
+    const { ctx, people } = setup([bare]);
+    runNpcEvent(ctx, bare, people[0] as Character);
+    expect(ctx.state.narratorStats).toMatchObject({ npcEvents: 1, npcStored: 0 });
+  });
 });
 
 describe('events that do not change the hero (D-174)', () => {

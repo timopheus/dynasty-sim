@@ -272,7 +272,19 @@ function checkPages(env: EventEnv): void {
   }
 }
 
+/** Traits named in `ai.traits` of the options must exist. */
+function checkAiTraits(sources: ContentSources, file: string, at: string, scene: SceneDef, errors: ContentError[]): void {
+  const traitIds = new Set(sources.traits.map((t) => t.item.id));
+  scene.options?.forEach((option, i) => {
+    for (const id of Object.keys(option.ai?.traits ?? {})) {
+      if (!traitIds.has(id)) errors.push({ file, path: `${at}.options[${i}].ai.traits.${id}`, message: `unknown trait "${id}"` });
+    }
+  });
+}
+
 function checkEvent(sources: ContentSources, file: string, at: string, event: EventDef, errors: ContentError[]): void {
+  checkAiTraits(sources, file, at, event, errors);
+  for (const [id, page] of Object.entries(event.pages ?? {})) checkAiTraits(sources, file, `${at}.pages.${id}`, page, errors);
   const roles = Object.keys(event.roles ?? {});
   const optional = roles.filter((r) => event.roles?.[r]?.optional === true);
   const symbols = [...new Set([...sources.grammar.flatMap((g) => Object.keys(g.item)), ...Object.keys(event.grammar ?? {})])];
