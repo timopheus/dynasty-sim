@@ -69,12 +69,16 @@ describe('the deck', () => {
     expect([...ids].sort()).toEqual(['both', 'main']);
   });
 
-  it('does not spend randomness on conditions: the same roll with and without eligible events', () => {
-    const a = setup([ev('only', { actions: ['rest'] })], { eventChancePer10k: 0 });
-    const b = setup([], { eventChancePer10k: 0 });
+  it('does not spend randomness on conditions: a roll with impossible events equals a roll with none', () => {
+    const bottom = { when: { money_max: 10 }, wayUpFactor: 3, forceAfterDays: 1 };
+    const impossible = ev('never', { when: { money_min: 1000000 }, actions: ['rest'], weight_mods: [{ when: { money_min: 1 }, factor: 2 }] });
+    const a = setup([impossible], { bottom });
+    const b = setup([], { bottom });
+    const before = [...a.state.rng];
     narratorPhase.run(a);
     narratorPhase.run(b);
     expect(a.state.rng).toEqual(b.state.rng);
+    expect(a.state.rng).not.toEqual(before); // the chance of the day itself is the only roll
   });
 });
 
@@ -133,7 +137,6 @@ describe('the pace', () => {
     expect(seen.filter((s) => s === 'life')).toHaveLength(1);
     expect(seen.filter((s) => s === 'game')).toHaveLength(1);
     // A new head: `life` can fall again, `game` never.
-    ctx.state.playerId = getPlayer(ctx.state).id;
     ctx.state.lifeHero = 'previous_head';
     ctx.state.pendingEvent = null;
     ctx.state.day += 1;
@@ -164,8 +167,6 @@ describe('tension', () => {
     const ctx = setup([heavy], { tension: TENSION });
     narratorPhase.run(ctx);
     expect(ctx.state.tension).toBe(40);
-    ctx.state.pendingEvent = null;
-    ctx.state.day += 30;
     const lightCtx = setup([heavy], { tension: TENSION });
     lightCtx.state.tension = 40;
     lightCtx.state.tensionDay = 70; // 30 days ago: 10 left

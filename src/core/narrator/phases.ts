@@ -121,6 +121,7 @@ export const narratorPhase: DayPhase = {
     const active = state.activeAction;
     if (!active) return false;
     const pace = narratorContent(ctx.content);
+    syncLife(state);
     const hero = getPlayer(state);
     const days = nominalDays(ctx, active.actionId);
     const long = isLong(pace, days);
@@ -132,12 +133,16 @@ export const narratorPhase: DayPhase = {
     const bottom = atBottom(ctx, pace, hero);
 
     // 1. Follow-ups due today go first, whatever the pace.
+    // A quiet notice is carried out at once: the rest of today's follow-ups still start, but the deck waits for tomorrow.
+    let carriedOut = false;
     for (const due of dueEvents(ctx)) {
       const protagonist = findCharacter(state, due.protagonist);
-      if (!protagonist) continue;
+      if (!protagonist || protagonist.deathDay !== null) continue;
       const result = launch(ctx, pace, findEvent(ctx.content, due.eventId), protagonist, long, due.given);
-      if (result !== 'failed') return result === 'waiting';
+      if (result === 'waiting') return true;
+      if (result === 'done') carriedOut = true;
     }
+    if (carriedOut) return false;
 
     if (state.lastEventDay !== null && state.day - state.lastEventDay < pace.minDaysBetweenEvents) return false;
 
@@ -145,7 +150,8 @@ export const narratorPhase: DayPhase = {
     if (bottom && pace.bottom && state.bottomSince !== null) {
       const since = Math.max(state.bottomSince, state.lastWayUpDay ?? 0);
       if (state.day - since >= pace.bottom.forceAfterDays) {
-        const wayUp = [...candidates(ctx, pace, hero, true).deck].filter((c) => c.event.tags?.includes('way_up'));
+        const wayUp = candidates(ctx, pace, hero, true).deck.filter((c) => c.event.tags?.includes('way_up'));
+        // If it cannot be started after all, today has no event: the usual roll is not made.
         if (wayUp.length > 0) return launch(ctx, pace, pickFrom(ctx, wayUp), hero, long) === 'waiting';
       }
     }
