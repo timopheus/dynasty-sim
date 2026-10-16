@@ -92,7 +92,7 @@ describe('chronicle selection (D-019, D-130)', () => {
     const { state, event } = playOnce(withMoney(1, 1, true));
     expect(event?.level).toBe('chronicle');
     expect(event?.mark).toBe(true);
-    expect(chronicleMarkdown(state)).toMatch(/answered\. ▸\n/);
+    expect(chronicleMarkdown(state)).toMatch(/— Answered\. ▸\n/);
   });
 
   it('does not store lines about people far away, keeps the circle in the journal', () => {
