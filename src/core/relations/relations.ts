@@ -1,4 +1,5 @@
 import { isInt } from '../helpers';
+import type { RngState } from '../rng';
 import type { CreateHook, DayPhase, DeathHook, Invariant } from '../state';
 import { characterById } from '../world/world';
 import { acquaintanceWeek } from './acquaintance';
@@ -16,12 +17,14 @@ export interface RelationsState {
   secrets: Secret[];
   /** Day of the last weekly acquaintance step, so a day that stops and resumes does not roll twice. */
   lastAcquaintanceDay: number | null;
+  /** Own random stream of the module, started on first use, so the world stream and the rest of the game are untouched. */
+  relationsRng: RngState | null;
 }
 
 export interface RelationsCharacter {}
 
 export function initRelationsState(): RelationsState {
-  return { opinionReasons: [], relations: [], acquaintances: [], secrets: [], lastAcquaintanceDay: null };
+  return { opinionReasons: [], relations: [], acquaintances: [], secrets: [], lastAcquaintanceDay: null, relationsRng: null };
 }
 
 export const createRelations: CreateHook = () => {};
@@ -50,6 +53,9 @@ export const relationsInvariants: Invariant = ({ state, content }) => {
   if (!opinions) {
     if (hasData) problems.push('relations data exists although the content has no opinions');
     return problems;
+  }
+  if (state.relationsRng !== null && (!Array.isArray(state.relationsRng) || state.relationsRng.length !== 4 || !state.relationsRng.every(isInt))) {
+    problems.push('relations rng state is not four integers');
   }
   const known = (id: string) => characterById(state, id) !== null;
   const reasonIds = new Set(opinions.reasons.map((r) => r.id));

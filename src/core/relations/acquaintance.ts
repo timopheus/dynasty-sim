@@ -1,8 +1,11 @@
 import type { Content } from '../content/schema';
-import { chancePer, pick } from '../rng';
+import { chancePer, pick, seedRng } from '../rng';
 import type { Ctx, GameState } from '../state';
 import { characterById } from '../world/world';
 import type { Acquaintance, AcquaintanceLevel } from './types';
+
+/** Stream number of the module: the bot has 1 (CLAUDE.md, separate streams). */
+const RELATIONS_STREAM = 2;
 
 const RANK: Record<AcquaintanceLevel, number> = { known: 1, close: 2 };
 
@@ -53,18 +56,19 @@ export function acquaintanceWeek(ctx: Ctx): void {
   const { state, content } = ctx;
   const config = content.opinions?.acquaintance;
   if (!config) return;
+  const rng = (state.relationsRng ??= seedRng(state.seed, RELATIONS_STREAM));
   const holder = state.playerId;
   const own = new Map<string, Acquaintance>();
   for (const a of state.acquaintances) if (a.holder === holder) own.set(a.other, a);
-  if (chancePer(state.rng, config.meetPer100, 100)) {
+  if (chancePer(rng, config.meetPer100, 100)) {
     const strangers = state.circle.filter((id) => !own.has(id));
-    if (strangers.length > 0) introduce(ctx, pick(state.rng, strangers));
+    if (strangers.length > 0) introduce(ctx, pick(rng, strangers));
   }
-  if (chancePer(state.rng, config.closePer100, 100)) {
+  if (chancePer(rng, config.closePer100, 100)) {
     const ready = state.circle.filter((id) => {
       const a = own.get(id);
       return a !== undefined && a.level === 'known' && state.day - a.since >= config.closeAfterDays;
     });
-    if (ready.length > 0) introduce(ctx, pick(state.rng, ready), 'close');
+    if (ready.length > 0) introduce(ctx, pick(rng, ready), 'close');
   }
 }
