@@ -65,8 +65,10 @@ export interface Difference {
 export function compare(a: Record<string, Summary>, b: Record<string, Summary>, changedOnly = false): Difference[] {
   const names = [...new Set([...Object.keys(a), ...Object.keys(b)])].sort();
   const rows = names.map((name) => {
-    const before = a[name]?.median ?? null;
-    const after = b[name]?.median ?? null;
+    // A death cause missing on one side means zero deaths, as in summarize.
+    const absent = name.startsWith('deaths.') ? 0 : null;
+    const before = a[name]?.median ?? absent;
+    const after = b[name]?.median ?? absent;
     return { name, before, after, delta: before === null || after === null ? null : Math.round((after - before) * 100) / 100 };
   });
   return changedOnly ? rows.filter((r) => r.delta !== 0) : rows;

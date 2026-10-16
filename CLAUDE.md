@@ -54,8 +54,8 @@ npm test                                # vitest
 npm run validate                        # проверка контента по схеме
 npm run sim -- --years 300 --seed 42    # прогон; хроника в out/chronicle-seed42-300y.md, метрики в конце
 npm run sim -- --years 300 --seed 1 --runs 10          # seeds 1..10, метрики: min / медиана / max
-npm run sim -- --years 300 --seed 1 --runs 10 --json > a.json   # то же в JSON (текст уходит в stderr)
-npm run sim -- --compare a.json b.json # медианы двух файлов рядом, только изменившиеся
+npm run -s sim -- --years 300 --seed 1 --runs 10 --json > a.json   # то же в JSON; -s нужен, иначе npm пишет заголовок в файл
+npm run -s sim -- --compare a.json b.json # медианы двух файлов рядом, только изменившиеся
 npm run check                           # typecheck + test + validate + sim 50 лет
 npm run build                           # сборка в dist/
 ```

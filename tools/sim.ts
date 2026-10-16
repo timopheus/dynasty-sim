@@ -1,7 +1,7 @@
 /**
  * Headless simulation run: a random bot plays, the chronicle goes to a file.
  * Usage: npm run sim -- --years 300 --seed 42 [--out path/to/chronicle.md]
- *        npm run sim -- --years 300 --seed 1 --runs 10 [--json [file]]   metrics of seeds 1..10
+ *        npm run sim -- --years 300 --seed 1 --runs 10 [--json]   metrics of seeds 1..10
  *        npm run sim -- --compare a.json b.json                          medians side by side
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -58,7 +58,9 @@ function fmt(n: number): string {
 function readReport(file: string): Report {
   try {
     const report = JSON.parse(readFileSync(file, 'utf8')) as Report;
-    if (typeof report.summary !== 'object' || report.summary === null) throw new Error('no "summary"');
+    if (typeof report.summary !== 'object' || report.summary === null || !Array.isArray(report.runs) || typeof report.years !== 'number') {
+      throw new Error('not a report written by --json');
+    }
     return report;
   } catch (err) {
     return fail(`Cannot read ${file}: ${err instanceof Error ? err.message : String(err)}`);
@@ -66,6 +68,7 @@ function readReport(file: string): Report {
 }
 
 const { values, positionals } = readArgs();
+if (values.compare === undefined && positionals.length > 0) fail(`Unexpected argument "${positionals[0]}".\n${USAGE}`);
 
 if (values.compare !== undefined) {
   const [other] = positionals;

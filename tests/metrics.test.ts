@@ -108,19 +108,21 @@ describe('summarize and compare', () => {
   });
 
   it('lists differences of medians', () => {
-    const a = { x: { min: 1, median: 10, max: 20 }, y: { min: 0, median: 5, max: 5 }, only_a: { min: 1, median: 1, max: 1 } };
+    const a = { 'deaths.plague': { min: 0, median: 3, max: 3 }, x: { min: 1, median: 10, max: 20 }, y: { min: 0, median: 5, max: 5 }, only_a: { min: 1, median: 1, max: 1 } };
     const b = { x: { min: 1, median: 12.5, max: 20 }, y: { min: 0, median: 5, max: 5 } };
     expect(compare(a, b)).toEqual([
+      { name: 'deaths.plague', before: 3, after: 0, delta: -3 },
       { name: 'only_a', before: 1, after: null, delta: null },
       { name: 'x', before: 10, after: 12.5, delta: 2.5 },
       { name: 'y', before: 5, after: 5, delta: 0 },
     ]);
-    expect(compare(a, b, true).map((r) => r.name)).toEqual(['only_a', 'x']);
+    expect(compare(a, b, true).map((r) => r.name)).toEqual(['deaths.plague', 'only_a', 'x']);
   });
 });
 
 describe('npm run sim flags', () => {
-  const sim = (...args: string[]) => execFileSync('npx', ['tsx', 'tools/sim.ts', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  // Same path as in CLAUDE.md: npm's own header must not reach stdout.
+  const sim = (...args: string[]) => execFileSync('npm', ['run', '-s', 'sim', '--', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   const dir = mkdtempSync(join(tmpdir(), 'dynasty-metrics-'));
 
   it('--json prints only JSON, --runs N uses seeds seed..seed+N-1, --compare shows the difference', () => {
@@ -145,5 +147,6 @@ describe('npm run sim flags', () => {
   it('rejects a bad --runs and a missing second file', () => {
     expect(() => sim('--runs', '0')).toThrow();
     expect(() => sim('--compare', 'x.json')).toThrow();
+    expect(() => sim('--years', '5', 'stray')).toThrow();
   }, 30_000);
 });
