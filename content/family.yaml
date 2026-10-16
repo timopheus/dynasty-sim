@@ -1,0 +1,63 @@
+# Families (4.5, D-313): marriages, births, the pedigrees of the circle. Schema: src/core/family/content.ts.
+# Chances are out of 10000. Tables by age: a row applies below `below` full years; the last row has no limit.
+family:
+  # Ceiling of living people (D-313): while there are this many, couples of the circle have no new children;
+  # the hero's house (the hero and the hero's descendants) always has.
+  livingMax: 500
+
+  # Yearly chance of a married woman near the hero to conceive, by her new age; rolled on her birthday.
+  conception:
+    - { below: 20, per10k: 3000 }
+    - { below: 25, per10k: 4000 }
+    - { below: 30, per10k: 3800 }
+    - { below: 35, per10k: 3200 }
+    - { below: 40, per10k: 2200 }
+    - { below: 46, per10k: 1000 }
+    - { per10k: 0 }
+  pregnancyDays: { min: 260, max: 285 }
+  childbirthDeathPer10k: 120
+
+  # Fired by the command `propose` from the page of a person (content/events/family-basic.yaml).
+  proposalEvent: marriage_proposal
+
+  # The living kin a person brings into the circle, made once when they first join it (D-313).
+  pedigree:
+    # Chance that a relative of this age is still alive.
+    alive:
+      - { below: 16, per10k: 7000 }
+      - { below: 50, per10k: 6000 }
+      - { below: 60, per10k: 5000 }
+      - { below: 70, per10k: 4000 }
+      - { below: 80, per10k: 2000 }
+      - { below: 90, per10k: 500 }
+      - { per10k: 0 }
+    # Chance that a person of this age has married.
+    married:
+      - { below: 18, per10k: 500 }
+      - { below: 20, per10k: 1500 }
+      - { below: 25, per10k: 4500 }
+      - { below: 30, per10k: 6000 }
+      - { per10k: 6500 }
+    parentGap: { min: 20, max: 38 }
+    spouseGap: { min: 0, max: 8 }
+    siblings: { min: 0, max: 2 }
+    siblingSpread: 10
+    childrenPer10Years: { min: 1, max: 2 }
+
+  texts:
+    married: "{name} married {other}."
+    born: "{name}'s wife {other} gave birth to a {kind}, {child}."
+    bornToHer: "{name} gave birth to a {kind}, {child}."
+    childDied: "{name} lost {his} {kind} {other}."
+    spouseDied: "{name} was widowed by the death of {other}."
+    reasons:
+      married: "Only for the married"
+      unmarried: "Only for the unmarried"
+      kin: "Only for {name}'s {kind}"
+      childrenMin: "Needs at least {count} living children"
+      canMarry: "Cannot marry {name}"
+    kinds:
+      spouse: spouse
+      child: child
+      parent: parent
+      sibling: brother or sister

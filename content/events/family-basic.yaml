@@ -1,0 +1,108 @@
+# Marriages in the game from 4.5 (D-313): the action "look for a spouse", one meeting at random and the answer to a
+# proposal made from the page of a person (family.proposalEvent). The rest of the courtship is 4.13.
+# Family keys (4.5): conditions `married`, `kin: {kind, with}`, `children_min`, `can_marry: <role>`; effect
+# `marry: <role>` (refused for close kin, the married, the young, the same sex); roles `pick: kin`.
+actions:
+  - id: seek_spouse
+    name: Look for a spouse
+    duration: { min: 20, max: 60 }
+    when: { married: false, money_min: 10 }
+    effects: { money: -10 }
+    text: "{name} spent some weeks among matchmakers and families with daughters and sons to marry."
+
+events:
+  - id: a_match_is_found
+    weight: 30
+    actions: [seek_spouse]
+    roles:
+      match:
+        pick: circle
+        where: { can_marry: hero }
+        prefer:
+          - { when: { opinion: { toward: hero, min: 10 } }, factor: 3 }
+    text: "A go-between brings word of {match}, {match.age}, who is said to be of a mind to marry, and whose family would hear an offer."
+    mood: joy
+    options:
+      - text: Ask for the hand yourself
+        check: { stat: diplomacy, difficulty: 6, bonus: [{ when: { fame_min: 1 }, add: 1 }] }
+        success:
+          effects: { marry: match }
+          result: "{name} won the hand of {match}."
+          mood: joy
+        failure:
+          result: "{name} asked for the hand of {match} and was refused."
+          mood: shame
+      - text: Win the family over with a gift of 30 crowns
+        when: { money_min: 30 }
+        effects: { money: -30, marry: match }
+        on: { match: { opinion: [{ toward: hero, reason: gift }] } }
+        result: "{name} won over the family of {match} with a handsome gift."
+        mood: joy
+      - text: Look elsewhere
+        result: "{name} turned down a match with {match}."
+        mood: neutral
+
+  - id: a_face_at_the_fair
+    weight: 2
+    cooldown_days: 730
+    when: { married: false }
+    roles:
+      match: { pick: circle, where: { can_marry: hero } }
+    text: "At a crowded fair you keep meeting the eyes of {match}. {match.He} does not look away."
+    mood: joy
+    options:
+      - text: Seek an introduction
+        on: { match: { introduce: known, opinion: [{ toward: hero, reason: gift }] } }
+        result: "{name} was introduced to {match} at a fair."
+        mood: joy
+      - text: Court boldly and ask at once
+        check: { stat: diplomacy, difficulty: 9 }
+        success:
+          effects: { marry: match }
+          result: "{name} courted {match} in a whirlwind and married within the month."
+          mood: joy
+        failure:
+          result: "{name} courted {match} too boldly at a fair and was laughed away."
+          mood: shame
+      - text: Let it pass
+        result: "{name} let a glance at the fair come to nothing."
+        mood: neutral
+
+  # Fired by the command `propose` (family.proposalEvent): the hero offers a match of the suitor (the hero or a child of
+  # the hero) with the target. When the suitor is the hero, `kin: parent` of the suitor does not hold.
+  - id: marriage_proposal
+    followup_only: true
+    weight: 1
+    roles:
+      suitor: { pick: given }
+      target: { pick: given }
+    grammar:
+      offer:
+        - { text: "a match between {suitor} and {target}", when: { kin: { kind: parent, with: suitor } } }
+        - "your own suit"
+      sought:
+        - { text: "a match between {suitor} and {target}", when: { kin: { kind: parent, with: suitor } } }
+        - "the hand of {target}"
+    text: "The family of {target} will hear <offer>. A good word, a known name or a full purse may carry it."
+    mood: neutral
+    options:
+      - text: Make the offer
+        check: { stat: diplomacy, difficulty: 7, bonus: [{ when: { fame_min: 1 }, add: 2 }] }
+        success:
+          on: { suitor: { marry: target } }
+          result: "{name} sought <sought>, and the offer was accepted."
+          mark: true
+          mood: joy
+        failure:
+          result: "{name} sought <sought>, and was refused."
+          mood: shame
+      - text: Settle 50 crowns on the match
+        when: { money_min: 50 }
+        effects: { money: -50 }
+        on: { suitor: { marry: target } }
+        result: "{name} sought <sought> with 50 crowns settled on the match, and the offer was accepted."
+        mark: true
+        mood: joy
+      - text: Withdraw the offer
+        result: "{name} thought better of <sought>."
+        mood: neutral

@@ -170,6 +170,10 @@ health:
 
   # Annual deaths per 100,000 of the simulated, not counting conditions; multiplied by their stages.
   mortality:
+    # Children of the hero's house (4.5): infancy is the most dangerous year of life.
+    - { below: 1, per100k: 15000, cause: infancy }
+    - { below: 5, per100k: 2500, cause: fever }
+    - { below: 16, per100k: 500, cause: illness }
     - { below: 30, per100k: 300, cause: illness }
     - { below: 40, per100k: 450, cause: illness }
     - { below: 50, per100k: 750, cause: illness }
@@ -188,6 +192,8 @@ health:
     - { id: illness, text: "A sudden illness took {him}." }
     - { id: killed_in_duel, text: "{He} had fallen in a duel." }
     - { id: killed, text: "{He} had been killed." }
+    - { id: childbirth, text: "{He} had died in childbirth." }
+    - { id: infancy, text: "{He} had been too frail to live." }
 
   rest:
     actions: [rest, winter_quarters]

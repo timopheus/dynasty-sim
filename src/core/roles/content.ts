@@ -3,17 +3,21 @@ import { PLACEHOLDERS } from '../character/text';
 import { conditionRoleRefs, WhenSchema, type When } from '../condition-keys';
 import type { ContentSources } from '../content/schema';
 import { Factor, Id, type ContentError } from '../content/types';
+import { KIN_KINDS } from '../family/content';
 
 /** Built-in roles (D-162): the current hero, and the main participant of the event (the hero in hero events). */
 export const BUILT_IN_ROLES = ['hero', 'protagonist'] as const;
 
-/** Where a role takes its person from (D-041, D-056): all of them are people of the hero's circle. */
-export const PICKS = ['circle', 'known', 'close', 'relation', 'given'] as const;
+/**
+ * Where a role takes its person from (D-041, D-056): people of the hero's circle; `kin` — kin of the main participant
+ * near the hero (the household or the circle, 4.5); `given` — a person handed over, near the hero.
+ */
+export const PICKS = ['circle', 'known', 'close', 'relation', 'kin', 'given'] as const;
 
 /** One role of an event (`docs/event-format.md`, D-161). */
 export const RoleSchema = z.strictObject({
   pick: z.enum(PICKS),
-  /** Kind of relation (`opinions.relations`) for `pick: relation`. */
+  /** Kind of relation (`opinions.relations`) for `pick: relation`; kind of kin (spouse, child, parent, sibling) for `pick: kin`. */
   kind: Id.optional(),
   /** Conditions on the candidate; may refer to `hero`, `protagonist` and roles declared above. */
   where: WhenSchema.optional(),
@@ -54,8 +58,11 @@ export function checkRoles(roles: RolesDef, env: RoleCheckEnv): ContentError[] {
     if (role.pick === 'relation') {
       if (role.kind === undefined) err(`${name}.kind`, 'pick "relation" needs a kind of relation');
       else if (!relationKinds.has(role.kind)) err(`${name}.kind`, `unknown kind of relation "${role.kind}"`);
+    } else if (role.pick === 'kin') {
+      if (role.kind === undefined) err(`${name}.kind`, `pick "kin" needs a kind of kin: ${KIN_KINDS.join(', ')}`);
+      else if (!(KIN_KINDS as readonly string[]).includes(role.kind)) err(`${name}.kind`, `unknown kind of kin "${role.kind}"; known: ${KIN_KINDS.join(', ')}`);
     } else if (role.kind !== undefined) {
-      err(`${name}.kind`, 'kind goes only with pick "relation"');
+      err(`${name}.kind`, 'kind goes only with pick "relation" or "kin"');
     }
     if (role.pick === 'given' && role.prefer) err(`${name}.prefer`, 'a given role has no choice to weigh');
     const conditions: [string, When][] = [];
