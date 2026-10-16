@@ -55,3 +55,19 @@ export function characterParts(template: string, c: CharacterBase, day: number):
 export function renderText(template: string, c: CharacterBase, day: number): string {
   return partsText(characterParts(template, c, day));
 }
+
+/**
+ * A chronicle line in the section of its own subject (D-162): the name at the start and the space after it are cut,
+ * and a `was ` right after it too, and the first letter is made a capital: "Aubrey was badly wounded…" → "Badly
+ * wounded…", "Aubrey bought…" → "Bought…". Lines that do not start with the subject's name and a space ("Aubrey's…",
+ * "Aubrey, aged…", a line about someone else) are returned as they are.
+ */
+export function ownLine(parts: readonly TextPart[], subjectId: string): TextPart[] {
+  const [name, next, ...rest] = parts;
+  if (typeof name !== 'object' || name.id !== subjectId || typeof next !== 'string' || !next.startsWith(' ')) return [...parts];
+  let tail = next.slice(1);
+  // "was" is cut only if something follows it
+  if (tail.startsWith('was ') && (tail.length > 4 || rest.length > 0)) tail = tail.slice(4);
+  const out: TextPart[] = tail === '' ? rest : [tail.charAt(0).toUpperCase() + tail.slice(1), ...rest];
+  return out.length > 0 ? out : [...parts];
+}

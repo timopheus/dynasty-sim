@@ -1,0 +1,4 @@
+# expect-error: grammar.weather /without "when"/
+grammar:
+  weather:
+    - { text: in driving snow, when: { season: [winter] } }

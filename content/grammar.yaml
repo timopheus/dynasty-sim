@@ -1,0 +1,10 @@
+# General grammar (3.4, D-046, D-163): symbols that texts of events use as <symbol> or <Symbol> (capital first
+# letter). A wording is a text, or { text, when } with conditions on the main participant; every symbol needs one
+# wording without `when`. Events may have their own `grammar` field over these.
+grammar:
+  dawn:
+    - at first light
+    - in the grey before dawn
+  weather:
+    - { text: in driving snow, when: { season: [winter] } }
+    - in a cold rain

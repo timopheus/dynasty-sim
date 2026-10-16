@@ -1,0 +1,4 @@
+# expect-error: grammar.a /cycle in the grammar: <a> -> <b> -> <a>/
+grammar:
+  a: ["<b>, then"]
+  b: ["<a>, and"]

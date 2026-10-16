@@ -1,0 +1,8 @@
+# expect-error: events[0].text /unknown role "ghost"/
+events:
+  - id: bad_ghost
+    weight: 1
+    text: "You ride out{ghost?, with {ghost}}."
+    options:
+      - text: Wave
+        result: "{name} waved."
