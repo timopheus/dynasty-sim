@@ -34,6 +34,7 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   relations/       мнения и отношения (2.4)
   chronicle/       log() — единственная запись в хронику, markdown (2.6)
   save/            serialize/deserialize, версия формата (2.8)
+  metrics/         computeMetrics(state) — метрики прогона (2.7), сводка и сравнение
   text/            шаблоны: части текста и ссылки
 src/ui/            браузерный интерфейс (main.ts, style.css)
 content/           игровой контент в YAML, тексты на английском
@@ -51,7 +52,10 @@ npm run dev                             # игра в браузере; ?seed=N 
 npm run typecheck                       # tsc для core, ui и tools+tests
 npm test                                # vitest
 npm run validate                        # проверка контента по схеме
-npm run sim -- --years 300 --seed 42    # прогон; хроника в out/chronicle-seed42-300y.md
+npm run sim -- --years 300 --seed 42    # прогон; хроника в out/chronicle-seed42-300y.md, метрики в конце
+npm run sim -- --years 300 --seed 1 --runs 10          # seeds 1..10, метрики: min / медиана / max
+npm run -s sim -- --years 300 --seed 1 --runs 10 --json > a.json   # то же в JSON; -s нужен, иначе npm пишет заголовок в файл
+npm run -s sim -- --compare a.json b.json # медианы двух файлов рядом, только изменившиеся
 npm run check                           # typecheck + test + validate + sim 50 лет
 npm run build                           # сборка в dist/
 ```
