@@ -63,6 +63,6 @@ opinions:
 
   # Time near the hero (D-037): the chances are checked once a week against the circle of 2.5.
   acquaintance:
-    meetPer100: 20
-    closeAfterDays: 365
-    closePer100: 4
+    meetPer100: 6
+    closeAfterDays: 730
+    closePer100: 1
