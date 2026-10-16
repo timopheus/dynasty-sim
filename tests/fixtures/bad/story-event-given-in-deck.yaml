@@ -1,0 +1,19 @@
+# expect-error: events[1].roles.accuser /a story event from the deck gets no given roles/
+events:
+  - id: bad_opens
+    weight: 1
+    text: "Words are said."
+    options:
+      - text: Swear revenge
+        effects:
+          story: { open: grudge, days: 30 }
+        result: "{name} swore revenge."
+  - id: grudge_settled
+    weight: 1
+    story: grudge
+    roles:
+      accuser: { pick: given }
+    text: "{accuser} is back."
+    options:
+      - text: Settle it
+        result: "{name} settled it with {accuser}."
