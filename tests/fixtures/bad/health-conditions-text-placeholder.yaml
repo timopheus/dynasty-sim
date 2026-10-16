@@ -1,0 +1,15 @@
+# expect-error: health.texts.conditions_any /unknown placeholder \{name\}/
+health:
+  conditions:
+    - id: c1
+      name: C
+      kind: disease
+      cause: illness
+      permanent: true
+      stages:
+        - { id: s1, name: s }
+  mortality: [{ per100k: 1, cause: illness }]
+  causes: [{ id: illness, text: "x" }]
+  rest: { actions: [], better: 100, worse: 100 }
+  road: { actions: [], better: 100, worse: 100 }
+  texts: { interrupted: "x", unfit: "x", conditions_any: "{name}", conditions_none: "x" }

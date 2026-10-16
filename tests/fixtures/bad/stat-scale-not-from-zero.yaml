@@ -5,3 +5,5 @@ names:
   statScale: [{ from: 2, word: Poor }]
   fame: [A, B, C, D]
   requiresSex: { male: "m", female: "f" }
+  stats: { diplomacy: D, martial: M, stewardship: S, intrigue: I, learning: L, prowess: P }
+  reasons: { traits_any: "a", traits_none: "b", stat_min: "c", stat_max: "d", fame_min: "e" }
