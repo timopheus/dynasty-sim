@@ -301,7 +301,8 @@ describe('wave 2 together: roles (3.3), texts (3.4) and the engine (3.2)', () =>
     expect(view.options[0]!.chance).toEqual({ percent: 50, band: 'even' }); // 5 against 5
     const text = entryText(line);
     expect(text).toMatch(/^\S+ \S+ (knocked down|was beaten by) \S+ \S+ in (a smoky tavern|a crowded inn)\.$/);
-    if (text.includes('knocked down')) expect(bully.money).toBe(people.indexOf(bully) === 0 ? 193 : people.indexOf(bully) === 1 ? 53 : 293);
+    const before = [200, 60, 300][people.indexOf(bully)]!;
+    expect(bully.money).toBe(text.includes('knocked down') ? before - 7 : before);
     expect(line.parts).toContainEqual({ id: bully.id, name: `${bully.givenName} ${bully.surname}` });
     expect(checkInvariants(ctx.state, content)).toEqual([]);
   });
