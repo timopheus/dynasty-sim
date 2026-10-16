@@ -97,7 +97,7 @@ describe('content', () => {
   });
 
   it('accepts the new keys grammar and backstory, and factors as integer fractions', () => {
-    const file = { path: 'fixture/stage3.yaml', text: 'grammar:\n  dawn: ["at first light", { text: "in the snow", when: { season: [winter] } }]\nbackstory: {}\n' };
+    const file = { path: 'fixture/stage3.yaml', text: 'grammar:\n  dawn: ["at first light", { text: "in the snow", when: { season: [winter] } }]\nbackstory:\n  base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }\n  stages: [{ id: birth }]\n  texts: { leave: "{name} went out." }\n' };
     const result = loadContent([...BASE_FILES, file]);
     expect(result.ok, JSON.stringify(!result.ok && result.errors)).toBe(true);
     expect(Factor.safeParse('1/2').success).toBe(true);

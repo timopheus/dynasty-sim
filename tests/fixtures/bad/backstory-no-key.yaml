@@ -1,0 +1,16 @@
+# expect-error: events[0].deck /needs the key backstory/
+events:
+  - id: scene
+    deck: backstory
+    stage: origin
+    weight: 1
+    text: "A scene."
+    options:
+      - text: A
+        when: { offered: va }
+        result: "{name} did A."
+      - text: B
+        when: { offered: vb }
+        result: "{name} did B."
+      - text: Plain
+        result: "{name} did nothing."

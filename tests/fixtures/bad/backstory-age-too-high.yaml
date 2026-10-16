@@ -1,0 +1,24 @@
+# expect-error: backstory.stages /startAge.max 20 plus up to 5 years .* goes past 21/
+backstory:
+  base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
+  stages:
+    - id: origin
+      offer: { count: 1, variants: [va, vb] }
+    - id: later
+  texts: { leave: "{name} went out." }
+events:
+  - id: scene
+    deck: backstory
+    stage: origin
+    weight: 1
+    text: "A scene."
+    options:
+      - text: A
+        when: { offered: va }
+        result: "{name} did A."
+      - text: B
+        when: { offered: vb }
+        result: "{name} did B."
+      - text: Plain
+        effects: { age_years: 5 }
+        result: "{name} did nothing."
