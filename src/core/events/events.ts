@@ -173,7 +173,7 @@ function resolveOutcome(ctx: Ctx, event: EventDef, pending: PendingEvent, outcom
     if (person) applyEffects(ctx, person, effects, pending.scope);
   }
   pending.money += protagonist.money - moneyBefore;
-  if (outcome.result !== undefined) pending.lines.push(renderTemplate(ctx, outcome.result, pending.scope, pending.seq, `${slot}result`));
+  if (outcome.result !== undefined) pending.lines.push(renderTemplate(ctx, outcome.result, pending.scope, pending.seq, `${slot}result`, event.grammar ?? null));
   if (outcome.mark === true || (choice && protagonist.id === state.playerId && autoMark(outcome))) pending.mark = true;
   if (outcome.chronicle === true) pending.important = true;
   if (outcome.next !== undefined) {

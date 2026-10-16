@@ -150,6 +150,10 @@ interface EventEnv {
   /** Roles a text, condition or effect may name: built-in and declared. */
   known: Set<string>;
   roles: string[];
+  /** Roles that may stay empty: texts name them only inside `{role?…}` (3.4). */
+  optional: string[];
+  /** Grammar symbols the texts may use: the general grammar and the event's own. */
+  symbols: string[];
   errors: ContentError[];
 }
 
@@ -165,7 +169,7 @@ function checkWhen(env: EventEnv, path: string, when: When | undefined): void {
 
 function checkText(env: EventEnv, path: string, text: string | undefined): void {
   if (text === undefined) return;
-  const problem = checkEventTemplate(text, { roles: env.roles });
+  const problem = checkEventTemplate(text, { roles: env.roles, optional: env.optional, symbols: env.symbols });
   if (problem) env.errors.push({ file: env.file, path, message: problem });
 }
 
@@ -257,7 +261,9 @@ function checkPages(env: EventEnv): void {
 
 function checkEvent(sources: ContentSources, file: string, at: string, event: EventDef, errors: ContentError[]): void {
   const roles = Object.keys(event.roles ?? {});
-  const env: EventEnv = { file, at, event, known: new Set(['hero', 'protagonist', ...roles]), roles, errors };
+  const optional = roles.filter((r) => event.roles?.[r]?.optional === true);
+  const symbols = [...new Set([...sources.grammar.flatMap((g) => Object.keys(g.item)), ...Object.keys(event.grammar ?? {})])];
+  const env: EventEnv = { file, at, event, known: new Set(['hero', 'protagonist', ...roles]), roles, optional, symbols, errors };
   if (event.roles) errors.push(...checkRoles(event.roles, { file, path: `${at}.roles`, sources }));
   // The weight is counted before the roles are filled (D-184): its conditions see only the built-in roles.
   const weightEnv: EventEnv = { ...env, known: new Set(['hero', 'protagonist']) };

@@ -1,0 +1,10 @@
+# expect-error: events[0].text /role "second" may be empty/
+events:
+  - id: bad_optional
+    weight: 1
+    roles:
+      second: { pick: circle, optional: true }
+    text: "You meet {second}."
+    options:
+      - text: Wave
+        result: "{name} waved."

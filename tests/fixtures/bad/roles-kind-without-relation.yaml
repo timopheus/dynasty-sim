@@ -1,0 +1,10 @@
+# expect-error: events[0].roles.x.kind /only with pick "relation"/
+events:
+  - id: bad_role
+    weight: 1
+    roles:
+      x: { pick: circle, kind: friend }
+    text: "Hello."
+    options:
+      - text: Hello
+        result: "{name} said hello."

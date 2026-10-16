@@ -90,3 +90,29 @@ events:
       - text: Ok
         result: "{name} was weighed."
         ai: { base: 10, traits: { brave: 5 } }
+
+  # Integration of wave 2 (3.2 + 3.3 + 3.4): a role picked by weight, an opposed check, texts with own grammar.
+  - id: tavern_brawl
+    weight: 1
+    followup_only: true
+    severity: medium
+    roles:
+      bully:
+        pick: circle
+        where: { occupation: [porter], money_min: 50 }
+        prefer:
+          - { when: { money_min: 150 }, factor: 5 }
+      witness: { pick: circle, optional: true }
+    grammar:
+      tavern: ["a smoky tavern", "a crowded inn"]
+    text: "{bully} shoves you in <tavern>.{witness? {witness} looks on.}"
+    options:
+      - text: Hit {bully} back
+        check: { stat: prowess, against: { role: bully, stat: prowess } }
+        success:
+          on: { bully: { money: -7 } }
+          result: "{name} knocked down {bully} in <tavern>."
+        failure:
+          result: "{name} was beaten by {bully} in <tavern>."
+      - text: Leave
+        result: "{name} left <tavern> to {bully}."

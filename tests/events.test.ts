@@ -128,7 +128,7 @@ describe('checks (D-042)', () => {
   });
 
   it('opposes a stat of a role and applies the outcome to the role', () => {
-    const { ctx, hero, people } = game();
+    const { ctx, hero, people } = game([5, 100, 30]);
     const rival = people[1]!; // the first with 50 crowns or more
     rival.baseStats.prowess = 0;
     hero.baseStats.prowess = 30; // 95%
@@ -154,7 +154,7 @@ describe('checks (D-042)', () => {
 
 describe('pages', () => {
   it('glues the lines of two pages into one entry, with the money of both', () => {
-    const { ctx, hero, people } = game();
+    const { ctx, hero, people } = game([5]);
     const before = ctx.state.chronicle.length;
     fire(ctx, 'two_pages', hero);
     apply(ctx.state, content, { type: 'choose', option: 0 });
@@ -273,5 +273,46 @@ describe('in a run', () => {
     const kinds = new Set(state.chronicle.map((e) => e.kind));
     expect(kinds.has('event') && kinds.has('notice')).toBe(true);
     expect(state.chronicle.some((e) => / met .*\. /.test(entryText(e)))).toBe(true); // two pages, one entry
+  });
+});
+
+describe('wave 2 together: roles (3.3), texts (3.4) and the engine (3.2)', () => {
+  /** One brawl from a fresh game: the role, the chance, the screen text and the line it ends with. */
+  function brawl(seed: number) {
+    const { ctx, hero, people } = game([200, 60, 300, 10]);
+    people[3]!.occupation = 'elder'; // never a bully: wrong occupation
+    ctx.state.rng = seedRng(seed);
+    expect(fire(ctx, 'tavern_brawl', hero)).toBe('waiting');
+    const { scope } = ctx.state.pendingEvent!;
+    const view = eventView(ctx)!;
+    const bully = people.find((p) => p.id === scope.bully)!;
+    apply(ctx.state, content, { type: 'choose', option: 0 });
+    return { ctx, hero, people, scope, view, bully, line: lastLine(ctx) };
+  }
+
+  it('passes whole: picked role, opposed check, grammar and optional role in the texts, effect on the role', () => {
+    const { ctx, hero, people, scope, view, bully, line } = brawl(11);
+    expect([people[0]!.id, people[1]!.id, people[2]!.id]).toContain(scope.bully);
+    expect(scope.witness).not.toBe(scope.bully);
+    expect(acquaintanceLevel(ctx.state, content, hero.id, bully.id)).toBe('known');
+    const shown = entryText({ ...line, parts: view.text });
+    expect(shown).toMatch(/ shoves you in (a smoky tavern|a crowded inn)\.( .+ looks on\.)?$/);
+    expect(view.text[0]).toEqual({ id: bully.id, name: `${bully.givenName} ${bully.surname}` });
+    expect(view.options[0]!.chance).toEqual({ percent: 50, band: 'even' }); // 5 against 5
+    const text = entryText(line);
+    expect(text).toMatch(/^\S+ \S+ (knocked down|was beaten by) \S+ \S+ in (a smoky tavern|a crowded inn)\.$/);
+    if (text.includes('knocked down')) expect(bully.money).toBe(people.indexOf(bully) === 0 ? 193 : people.indexOf(bully) === 1 ? 53 : 293);
+    expect(line.parts).toContainEqual({ id: bully.id, name: `${bully.givenName} ${bully.surname}` });
+    expect(checkInvariants(ctx.state, content)).toEqual([]);
+  });
+
+  it('reads the same for the same seed, and the rich are preferred', () => {
+    const a = brawl(5);
+    const b = brawl(5);
+    expect(entryText(a.line)).toBe(entryText(b.line));
+    expect(a.view).toEqual(b.view);
+    let rich = 0;
+    for (let seed = 1; seed <= 200; seed++) if (brawl(seed).bully.money >= 150 - 7) rich++;
+    expect(rich).toBeGreaterThan(150); // ×5 for 200 and 300 against 60: about 10 of 11
   });
 });

@@ -41,7 +41,7 @@ export function eventView(ctx: Ctx): EventView | null {
   const protagonist = findCharacter(state, pending.protagonist);
   if (!protagonist) throw new Error(`Unknown main participant ${pending.protagonist}`);
   const path = scenePath(pending.page);
-  const render = (template: string, slot: string) => renderTemplate(ctx, template, pending.scope, pending.seq, slot);
+  const render = (template: string, slot: string) => renderTemplate(ctx, template, pending.scope, pending.seq, slot, event.grammar ?? null);
   const options: OptionView[] = [];
   if (!scene.options) {
     options.push({ index: 0, text: null, available: true, reasons: [], chance: null });

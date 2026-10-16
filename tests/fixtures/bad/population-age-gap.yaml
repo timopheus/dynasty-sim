@@ -5,6 +5,7 @@ population:
   driftPer10k: 0
   arriveFromFarPer100: 0
   far: { occupationChangePer10k: 0, returnPer10k: 0 }
+  occupationReason: "Only for {occupations}"
   occupations:
     - { id: young, name: Young, weight: 1, age: { min: 16, max: 29 } }
     - { id: old, name: Old, weight: 1, age: { min: 31, max: 70 } }
