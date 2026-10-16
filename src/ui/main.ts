@@ -1,5 +1,5 @@
 import { actionAvailability } from '../core/actions/actions';
-import { entryText, type ChronicleEntry } from '../core/chronicle/log';
+import type { ChronicleEntry } from '../core/chronicle/log';
 import { loadContent } from '../core/content/load';
 import type { Content } from '../core/content/schema';
 import { pendingEventDef } from '../core/events/events';
@@ -9,7 +9,9 @@ import type { GameState } from '../core/state';
 import { renderText } from '../core/text/text';
 import { formatDate } from '../core/time/calendar';
 import { getPlayer } from '../core/helpers';
+import { personPage } from '../core/pages/person';
 import { heroView } from './hero';
+import { entryItem, pageView, personHref, personIdFromHash } from './page';
 import { clearGame, loadGame, saveGame, seedFromSearch, startChoice, type KeyValueStore } from './storage';
 import './style.css';
 
@@ -63,8 +65,7 @@ function saveProblemText(reason: 'quota' | 'unavailable'): string {
 
 function entriesList(entries: ChronicleEntry[]): HTMLElement {
   const recent = entries.slice(-CHRONICLE_LIMIT).reverse();
-  return el('ul', { className: 'chronicle' }, ...recent.map((e) =>
-    el('li', {}, el('span', { className: 'date' }, formatDate(e.day)), entryText(e))));
+  return el('ul', { className: 'chronicle' }, ...recent.map((e) => entryItem(el, e)));
 }
 
 function render(session: Session): void {
@@ -74,6 +75,12 @@ function render(session: Session): void {
   const rerender = () => render(session);
   const parts: Node[] = [];
 
+  const pageId = personIdFromHash(location.hash);
+  if (pageId !== null) {
+    app?.replaceChildren(pageView(el, personPage({ state, content }, pageId)));
+    return;
+  }
+
   if (session.notice) parts.push(el('p', { className: 'notice' }, session.notice));
   if (session.saveProblem) parts.push(el('p', { className: 'notice warn', role: 'alert' }, session.saveProblem));
 
@@ -82,7 +89,7 @@ function render(session: Session): void {
     el('p', { className: 'meta' }, `${formatDate(state.day)} · seed ${state.seed} · `,
       el('button', { className: 'link', onclick: () => newGameWithConfirm(session) }, 'New game')),
     el('section', { className: 'hero' },
-      el('h2', {}, hero.name),
+      el('h2', {}, el('a', { href: personHref(player.id) }, hero.name)),
       el('p', {}, `${hero.sex === 'male' ? 'Man' : 'Woman'}, aged ${hero.age}${hero.fame ? `, ${hero.fame}` : ''}. Money ${hero.money}.`),
       el('p', {}, `Health: ${hero.conditions || 'healthy'}.`),
       el('dl', { className: 'stats' }, ...hero.stats.flatMap((s) => [
@@ -153,6 +160,8 @@ function newGameWithConfirm(session: Session): void {
 }
 
 const loaded = loadContent(files);
+let current: Session | null = null;
+window.addEventListener('hashchange', () => { if (current) render(current); });
 if (!loaded.ok) {
   app.replaceChildren(
     el('h1', {}, 'Content errors'),
@@ -165,6 +174,7 @@ if (!loaded.ok) {
   const requested = seedFromSearch(location.search, isValidSeed);
   const choice = startChoice(outcome, requested);
   const session: Session = { state: outcome.kind === 'loaded' ? outcome.state : newGame(pickSeed(), content), content, store, notice: null, saveProblem: null, tab: 'chronicle' };
+  current = session;
   if (choice === 'continue' || (choice === 'ask_replace' && !confirm(`The address asks for seed ${String(requested)}, which replaces your saved dynasty. Replace it?`))) {
     if (choice === 'ask_replace') history.replaceState(null, '', location.pathname);
     render(session);

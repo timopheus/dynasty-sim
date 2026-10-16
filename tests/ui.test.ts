@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { apply, newGame } from '../src/core/game';
 import { serialize } from '../src/core/save/save';
 import { heroView } from '../src/ui/hero';
+import { personHref, personIdFromHash } from '../src/ui/page';
 import { isValidSeed } from '../src/core/rng';
 import { SAVE_KEY, clearGame, loadGame, saveGame, seedFromSearch, startChoice, type KeyValueStore } from '../src/ui/storage';
 import { fixtureContent, realContent } from './fixtures/content';
@@ -99,5 +100,12 @@ describe('start choice', () => {
     expect(startChoice(saved, 8)).toBe('ask_replace');
     expect(startChoice({ kind: 'none' }, null)).toBe('new');
     expect(startChoice({ kind: 'discarded', reason: 'corrupt', message: '' }, 8)).toBe('new');
+  });
+});
+
+describe('person page addresses', () => {
+  it('round-trips an id through the address and rejects anything else', () => {
+    expect(personIdFromHash(personHref('c12'))).toBe('c12');
+    for (const bad of ['', '#', '#/person/', '#/person/c1/x', '#/person/<script>', '#person/c1']) expect(personIdFromHash(bad)).toBeNull();
   });
 });

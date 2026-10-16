@@ -161,3 +161,17 @@ button.link {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+a.person {
+  text-decoration: underline dotted;
+}
+
+ul.plain {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.page h2 {
+  margin-top: 1.5rem;
+}
