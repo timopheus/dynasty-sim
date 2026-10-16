@@ -7,7 +7,7 @@ events:
     options:
       - text: Fight
         result: "{name} fought off highwaymen and took their purse."
-        effects: { health: -15, money: 15 }
+        effects: { wound: light_wound, money: 15 }
       - text: Pay them off
         result: "{name} paid off highwaymen on the road."
         effects: { money: -20 }
@@ -22,7 +22,6 @@ events:
         effects: { money: -8 }
       - text: Mend it yourself
         result: "{name} mended a broken wheel by hand in the mud."
-        effects: { health: -2 }
 
   - id: night_patrol
     weight: 10
@@ -31,7 +30,7 @@ events:
     options:
       - text: Volunteer
         result: "{name} volunteered for a night patrol and earned a bonus."
-        effects: { health: -10, money: 30 }
+        effects: { wound: light_wound, money: 30 }
       - text: Stay in camp
         result: "{name} stayed in camp while others went on patrol."
 
@@ -76,6 +75,6 @@ events:
     options:
       - text: Stand and strike
         result: "{name} killed a charging boar but was gored."
-        effects: { health: -12, money: 10 }
+        effects: { wound: severe_wound, money: 10 }
       - text: Climb a tree
         result: "{name} waited out a wild boar from the branches of a tree."

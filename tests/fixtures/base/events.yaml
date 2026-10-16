@@ -5,7 +5,7 @@ events:
     options:
       - text: Hurt
         result: "{name} got hurt."
-        effects: { health: -200 }
+        effects: { wound: mortal }
       - text: Ignore
         result: "{name} ignored it."
   - id: rest_only

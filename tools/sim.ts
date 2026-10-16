@@ -10,6 +10,7 @@ import { parseArgs } from 'node:util';
 import { fullName } from '../src/core/character/character';
 import { chronicleMarkdown } from '../src/core/chronicle/markdown';
 import { loadContent } from '../src/core/content/load';
+import { conditionsText } from '../src/core/health/course';
 import { compare, computeMetrics, summarize, type RunMetrics, type Summary } from '../src/core/metrics';
 import { isValidSeed, MAX_SEED } from '../src/core/rng';
 import { runSim } from '../src/core/sim';
@@ -132,7 +133,7 @@ for (let i = 0; i < runs; i++) {
   say(`Heads of the house: ${metrics.heads.count}`);
   say(
     `Current head: ${fullName(head)}, age ${ageYears(head.birthDay, state.day)}, ` +
-      `health ${head.health}, money ${head.money}`,
+      `health: ${conditionsText(content, head) || 'healthy'}, money ${head.money}`,
   );
   say(`Chronicle: ${out}`);
   if (violations.length > 0) {

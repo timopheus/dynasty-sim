@@ -68,22 +68,23 @@ describe('game loop', () => {
     expect(() => apply(state, content, { type: 'choose', option: 5 })).toThrow();
   });
 
-  it('kills a character at zero health and hands over to a placeholder heir', () => {
+  it('kills a character of a condition and hands over to a placeholder heir', () => {
     const content = fixtureContent({ eventChancePer10k: 10000 });
     const state = newGame(1, content);
     apply(state, content, { type: 'start', actionId: 'wait' });
-    apply(state, content, { type: 'choose', option: 0 }); // health -200 -> 0, death next day
+    apply(state, content, { type: 'choose', option: 0 }); // a mortal wound, death at the weekly roll on day 7
+    while (state.status === 'awaiting_choice') apply(state, content, { type: 'choose', option: 1 });
 
     const [founder, heir] = state.characters;
-    expect(founder?.deathDay).toBe(2);
-    expect(founder?.deathCause).toBe('ill_health');
+    expect(founder?.deathDay).toBe(7);
+    expect(founder?.deathCause).toBe('illness');
     expect(state.playerId).toBe(heir?.id);
     expect(heir?.surname).toBe('Fixture');
     expect(heir?.money).toBe(10);
     expect(heir && ageYears(heir.birthDay, state.day)).toBe(18);
     expect(state.status).toBe('awaiting_action');
     expect(state.activeAction).toBeNull();
-    expect(state.chronicle.slice(-2).map((e) => e.kind)).toEqual(['death', 'succession']);
+    expect(state.chronicle.slice(-3).map((e) => e.kind)).toEqual(['death', 'death_cause', 'succession']);
     expect(checkInvariants(state, content)).toEqual([]);
   });
 

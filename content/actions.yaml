@@ -1,35 +1,46 @@
 # Actions the player can start. Duration is in days, rolled when the action starts.
-# `when` (optional) limits when the action can be started: season, money_min, age_min, age_max.
+# `when` (optional) limits when the action can be started: season, money_min, age_min, age_max,
+# sex (D-034: paths closed by the customs of 1700), fit (no severe wound or illness).
+# Rest and the road change the course of conditions: lists in content/health.yaml.
 # `text` is written to the chronicle when the action completes. Schema: ActionSchema.
 actions:
   - id: travel
     name: Travel the roads
     duration: { min: 10, max: 40 }
-    effects: { health: -2, money: -5 }
+    when: { fit: true }
+    effects: { money: -5 }
     text: "{name} came back from a journey on the roads."
 
   - id: serve_contract
     name: Serve under contract
     duration: { min: 60, max: 180 }
-    when: { age_min: 18 }
-    effects: { health: -5, money: 60 }
+    when: { age_min: 18, sex: male, fit: true }
+    effects: { money: 60 }
     text: "{name} finished a contract of service and was paid off."
 
   - id: winter_quarters
     name: Winter in quarters
     duration: { min: 60, max: 120 }
     when: { season: [autumn, winter], money_min: 20 }
-    effects: { health: 20, money: -20 }
+    effects: { money: -20, heal: all }
     text: "{name} wintered in quiet quarters and recovered strength."
+
+  - id: rest
+    name: Rest and recover
+    duration: { min: 7, max: 28 }
+    effects: { money: -3 }
+    text: "{name} spent a few quiet weeks resting."
 
   - id: trade
     name: Try a small trade
     duration: { min: 20, max: 60 }
+    when: { fit: true }
     effects: { money: 10 }
     text: "{name} wound up a small trading venture with a modest profit."
 
   - id: hunt
     name: Go hunting
     duration: { min: 3, max: 14 }
-    effects: { health: -1, money: 5 }
+    when: { fit: true }
+    effects: { money: 5 }
     text: "{name} returned from the hunt with game to sell."
