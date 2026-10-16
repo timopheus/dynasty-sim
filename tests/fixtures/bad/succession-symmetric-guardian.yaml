@@ -1,0 +1,39 @@
+# expect-error: succession.guardianRelation /must not be symmetric/
+succession:
+  temporaryHeir: true
+  willAction: notary
+  willCost: 10
+  heirPercent: 50
+  passedOverReason: passed_over
+  guardianRelation: friend
+  texts:
+    byLaw: "{name} by law."
+    byWill: "{name} by will."
+    ended: "{house} ended."
+    willSigned: "{name} named {heir}."
+    willSignedNoHeir: "{name} left it."
+    willStaleBirth: "{name} stale."
+    willStaleDeath: "{other} dead, {name} stale."
+actions:
+  - id: notary
+    name: Notary
+    duration: { min: 5, max: 5 }
+    when: { will_command: true }
+    effects: { will_signed: true }
+    text: "{name} saw the notary."
+opinions:
+  reasons: []
+  traitEffects: []
+  background: { max: 10, rules: [] }
+  words:
+    - { from: -100, text: hatred }
+  relations:
+    - { id: friend, name: Friend, symmetric: true, opinion: { a: 25, b: 25 }, acquaintance: close, starts: "{name} befriended {other}.", ends: "{name} fell out with {other}." }
+  acquaintance: { meetPer100: 100, closeAfterDays: 30, closePer100: 100 }
+  texts:
+    opinionMin: "Needs {word} towards {name}"
+    opinionMax: "Needs at most {word} towards {name}"
+    relation: "Needs {kind} with {name}"
+    relationNone: "No {kind} with {name}"
+    acquaintedKnown: "Know {name}"
+    acquaintedClose: "Be close to {name}"
