@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].effects.fame /Too big/
+events:
+  - id: bad_event
+    weight: 1
+    text: "Cheers."
+    options:
+      - text: Bow
+        result: "{name} bowed."
+        effects: { fame: 4 }

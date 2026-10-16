@@ -1,0 +1,17 @@
+# expect-error: events[0].options[0].failure.effects.kill /only in an outcome without next/
+events:
+  - id: bad_event
+    weight: 1
+    severity: heavy
+    text: "A fight."
+    options:
+      - text: Fight
+        check: { stat: prowess, difficulty: 10 }
+        success: { result: "{name} won." }
+        failure:
+          next: after
+          effects: { kill: killed }
+    pages:
+      after:
+        text: "Too late."
+        result: "{name} died."

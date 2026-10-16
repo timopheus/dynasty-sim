@@ -1,0 +1,11 @@
+# expect-error: events[0].options[0].when.conditions_none[0] /unknown condition "plague"/
+events:
+  - id: bad_event
+    weight: 1
+    text: "A fight."
+    options:
+      - text: Pray
+        when: { conditions_none: [plague] }
+        result: "{name} prayed."
+      - text: Walk
+        result: "{name} walked."

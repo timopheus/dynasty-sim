@@ -1,0 +1,11 @@
+# expect-error: events[0].options[0].when.traits_any[0] /unknown trait "cursed"/
+events:
+  - id: bad_event
+    weight: 1
+    text: "A fight."
+    options:
+      - text: Pray
+        when: { traits_any: [cursed] }
+        result: "{name} prayed."
+      - text: Walk
+        result: "{name} walked."

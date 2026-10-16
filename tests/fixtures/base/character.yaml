@@ -72,3 +72,7 @@ traits:
     name: Coward
     category: reputation
     visibility: obvious
+  - id: poisoner
+    name: Poisoner
+    category: secret
+    visibility: secret

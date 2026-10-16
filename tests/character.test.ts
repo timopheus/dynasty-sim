@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { unmetConditions, WhenSchema } from '../src/core/condition-keys';
+import { conditionReport, unmetConditions, WhenSchema } from '../src/core/condition-keys';
 import { applyEffects } from '../src/core/effects';
 import { newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
@@ -156,5 +156,91 @@ describe('generation', () => {
       expect(c.traits.length).toBeGreaterThan(0);
     }
     expect(checkInvariants(state, content)).toEqual([]);
+  });
+});
+
+describe('condition keys of the character (3.5)', () => {
+  const report = (when: unknown, setupHero?: (hero: ReturnType<typeof setup>['hero']) => void) => {
+    const { ctx, hero } = setup();
+    setupHero?.(hero);
+    return conditionReport(ctx, hero, WhenSchema.parse(when), { hero: hero.id, protagonist: hero.id });
+  };
+
+  it('traits_any: unmet with the trait names; a secret trait makes the reason hidden', () => {
+    const none = (h: { traits: string[] }) => (h.traits = ['humble']);
+    expect(report({ traits_any: ['proud', 'brave'] }, none)).toEqual({ met: false, reasons: ['Needs Proud or Brave'], hidden: false });
+    expect(report({ traits_any: ['proud', 'humble'] }, none).met).toBe(true);
+    const secret = report({ traits_any: ['poisoner'] }, none);
+    expect(secret).toEqual({ met: false, reasons: [], hidden: true });
+  });
+
+  it('traits_none: unmet by a held trait, naming only the held ones; a held secret trait is hidden', () => {
+    const held = (h: { traits: string[] }) => (h.traits = ['proud', 'brave']);
+    expect(report({ traits_none: ['proud', 'humble'] }, held)).toEqual({ met: false, reasons: ['Not for Proud'], hidden: false });
+    expect(report({ traits_none: ['coward'] }, held).met).toBe(true);
+    expect(report({ traits_none: ['poisoner'] }, (h) => (h.traits = ['poisoner']))).toEqual({ met: false, reasons: [], hidden: true });
+    expect(report({ traits_none: ['poisoner'] }, held).met).toBe(true);
+  });
+
+  it('stats: min and max against the stats as they are today, one reason per stat', () => {
+    const set = (h: { baseStats: Record<string, number> }) => Object.assign(h.baseStats, { martial: 5, intrigue: 9 });
+    const r = report({ stats: { martial: { min: 8 }, intrigue: { max: 6 } } }, set);
+    expect(r.met).toBe(false);
+    expect(r.reasons).toEqual(['Martial 8+', 'Intrigue 6 at most']);
+    expect(r.hidden).toBe(false);
+    expect(report({ stats: { martial: { min: 5, max: 5 } } }, set).met).toBe(true);
+  });
+
+  it('stats counts traits and conditions, not just the base', () => {
+    const r = report({ stats: { prowess: { min: 12 } } }, (h) => {
+      h.baseStats.prowess = 9;
+      h.traits = ['strong']; // +3
+    });
+    expect(r.met).toBe(true);
+  });
+
+  it('fame_min: reason names the step', () => {
+    expect(report({ fame_min: 2 }, (h) => (h.fame = 1))).toEqual({ met: false, reasons: ['Fame: Realm'], hidden: false });
+    expect(report({ fame_min: 2 }, (h) => (h.fame = 2)).met).toBe(true);
+  });
+
+  it('rejects an empty stats block and an inverted range', () => {
+    expect(WhenSchema.safeParse({ stats: {} }).success).toBe(false);
+    expect(WhenSchema.safeParse({ stats: { martial: {} } }).success).toBe(false);
+    expect(WhenSchema.safeParse({ stats: { martial: { min: 5, max: 4 } } }).success).toBe(false);
+    expect(WhenSchema.safeParse({ fame_min: 0 }).success).toBe(false);
+  });
+});
+
+describe('effects stats and fame (3.5)', () => {
+  it('stats changes the base within 0..20', () => {
+    const { ctx, hero, state } = setup();
+    hero.baseStats.martial = 8;
+    hero.baseStats.learning = 19;
+    hero.baseStats.diplomacy = 1;
+    applyEffects(ctx, hero, { stats: { martial: 2, learning: 5, diplomacy: -4 } }, {});
+    expect(hero.baseStats).toMatchObject({ martial: 10, learning: 20, diplomacy: 0 });
+    expect(checkInvariants(state, ctx.content)).toEqual([]);
+  });
+
+  it('fame moves a step at a time and stays within 0..3', () => {
+    const { ctx, hero } = setup();
+    applyEffects(ctx, hero, { fame: 1 }, {});
+    expect(hero.fame).toBe(1);
+    applyEffects(ctx, hero, { fame: 3 }, {});
+    expect(hero.fame).toBe(3);
+    applyEffects(ctx, hero, { fame: -2 }, {});
+    expect(hero.fame).toBe(1);
+    applyEffects(ctx, hero, { fame: -3 }, {});
+    expect(hero.fame).toBe(0);
+  });
+
+  it('the schema rejects fame outside -3..3, zero changes and empty stats', async () => {
+    const { EffectsSchema } = await import('../src/core/effects');
+    expect(EffectsSchema.safeParse({ fame: 4 }).success).toBe(false);
+    expect(EffectsSchema.safeParse({ fame: -4 }).success).toBe(false);
+    expect(EffectsSchema.safeParse({ fame: 0 }).success).toBe(false);
+    expect(EffectsSchema.safeParse({ stats: {} }).success).toBe(false);
+    expect(EffectsSchema.safeParse({ stats: { martial: 1 } }).success).toBe(true);
   });
 });
