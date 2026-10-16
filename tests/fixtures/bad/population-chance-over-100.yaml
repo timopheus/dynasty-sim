@@ -1,0 +1,9 @@
+# expect-error: population.arriveFromFarPer100 /<=100/
+population:
+  circle: { min: 3, max: 5 }
+  newcomerAge: { min: 20, max: 30 }
+  driftPer10k: 0
+  arriveFromFarPer100: 120
+  far: { occupationChangePer10k: 0, returnPer10k: 0 }
+  occupations: [{ id: porter, name: Porter, weight: 1 }]
+  moves: []

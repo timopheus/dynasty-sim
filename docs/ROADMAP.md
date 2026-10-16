@@ -36,7 +36,7 @@
 | 2.3 | Персонаж: характеристики, черты, пол | `src/core/character/`, `content/traits/`, `content/names.yaml`, `content/settings.yaml` (тексты), CLAUDE.md, `.claude/agents/content-writer.md` | 2.1 | Sonnet | 2 | ✅ [#16](https://github.com/timopheus/dynasty-sim/pull/16) |
 | 2.7 | Метрики прогона | `src/core/metrics/`, `tools/sim.ts`, CLAUDE.md (команды) | 2.1 | Sonnet | 2 | ✅ [#14](https://github.com/timopheus/dynasty-sim/pull/14) |
 | 2.9 | Здоровье и смертность | `src/core/health/`, `content/health.yaml`, `content/traits/injuries.yaml`, `content/actions.yaml` и `content/events/` (замена `health: ±N`, ограничения по полу) | 2.2, 2.3, 2.7 | Opus | 3 | ⬜ |
-| 2.5 | Население вокруг героя | `src/core/world/`, `content/population.yaml` | 2.3, 2.7 | Sonnet | 3 | ⬜ |
+| 2.5 | Население вокруг героя | `src/core/world/`, `content/population.yaml` | 2.3, 2.7 | Sonnet | 3 | 🟡 |
 | 2.6 | Хроника v1: отбор и markdown | `src/core/chronicle/`, `content/chronicle.yaml`, `src/core/events/` (пометка ▸), вывод журнала в `tools/sim.ts` | 2.9, 2.5 | Sonnet | 4 | ⬜ |
 | 2.8 | Интерфейс v1 и автосохранение | `src/ui/`, `src/core/save/`, `package.json` и `package-lock.json` (если берём фреймворк) | 2.2, 2.3, 2.9 | Sonnet | 4 | ⬜ |
 | 2.4 | Мнения, отношения, знакомство | `src/core/relations/`, `content/opinions.yaml` | 2.3, 2.5 | Sonnet | 4 | ⬜ |

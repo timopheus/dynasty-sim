@@ -1,0 +1,18 @@
+# Small circle for tests of the world module; goes on top of tests/fixtures/base.
+population:
+  circle: { min: 6, max: 10 }
+  newcomerAge: { min: 20, max: 40 }
+  driftPer10k: 1000
+  arriveFromFarPer100: 50
+  far:
+    occupationChangePer10k: 2000
+    returnPer10k: 1500
+  occupations:
+    - { id: porter, name: Porter, weight: 3, age: { min: 16, max: 50 } }
+    - { id: elder, name: Elder, weight: 1, age: { min: 41, max: 99 } }
+    - { id: guard, name: Guard, weight: 2 }
+  moves:
+    - action: wait
+      leave: { min: 2, max: 3 }
+      arrive: { min: 2, max: 3 }
+      text: "{name} moved on with a changed company."
