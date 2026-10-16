@@ -21,10 +21,10 @@ export const backstoryEffectShape = {
     .optional(),
 };
 
-/** The day of birth `years` earlier on the calendar; 29 February falls back to the 28th. */
-function yearsEarlier(birthDay: number, years: number): number {
-  const b = toYmd(birthDay);
-  const year = b.year - years;
+/** The same day of the calendar `years` later (earlier when negative); 29 February falls back to the 28th. */
+export function shiftYears(day: number, years: number): number {
+  const b = toYmd(day);
+  const year = b.year + years;
   return fromYmd(year, b.month, b.month === 2 && b.day === 29 && !isLeapYear(year) ? 28 : b.day);
 }
 
@@ -34,7 +34,7 @@ export function applyBackstoryEffects(
   effects: { age_years?: number | undefined; stats_roll?: Partial<Record<StatId, { min: number; max: number } | undefined>> | undefined },
   _scope: Scope,
 ): void {
-  if (effects.age_years !== undefined) c.birthDay = yearsEarlier(c.birthDay, effects.age_years);
+  if (effects.age_years !== undefined) c.birthDay = shiftYears(c.birthDay, -effects.age_years);
   for (const id of STAT_IDS) {
     const range = effects.stats_roll?.[id];
     if (range) c.baseStats[id] = Math.min(BASE_STAT_MAX, Math.max(0, c.baseStats[id] + int(ctx.state.rng, range.min, range.max)));

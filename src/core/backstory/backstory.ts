@@ -17,11 +17,17 @@ export interface BackstoryState {
     offered: string[];
     /** Scenes started so far, in order: a scene is never shown twice. */
     played: string[];
+    /**
+     * Where the lines of the backstory begin in `state.chronicle` while it runs (D-324): `lines[0]` is the founder's
+     * first line ("start"), `lines[i + 1]` the first line of stage i. The end of the backstory dates them by the age of
+     * the stage and empties the list.
+     */
+    lines: number[];
   };
 }
 
 export function initBackstoryState(): BackstoryState {
-  return { backstory: { running: false, founder: null, stage: 0, inStage: 0, offered: [], played: [] } };
+  return { backstory: { running: false, founder: null, stage: 0, inStage: 0, offered: [], played: [], lines: [] } };
 }
 
 /** The founder whose scenes these are (D-312). */
@@ -43,5 +49,12 @@ export const backstoryInvariants: Invariant = ({ state, content }) => {
     if (st.running && st.stage > bs.stages.length) problems.push(`backstory: stage ${st.stage} is past the last one`);
   } else if (st.running) problems.push('backstory: running without a backstory in the content');
   if (st.running && st.founder !== state.playerId) problems.push('backstory: running for someone who is not the hero');
+  if (!st.running && st.lines.length > 0) problems.push('backstory: line marks left after the end');
+  let prev = 0;
+  for (const i of st.lines) {
+    if (!isInt(i) || i < prev || i > state.chronicle.length) problems.push(`backstory: line mark ${String(i)} is out of order`);
+    prev = i;
+  }
+  if (bs && st.lines.length > bs.stages.length + 1) problems.push('backstory: more line marks than stages');
   return problems;
 };

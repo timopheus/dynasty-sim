@@ -250,6 +250,11 @@ describe('pages through the archive access (D-311, D-312)', () => {
     // Under HOT_YEARS (archive/phases.ts): the archive phase has made no chunk yet.
     const { state } = runSim(real, { seed: 2, years: 9 });
     const ctx: Ctx = { state, content: real };
+    // The first lines of the backstory are dated by age (D-324), older than HOT_YEARS: the first day put them in a
+    // chunk. Back to the hot part, as before any chunk.
+    expect(state.archive.every((chunk) => chunk.characters.length === 0)).toBe(true);
+    state.chronicle = [...state.archive.flatMap((chunk) => chunk.chronicle), ...state.chronicle];
+    state.archive = [];
     expect(allChronicle(state)).toBe(state.chronicle);
     expect(allCharacters(state)).toBe(state.characters);
     const chronicle = chronicleMarkdown(state);
