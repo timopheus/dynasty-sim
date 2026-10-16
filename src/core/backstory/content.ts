@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { BASE_STAT_MAX, STAT_IDS, type StatId } from '../character/stat-ids';
 import type { CrossCheck } from '../content/schema';
 import { Id, Int, Text, type ContentError } from '../content/types';
+import { offeredOnlyOptions } from '../events/content';
 import { checkTemplate } from '../text/text';
 
 const StageSchema = z.strictObject({
@@ -125,7 +126,7 @@ export const checkBackstory: CrossCheck = ({ backstory, events, actions, setting
     // A scene whose options are all offered variants (D-188): every variant its stage offers must have an option here,
     // so whatever is drawn, the player sees `count` options.
     const options = item.options ?? [];
-    if (options.length > 0 && options.every((o) => o.when !== undefined && Object.keys(o.when).length === 1 && o.when.offered !== undefined)) {
+    if (offeredOnlyOptions(options)) {
       const offer = bs.stages.find((s) => s.id === item.stage)?.offer;
       if (!offer) errors.push({ file: eventFile, path: `${at}.options`, message: 'every option is an offered variant, but the stage offers none' });
       else {
