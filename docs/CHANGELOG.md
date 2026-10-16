@@ -2,6 +2,13 @@
 
 Новые записи сверху: дата, ID задачи, что изменилось.
 
+## 2026-10-16 · 3.12 Контент: события с ролями, пачка 1
+- 13 нынешних событий переведены на новый формат (текст во втором лице, роли, проверки, `chronicle`, `mood`); `old_wound` — с `conditions_any: [old_wound]`; `fever` — с необязательной ролью лекаря (D-283).
+- 24 новых события с ролями на все действия: 5 тяжёлых со смертельным риском для героя (`escort_ambush`, `skirmish_at_the_ford`, `mutiny_in_camp`, `bear_in_the_thicket`, `duel_at_dawn`; D-282); связи (друг, соперник, покровитель) в `fellow_traveller`, `kindly_nurse`, `mutiny_in_camp`, `market_rival`, `patron_offer` и др.; цепочки: вызов → дуэль через `schedule` (`slighted_at_the_inn` → `duel_at_dawn`) и история с долгом (`lend_to_a_comrade` → `debtor_repays` / `debtor_defaults`); 4 события людей мира (`npc_quarrel`, `npc_kindness`, `npc_fever`, `npc_theft`, `ai` по чертам); 3 извещения (`lucky_find`, `news_of_an_old_comrade`, `cold_snap`); 3 события `way_up` (`priest_alms`, `odd_job_offer`, `patron_offer`).
+- `content/opinions.yaml`: 5 новых причин (D-280), тексты начала дружбы и вражды; `content/traits/reputation.yaml`: 5 репутаций (D-281); `content/grammar.yaml`: `inn_name`, `road_weather`.
+- `.claude/agents/content-writer.md` переписан под формат событий этапа 3.
+- Замеры 10 прогонов × 300 лет (D-285): строк хроники на жизнь 48, медиана смерти главы 43,5, ▸ на жизнь 15,75, событий в год 7,25, событий людей мира в год 2,27, время 26 с, сохранение 2,18 МБ (бюджет 2 МБ превышен — вопрос ведущей сессии).
+
 ## 2026-10-16 · 3.1d Люди истории в событиях из колоды; ключи предыстории
 - Рассказчик считает вес события истории и запускает его с людьми истории (`eventWeight(…, given)`, `storyGiven`); `checkStories` требует, чтобы эффекты, открывающие историю, передавали обязательные роли `given` её событий (D-178). Закрыт пробел D-241.
 - Пустые ключи условий `backstory/conditions.ts` подключены в `condition-keys.ts` — точка для 3.11 (D-179).

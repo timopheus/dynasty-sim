@@ -33,6 +33,7 @@ events:
 
   - id: card_game
     weight: 8
+    cooldown_days: 540
     roles:
       stranger:
         pick: circle

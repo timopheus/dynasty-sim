@@ -11,7 +11,7 @@ events:
       - text: Fight them
         check: { stat: prowess, difficulty: 6, bonus: [{ when: { traits_any: [duelist, horseman] }, add: 1 }] }
         success:
-          effects: { wound: light_wound, money: 15 }
+          effects: { money: 15 }
           result: "{name} fought off highwaymen on the road and took their purse."
           mood: triumph
         failure:
@@ -66,6 +66,7 @@ events:
 
   - id: smugglers_lantern
     weight: 4
+    cooldown_days: 1095
     severity: medium
     actions: [travel]
     when: { fit: true }
@@ -144,6 +145,7 @@ events:
 
   - id: escort_ambush
     weight: 1
+    cooldown_days: 1460
     severity: heavy
     actions: [serve_contract]
     when: { fit: true }
@@ -166,7 +168,6 @@ events:
       - text: Stand and hold the wagons
         check: { stat: prowess, difficulty: 8, bonus: [{ when: { traits_any: [duelist] }, add: 2 }, { when: { traits_any: [brave] }, add: 1 }] }
         success:
-          effects: { wound: light_wound }
           on: { employer: { opinion: [{ toward: hero, reason: favour }] } }
           result: "{name} held {employer}'s wagons against a bandit ambush."
           chronicle: true
@@ -179,7 +180,7 @@ events:
           mood: pain
           next: shamed
       - text: Charge the ambushers alone
-        when: { traits_any: [brave, wrathful] }
+        when: { traits_any: [brave] }
         check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [duelist] }, add: 2 }, { when: { traits_any: [brave] }, add: 2 }] }
         success:
           effects: { money: 40, fame: 1 }
@@ -219,6 +220,7 @@ events:
 
   - id: skirmish_at_the_ford
     weight: 1
+    cooldown_days: 1095
     severity: heavy
     actions: [serve_contract]
     when: { fit: true }
@@ -235,11 +237,11 @@ events:
           result: "{name} held the river bank with the picket and drove the skirmishers off."
           mood: triumph
         failure:
-          effects: { wound: light_wound, money: -10 }
-          result: "{name} was beaten back from the river bank and wounded."
+          effects: { money: -10 }
+          result: "{name} was beaten back from the river bank and lost kit."
           mood: pain
       - text: Lead a sortie across the ford
-        when: { traits_any: [brave, ambitious] }
+        when: { traits_any: [brave] }
         check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [horseman, duelist] }, add: 2 }] }
         success:
           effects: { money: 40, fame: 1 }
@@ -259,6 +261,7 @@ events:
 
   - id: mutiny_in_camp
     weight: 1
+    once: life
     severity: heavy
     actions: [serve_contract]
     when: { fit: true }
@@ -279,7 +282,7 @@ events:
           chronicle: true
           mood: triumph
         failure:
-          effects: { wound: light_wound, money: -15 }
+          effects: { money: -15 }
           result: "{name} was flogged as a mutineer when a pay mutiny failed."
           chronicle: true
           mood: shame
@@ -303,6 +306,7 @@ events:
   # --- Trade ----------------------------------------------------------------------------------------------------
   - id: cheap_cargo
     weight: 8
+    cooldown_days: 730
     actions: [trade]
     roles:
       seller:
@@ -384,6 +388,7 @@ events:
   # --- Winter quarters ------------------------------------------------------------------------------------------
   - id: shared_lodgings
     weight: 8
+    cooldown_days: 730
     actions: [winter_quarters]
     roles:
       lodger: { pick: circle }
@@ -454,6 +459,7 @@ events:
 
   - id: bear_in_the_thicket
     weight: 1
+    cooldown_days: 1460
     severity: heavy
     actions: [hunt]
     when: { fit: true }
@@ -461,7 +467,7 @@ events:
     text: "The dogs go quiet, then yelp. In the thicket ahead something very large rises on its hind legs: a bear, and it has seen you."
     options:
       - text: Face the bear with a spear
-        when: { traits_any: [brave, ambitious] }
+        when: { traits_any: [brave] }
         check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [brave, duelist] }, add: 2 }] }
         success:
           effects: { money: 25, fame: 1, traits: { add: [bear_slayer] } }
