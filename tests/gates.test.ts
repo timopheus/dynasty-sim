@@ -34,6 +34,7 @@ describe('metric gates', () => {
 
   it('fails on chronicle lines out of the corridor since stage 3 closed (D-205)', () => {
     expect(statusOf({ ...good, 'heads.chronicleLinesPerLife.median': s(55, 59, 62) })['heads.chronicleLinesPerLife.median']).toBe('fail');
+    expect(statusOf({ ...good, 'heads.chronicleLinesPerLife.median': s(10, 20, 30) })['heads.chronicleLinesPerLife.median']).toBe('fail');
   });
 
   it('a substituted corridor breaks the check, and switching the mode makes it fail', () => {
