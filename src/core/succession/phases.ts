@@ -130,6 +130,7 @@ export function succeed(ctx: Ctx, deceased: Character, heir: Character): void {
   if (by === 'will' && pace && firstByLaw && firstByLaw.id !== heir.id && findReason(content, pace.passedOverReason)) {
     addOpinionReason(ctx, firstByLaw.id, heir.id, pace.passedOverReason);
   }
+  state.executedWill = state.will;
   state.will = null;
   state.willDraft = null;
   state.guardian = null;

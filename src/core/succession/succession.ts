@@ -29,6 +29,11 @@ export interface WillDraft {
 export interface SuccessionState {
   /** The will of the current head, or null. */
   will: Will | null;
+  /**
+   * The will of the previous head as it stood at the change of head (D-360): the succession hooks (4.9: heirlooms)
+   * read it after `succeed` has cleared `will`. Null when the previous head left none.
+   */
+  executedWill: Will | null;
   /** Terms waiting for the end of the notary action; null when none is being drawn up. */
   willDraft: WillDraft | null;
   /** Guardian of a head under `adultAge` (D-314); null otherwise. */
@@ -36,7 +41,7 @@ export interface SuccessionState {
 }
 
 export function initSuccessionState(): SuccessionState {
-  return { will: null, willDraft: null, guardian: null };
+  return { will: null, executedWill: null, willDraft: null, guardian: null };
 }
 
 function termsRefs(terms: WillDraft | null): string[] {
@@ -44,8 +49,8 @@ function termsRefs(terms: WillDraft | null): string[] {
   return [terms.heir, terms.guardian, ...terms.items.map((i) => i.to)].filter((id): id is string => id !== null);
 }
 
-/** People the succession part refers to (D-312): those named in the will and its draft, and the guardian. */
-export const successionRefs: RefsFn = ({ state }) => [...termsRefs(state.will), ...termsRefs(state.willDraft), ...(state.guardian === null ? [] : [state.guardian])];
+/** People the succession part refers to (D-312): those named in the wills and the draft, and the guardian. */
+export const successionRefs: RefsFn = ({ state }) => [...termsRefs(state.will), ...termsRefs(state.executedWill), ...termsRefs(state.willDraft), ...(state.guardian === null ? [] : [state.guardian])];
 
 export const successionInvariants: Invariant = ({ state, content }) => {
   const problems: string[] = [];
@@ -58,6 +63,7 @@ export const successionInvariants: Invariant = ({ state, content }) => {
     if (!isInt(state.will.day) || state.will.day > state.day) problems.push(`will is dated day ${String(state.will.day)}`);
     if (typeof state.will.stale !== 'boolean') problems.push('will has no stale flag');
   }
+  if (state.executedWill !== null) terms('executed will', state.executedWill);
   if (state.willDraft !== null) terms('will draft', state.willDraft);
   const guardianId = state.guardian;
   if (guardianId !== null) {

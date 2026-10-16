@@ -156,6 +156,7 @@ describe('the will (D-314, D-360)', () => {
     expect(state.chronicle.at(-1)).toMatchObject({ kind: 'succession', parts: [{ id: younger.id }, ' took over by the will of ', { id: hero.id }, '.'] });
     expect(opinionCauses(ctx, elder.id, younger.id).map((c) => c.id)).toContain('passed_over');
     expect(state.will).toBeNull();
+    expect(state.executedWill).toMatchObject({ heir: younger.id });
     expect(checkInvariants(state, quiet)).toEqual([]);
   });
 
