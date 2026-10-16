@@ -1,0 +1,3 @@
+# expect-error: traits /duplicate trait id "coward"/
+traits:
+  - { id: coward, name: Again, category: reputation, visibility: obvious }

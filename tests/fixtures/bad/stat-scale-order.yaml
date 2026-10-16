@@ -1,0 +1,7 @@
+# expect-error: names.statScale /ascending/
+names:
+  given: { male: [A], female: [B] }
+  surnames: [S]
+  statScale: [{ from: 0, word: Poor }, { from: 0, word: Same }]
+  fame: [A, B, C, D]
+  requiresSex: { male: "m", female: "f" }

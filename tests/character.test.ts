@@ -74,7 +74,7 @@ describe('stats', () => {
     expect(ageModifiers(40)).toEqual({});
     expect(ageModifiers(46)).toEqual({ prowess: -2 });
     const old = ageModifiers(66);
-    expect(old.prowess).toBe(-8 + 0 - 2);
+    expect(old.prowess).toBe(-10);
     expect(old.learning).toBeUndefined();
     expect(old.diplomacy).toBe(-2);
   });

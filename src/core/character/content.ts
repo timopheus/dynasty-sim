@@ -90,9 +90,14 @@ export const checkCharacter: CrossCheck = ({ names, traits, actions, events }) =
         errors.push({ file, path: `names.statScale[${i}].from`, message: 'stat scale steps must be in ascending order' });
       }
     });
-    for (const [key, text] of [...Object.entries(item.requiresSex), ...item.fame.map((t, i) => [`fame[${i}]`, t] as const)]) {
-      const problem = checkTemplate(text);
-      if (problem) errors.push({ file, path: `names.${key}`, message: problem });
+    // Shown as is, never filled in: no placeholders allowed.
+    const plain: [string, string][] = [
+      ['requiresSex.male', item.requiresSex.male],
+      ['requiresSex.female', item.requiresSex.female],
+      ...item.fame.map((t, i): [string, string] => [`fame[${i}]`, t]),
+    ];
+    for (const [key, text] of plain) {
+      if (/[{}]/.test(text)) errors.push({ file, path: `names.${key}`, message: 'this text is shown as is; placeholders are not allowed' });
     }
   }
 

@@ -1,4 +1,4 @@
-# expect-error: names.given /.+/
+# expect-error: names.given.male /Too small/
 names:
   given: { male: [], female: [Anne] }
   surnames: [Nobody]
