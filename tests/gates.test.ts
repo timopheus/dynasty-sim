@@ -26,10 +26,15 @@ describe('metric gates', () => {
   });
 
   it('only warn on a report-only metric', () => {
-    const st = statusOf({ ...good, 'heads.chronicleLinesPerLife.median': s(55, 59, 62), elapsedMs: s(1, 2, 99_000) });
-    expect(st['heads.chronicleLinesPerLife.median']).toBe('warn');
+    const st = statusOf({ ...good, 'heads.ageAtDeath.median': s(30, 40, 50), elapsedMs: s(1, 2, 99_000) });
+    expect(st['heads.ageAtDeath.median']).toBe('warn');
     expect(st.elapsedMs).toBe('warn');
     expect(Object.values(st)).not.toContain('fail');
+  });
+
+  it('fails on chronicle lines out of the corridor since stage 3 closed (D-205)', () => {
+    expect(statusOf({ ...good, 'heads.chronicleLinesPerLife.median': s(55, 59, 62) })['heads.chronicleLinesPerLife.median']).toBe('fail');
+    expect(statusOf({ ...good, 'heads.chronicleLinesPerLife.median': s(10, 20, 30) })['heads.chronicleLinesPerLife.median']).toBe('fail');
   });
 
   it('a substituted corridor breaks the check, and switching the mode makes it fail', () => {
@@ -53,6 +58,6 @@ describe('metric gates', () => {
 
   it('keeps D-203 mandatory gates in the config', () => {
     const fails = GATES.filter((g) => g.mode === 'fail').map((g) => g.metric).sort();
-    expect(fails).toEqual(['saveBytes', 'violations']);
+    expect(fails).toEqual(['heads.chronicleLinesPerLife.median', 'saveBytes', 'violations']);
   });
 });

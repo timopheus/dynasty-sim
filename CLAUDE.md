@@ -65,7 +65,7 @@ npm run check                           # typecheck + test + validate + sim 50 �
 npm run gates                           # 300 лет на seeds 1…10 и коридоры метрик (D-203): таблица, код 1 при провале «валящей» метрики; `-- --from a.json` проверяет готовый файл `sim --json`
 npm run build                           # сборка в dist/
 ```
-CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck, test, validate, sim 50 лет (seed 1), build. Хроника прогона — артефакт `chronicle`. Вторая работа CI `gates` параллельно прогоняет 300 лет на seeds 1…10 и сверяет метрики с коридорами из `tools/metrics-gates.ts` (D-203): валят инварианты и сохранение > 2 МБ, остальное — таблица в summary (⚠️). Коридор или признак «валит / только отчёт» меняются только вместе с записью DECISIONS.
+CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck, test, validate, sim 50 лет (seed 1), build. Хроника прогона — артефакт `chronicle`. Вторая работа CI `gates` параллельно прогоняет 300 лет на seeds 1…10 и сверяет метрики с коридорами из `tools/metrics-gates.ts` (D-203): валят инварианты, сохранение > 2 МБ и медиана строк хроники на жизнь главы вне 25–45 (D-205), остальное — таблица в summary (⚠️). Коридор или признак «валит / только отчёт» меняются только вместе с записью DECISIONS.
 
 ## Правила ядра (src/core)
 - Ядро импортирует только свои модули, `yaml` и `zod`. Запрещены DOM, Node API, `Math.random`, `Date`, `performance`. Это проверяют `tests/architecture.test.ts` и отдельный `src/core/tsconfig.json` без DOM и Node.
