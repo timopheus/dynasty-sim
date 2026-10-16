@@ -4,11 +4,11 @@
 backstory:
   base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
   stages:
-    # The player is offered 2 of the 5 variants by chance; the scene also keeps one option that is always there (3 in all).
+    # The player is offered 3 of the 6 variants by chance and picks one (D-167, D-188).
     - id: origin
       offer:
-        count: 2
-        variants: [guild_house, soldier_family, parish_house, gentry_house, waterfront]
+        count: 3
+        variants: [guild_house, soldier_family, parish_house, gentry_house, waterfront, plain_house]
     - id: childhood
     - id: youth
     - id: training

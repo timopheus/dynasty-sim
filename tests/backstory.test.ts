@@ -208,6 +208,19 @@ describe('the real backstory', () => {
     expect(real.settings.startAge.min).toBeGreaterThanOrEqual(16);
   });
 
+  it('offers 3 origins by chance in every game, and shows exactly those three (D-167, D-188)', () => {
+    const seen = new Set<string>();
+    for (let seed = 1; seed <= 30; seed++) {
+      const state = newGame(seed, real);
+      expect(state.backstory.offered).toHaveLength(3);
+      const view = eventView({ state, content: real })!;
+      expect(view.options).toHaveLength(3);
+      expect(view.options.every((o) => o.available)).toBe(true);
+      state.backstory.offered.forEach((v) => seen.add(v));
+    }
+    expect(seen.size).toBe(real.backstory!.stages[0]!.offer!.variants.length);
+  });
+
   it('names a mood on every scene and on every outcome that is not neutral, and leaves people in the world', () => {
     for (const scene of scenes) expect(scene.mood, scene.id).toBeDefined();
     const withPeople = scenes.filter((s) => Object.keys(s.roles ?? {}).length > 0);
