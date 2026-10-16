@@ -186,6 +186,8 @@ health:
     - { id: consumption, text: "Consumption had wasted {him} away." }
     - { id: old_age, text: "Old age had worn {him} out." }
     - { id: illness, text: "A sudden illness took {him}." }
+    - { id: killed_in_duel, text: "{He} had fallen in a duel." }
+    - { id: killed, text: "{He} had been killed." }
 
   rest:
     actions: [rest, winter_quarters]
@@ -199,3 +201,6 @@ health:
   texts:
     interrupted: "{name} was too ill to go on and had to take to bed."
     unfit: Too ill or badly hurt
+    # {conditions}: names of conditions, such as "Fever or Consumption".
+    conditions_any: "Needs one of: {conditions}"
+    conditions_none: "Not while suffering from {conditions}"

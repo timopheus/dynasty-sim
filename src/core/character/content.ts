@@ -2,7 +2,9 @@ import { z } from 'zod';
 import type { CrossCheck } from '../content/schema';
 import { Id, Int, Text, type ContentError } from '../content/types';
 import { checkTemplate } from '../text/text';
-import { EDUCATION_STAT_IDS } from './stat-ids';
+import { walkKeys } from '../conditions/walk';
+import { checkReason } from '../conditions/reasons';
+import { EDUCATION_STAT_IDS, STAT_IDS, type StatId } from './stat-ids';
 
 export const SexSchema = z.enum(['male', 'female']);
 export type Sex = z.infer<typeof SexSchema>;
@@ -24,6 +26,19 @@ export const NamesSchema = z.strictObject({
   fame: z.array(Text).length(4),
   /** Reason shown for an action that needs the given sex, to a character of the other sex. */
   requiresSex: z.strictObject({ male: Text, female: Text }),
+  /** Names of the stats in reasons (3.5). */
+  stats: z.strictObject(Object.fromEntries(STAT_IDS.map((id) => [id, Text])) as Record<StatId, typeof Text>),
+  /**
+   * Reasons an option is grey (D-043, 3.5). Placeholders: `{traits}` (a list of trait names), `{stat}` and `{value}`,
+   * `{fame}` (the name of the fame step).
+   */
+  reasons: z.strictObject({
+    traits_any: Text,
+    traits_none: Text,
+    stat_min: Text,
+    stat_max: Text,
+    fame_min: Text,
+  }),
 });
 
 const StatBonuses = z.strictObject({
@@ -79,7 +94,7 @@ function walkTraitEffects(node: unknown, path: string, visit: (traits: TraitsRef
   }
 }
 
-export const checkCharacter: CrossCheck = ({ names, traits, actions, events }) => {
+export const checkCharacter: CrossCheck = ({ names, traits, actions, events, grammar }) => {
   const errors: ContentError[] = [];
 
   for (const { file, item } of names) {
@@ -98,6 +113,23 @@ export const checkCharacter: CrossCheck = ({ names, traits, actions, events }) =
     ];
     for (const [key, text] of plain) {
       if (/[{}]/.test(text)) errors.push({ file, path: `names.${key}`, message: 'this text is shown as is; placeholders are not allowed' });
+    }
+  }
+
+  const REASON_VARS: Record<string, string[]> = {
+    traits_any: ['traits'],
+    traits_none: ['traits'],
+    stat_min: ['stat', 'value'],
+    stat_max: ['stat', 'value'],
+    fame_min: ['fame'],
+  };
+  for (const { file, item } of names) {
+    for (const [key, vars] of Object.entries(REASON_VARS)) {
+      const problem = checkReason(item.reasons[key as keyof typeof item.reasons], vars);
+      if (problem) errors.push({ file, path: `names.reasons.${key}`, message: problem });
+    }
+    for (const id of STAT_IDS) {
+      if (/[{}]/.test(item.stats[id])) errors.push({ file, path: `names.stats.${id}`, message: 'this text is shown as is; placeholders are not allowed' });
     }
   }
 
@@ -156,5 +188,22 @@ export const checkCharacter: CrossCheck = ({ names, traits, actions, events }) =
   };
   for (const { file, index, item } of actions) checkRefs(file, item, `actions[${index}]`);
   for (const { file, index, item } of events) checkRefs(file, item, `events[${index}]`);
+
+  // Traits named in conditions: `when` of actions, events and grammar, `where` of roles (3.5).
+  const checkWhen = (file: string, root: unknown, path: string) => {
+    walkKeys(root, path, ['when', 'where'], (when, at) => {
+      if (when === null || typeof when !== 'object') return;
+      for (const key of ['traits_any', 'traits_none'] as const) {
+        const ids = (when as Record<string, unknown>)[key];
+        if (!Array.isArray(ids)) continue;
+        ids.forEach((id, i) => {
+          if (typeof id === 'string' && !byId.has(id)) errors.push({ file, path: `${at}.${key}[${i}]`, message: `unknown trait "${id}"` });
+        });
+      }
+    });
+  };
+  for (const { file, index, item } of actions) checkWhen(file, item, `actions[${index}]`);
+  for (const { file, index, item } of events) checkWhen(file, item, `events[${index}]`);
+  for (const { file, item } of grammar) checkWhen(file, item, 'grammar');
   return errors;
 };

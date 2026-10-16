@@ -1,0 +1,11 @@
+# expect-error: events[0].options[0].on.hero.kill /only in the failure of a check in a heavy event/
+events:
+  - id: bad_event
+    weight: 1
+    who: npc
+    severity: heavy
+    text: "A fight."
+    options:
+      - text: Fight
+        result: "{name} fought."
+        on: { hero: { kill: killed } }

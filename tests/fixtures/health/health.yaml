@@ -96,6 +96,8 @@ health:
     - { per100k: 5000, cause: old_age }
   causes:
     - { id: illness, text: "Illness took {him}." }
+    - { id: killed_in_duel, text: "{He} fell in a duel." }
+    - { id: killed, text: "{He} was killed." }
     - { id: old_age, text: "Old age took {him}." }
     - { id: rot_death, text: "Rot took {him}." }
   rest: { actions: [rest], better: 100, worse: 0 }
@@ -103,6 +105,8 @@ health:
   texts:
     interrupted: "{name} took to bed."
     unfit: Too ill
+    conditions_any: "Needs {conditions}"
+    conditions_none: "Not with {conditions}"
 actions:
   - id: march
     name: March
