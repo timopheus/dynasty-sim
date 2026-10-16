@@ -17,7 +17,7 @@ type CharacterIndex = { byId: Map<string, number>; count: number };
 /**
  * Positions of characters by id, one index per `state.characters` array (D-194). A cache, not part of the
  * state, never saved. Characters are only appended (entities are not removed), so the index catches up with
- * new ones; a loaded save brings a new array and gets its own index.
+ * new ones; a loaded save brings a new array and gets its own index. Ids are unique (an invariant of `character/`).
  */
 const indexes = new WeakMap<Character[], CharacterIndex>();
 
