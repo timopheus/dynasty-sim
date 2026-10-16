@@ -1,4 +1,4 @@
-import { log } from '../chronicle/log';
+import { log, type ChronicleEntry } from '../chronicle/log';
 import { conditionReport } from '../condition-keys';
 import type { Content } from '../content/schema';
 import { factorParts } from '../content/types';
@@ -10,6 +10,7 @@ import type { Character, Ctx, DeathHook, GameState, Invariant, Scope } from '../
 import { renderTemplate } from '../text/render';
 import type { TextPart } from '../text/text';
 import { rollCheck } from './checks';
+import { onForNpc, withoutHeroEffects } from './hero-effects';
 import { ownOutcome, sceneOf, scenePath, type EventDef, type OptionDef, type OutcomeDef, type SceneDef } from './content';
 
 /**
@@ -33,6 +34,11 @@ export interface PendingEvent {
   mark: boolean;
   /** Some outcome so far has `chronicle: true`. */
   important: boolean;
+  /**
+   * Entries the effects of the outcomes wrote about the hero and the participants (a tie, a changed trait): they wait
+   * here and go to the chronicle right after the line of the event (D-176). Level fixed at the moment of the effect.
+   */
+  after: ChronicleEntry[];
 }
 
 export interface EventsState {
@@ -104,14 +110,8 @@ export type FireResult = 'waiting' | 'done' | 'failed';
  */
 export function fireEvent(ctx: Ctx, event: EventDef, protagonist: Character, given: Scope = {}): FireResult {
   const { state } = ctx;
-  const scope = fillRoles(ctx, event.roles, { ...given, ...baseScope(getPlayer(state), protagonist) });
-  if (!scope) return 'failed';
-  const pending: PendingEvent = { eventId: event.id, protagonist: protagonist.id, scope, seq: state.eventSeq, page: null, lines: [], money: 0, mark: false, important: false };
-  state.eventSeq += 1;
-  if (protagonist.id === state.playerId) {
-    for (const [role, id] of Object.entries(scope)) if (role !== 'hero' && role !== 'protagonist' && id !== state.playerId) introduce(ctx, id);
-  }
-  state.pendingEvent = pending;
+  const pending = openEvent(ctx, event, protagonist, given);
+  if (!pending) return 'failed';
   if (!event.options && event.chronicle !== true && event.mark !== true && event.next === undefined) {
     // A quiet notice: its line goes to the journal and time runs on.
     resolveOutcome(ctx, event, pending, ownOutcome(event), '', false);
@@ -119,6 +119,23 @@ export function fireEvent(ctx: Ctx, event: EventDef, protagonist: Character, giv
   }
   state.status = 'awaiting_choice';
   return 'waiting';
+}
+
+/**
+ * Fills the roles, gives the event its number, makes the participants known to the hero when it is the hero's event
+ * and puts it under way. Null, with nothing changed, if a role could not be filled.
+ */
+export function openEvent(ctx: Ctx, event: EventDef, protagonist: Character, given: Scope = {}): PendingEvent | null {
+  const { state } = ctx;
+  const scope = fillRoles(ctx, event.roles, { ...given, ...baseScope(getPlayer(state), protagonist) });
+  if (!scope) return null;
+  const pending: PendingEvent = { eventId: event.id, protagonist: protagonist.id, scope, seq: state.eventSeq, page: null, lines: [], money: 0, mark: false, important: false, after: [] };
+  state.eventSeq += 1;
+  if (protagonist.id === state.playerId) {
+    for (const [role, id] of Object.entries(scope)) if (role !== 'hero' && role !== 'protagonist' && id !== state.playerId) introduce(ctx, id);
+  }
+  state.pendingEvent = pending;
+  return pending;
 }
 
 /**
@@ -161,13 +178,16 @@ function glue(lines: TextPart[][]): TextPart[] {
  * to the gathered ones, then the next page or the end of the event with one entry for all pages. `choice` is true
  * for the player's choice among options: only that gets the automatic ▸.
  */
-function resolveOutcome(ctx: Ctx, event: EventDef, pending: PendingEvent, outcome: OutcomeDef, slot: string, choice: boolean): void {
+export function resolveOutcome(ctx: Ctx, event: EventDef, pending: PendingEvent, outcome: OutcomeDef, slot: string, choice: boolean): void {
   const { state } = ctx;
   const protagonist = findCharacter(state, pending.protagonist);
   if (!protagonist) throw new Error(`Unknown main participant ${pending.protagonist}`);
   const moneyBefore = protagonist.money;
-  applyEffects(ctx, protagonist, outcome.effects, pending.scope);
-  for (const [role, effects] of Object.entries(outcome.on ?? {})) {
+  // An event that fell to a person of the world does not change the hero (D-174).
+  const npc = protagonist.id !== state.playerId;
+  applyEffects(ctx, protagonist, npc && outcome.effects ? withoutHeroEffects(outcome.effects as Effects) : outcome.effects, pending.scope);
+  const blocks = npc ? onForNpc(outcome.on as Record<string, Effects> | undefined) : Object.entries(outcome.on ?? {});
+  for (const [role, effects] of blocks) {
     const id = pending.scope[role];
     const person = id === undefined ? null : findCharacter(state, id);
     if (person) applyEffects(ctx, person, effects, pending.scope);
@@ -181,18 +201,31 @@ function resolveOutcome(ctx: Ctx, event: EventDef, pending: PendingEvent, outcom
     return;
   }
   state.pendingEvent = null;
-  if (pending.lines.length === 0) return;
-  // A notice is an event without any choice: no options and no pages to choose on.
-  const notice = !event.options && !event.pages;
-  log(ctx, {
-    subject: protagonist,
-    kind: notice ? 'notice' : 'event',
-    level: !notice || pending.important || pending.mark ? 'chronicle' : 'journal',
-    parts: glue(pending.lines),
-    money: pending.money,
-    mark: pending.mark,
-    important: pending.important,
-  });
+  if (pending.lines.length > 0) {
+    // A notice is an event without any choice: no options and no pages to choose on.
+    const notice = !event.options && !event.pages;
+    const entry = log(ctx, {
+      subject: protagonist,
+      // The line of a person of the world is stored only with `chronicle: true` (D-166, chronicle/log.ts).
+      kind: npc ? 'npc_event' : notice ? 'notice' : 'event',
+      level: !npc && (!notice || pending.important || pending.mark) ? 'chronicle' : 'journal',
+      parts: glue(pending.lines),
+      money: pending.money,
+      mark: !npc && pending.mark,
+      important: pending.important,
+    });
+    if (npc) {
+      state.narratorStats.npcEvents += 1;
+      if (entry) state.narratorStats.npcStored += 1;
+    }
+  }
+  flushAfter(state, pending);
+}
+
+/** The entries the effects wrote during the event go to the chronicle, after the line of the event (D-176). */
+function flushAfter(state: GameState, pending: PendingEvent): void {
+  state.chronicle.push(...pending.after);
+  pending.after = [];
 }
 
 /** Whether an option can be chosen now, and whether the player may see it at all (D-043). */
@@ -225,19 +258,26 @@ export function chooseOption(ctx: Ctx, index: number): void {
   const option = scene.options[index];
   if (!Number.isInteger(index) || !option) throw new Error(`Event "${event.id}" has no option ${index}`);
   if (!optionState(ctx, option, protagonist, pending.scope).available) throw new Error(`Option ${index} of event "${event.id}" is not available`);
-  const slot = `${path}options.${index}.`;
+  answerOption(ctx, event, pending, option, `${path}options.${index}.`, protagonist);
+}
+
+/** Carries out the chosen option: rolls its check, if any, and resolves the outcome. */
+export function answerOption(ctx: Ctx, event: EventDef, pending: PendingEvent, option: OptionDef, slot: string, protagonist: Character): void {
+  const choice = protagonist.id === ctx.state.playerId;
   if (option.check) {
     const success = rollCheck(ctx, option.check, protagonist, pending.scope);
     const key = success ? 'success' : 'failure';
-    resolveOutcome(ctx, event, pending, option[key] ?? {}, `${slot}${key}.`, true);
+    resolveOutcome(ctx, event, pending, option[key] ?? {}, `${slot}${key}.`, choice);
   } else {
-    resolveOutcome(ctx, event, pending, ownOutcome(option), slot, true);
+    resolveOutcome(ctx, event, pending, ownOutcome(option), slot, choice);
   }
 }
 
 /** The hero's death drops an unanswered event. */
 export const eventsOnDeath: DeathHook = ({ state }, c) => {
-  if (c.id === state.playerId) state.pendingEvent = null;
+  if (c.id !== state.playerId || !state.pendingEvent) return;
+  flushAfter(state, state.pendingEvent);
+  state.pendingEvent = null;
 };
 
 export const eventsInvariants: Invariant = (ctx) => {
@@ -255,6 +295,9 @@ export const eventsInvariants: Invariant = (ctx) => {
   }
   if (!Number.isInteger(pending.seq) || pending.seq < 0 || pending.seq >= state.eventSeq) problems.push(`${at}: number ${pending.seq} was never given`);
   if (!Number.isInteger(pending.money)) problems.push(`${at}: money ${pending.money} is not an integer`);
+  for (const entry of pending.after) {
+    if (!findCharacter(state, entry.subject)) problems.push(`${at}: waiting entry is about unknown character ${entry.subject}`);
+  }
   for (const line of pending.lines) {
     for (const part of line) if (typeof part !== 'string' && !findCharacter(state, part.id)) problems.push(`${at}: line links to unknown character ${part.id}`);
   }

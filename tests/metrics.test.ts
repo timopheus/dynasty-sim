@@ -96,7 +96,7 @@ describe('pace metrics (3.7)', () => {
     const founder = getPlayer(state);
     state.chronicle.push({ day: 5, subject: founder.id, kind: 'event', level: 'chronicle', parts: ['A choice.'], mark: true });
     state.chronicle.push({ day: 6, subject: founder.id, kind: 'event', level: 'chronicle', parts: ['Another.'], mark: true });
-    state.narratorStats = { shortActions: 4, shortEvents: 2, longActions: 2, longEvents: 5, heavy: 3, notices: 7 };
+    state.narratorStats = { shortActions: 4, shortEvents: 2, longActions: 2, longEvents: 5, heavy: 3, notices: 7, npcEvents: 0, npcStored: 0 };
     state.day = 36525;
     kill({ state, content }, founder, 'natural');
     const m = computeMetrics(state);

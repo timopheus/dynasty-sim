@@ -39,6 +39,11 @@ export const NarratorContentSchema = z.strictObject({
   longActionDays: Int.min(1).optional(),
   /** The same chance on long actions; `eventChancePer10k` if absent. */
   longActionChancePer10k: Int.min(0).max(10000).optional(),
+  /**
+   * Chance per day, out of 10000, that one event of a person of the circle fires (D-047, D-166, 3.9): a single
+   * roll for the whole circle. 0 if absent.
+   */
+  npcChancePer10k: Int.min(0).max(10000).optional(),
   /** Minimum days between any two events. */
   minDaysBetweenEvents: Int.min(0),
   /** Minimum days before the same event can fire again; `cooldown_days` of the event replaces it. */
