@@ -49,6 +49,9 @@ export interface RunMetrics {
   /** Heavy events per year, and notices (events without a choice) started over the run. */
   heavyPerYear: number;
   notices: number;
+  /** Events of people of the world per year, and the share of them whose line is stored (D-166, 3.9); two decimals. */
+  npcEventsPerYear: number;
+  npcStoredShare: number;
   chronicle: { total: number; chronicleLevel: number; journalLevel: number };
   characters: { total: number; alive: number };
   money: { currentHead: number; atDeath: Dist };
@@ -155,6 +158,8 @@ export function computeMetrics(state: GameState): RunMetrics {
     eventsPerLongAction: ratio(state.narratorStats.longEvents, state.narratorStats.longActions),
     heavyPerYear: perYear(state.narratorStats.heavy, state.day),
     notices: state.narratorStats.notices,
+    npcEventsPerYear: perYear(state.narratorStats.npcEvents, state.day),
+    npcStoredShare: ratio(state.narratorStats.npcStored, state.narratorStats.npcEvents),
     chronicle: { total: state.chronicle.length, chronicleLevel, journalLevel: state.chronicle.length - chronicleLevel },
     characters: { total: state.characters.length, alive: state.characters.filter((c) => c.deathDay === null).length },
     money: { currentHead: player?.money ?? 0, atDeath: dist(dead.map((d) => d.c.money)) },

@@ -38,7 +38,7 @@ interface LogLineBase {
   /** The line records a choice of the player that deserves a ▸ (an event option with `mark`). */
   mark?: boolean;
   /**
-   * For kinds `action` and `event`: the author wants the line in the chronicle (`chronicle: true` of an outcome,
+   * For kinds `action`, `event` and `npc_event`: the author wants the line in the chronicle (`chronicle: true` of an outcome,
    * 3.2), whatever the sum.
    */
   important?: boolean;
@@ -60,6 +60,8 @@ function lineParts(line: LogLine, day: number): TextPart[] {
  * in `content.chronicle`; without them the author's level stands.
  */
 function selectLevel({ state, content }: Ctx, line: LogLine): ChronicleLevel | null {
+  // An event of a person of the world is stored only when the author wants it (`chronicle: true`, D-166).
+  if (line.kind === 'npc_event') return line.important && state.circle.includes(line.subject.id) ? 'journal' : null;
   const sel = content.chronicle;
   if (!sel) return line.level;
   const { subject, kind } = line;
@@ -107,7 +109,8 @@ export function log(ctx: Ctx, line: LogLine): ChronicleEntry | null {
     parts: lineParts(line, state.day),
   };
   if (line.mark) entry.mark = true;
-  state.chronicle.push(entry);
+  // While an event is under way its side lines wait and follow the line of the event (D-176).
+  (state.pendingEvent?.after ?? state.chronicle).push(entry);
   return entry;
 }
 
