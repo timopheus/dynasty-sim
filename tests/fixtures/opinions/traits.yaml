@@ -1,0 +1,6 @@
+# Traits the opinion tests need on top of tests/fixtures/base; never generated at random (weight 0).
+traits:
+  - { id: vengeful, name: Vengeful, category: character, opposite: forgiving, visibility: normal, weight: 0, gained: "{name} turned vengeful." }
+  - { id: forgiving, name: Forgiving, category: character, opposite: vengeful, visibility: normal, weight: 0, gained: "{name} learned to forgive." }
+  - { id: generous, name: Generous, category: character, opposite: greedy, visibility: normal, weight: 0, gained: "{name} became generous." }
+  - { id: greedy, name: Greedy, category: character, opposite: generous, visibility: normal, weight: 0, gained: "{name} became greedy." }

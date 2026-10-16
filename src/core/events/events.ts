@@ -39,7 +39,7 @@ export function chooseOption(ctx: Ctx, index: number): void {
   const player = getPlayer(state);
   const moneyBefore = player.money;
   applyEffects(ctx, player, option.effects);
-  log(ctx, { subject: player, kind: 'event', level: 'chronicle', template: option.result, money: player.money - moneyBefore });
+  log(ctx, { subject: player, kind: 'event', level: 'chronicle', template: option.result, money: player.money - moneyBefore, mark: option.mark });
   state.pendingEvent = null;
 }
 

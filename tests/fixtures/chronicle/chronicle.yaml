@@ -1,0 +1,4 @@
+chronicle:
+  bigSum: { min: 20, percent: 50 }
+  repeatDays: 100
+  famousFame: 2

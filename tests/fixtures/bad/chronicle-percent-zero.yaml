@@ -1,0 +1,5 @@
+# expect-error: chronicle.bigSum.percent /expected number to be >=1/
+chronicle:
+  bigSum: { min: 20, percent: 0 }
+  repeatDays: 100
+  famousFame: 2

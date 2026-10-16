@@ -1,0 +1,10 @@
+# One obvious and one secret trait on top of the base fixture, for the visibility tests of person pages (2.10).
+traits:
+  - id: scarred
+    name: Scarred
+    category: body
+    visibility: obvious
+  - id: secret_killing
+    name: Secret killing
+    category: secret
+    visibility: secret

@@ -1,0 +1,8 @@
+# expect-error: opinions.background.rules[0].target /unknown trait "nope"/
+opinions:
+  reasons: [{ id: slight, name: Slight, value: -10, kind: harm, decay: { kind: never } }]
+  traitEffects: []
+  background: { max: 10, rules: [{ holder: proud, target: nope, value: -5 }] }
+  words: [{ from: -100, text: low }]
+  relations: []
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }

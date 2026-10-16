@@ -47,11 +47,20 @@ describe('content', () => {
     expect(match, JSON.stringify(result.errors, null, 2)).toBeDefined();
   });
 
-  it('accepts the empty keys of later modules at most once', () => {
-    const file = { path: 'fixture/later.yaml', text: 'opinions: {}\nchronicle: {}\ntraits: []\n' };
+  it('accepts the optional keys of later modules at most once', () => {
+    const opinions = [
+      'opinions:',
+      '  reasons: []',
+      '  traitEffects: []',
+      '  background: { max: 0, rules: [] }',
+      '  words: [{ from: -100, text: low }]',
+      '  relations: []',
+      '  acquaintance: { meetPer100: 0, closeAfterDays: 0, closePer100: 0 }',
+    ].join('\n');
+    const file = { path: 'fixture/later.yaml', text: `${opinions}\nchronicle: { bigSum: { min: 1, percent: 1 }, repeatDays: 0, famousFame: 1 }\ntraits: []\n` };
     const once = loadContent([...BASE_FILES, file]);
-    expect(once.ok).toBe(true);
-    if (once.ok) expect(once.content.opinions).toEqual({});
+    expect(once.ok, JSON.stringify(!once.ok && once.errors)).toBe(true);
+    if (once.ok) expect(once.content.opinions?.words).toHaveLength(1);
     const base = loadContent(BASE_FILES);
     if (base.ok) expect(base.content.opinions).toBeNull();
     const twice = loadContent([...BASE_FILES, file, { ...file, path: 'fixture/later2.yaml' }]);

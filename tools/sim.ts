@@ -5,10 +5,10 @@
  *        npm run sim -- --compare a.json b.json                          medians side by side
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { fullName } from '../src/core/character/character';
-import { chronicleMarkdown } from '../src/core/chronicle/markdown';
+import { chronicleMarkdown, journalMarkdown } from '../src/core/chronicle/markdown';
 import { loadContent } from '../src/core/content/load';
 import { conditionsText } from '../src/core/health/course';
 import { compare, computeMetrics, summarize, type RunMetrics, type Summary } from '../src/core/metrics';
@@ -95,6 +95,14 @@ if (!Number.isInteger(runs) || runs < 1) fail(`--runs must be a positive integer
 if (!isValidSeed(seed + runs - 1)) fail(`--seed + --runs - 1 must be at most ${MAX_SEED}`);
 if (runs > 1 && values.out !== undefined) fail('--out names one chronicle file; with --runs the files are out/chronicle-seed<N>-<years>y.md');
 
+/** The journal goes next to the chronicle: chronicle-seed1-300y.md → journal-seed1-300y.md. */
+function journalPath(chroniclePath: string): string {
+  const dir = dirname(chroniclePath);
+  const file = basename(chroniclePath);
+  const name = file.startsWith('chronicle') ? `journal${file.slice('chronicle'.length)}` : file.replace(/\.md$/, '') + '-journal.md';
+  return join(dir, name);
+}
+
 const loaded = loadContent(readContentFiles());
 if (!loaded.ok) {
   for (const e of loaded.errors) console.error(`  ${e.file}: ${e.path}: ${e.message}`);
@@ -125,6 +133,8 @@ for (let i = 0; i < runs; i++) {
 
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, chronicleMarkdown(state));
+  const journalOut = journalPath(out);
+  writeFileSync(journalOut, journalMarkdown(state));
 
   const head = getPlayer(state);
   say(`Simulated ${years} years, seed ${runSeed}: ${formatDate(0)} → ${formatDate(state.day)} in ${elapsedMs} ms`);
@@ -135,7 +145,7 @@ for (let i = 0; i < runs; i++) {
     `Current head: ${fullName(head)}, age ${ageYears(head.birthDay, state.day)}, ` +
       `health: ${conditionsText(content, head) || 'healthy'}, money ${head.money}`,
   );
-  say(`Chronicle: ${out}`);
+  say(`Chronicle: ${out}, journal: ${journalOut}`);
   if (violations.length > 0) {
     violationCount += violations.length;
     console.error(`\nInvariant violations (seed ${runSeed}): ${violations.length}`);

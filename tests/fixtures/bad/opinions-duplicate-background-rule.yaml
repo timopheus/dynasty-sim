@@ -1,0 +1,8 @@
+# expect-error: opinions.background.rules[1] /duplicate rule for "proud" towards "proud"/
+opinions:
+  reasons: []
+  traitEffects: []
+  background: { max: 10, rules: [{ holder: proud, target: proud, value: -5 }, { holder: proud, target: proud, value: -3 }] }
+  words: [{ from: -100, text: low }]
+  relations: []
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }
