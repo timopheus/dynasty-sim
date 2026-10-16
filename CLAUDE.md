@@ -70,7 +70,7 @@ npm run validate                        # проверка контента по
 npm run sim -- --years 300 --seed 42    # прогон; хроника в out/chronicle-seed42-300y.md, журнал в out/journal-seed42-300y.md, метрики в конце
 npm run sim -- --years 300 --seed 1 --runs 10          # seeds 1..10, метрики: min / медиана / max
 npm run sim -- --years 300 --seed 1 --bot cautious     # бот с характером: random (по умолчанию), cautious, greedy, duelist (D-319, D-345)
-npx tsx tools/bot-report.ts --runs 10                  # отчёт по ботам: 4 характера × seeds 1..10, «мёртвые» варианты, «доминирующий» характер (только отчёт, D-349)
+npx tsx tools/bot-report.ts --runs 10                  # отчёт по ботам: 4 характера × seeds 1..10, «мёртвые» варианты, «доминирующий» характер (только отчёт, D-349; в CI — работа `bots`, 5 seeds, PR не валит)
 npm run -s sim -- --years 300 --seed 1 --runs 10 --json > a.json   # то же в JSON; -s нужен, иначе npm пишет заголовок в файл
 npm run -s sim -- --compare a.json b.json # медианы двух файлов рядом, только изменившиеся
 npm run check                           # typecheck + test + validate + sim 50 лет
@@ -80,7 +80,7 @@ npm run replay -- --record out/j.json --seed 1 --years 50   # записать �
 npm run save-bench                      # размер и время записи горячей части и кусков по seeds 1…10 (D-312, D-337)
 npm run build                           # сборка в dist/
 ```
-CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck, test, validate, sim 50 лет (seed 1), build. Хроника прогона — артефакт `chronicle`. Вторая работа CI `gates` параллельно прогоняет 300 лет на seeds 1…10 и сверяет метрики с коридорами из `tools/metrics-gates.ts` (D-203): валят инварианты, горячая часть сохранения > 300 КБ (D-337) и медиана строк хроники на жизнь главы вне 25–45 (D-205), остальное — таблица в summary (⚠️). Коридор или признак «валит / только отчёт» меняются только вместе с записью DECISIONS.
+CI (`.github/workflows/ci.yml`) на каждый PR и push в main: работа `bots` — отчёт по ботам в summary, не валит (D-349); typecheck, test, validate, sim 50 лет (seed 1), build. Хроника прогона — артефакт `chronicle`. Вторая работа CI `gates` параллельно прогоняет 300 лет на seeds 1…10 и сверяет метрики с коридорами из `tools/metrics-gates.ts` (D-203): валят инварианты, горячая часть сохранения > 300 КБ (D-337) и медиана строк хроники на жизнь главы вне 25–45 (D-205), остальное — таблица в summary (⚠️). Коридор или признак «валит / только отчёт» меняются только вместе с записью DECISIONS.
 
 ## Правила ядра (src/core)
 - Ядро импортирует только свои модули, `yaml` и `zod`. Запрещены DOM, Node API, `Math.random`, `Date`, `performance`. Это проверяют `tests/architecture.test.ts` и отдельный `src/core/tsconfig.json` без DOM и Node.
