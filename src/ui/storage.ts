@@ -65,3 +65,20 @@ export function clearGame(store: KeyValueStore | null): void {
     // Nothing to clear if storage is unavailable.
   }
 }
+
+/** The seed asked for in the address (`?seed=N`), or null when there is none or it is not valid. */
+export function seedFromSearch(search: string, isValid: (n: number) => boolean): number | null {
+  const param = new URLSearchParams(search).get('seed');
+  if (param === null || param.trim() === '') return null;
+  const seed = Number(param);
+  return isValid(seed) ? seed : null;
+}
+
+/**
+ * What to do at start: continue the saved game, or begin a new one. A saved game is kept unless
+ * the address asks for another seed.
+ */
+export function startChoice(outcome: LoadOutcome, requestedSeed: number | null): 'continue' | 'ask_replace' | 'new' {
+  if (outcome.kind !== 'loaded') return 'new';
+  return requestedSeed === null || requestedSeed === outcome.state.seed ? 'continue' : 'ask_replace';
+}

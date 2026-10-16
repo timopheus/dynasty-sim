@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { apply, newGame } from '../src/core/game';
 import { serialize } from '../src/core/save/save';
 import { heroView } from '../src/ui/hero';
-import { SAVE_KEY, clearGame, loadGame, saveGame, type KeyValueStore } from '../src/ui/storage';
+import { isValidSeed } from '../src/core/rng';
+import { SAVE_KEY, clearGame, loadGame, saveGame, seedFromSearch, startChoice, type KeyValueStore } from '../src/ui/storage';
 import { fixtureContent, realContent } from './fixtures/content';
 
 function fakeStore(limit = Infinity): KeyValueStore & { data: Map<string, string> } {
@@ -79,5 +80,24 @@ describe('hero view', () => {
     expect(view.age).toBeGreaterThanOrEqual(18);
     expect(view.name).toContain(view.surname);
     expect(view.conditions).toBe('');
+  });
+});
+
+describe('start choice', () => {
+  const content = fixtureContent();
+  const saved = { kind: 'loaded' as const, state: newGame(7, content) };
+
+  it('reads the seed from the address only when it is there and valid', () => {
+    for (const search of ['', '?', '?seed=', '?foo=1', '?seed=abc', '?seed=-1']) expect(seedFromSearch(search, isValidSeed)).toBeNull();
+    expect(seedFromSearch('?seed=0', isValidSeed)).toBe(0);
+    expect(seedFromSearch('?seed=7', isValidSeed)).toBe(7);
+  });
+
+  it('continues the saved game unless the address asks for another seed', () => {
+    expect(startChoice(saved, null)).toBe('continue');
+    expect(startChoice(saved, 7)).toBe('continue');
+    expect(startChoice(saved, 8)).toBe('ask_replace');
+    expect(startChoice({ kind: 'none' }, null)).toBe('new');
+    expect(startChoice({ kind: 'discarded', reason: 'corrupt', message: '' }, 8)).toBe('new');
   });
 });

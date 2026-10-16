@@ -10,7 +10,7 @@ import { renderText } from '../core/text/text';
 import { formatDate } from '../core/time/calendar';
 import { getPlayer } from '../core/helpers';
 import { heroView } from './hero';
-import { clearGame, loadGame, saveGame, type KeyValueStore } from './storage';
+import { clearGame, loadGame, saveGame, seedFromSearch, startChoice, type KeyValueStore } from './storage';
 import './style.css';
 
 const CHRONICLE_LIMIT = 60;
@@ -81,7 +81,7 @@ function render(session: Session): void {
 
   parts.push(
     el('h1', {}, `House of ${hero.surname}`),
-    el('p', { className: 'meta' }, `${formatDate(state.day)} · `,
+    el('p', { className: 'meta' }, `${formatDate(state.day)} · seed ${state.seed} · `,
       el('button', { className: 'link', onclick: () => newGameWithConfirm(session) }, 'New game')),
     el('section', { className: 'hero' },
       el('h2', {}, hero.name),
@@ -164,17 +164,17 @@ if (!loaded.ok) {
   const { content } = loaded;
   const store = browserStore();
   const outcome = loadGame(store, content);
-  const seedParam = Number(new URLSearchParams(location.search).get('seed'));
-  const session: Session = { state: newGame(1, content), content, store, notice: null, saveProblem: null, tab: 'chronicle' };
-  if (outcome.kind === 'loaded' && !(isValidSeed(seedParam) && seedParam !== outcome.state.seed)) {
-    session.state = outcome.state;
+  const requested = seedFromSearch(location.search, isValidSeed);
+  const choice = startChoice(outcome, requested);
+  const session: Session = { state: outcome.kind === 'loaded' ? outcome.state : newGame(requested ?? pickSeed(), content), content, store, notice: null, saveProblem: null, tab: 'chronicle' };
+  if (choice === 'continue' || (choice === 'ask_replace' && !confirm(`The address asks for seed ${String(requested)}, which replaces your saved dynasty. Replace it?`))) {
     render(session);
   } else {
     if (outcome.kind === 'discarded') {
       session.notice = outcome.reason === 'old_version'
-        ? 'Your saved game is from an older version and cannot be continued. A new game has begun.'
+        ? 'Your saved game is from another version of the game and cannot be continued. A new game has begun.'
         : 'Your saved game could not be read. A new game has begun.';
     }
-    startSession(session, pickSeed());
+    startSession(session, requested ?? pickSeed());
   }
 }
