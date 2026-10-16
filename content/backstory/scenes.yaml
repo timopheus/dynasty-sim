@@ -41,6 +41,7 @@ events:
         result: "{name} was born on the waterfront and grew up among sailors and smugglers."
         chronicle: true
       - text: A plain house of plain people, no one of note
+        when: { offered: plain_house }
         effects: { stats_roll: { prowess: { min: 0, max: 1 }, stewardship: { min: 0, max: 1 } }, traits: { add: [diligent] } }
         result: "{name} was born to plain people and learned early to work for {his} bread."
         chronicle: true

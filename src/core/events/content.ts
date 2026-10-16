@@ -259,7 +259,10 @@ function checkScene(env: EventEnv, path: string, scene: SceneDef): void {
   if (scene.options) {
     if (hasOutcomeFields(scene, ['mood'])) env.errors.push({ file: env.file, path: at, message: 'outcome fields belong to options; only a notice without options has them' });
     checkMood(env, at, scene.mood);
-    if (scene.options.every((o) => o.when !== undefined)) {
+    // A scene of the backstory whose options are all offered variants is the exception (D-188): its stage offers
+    // some of them every game, and checkBackstory makes sure every variant of the offer has an option here.
+    const offeredOnly = env.event.deck === 'backstory' && scene.options.every((o) => o.when !== undefined && Object.keys(o.when).length === 1 && 'offered' in o.when);
+    if (!offeredOnly && scene.options.every((o) => o.when !== undefined)) {
       env.errors.push({ file: env.file, path: `${path}options`, message: 'at least one option must have no when, so the player always has a choice' });
     }
     scene.options.forEach((option, i) => checkOption(env, `${path}options[${i}]`, option));
