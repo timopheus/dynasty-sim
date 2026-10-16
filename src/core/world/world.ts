@@ -1,5 +1,5 @@
 import { getPlayer } from '../helpers';
-import type { Character, CreateHook, DayPhase, DeathHook, GameState, Invariant } from '../state';
+import type { Character, CreateHook, DeathHook, GameState, Invariant } from '../state';
 
 /**
  * World part of the game state (2.5, D-056, D-110). Until the map exists "near the hero" is the
@@ -66,12 +66,6 @@ export const createWorld: CreateHook = (_ctx, c) => {
 export const worldOnDeath: DeathHook = ({ state }, c) => {
   state.circle = state.circle.filter((id) => id !== c.id);
 };
-
-/**
- * Placeholder kept because game.ts imports `worldPhase` from here. The working phase lives in
- * phases.ts (it needs lifecycle.ts, which imports this file); game.ts has to import it from there.
- */
-export const worldPhase: DayPhase = { id: 'world', run: () => false };
 
 export const worldInvariants: Invariant = ({ state, content }) => {
   const problems: string[] = [];

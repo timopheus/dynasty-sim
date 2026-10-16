@@ -10,7 +10,7 @@ export function addTrait(ctx: Ctx, c: Character, id: string): boolean {
   const def = grantTrait(ctx.content, c, id);
   if (!def) return false;
   if (def.category === 'character' && def.gained) {
-    log(ctx.state, { subject: c, kind: 'trait_change', level: 'chronicle', template: def.gained });
+    log(ctx, { subject: c, kind: 'trait_change', level: 'chronicle', template: def.gained });
   }
   return true;
 }

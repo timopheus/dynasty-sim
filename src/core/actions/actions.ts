@@ -63,7 +63,7 @@ export function startAction(ctx: Ctx, actionId: string): void {
 export function interruptAction(ctx: Ctx, template?: string): void {
   const { state, content } = ctx;
   if (!state.activeAction) return;
-  log(state, {
+  log(ctx, {
     subject: getPlayer(state),
     kind: 'interrupt',
     level: 'journal',
@@ -89,8 +89,9 @@ export const actionEndPhase: DayPhase = {
     if (state.day < active.endDay) return false;
     const action = findAction(content, active.actionId);
     const player = getPlayer(state);
+    const moneyBefore = player.money;
     applyEffects(ctx, player, action.effects);
-    log(state, { subject: player, kind: 'action', level: 'chronicle', template: action.text });
+    log(ctx, { subject: player, kind: 'action', level: 'chronicle', template: action.text, money: player.money - moneyBefore });
     state.activeAction = null;
     state.interruptRequest = null;
     state.status = 'awaiting_action';

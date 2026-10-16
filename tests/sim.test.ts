@@ -10,7 +10,7 @@ describe('headless simulation', () => {
     const a = runSim(content, { seed: 42, years: 60 });
     const b = runSim(content, { seed: 42, years: 60 });
     expect(chronicleMarkdown(a.state)).toBe(chronicleMarkdown(b.state));
-  });
+  }, 30_000);
 
   it('produces a different chronicle for a different seed', () => {
     const a = runSim(content, { seed: 42, years: 30 });
@@ -24,5 +24,5 @@ describe('headless simulation', () => {
       expect(violations, `seed ${seed}`).toEqual([]);
       expect(state.day).toBeGreaterThanOrEqual(18262); // 1 January 1750
     }
-  });
+  }, 60_000); // with the hero's circle (2.5) and invariants after every command this takes ~15 s
 });

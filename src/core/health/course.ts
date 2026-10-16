@@ -44,7 +44,7 @@ export function isSeverelyIll(content: Content, c: Character): boolean {
 
 /** Line about a stage or an outcome: severe matters go to the chronicle, the rest to the journal (GDD 8.9). */
 function write(ctx: Ctx, c: Character, template: string, chronicle: boolean): void {
-  log(ctx.state, { subject: c, kind: 'health', level: chronicle ? 'chronicle' : 'journal', template });
+  log(ctx, { subject: c, kind: 'health', level: chronicle ? 'chronicle' : 'journal', template });
 }
 
 /**

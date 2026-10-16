@@ -10,7 +10,7 @@ describe('chronicle log', () => {
     const content = fixtureContent();
     const state = newGame(1, content);
     const hero = getPlayer(state);
-    const entry = log(state, { subject: hero, kind: 'test', level: 'journal', template: '{name}, {age}, met {name}.' });
+    const entry = log({ state, content }, { subject: hero, kind: 'test', level: 'journal', template: '{name}, {age}, met {name}.', money: 40 });
     expect(entry.parts).toEqual([
       { id: hero.id, name: 'Anne Fixture' },
       ', 20, met ',
@@ -20,6 +20,7 @@ describe('chronicle log', () => {
     hero.givenName = 'Renamed';
     expect(entryText(entry)).toBe('Anne Fixture, 20, met Anne Fixture.');
     expect(checkInvariants(state, content)).toEqual([]);
+    expect(Object.keys(entry).sort()).toEqual(['day', 'kind', 'level', 'parts', 'subject']); // money is not stored
   });
 
   it('reports a link to an unknown character', () => {

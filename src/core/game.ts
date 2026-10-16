@@ -13,7 +13,7 @@ import { relationsPhase } from './relations/relations';
 import { isValidSeed, pick } from './rng';
 import { initialState, type Ctx, type DayPhase, type GameState } from './state';
 import { newDayPhase, scheduledPhase } from './time/time';
-import { worldPhase } from './world/world';
+import { worldPhase } from './world/phases';
 
 export type Command = { type: 'start'; actionId: string } | { type: 'choose'; option: number };
 
@@ -41,7 +41,7 @@ export function newGame(seed: number, content: Content): GameState {
   const founder = createCharacter(ctx, { surname, age: content.settings.startAge });
   founder.money = content.settings.startMoney;
   state.playerId = founder.id;
-  log(state, { subject: founder, kind: 'start', level: 'chronicle', template: content.settings.texts.start });
+  log(ctx, { subject: founder, kind: 'start', level: 'chronicle', template: content.settings.texts.start });
   return state;
 }
 

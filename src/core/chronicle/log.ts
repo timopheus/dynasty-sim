@@ -1,4 +1,4 @@
-import type { Character, GameState, Invariant } from '../state';
+import type { Character, Ctx, GameState, Invariant } from '../state';
 import { characterParts, partsText, type TextPart } from '../text/text';
 import { formatDate } from '../time/calendar';
 
@@ -30,10 +30,18 @@ export interface LogLine {
   level: ChronicleLevel;
   /** Content template; placeholders refer to the subject. */
   template: string;
+  /**
+   * Change of the subject's money caused by what this line records, for selection by the size of
+   * a sum (D-019, 2.6). Not stored in the entry.
+   */
+  money?: number;
 }
 
-/** The only way modules write to the chronicle (D-057). */
-export function log(state: GameState, { subject, kind, level, template }: LogLine): ChronicleEntry {
+/**
+ * The only way modules write to the chronicle (D-057). Takes the whole context so selection (2.6)
+ * can read its thresholds from content at the moment of writing (D-064).
+ */
+export function log({ state }: Ctx, { subject, kind, level, template }: LogLine): ChronicleEntry {
   const entry: ChronicleEntry = { day: state.day, subject: subject.id, kind, level, parts: characterParts(template, subject, state.day) };
   state.chronicle.push(entry);
   return entry;
