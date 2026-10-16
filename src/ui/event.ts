@@ -24,8 +24,8 @@ export interface OptionRow {
   grey: boolean;
   /** Why the option is grey, joined; empty when available. */
   reason: string;
-  /** Word of the chance and the percent for the hover; null without a check (D-042). */
-  chance: { word: string; title: string } | null;
+  /** Word of the chance and its percent (shown beside the word on request, hover is only a bonus, D-248); null without a check (D-042). */
+  chance: { word: string; percent: number; title: string } | null;
 }
 
 export interface EventScreen {
@@ -44,7 +44,7 @@ export function eventScreen(ctx: Ctx): EventScreen | null {
       label: o.text ?? [CONTINUE_LABEL],
       grey: !o.available,
       reason: o.reasons.join('; '),
-      chance: o.chance ? { word: CHANCE_WORDS[o.chance.band], title: `${o.chance.percent}%` } : null,
+      chance: o.chance ? { word: CHANCE_WORDS[o.chance.band], percent: o.chance.percent, title: `${o.chance.percent}%` } : null,
     })),
   };
 }
