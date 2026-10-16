@@ -1,2 +1,33 @@
+# Health of the base fixture: a wound that always heals and one that always kills, flat mortality.
 health:
-  startHealth: { min: 100, max: 100 }
+  conditions:
+    - id: scratch
+      name: Scratch
+      kind: wound
+      cause: illness
+      stages:
+        - id: fresh
+          name: fresh
+          transitions:
+            - { to: heal, per10k: 10000 }
+      outcomes:
+        - { weight: 1 }
+    - id: mortal
+      name: Mortal wound
+      kind: wound
+      cause: illness
+      permanent: true
+      stages:
+        - id: fatal
+          name: fatal
+          transitions:
+            - { to: death, per10k: 10000 }
+  mortality:
+    - { per100k: 1000, cause: illness }
+  causes:
+    - { id: illness, text: "Illness took {him}." }
+  rest: { actions: [rest], better: 100, worse: 100 }
+  road: { actions: [], better: 100, worse: 100 }
+  texts:
+    interrupted: "{name} took to bed."
+    unfit: Too ill

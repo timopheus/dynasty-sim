@@ -1,4 +1,201 @@
-# Health. Schema: src/core/health/content.ts (HealthContentSchema).
-# A 0..100 scale until task 2.9 replaces it with conditions and stages (D-033).
+# Health (GDD 8.4, D-033). Schema: src/core/health/content.ts (HealthContentSchema).
+# A character has conditions; each is at one stage. Once a week every stage rolls its
+# transitions in order (chances out of 10000): to another stage, to `heal` or to `death`.
+# Rest raises the chances toward recovery, the road raises those toward death.
+# Text placeholders: {name}, {age}, {he} {him} {his} {He} {His}.
 health:
-  startHealth: { min: 80, max: 100 }
+  conditions:
+    - id: light_wound
+      name: Light wound
+      kind: wound
+      cause: wound_fever
+      stages:
+        - id: fresh
+          name: fresh
+          minDays: 7
+          penalties: { prowess: -1 }
+          transitions:
+            - { to: heal, per10k: 3500 }
+            - { to: festering, per10k: 250 }
+        - id: festering
+          name: festering
+          penalties: { prowess: -2, martial: -1 }
+          mortality: 2
+          text: "{name}'s wound began to fester."
+          transitions:
+            - { to: fresh, per10k: 3000 }
+            - { to: wound_fever, per10k: 1500 }
+        - id: wound_fever
+          name: wound fever
+          severe: true
+          penalties: { prowess: -3, martial: -2, stewardship: -2, diplomacy: -2, intrigue: -2, learning: -2 }
+          text: "Wound fever took hold of {name}."
+          transitions:
+            - { to: festering, per10k: 3000 }
+            - { to: death, per10k: 1500 }
+      outcomes:
+        - { weight: 85 }
+        - { weight: 15, trait: scarred, text: "{name} was left with a scar." }
+
+    - id: severe_wound
+      name: Severe wound
+      kind: wound
+      cause: wound_fever
+      stages:
+        - id: fresh
+          name: fresh
+          severe: true
+          minDays: 14
+          penalties: { prowess: -4, martial: -2, stewardship: -1, diplomacy: -1, intrigue: -1 }
+          transitions:
+            - { to: heal, per10k: 2500 }
+            - { to: festering, per10k: 1200 }
+        - id: festering
+          name: festering
+          severe: true
+          penalties: { prowess: -5, martial: -3, stewardship: -2, diplomacy: -2, intrigue: -2, learning: -1 }
+          mortality: 3
+          text: "{name}'s wound festered."
+          transitions:
+            - { to: fresh, per10k: 2500 }
+            - { to: wound_fever, per10k: 2000 }
+        - id: wound_fever
+          name: wound fever
+          severe: true
+          penalties: { prowess: -6, martial: -4, stewardship: -3, diplomacy: -3, intrigue: -3, learning: -2 }
+          text: "Wound fever took hold of {name}."
+          transitions:
+            - { to: festering, per10k: 2500 }
+            - { to: death, per10k: 2000 }
+      outcomes:
+        - { weight: 40, text: "{name}'s wound healed cleanly." }
+        - { weight: 28, trait: scarred, text: "{name}'s wound healed into an ugly scar." }
+        - { weight: 15, condition: old_wound, text: "{name}'s wound closed, but never quite healed." }
+        - { weight: 6, trait: lame, text: "{name} was left lame by the wound." }
+        - { weight: 5, trait: one_eyed, text: "{name} lost an eye to the wound." }
+        - { weight: 6, trait: maimed_hand, removes: [steady_hand, duelist], text: "{name} was left with a maimed hand." }
+
+    - id: old_wound
+      name: Old wound
+      kind: wound
+      cause: wound_fever
+      permanent: true
+      stages:
+        - id: closed
+          name: closed
+          penalties: { prowess: -1 }
+          transitions:
+            - { to: reopened, per10k: 40 }
+        - id: reopened
+          name: reopened
+          severe: true
+          penalties: { prowess: -3, martial: -2, stewardship: -1, diplomacy: -1, intrigue: -1 }
+          text: "{name}'s old wound opened again."
+          transitions:
+            - { to: closed, per10k: 3000 }
+            - { to: wound_fever, per10k: 1000 }
+        - id: wound_fever
+          name: wound fever
+          severe: true
+          penalties: { prowess: -5, martial: -3, stewardship: -3, diplomacy: -3, intrigue: -3, learning: -2 }
+          text: "Wound fever from the old wound took hold of {name}."
+          transitions:
+            - { to: reopened, per10k: 2500 }
+            - { to: death, per10k: 2000 }
+
+    - id: fever
+      name: Fever
+      kind: disease
+      cause: fever
+      stages:
+        - id: feverish
+          name: feverish
+          minDays: 3
+          penalties: { prowess: -2, martial: -1, stewardship: -1, diplomacy: -1, intrigue: -1, learning: -1 }
+          transitions:
+            - { to: heal, per10k: 4500 }
+            - { to: crisis, per10k: 1000 }
+        - id: crisis
+          name: crisis
+          severe: true
+          penalties: { prowess: -4, martial: -3, stewardship: -3, diplomacy: -3, intrigue: -3, learning: -3 }
+          text: "{name}'s fever reached its crisis."
+          transitions:
+            - { to: feverish, per10k: 3500 }
+            - { to: death, per10k: 1200 }
+      outcomes:
+        - { weight: 1 }
+
+    - id: consumption
+      name: Consumption
+      kind: disease
+      cause: consumption
+      stages:
+        - id: cough
+          name: lingering cough
+          minDays: 90
+          penalties: { prowess: -1, diplomacy: -1 }
+          mortality: 2
+          transitions:
+            - { to: heal, per10k: 30 }
+            - { to: wasting, per10k: 60 }
+        - id: wasting
+          name: wasting
+          severe: true
+          penalties: { prowess: -4, martial: -2, stewardship: -2, diplomacy: -2, intrigue: -1, learning: -1 }
+          mortality: 4
+          text: "Consumption began to waste {name} away."
+          transitions:
+            - { to: cough, per10k: 100 }
+            - { to: death, per10k: 150 }
+      outcomes:
+        - { weight: 1, text: "{name}'s cough faded at last." }
+
+    - id: frailty
+      name: Frailty
+      kind: frailty
+      cause: old_age
+      permanent: true
+      stages:
+        - id: frail
+          name: frail
+          penalties: { prowess: -2, martial: -1, stewardship: -1 }
+          mortality: 3
+
+  # New conditions without an event: weekly chance out of 10000 from a given age.
+  onsets:
+    - { condition: fever, per10k: 15 }
+    - { condition: consumption, per10k: 3, ageMin: 16, text: "{name} came down with a cough that would not go away." }
+    - { condition: frailty, per10k: 15, ageMin: 60, text: "Age caught up with {name}: {he} grew frail." }
+
+  # Annual deaths per 100,000 of the simulated, not counting conditions; multiplied by their stages.
+  mortality:
+    - { below: 30, per100k: 300, cause: illness }
+    - { below: 40, per100k: 450, cause: illness }
+    - { below: 50, per100k: 750, cause: illness }
+    - { below: 60, per100k: 1300, cause: illness }
+    - { below: 70, per100k: 3500, cause: old_age }
+    - { below: 80, per100k: 8000, cause: old_age }
+    - { below: 90, per100k: 16000, cause: old_age }
+    - { per100k: 30000, cause: old_age }
+
+  # The line after "{name} died at the age of {age}."
+  causes:
+    - { id: wound_fever, text: "Wound fever had carried {him} off." }
+    - { id: fever, text: "A fever had carried {him} off." }
+    - { id: consumption, text: "Consumption had wasted {him} away." }
+    - { id: old_age, text: "Old age had worn {him} out." }
+    - { id: illness, text: "A sudden illness took {him}." }
+
+  rest:
+    actions: [rest, winter_quarters]
+    better: 150
+    worse: 67
+  road:
+    actions: [travel, serve_contract]
+    better: 67
+    worse: 150
+
+  texts:
+    interrupted: "{name} was too ill to go on and had to take to bed."
+    unfit: Too ill or badly hurt

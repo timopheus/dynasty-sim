@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].effects.wound /unknown condition "stab"/
+events:
+  - id: brawl
+    weight: 1
+    text: "A brawl."
+    options:
+      - text: Fight
+        result: "{name} fought."
+        effects: { wound: stab }

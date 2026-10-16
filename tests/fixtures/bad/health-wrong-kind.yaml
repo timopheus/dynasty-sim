@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].effects.later[0].effects.disease /is a wound, not a disease/
+events:
+  - id: brawl
+    weight: 1
+    text: "A brawl."
+    options:
+      - text: Fight
+        result: "{name} fought."
+        effects: { later: [{ after_days: 3, effects: { disease: scratch } }] }
