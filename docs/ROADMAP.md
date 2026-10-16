@@ -181,6 +181,7 @@
 | 3.1h | Индекс персонажей по id (скорость прогона) | `src/core/helpers.ts`, `src/core/world/world.ts` (`characterById`), `docs/event-format.md` (D-284), `tests/helpers.test.ts` | 3.12 | ведущая сессия этапа 3 (Opus) | 6 (замер 3.12, D-194) | ✅ |
 | 3.12 | Контент: события с ролями, пачка 1 | `content/events/`, `content/actions.yaml`, `content/opinions.yaml`, `content/grammar.yaml`, `content/traits/reputation.yaml`, `.claude/agents/content-writer.md` | 3.2–3.9, 3.1c, 3.1d | content-writer (Sonnet) | 5 | ✅ [#41](https://github.com/timopheus/dynasty-sim/pull/41) |
 | 3.13 | Контент, пачка 2, и замеры этапа | `content/events/`, `content/opinions.yaml`, `content/grammar.yaml`, `content/narrator.yaml` (только числа) | 3.12 | content-writer (Sonnet) | 6 | ⬜ |
+| 3.14 | Компактная запись сохранения | `src/core/save/`, `src/core/metrics/` (мера), `tests/save.test.ts` | 3.12 | Opus | 6 | ✅ сохранение 300 лет: медиана 2,18 → 1,32 МБ (D-195) |
 
 Колонка «Модуль» — полный список того, что задача правит, плюс свои тесты, фикстуры и плохие примеры в `tests/`; всё остальное — только через точки подключения 3.1 (D-052). Новые модули-папки этапа: `roles/`, `narrator/`, `stories/`, `backstory/`; грамматика живёт в `text/`, проверки — в `events/`. Общие доки (STATUS, CHANGELOG, ROADMAP, DECISIONS) правят все; `docs/event-format.md` — ведущая сессия и 3.2 (см. «Волны»).
 
