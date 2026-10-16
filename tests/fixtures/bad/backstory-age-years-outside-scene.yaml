@@ -1,0 +1,11 @@
+# expect-error: events[0].options[0].effects.age_years /only for scenes of deck: backstory/
+events:
+  - id: plain_event
+    weight: 1
+    text: "Not a scene."
+    options:
+      - text: A
+        effects: { age_years: 1 }
+        result: "{name} did A."
+      - text: B
+        result: "{name} did B."

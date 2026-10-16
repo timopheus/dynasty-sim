@@ -97,7 +97,7 @@ export const checkBackstory: CrossCheck = ({ backstory, events, actions, setting
 
   // The age the hero goes out at: start age plus the most the scenes can add (D-038).
   const age = settings[0]?.item.startAge;
-  if (age && age.min < START_AGE_MIN) errors.push({ file: settings[0]?.file ?? file, path: 'settings.startAge.min', message: `with a backstory the founder starts at ${START_AGE_MIN} or older` });
+  if (age && age.min < START_AGE_MIN) errors.push({ file, path: 'backstory.stages', message: `settings.startAge.min: with a backstory the founder starts at ${START_AGE_MIN} or older` });
   let ageShift = 0;
   for (const stage of bs.stages) {
     const shifts = scenes.filter((s) => s.item.stage === stage.id).map((s) => maxAge([s.item.options, s.item.pages, s.item.effects]));
@@ -105,7 +105,7 @@ export const checkBackstory: CrossCheck = ({ backstory, events, actions, setting
     ageShift += shifts.slice(0, stage.scenes ?? 1).reduce((a, b) => a + b, 0);
   }
   if (age && age.max + ageShift > START_AGE_MAX) {
-    errors.push({ file: settings[0]?.file ?? file, path: 'settings.startAge.max', message: `startAge.max ${age.max} plus up to ${ageShift} years from the scenes goes past ${START_AGE_MAX}` });
+    errors.push({ file, path: 'backstory.stages', message: `settings.startAge.max ${age.max} plus up to ${ageShift} years from the scenes goes past ${START_AGE_MAX}` });
   }
 
   const offeredUsed = new Set<string>();

@@ -1,0 +1,23 @@
+# expect-error: events[0].stage /unknown stage "nowhere"/
+backstory:
+  base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
+  stages:
+    - id: origin
+      offer: { count: 1, variants: [va, vb] }
+    - id: later
+  texts: { leave: "{name} went out." }
+events:
+  - id: scene
+    deck: backstory
+    stage: nowhere
+    weight: 1
+    text: "A scene."
+    options:
+      - text: A
+        when: { offered: va }
+        result: "{name} did A."
+      - text: B
+        when: { offered: vb }
+        result: "{name} did B."
+      - text: Plain
+        result: "{name} did nothing."
