@@ -2,6 +2,6 @@
 # A line is written to the chronicle only if it matters; the rest goes to the journal.
 # Lines about people far from the hero are not stored at all (D-063).
 chronicle:
-  bigSum: { min: 40, percent: 10 }  # crowns, and percent of the hero's money before the change
+  bigSum: { min: 15, percent: 10 }  # crowns, and percent of the hero's money before the change
   repeatDays: 365                   # the same health line within a year goes to the journal
   famousFame: 1                     # fame step from which a death of a circle member is in the chronicle (◆)

@@ -272,6 +272,7 @@ events:
             opinion_end: [{ toward: debtor, reason: debt_repaid }]
           on: { debtor: { money: -30 } }
           result: "{name} was repaid in full, with interest, by {debtor}."
+          chronicle: true
           mood: joy
         failure:
           effects:
@@ -280,6 +281,7 @@ events:
             opinion: [{ toward: debtor, reason: wronged }]
           on: { debtor: { money: -8 } }
           result: "{name} got back only 8 of the 25 crowns lent to {debtor} and let the rest go."
+          chronicle: true
           mood: shame
       - text: Take the 25 and wave the rest away
         check: { stat: stewardship, of: debtor, difficulty: 4 }
@@ -297,6 +299,7 @@ events:
             opinion_end: [{ toward: debtor, reason: debt_repaid }]
           on: { debtor: { money: -8, opinion: [{ toward: hero, reason: stood_by_me }] } }
           result: "{name} took the 8 crowns {debtor} could spare and forgave the rest."
+          chronicle: true
           mood: neutral
 
   - id: debtor_defaults

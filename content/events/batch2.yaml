@@ -168,7 +168,7 @@ events:
   - id: fire_in_the_street
     weight: 5
     severity: medium
-    cooldown_days: 1095
+    cooldown_days: 2190
     roles:
       neighbour: { pick: circle, where: { occupation: [craftsman, innkeeper, farmhand] } }
     mood: threat
@@ -204,7 +204,7 @@ events:
     cooldown_days: 1095
     roles:
       bailiff: { pick: circle, where: { occupation: [sergeant, soldier, clerk] } }
-    text: "{bailiff} takes you by the sleeve. \"There you are,\" {bailiff.he} says. \"The man who owes the tailor thirty crowns, with your height and your coat.\" The crowd is turning to look."
+    text: "{bailiff} takes you by the sleeve. \"There you are,\" {bailiff.he} says. \"The one who owes the tailor thirty crowns, with your height and your coat.\" The crowd is turning to look."
     options:
       - text: Prove who you are
         check: { stat: diplomacy, difficulty: 6, bonus: [{ when: { traits_any: [linguist] }, add: 1 }] }
@@ -219,15 +219,13 @@ events:
       - text: Play along and talk the tailor down
         check: { stat: intrigue, difficulty: 8 }
         success:
-          effects: { money: 25 }
-          on: { bailiff: { opinion: [{ toward: hero, reason: cheated_me }] } }
-          result: "{name} played the man {bailiff} was looking for and settled the debt for less than half."
-          chronicle: true
+          effects: { money: -10 }
+          result: "{name} played the debtor {bailiff} was looking for and haggled the tailor's thirty crowns down to ten."
           mood: triumph
         failure:
           effects: { money: -20 }
           on: { bailiff: { opinion: [{ toward: hero, reason: humiliated }] } }
-          result: "{name} was exposed by {bailiff} for playing another man and was fined for the trick."
+          result: "{name} was exposed by {bailiff} for playing the debtor and was fined for the trick."
           mood: shame
       - text: Slip away through the crowd
         result: "{name} slipped away from {bailiff} through the crowd."
