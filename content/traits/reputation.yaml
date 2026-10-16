@@ -1,0 +1,25 @@
+# Reputation: earned by public acts, never generated at random.
+traits:
+  - id: coward
+    name: Coward
+    category: reputation
+    stats: { diplomacy: -1 }
+    visibility: obvious
+
+  - id: bankrupt
+    name: Bankrupt
+    category: reputation
+    stats: { stewardship: -2 }
+    visibility: obvious
+
+  - id: traitor
+    name: Traitor
+    category: reputation
+    stats: { diplomacy: -3 }
+    visibility: obvious
+
+  - id: thief
+    name: Thief
+    category: reputation
+    stats: { diplomacy: -2 }
+    visibility: obvious

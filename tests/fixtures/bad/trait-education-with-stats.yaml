@@ -1,0 +1,3 @@
+# expect-error: traits /takes its bonus from its level/
+traits:
+  - { id: tt_e, name: E, category: education, visibility: normal, stats: { prowess: 1 }, education: { stat: learning, level: 1 } }

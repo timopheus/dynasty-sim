@@ -1,0 +1,3 @@
+# expect-error: traits /cannot be its own opposite/
+traits:
+  - { id: tt_a, name: A, category: body, opposite: tt_a, visibility: obvious }

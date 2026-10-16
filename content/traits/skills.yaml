@@ -1,0 +1,43 @@
+# Skills (GDD 8.2): gained by experience or study, never lost except through injury.
+traits:
+  - id: steady_hand
+    name: Steady hand
+    category: skill
+    stats: { prowess: 1, learning: 1 }
+    visibility: normal
+    weight: 3
+
+  - id: sapper
+    name: Sapper
+    category: skill
+    stats: { martial: 2 }
+    visibility: normal
+    weight: 2
+
+  - id: horseman
+    name: Horseman
+    category: skill
+    stats: { martial: 1, prowess: 1 }
+    visibility: normal
+    weight: 4
+
+  - id: duelist
+    name: Duelist
+    category: skill
+    stats: { prowess: 3 }
+    visibility: normal
+    weight: 2
+
+  - id: physician
+    name: Physician
+    category: skill
+    stats: { learning: 2 }
+    visibility: normal
+    weight: 2
+
+  - id: linguist
+    name: Linguist
+    category: skill
+    stats: { diplomacy: 1, learning: 1 }
+    visibility: normal
+    weight: 3
