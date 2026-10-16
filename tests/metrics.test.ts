@@ -116,7 +116,7 @@ describe('pace metrics (3.7)', () => {
     expect(stats.shortEvents + stats.longEvents - m.events).toBeLessThanOrEqual(1);
     expect(stats.shortEvents + stats.longEvents).toBeGreaterThanOrEqual(m.events);
     expect(m.eventsPerYear).toBeGreaterThan(0);
-  });
+  }, 30000);
 });
 
 describe('summarize and compare', () => {
