@@ -1,0 +1,11 @@
+# expect-error: population.moves[1].action /duplicate move for action "wait"/
+population:
+  circle: { min: 3, max: 5 }
+  newcomerAge: { min: 20, max: 30 }
+  driftPer10k: 0
+  arriveFromFarPer100: 0
+  far: { occupationChangePer10k: 0, returnPer10k: 0 }
+  occupations: [{ id: porter, name: Porter, weight: 1 }]
+  moves:
+    - { action: wait, leave: { min: 1, max: 1 }, arrive: { min: 1, max: 1 }, text: "{name} moved." }
+    - { action: wait, leave: { min: 1, max: 1 }, arrive: { min: 1, max: 1 }, text: "{name} moved again." }
