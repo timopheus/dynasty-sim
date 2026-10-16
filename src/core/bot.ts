@@ -8,8 +8,11 @@ import { pendingEventDef } from './events/events';
 import { sceneOf, type OptionDef } from './events/content';
 import { eventView } from './events/view';
 import type { Command } from './game';
-import { pick, type RngState } from './rng';
-import type { GameState } from './state';
+import { proposalOptions } from './family/proposals';
+import { chancePer, pick, type RngState } from './rng';
+import type { Ctx, GameState } from './state';
+import { willGuardians, willHeirs } from './succession/law';
+import { willReasons } from './succession/phases';
 
 export { BOT_CHARACTERS, isBotCharacter, type BotCharacter };
 
@@ -25,6 +28,35 @@ function bestOf<T>(rng: RngState, items: readonly T[], score: (item: T) => numbe
     } else if (s === top) best.push(item);
   }
   return pick(rng, best);
+}
+
+/** Chances per decision, out of 100, that a bot of any character goes to the notary or proposes a match (4.6, D-365). */
+const WILL_PER_100 = 3;
+const PROPOSE_PER_100 = 5;
+
+/**
+ * Between actions the bot sometimes writes a will (none yet, or an out-of-date one; there is kin to name) or proposes a
+ * match from `proposalOptions` of the people near the hero (D-313). It draws on its own generator only when such a
+ * command is possible, so a game without kin and matches plays as before (D-365).
+ */
+function houseCommand(ctx: Ctx, rng: RngState): Command | null {
+  const { state } = ctx;
+  const hero = getPlayer(state);
+  const reasons = willReasons(ctx);
+  if (reasons !== null && reasons.length === 0 && (state.will === null || state.will.stale)) {
+    const heirs = willHeirs(state, hero.id);
+    if (heirs.length > 0 && chancePer(rng, WILL_PER_100, 100)) {
+      const heir = pick(rng, [null, ...heirs.map((c) => c.id)]);
+      const guardian = pick(rng, [null, ...willGuardians(ctx, hero).map((c) => c.id)]);
+      return { type: 'will', heir, guardian, items: [] };
+    }
+  }
+  const options = [...state.household, ...state.circle].flatMap((id) => proposalOptions(ctx, id));
+  if (options.length > 0 && chancePer(rng, PROPOSE_PER_100, 100)) {
+    const { suitor, target } = pick(rng, options);
+    return { type: 'propose', suitor, target };
+  }
+  return null;
 }
 
 /**
@@ -52,6 +84,8 @@ export function botCommand(state: GameState, content: Content, rng: RngState, ch
     });
     return { type: 'choose', option: best.index };
   }
+  const house = houseCommand(ctx, rng);
+  if (house) return house;
   const actions = availableActions(ctx);
   if (character === 'random') return { type: 'start', actionId: pick(rng, actions).id };
   // An action is a leaning, not a rule: a bot that always took the best-scored one would repeat it for a lifetime.
