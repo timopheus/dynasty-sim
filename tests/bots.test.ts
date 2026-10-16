@@ -127,10 +127,21 @@ describe('bot characters (D-247, D-319)', () => {
     }
   });
 
-  it('starts an action in the money-per-day order for greedy', () => {
+  it('does not repeat one action for a lifetime, and the greedy favours the paid one', () => {
     const state = newGame(1, content);
-    const cmd = botCommand(state, content, seedRng(1, 12), 'greedy');
-    expect(cmd.type).toBe('start');
+    const seen = new Set<string>();
+    const rng = seedRng(1, 12);
+    for (let i = 0; i < 40; i++) {
+      const cmd = botCommand(state, content, rng, 'greedy');
+      if (cmd.type === 'start') seen.add(cmd.actionId);
+    }
+    // two actions in the fixture: the better half is the paid `wait` alone
+    expect([...seen]).toEqual(['wait']);
+    // on the real content a lifetime of one action is the failure this guards against
+    for (const bot of ['cautious', 'duelist'] as const) {
+      const { choices } = runSim(realContent(), { seed: 5, years: 20, bot });
+      expect(Object.keys(choices).filter((k) => k.startsWith('action/')).length, bot).toBeGreaterThan(1);
+    }
   });
 
   it('does not change the world stream: the bot never touches the state generator', () => {
@@ -178,6 +189,9 @@ describe('bot report (D-319)', () => {
     const all = allVariants(content);
     expect(all).toContain('fork/-/0');
     expect(all).toContain('action/rest');
+    // a quiet notice is carried out at once: nobody chooses it
+    const quiet = { ...content, events: [...content.events, { id: 'hush', weight: 1, text: 'Hush {name}.', result: '{name} heard a hush.' }] } as Content;
+    expect(allVariants(quiet).some((v) => v.startsWith('hush/'))).toBe(false);
     const chosen = Object.fromEntries(all.filter((v) => v !== 'fork/-/2').map((v) => [v, 1]));
     expect(deadVariants(content, [chosen])).toEqual(['fork/-/2']);
   });

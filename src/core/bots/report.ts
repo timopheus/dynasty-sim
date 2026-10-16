@@ -30,6 +30,8 @@ export function allVariants(content: Content): string[] {
   const out: string[] = content.actions.map((a) => `action/${a.id}`);
   for (const e of content.events) {
     if (e.who === 'npc') continue;
+    // A quiet notice is carried out at once (fireEvent): nobody is asked, so it is no variant.
+    if (!e.options && !e.pages && e.chronicle !== true && e.mark !== true && e.next === undefined) continue;
     const scenes = [['-', e] as const, ...Object.entries(e.pages ?? {})];
     for (const [page, scene] of scenes) {
       const n = scene.options?.length ?? 1;

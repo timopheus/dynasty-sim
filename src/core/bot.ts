@@ -1,4 +1,6 @@
 import { availableActions } from './actions/actions';
+import type { ActionDef } from './actions/content';
+import { getPlayer } from './helpers';
 import { BOT_CHARACTERS, isBotCharacter, scoreOf, type BotCharacter } from './bots/characters';
 import { actionFeatures, optionFeatures } from './bots/features';
 import type { Content } from './content/schema';
@@ -31,7 +33,7 @@ function bestOf<T>(rng: RngState, items: readonly T[], score: (item: T) => numbe
  *
  * `random` picks any such option or action. The other characters score each answer by the signs the content
  * already has (check chance, `kill`/`wound`, `money`, scheduled challenges, `mood`; see `bots/features.ts`) and take
- * the best one. A bot of any character plays the same worldwide: only its own generator differs.
+ * the best one (events) or draw among the better half (actions). A bot of any character plays the same worldwide: only its own generator differs.
  */
 export function botCommand(state: GameState, content: Content, rng: RngState, character: BotCharacter = 'random'): Command {
   const ctx = { state, content };
@@ -52,6 +54,14 @@ export function botCommand(state: GameState, content: Content, rng: RngState, ch
   }
   const actions = availableActions(ctx);
   if (character === 'random') return { type: 'start', actionId: pick(rng, actions).id };
-  return { type: 'start', actionId: bestOf(rng, actions, (a) => scoreOf(character, actionFeatures(content, a))).id };
+  // An action is a leaning, not a rule: a bot that always took the best-scored one would repeat it for a lifetime.
+  // It draws among the better half, and a hero in debt weighs money more.
+  const debt = getPlayer(state).money < 0;
+  const score = (a: ActionDef) => {
+    const f = actionFeatures(content, a);
+    return scoreOf(character, f) + (debt ? f.money : 0);
+  };
+  const ranked = actions.map((a) => ({ a, s: score(a) })).sort((x, y) => y.s - x.s);
+  return { type: 'start', actionId: pick(rng, ranked.slice(0, Math.max(1, Math.ceil(ranked.length / 2)))).a.id };
 }
 

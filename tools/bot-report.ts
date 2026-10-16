@@ -1,6 +1,6 @@
 /**
  * Bot report (D-319, report only, no gate): each character plays the same seeds, and the table shows what its choices did.
- * Usage: npm run bots [-- --years 300 --seed 1 --runs 10]
+ * Usage: npx tsx tools/bot-report.ts [--years 300 --seed 1 --runs 10]
  * Prints, per character, medians of the money and age of heads at death, the chronicle lines of a life and the share
  * of ended houses; the "dead" variants nobody chose, and the "dominant" character if one is best at everything.
  */

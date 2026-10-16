@@ -27,7 +27,7 @@ export interface SimResult {
   choices: Record<string, number>;
 }
 
-/** Headless run: a random bot plays until the given number of years has passed or the house ends (D-315). */
+/** Headless run: a bot plays until the given number of years has passed or the house ends (D-315). */
 export function runSim(content: Content, { seed, years, bot = 'random' }: SimOptions): SimResult {
   if (!Number.isInteger(years) || years < 1) throw new Error(`years must be a positive integer, got ${years}`);
   const state = newGame(seed, content);

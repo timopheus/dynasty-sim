@@ -72,7 +72,7 @@ function effectsFeatures(content: Content, effects: Effects | undefined, depth: 
     f = { ...f, gravity: Math.max(f.gravity, SEVERITY[next.severity ?? 'light']) };
     // A follow-up that only a challenge can lead to: the hero is putting his name on the line.
     if (next.followup_only && SEVERITY[next.severity ?? 'light'] === 2) f = { ...f, feud: 100 };
-    if (depth > 0) f = add(f, scale(eventFeatures(content, next, depth - 1), 100));
+    if (depth > 0) f = add(f, eventFeatures(content, next, depth - 1));
   }
   if (effects.relation?.some((r) => r.start === 'rival')) f = { ...f, feud: 100 };
   if (effects.opinion?.some((o) => ['slighted', 'humiliated', 'defeated_me'].includes(o.reason))) f = { ...f, feud: Math.max(f.feud, 50) };
