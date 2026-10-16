@@ -15,8 +15,6 @@ export interface RelationsState {
   relations: Relation[];
   acquaintances: Acquaintance[];
   secrets: Secret[];
-  /** Day of the last weekly acquaintance step, so a day that stops and resumes does not roll twice. */
-  lastAcquaintanceDay: number | null;
   /** Own random stream of the module, started on first use, so the world stream and the rest of the game are untouched. */
   relationsRng: RngState | null;
 }
@@ -24,7 +22,7 @@ export interface RelationsState {
 export interface RelationsCharacter {}
 
 export function initRelationsState(): RelationsState {
-  return { opinionReasons: [], relations: [], acquaintances: [], secrets: [], lastAcquaintanceDay: null, relationsRng: null };
+  return { opinionReasons: [], relations: [], acquaintances: [], secrets: [], relationsRng: null };
 }
 
 export const createRelations: CreateHook = () => {};
@@ -39,8 +37,7 @@ export const relationsPhase: DayPhase = {
   id: 'relations',
   run(ctx) {
     const { state } = ctx;
-    if (!ctx.content.opinions || state.day % 7 !== 0 || state.lastAcquaintanceDay === state.day) return false;
-    state.lastAcquaintanceDay = state.day;
+    if (!ctx.content.opinions || state.day % 7 !== 0) return false;
     acquaintanceWeek(ctx);
     return false;
   },

@@ -118,6 +118,20 @@ describe('opinions', () => {
     expect(state.opinionReasons).toEqual([]);
   });
 
+  it('refuse a value that breaks the limits or the sign of the reason', () => {
+    const { ctx, x, y } = setup();
+    for (const bad of [0, 150, 1.5, 10]) expect(() => addOpinionReason(ctx, x.id, y.id, 'slight', bad)).toThrow(/cannot have the value/);
+    expect(addOpinionReason(ctx, x.id, y.id, 'slight', -5).value).toBe(-5);
+  });
+
+  it('ignore a reason on days before it was given', () => {
+    const { state, ctx, x, y } = setup();
+    x.traits = [];
+    y.traits = [];
+    addOpinionReason(ctx, x.id, y.id, 'slight');
+    expect(opinionValue(ctx, x.id, y.id, state.day - 1)).toBe(0);
+  });
+
   it('refresh a reason that still counts instead of doubling it', () => {
     const { state, ctx, x, y } = setup();
     x.traits = [];
@@ -311,7 +325,6 @@ describe('acquaintance', () => {
     const mine = state.acquaintances.filter((a) => a.holder === hero.id);
     expect(mine.length).toBeGreaterThan(0);
     expect(mine.length).toBeLessThanOrEqual(weeks + 1);
-    expect(state.lastAcquaintanceDay).not.toBeNull();
   });
 });
 

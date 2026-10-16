@@ -46,7 +46,8 @@ export function reasonValue(opinions: OpinionsContent, record: OpinionReason, ho
   const value = Math.trunc((record.value * scale) / 100);
   if (def.decay.kind !== 'fade' || fade === 0) return value;
   const total = def.decay.days * 100;
-  const passed = Math.max(0, day - record.day) * fade;
+  if (day < record.day) return 0;
+  const passed = (day - record.day) * fade;
   if (passed >= total) return 0;
   return Math.trunc((value * (total - passed)) / total);
 }
@@ -75,7 +76,7 @@ function relationValue(state: GameState, opinions: OpinionsContent, holderId: st
 }
 
 export interface OpinionCause {
-  /** Reason id, or `background` and the relation kind id for the standing parts. */
+  /** Reason id, or `background` and `relation` for the standing parts (all active relations together). */
   id: string;
   value: number;
 }
@@ -127,6 +128,9 @@ export function addOpinionReason(ctx: Ctx, holderId: string, targetId: string, r
     throw new Error(`Opinion ${holderId} -> ${targetId} is outside the hero's circle and is not kept`);
   }
   const amount = value ?? def.value;
+  if (!Number.isInteger(amount) || amount === 0 || Math.abs(amount) > OPINION_LIMIT || Math.sign(amount) !== Math.sign(def.value)) {
+    throw new Error(`Opinion reason "${reasonId}" cannot have the value ${amount}`);
+  }
   const live = state.opinionReasons.find((r) => r.reason === reasonId && r.holder === holderId && r.target === targetId && r.end === null);
   if (live) {
     live.day = state.day;

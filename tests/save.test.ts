@@ -28,7 +28,7 @@ describe('saves', () => {
   it('refuses a broken save', () => {
     const content = fixtureContent();
     const state = newGame(1, content);
-    expect(() => deserialize(JSON.stringify({ ...state, version: 2 }), content)).toThrow(/version/);
+    expect(() => deserialize(JSON.stringify({ ...state, version: 999 }), content)).toThrow(/version/);
     expect(() => deserialize(JSON.stringify({ ...state, playerId: 'c404' }), content)).toThrow(/player/);
   });
 

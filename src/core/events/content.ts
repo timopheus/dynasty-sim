@@ -10,6 +10,8 @@ export const OptionSchema = z.strictObject({
   /** Chronicle line written when this option is chosen. */
   result: Text,
   effects: EffectsSchema.optional(),
+  /** A choice that matters: its chronicle line gets ▸ and always stays in the chronicle (D-130). */
+  mark: z.boolean().optional(),
 });
 
 /** Top-level content key `events`, a list merged from all files. */
