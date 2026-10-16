@@ -39,7 +39,7 @@ export function kill(ctx: Ctx, c: Character, cause: string): void {
   const { state, content } = ctx;
   c.deathDay = state.day;
   c.deathCause = cause;
-  log(state, { subject: c, kind: 'death', level: 'chronicle', template: content.settings.texts.death });
+  log(ctx, { subject: c, kind: 'death', level: 'chronicle', template: content.settings.texts.death });
   for (const hook of DEATH_HOOKS) hook(ctx, c, cause);
   if (c.id === state.playerId) succession(ctx, c);
 }
@@ -50,6 +50,6 @@ function succession(ctx: Ctx, deceased: Character): void {
   const heir = createCharacter(ctx, { surname: deceased.surname, age: content.settings.heirAge });
   heir.money = deceased.money;
   state.playerId = heir.id;
-  log(state, { subject: heir, kind: 'succession', level: 'chronicle', template: content.settings.texts.succession });
+  log(ctx, { subject: heir, kind: 'succession', level: 'chronicle', template: content.settings.texts.succession });
   state.status = 'awaiting_action';
 }

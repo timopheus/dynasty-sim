@@ -41,7 +41,7 @@ export function newGame(seed: number, content: Content): GameState {
   const founder = createCharacter(ctx, { surname, age: content.settings.startAge });
   founder.money = content.settings.startMoney;
   state.playerId = founder.id;
-  log(state, { subject: founder, kind: 'start', level: 'chronicle', template: content.settings.texts.start });
+  log(ctx, { subject: founder, kind: 'start', level: 'chronicle', template: content.settings.texts.start });
   return state;
 }
 

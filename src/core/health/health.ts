@@ -17,9 +17,9 @@ export const createHealth: CreateHook = (_ctx, c) => {
 };
 
 /** After the death line, the line of its cause, if the content has one (D-061). */
-export const healthOnDeath: DeathHook = ({ state, content }, c, cause) => {
-  const text = content.health.causes.find((x) => x.id === cause)?.text;
-  if (text) log(state, { subject: c, kind: 'death_cause', level: 'chronicle', template: text });
+export const healthOnDeath: DeathHook = (ctx, c, cause) => {
+  const text = ctx.content.health.causes.find((x) => x.id === cause)?.text;
+  if (text) log(ctx, { subject: c, kind: 'death_cause', level: 'chronicle', template: text });
 };
 
 /** Effect keys of this module; effects.ts merges them into the content schema. */

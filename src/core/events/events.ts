@@ -37,8 +37,9 @@ export function chooseOption(ctx: Ctx, index: number): void {
   const option = event.options[index];
   if (!Number.isInteger(index) || !option) throw new Error(`Event "${event.id}" has no option ${index}`);
   const player = getPlayer(state);
+  const moneyBefore = player.money;
   applyEffects(ctx, player, option.effects);
-  log(state, { subject: player, kind: 'event', level: 'chronicle', template: option.result });
+  log(ctx, { subject: player, kind: 'event', level: 'chronicle', template: option.result, money: player.money - moneyBefore });
   state.pendingEvent = null;
 }
 

@@ -61,7 +61,7 @@ function applyMove(ctx: Ctx, population: PopulationContent, move: MoveDef): void
     if (far.length > 0) state.circle.push(pick(state.rng, far).id);
     else spawnNewcomer(ctx, population);
   }
-  log(state, { subject: getPlayer(state), kind: 'move', level: 'journal', template: move.text });
+  log(ctx, { subject: getPlayer(state), kind: 'move', level: 'journal', template: move.text });
 }
 
 /**

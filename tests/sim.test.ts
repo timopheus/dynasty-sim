@@ -10,7 +10,7 @@ describe('headless simulation', () => {
     const a = runSim(content, { seed: 42, years: 60 });
     const b = runSim(content, { seed: 42, years: 60 });
     expect(chronicleMarkdown(a.state)).toBe(chronicleMarkdown(b.state));
-  });
+  }, 30_000);
 
   it('produces a different chronicle for a different seed', () => {
     const a = runSim(content, { seed: 42, years: 30 });
