@@ -163,10 +163,9 @@ function render(session: Session): void {
 
   const pageId = entityIdFromHash(location.hash);
   if (pageId !== null) {
-    // pages of other kinds are drawn by 4.2; until then they read as "nobody by that name"
+    // a person, or a page of any other kind of entity (4.2, D-330); null reads as "nobody by that name"
     const found = entityPage({ state, content }, pageId);
-    const page = found?.type === 'person' ? found.page : null;
-    app?.replaceChildren(numbersButton(session), pageView(el, page, headIds(allChronicle(state)), session.showNumbers, (cmd) => act(session, cmd)));
+    app?.replaceChildren(numbersButton(session), pageView(el, found, headIds(allChronicle(state)), session.showNumbers, (cmd) => act(session, cmd)));
     if (session.refocus) app?.querySelector<HTMLElement>(`[data-focus="${session.refocus}"]`)?.focus();
     else window.scrollTo(0, 0);
     session.refocus = null;
