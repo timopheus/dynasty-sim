@@ -6,7 +6,7 @@
 - Ключи условий `traits_any`, `traits_none`, `stats`, `fame_min`, `conditions_any`, `conditions_none` с причинами из контента; тайная черта даёт скрытую причину (D-210). Поля `names.stats`, `names.reasons`, `health.texts.conditions_any/none` обязательны.
 - Эффекты `stats` (база, 0…20), `fame` (шаг, −3…3, итог 0…3) — D-211; `kill` — запрос смерти, причины `killed_in_duel`, `killed` — D-212.
 - Валидатор: неизвестные черты и состояния в `when`/`where`, неизвестная причина, `kill` героя вне `failure` тяжёлого события без `next` (через `effects`, `on.hero`, `on.protagonist`, `later`, `who: both`), `kill` в действии.
-- Тесты в `tests/character.test.ts`, `tests/health.test.ts`, 11 плохих примеров; хроники seed 1 и 7 на 300 лет совпадают с main байт в байт. `SAVE_VERSION` не менялся.
+- Тесты в `tests/character.test.ts`, `tests/health.test.ts`, 16 плохих примеров; хроники seed 1 и 7 на 300 лет совпадают с main байт в байт. `SAVE_VERSION` не менялся.
 
 ## 2026-10-16 · 3.2 Движок: событие, страницы, варианты, проверки
 - Схема события по контракту `docs/event-format.md`: страницы `pages` и переход `next`, извещения без вариантов, `when` у события и вариантов, проверки `check` (`success`/`failure`), эффекты на роли `on`, множители веса `weight_mods`, поля для следующих задач (`severity`, `who`, `deck`, `stage`, `followup_only`, `story`, `once`, `cooldown_days`, `tags`, `ai`; своя `grammar` — в показ текстов 3.4). 13 событий контента проходят без правок.
