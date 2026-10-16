@@ -1,0 +1,17 @@
+# Backstory of the first hero (D-038, D-167, task 3.11). Schema: src/core/backstory/content.ts (BackstoryContentSchema).
+# New game: the founder is brought to this base (no traits, no education), then one scene of each stage is shown, in
+# this order, before the first action. Scenes are events with `deck: backstory` and `stage:` (scenes.yaml).
+backstory:
+  base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
+  stages:
+    # The player is offered 2 of the 5 variants by chance; the scene also keeps one option that is always there (3 in all).
+    - id: origin
+      offer:
+        count: 2
+        variants: [guild_house, soldier_family, parish_house, gentry_house, waterfront]
+    - id: childhood
+    - id: youth
+    - id: training
+    - id: leaving
+  texts:
+    leave: "{name}, aged {age}, went out into the world."
