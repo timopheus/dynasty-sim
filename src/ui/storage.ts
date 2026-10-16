@@ -65,12 +65,3 @@ export function clearGame(store: KeyValueStore | null): void {
     // Nothing to clear if storage is unavailable.
   }
 }
-
-/** `localStorage`, or null where even touching it throws (privacy modes, blocked storage). */
-export function browserStore(): KeyValueStore | null {
-  try {
-    return window.localStorage;
-  } catch {
-    return null;
-  }
-}

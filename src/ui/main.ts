@@ -10,7 +10,7 @@ import { renderText } from '../core/text/text';
 import { formatDate } from '../core/time/calendar';
 import { getPlayer } from '../core/helpers';
 import { heroView } from './hero';
-import { browserStore, clearGame, loadGame, saveGame, type KeyValueStore } from './storage';
+import { clearGame, loadGame, saveGame, type KeyValueStore } from './storage';
 import './style.css';
 
 const CHRONICLE_LIMIT = 60;
@@ -34,6 +34,15 @@ function pickSeed(): number {
   const param = new URLSearchParams(location.search).get('seed');
   const seed = param ? Number(param) : NaN;
   return isValidSeed(seed) ? seed : (crypto.getRandomValues(new Uint32Array(1))[0] ?? 1);
+}
+
+/** `localStorage`, or null where even touching it throws (privacy modes, blocked storage). */
+export function browserStore(): KeyValueStore | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
 }
 
 type Tab = 'chronicle' | 'journal';
