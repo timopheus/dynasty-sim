@@ -6,3 +6,4 @@ opinions:
   words: [{ from: -100, text: a }, { from: 0, text: b }, { from: 0, text: c }]
   relations: []
   acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }
+  texts: { opinionMin: "a {word} {name}", opinionMax: "a {word} {name}", relation: "a {kind} {name}", relationNone: "a {kind} {name}", acquaintedKnown: "a {name}", acquaintedClose: "a {name}" }

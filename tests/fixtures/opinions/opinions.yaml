@@ -24,7 +24,14 @@ opinions:
     - { from: 10, text: liking }
     - { from: 50, text: devotion }
   relations:
-    - { id: friend, name: Friend, symmetric: true, opinion: { a: 25, b: 25 }, acquaintance: close }
-    - { id: rival, name: Rival, symmetric: true, opinion: { a: -30, b: -30 }, acquaintance: known }
-    - { id: patron, name: Patron, symmetric: false, opinion: { a: 10, b: 20 }, acquaintance: close }
+    - { id: friend, name: Friend, symmetric: true, opinion: { a: 25, b: 25 }, acquaintance: close, starts: "{name} befriended {other}.", ends: "{name} fell out with {other}." }
+    - { id: rival, name: Rival, symmetric: true, opinion: { a: -30, b: -30 }, acquaintance: known, starts: "{name} and {other} became rivals.", ends: "{name} and {other} made peace." }
+    - { id: patron, name: Patron, symmetric: false, opinion: { a: 10, b: 20 }, acquaintance: close, starts: "{name} took {other} under {his} wing.", ends: "{name} dropped {other}.", startsAsProtege: "{other} took {name} in.", endsAsProtege: "{other} dropped {name}." }
   acquaintance: { meetPer100: 100, closeAfterDays: 30, closePer100: 100 }
+  texts:
+    opinionMin: "Needs {word} towards {name}"
+    opinionMax: "Needs at most {word} towards {name}"
+    relation: "Needs {kind} with {name}"
+    relationNone: "No {kind} with {name}"
+    acquaintedKnown: "Know {name}"
+    acquaintedClose: "Be close to {name}"
