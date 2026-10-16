@@ -17,6 +17,6 @@ export function timeEffectShape(effects: z.ZodType) {
 
 export function applyTimeEffects({ state }: Ctx, c: Character, effects: { later?: { after_days: number; effects: unknown }[] | undefined }, scope: Scope): void {
   for (const entry of effects.later ?? []) {
-    state.scheduled.push({ dueDay: state.day + entry.after_days, characterId: c.id, effects: entry.effects as Effects, scope });
+    state.scheduled.push({ dueDay: state.day + entry.after_days, characterId: c.id, effects: entry.effects as Effects, scope: { ...scope } });
   }
 }

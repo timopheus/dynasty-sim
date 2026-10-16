@@ -3,7 +3,7 @@ import type { Content } from '../src/core/content/schema';
 import { newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { createCharacter } from '../src/core/lifecycle';
-import { RolesSchema } from '../src/core/roles/content';
+import { checkRoles, RolesSchema } from '../src/core/roles/content';
 import { anyCandidate, baseScope, canFillRoles, fillRoles } from '../src/core/roles/roles';
 import type { Character, Ctx } from '../src/core/state';
 import { fixtureContent } from './fixtures/content';
@@ -57,6 +57,11 @@ describe('roles, simplest form of 3.1', () => {
     expect(fillRoles(ctx, roles, given)).toEqual(given);
     ctx.state.circle = ctx.state.circle.filter((id) => id !== people[0]!.id);
     expect(fillRoles(ctx, roles, given)).toBeNull();
+  });
+
+  it('refuses built-in and placeholder names of roles', () => {
+    const errors = checkRoles(RolesSchema.parse({ protagonist: { pick: 'circle' }, he: { pick: 'circle' } }), { file: 'f', path: 'roles', sources: {} as never });
+    expect(errors.map((e) => e.path)).toEqual(['roles.protagonist', 'roles.he']);
   });
 
   it('anyCandidate looks for a fitting candidate without randomness', () => {

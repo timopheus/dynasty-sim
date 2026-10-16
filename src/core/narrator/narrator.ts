@@ -12,13 +12,13 @@ export function initNarratorState(): NarratorState {
   return { lastFired: {}, lastEventDay: null };
 }
 
-export const narratorInvariants: Invariant = ({ state, content }) => {
+export const narratorInvariants: Invariant = ({ state }) => {
   const problems: string[] = [];
   if (state.lastEventDay !== null && (!isInt(state.lastEventDay) || state.lastEventDay > state.day)) {
     problems.push(`last event day ${String(state.lastEventDay)} is not a past day`);
   }
+  // An event removed from the content may stay here: the roll walks content.events, and a save must still load.
   for (const [id, day] of Object.entries(state.lastFired)) {
-    if (!content.events.some((e) => e.id === id)) problems.push(`narrator remembers unknown event ${id}`);
     if (!isInt(day) || day > state.day) problems.push(`event ${id} last fired on day ${String(day)}, not a past day`);
   }
   return problems;

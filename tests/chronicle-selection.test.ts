@@ -70,6 +70,19 @@ describe('chronicle selection (D-019, D-130)', () => {
     expect(state.chronicle.find((e) => e.kind === 'action')?.level).toBe('journal');
   });
 
+  it('sends an important line (the author decided) to the chronicle without ▸, given as ready parts', () => {
+    const content = withMoney(1, 1);
+    const state = newGame(1, content);
+    const ctx = { state, content };
+    const hero = getPlayer(state);
+    const plain = log(ctx, { subject: hero, kind: 'event', level: 'chronicle', parts: [{ id: hero.id, name: 'X' }, ' did a small thing.'] });
+    expect(plain?.level).toBe('journal');
+    const important = log(ctx, { subject: hero, kind: 'event', level: 'chronicle', parts: ['A thing that matters.'], important: true });
+    expect(important?.level).toBe('chronicle');
+    expect(important?.mark).toBeUndefined();
+    expect(important?.parts).toEqual(['A thing that matters.']);
+  });
+
   it('keeps ended actions in the journal as kind "action" for the metrics', () => {
     const { state } = playOnce(withMoney(1, 1));
     expect(state.chronicle.filter((e) => e.kind === 'action')).toHaveLength(1);

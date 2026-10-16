@@ -9,8 +9,8 @@ import { fillTemplate, type TextPart } from './text';
  * pronouns and age. Grammar (`<symbol>`, 3.4) will use `seq` (number of the event) and `slot` (place of the text)
  * for its own random stream; unused in 3.1.
  *
- * Files that feed the assembly files (schemas, hooks) must not import this one: it reads characters through
- * helpers.ts (import cycle, D-060). Checks of templates live in text/check.ts.
+ * Content schemas and checks must not import this one: they get a template check from text/check.ts, which imports
+ * no assembly file (D-060).
  */
 export function renderTemplate(ctx: Ctx, template: string, scope: Scope, _seq: number, _slot: string): TextPart[] {
   const { state } = ctx;
