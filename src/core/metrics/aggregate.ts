@@ -41,6 +41,8 @@ export function flatten(m: RunMetrics): Record<string, number> {
     'money.currentHead': m.money.currentHead,
     'money.atDeath.median': m.money.atDeath.median,
     saveBytes: m.saveBytes,
+    hotBytes: m.hotBytes,
+    archiveBytes: m.archiveBytes,
   };
   for (const { cause, count } of m.deathCauses) flat[`deaths.${cause}`] = count;
   if (m.house.endYear !== null) flat['house.endYear'] = m.house.endYear;
