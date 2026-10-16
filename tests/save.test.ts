@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { botCommand } from '../src/core/bot';
 import { apply, newGame } from '../src/core/game';
-import { deserialize, jsonProblems, serialize } from '../src/core/save/save';
+import { SAVE_VERSION, deserialize, jsonProblems, readSave, serialize } from '../src/core/save/save';
 import { seedRng } from '../src/core/rng';
 import { fromYmd, START_YEAR } from '../src/core/time/calendar';
 import { fixtureContent, realContent } from './fixtures/content';
@@ -59,5 +59,19 @@ describe('saves', () => {
       steps += 1;
     }
     expect(steps).toBeGreaterThan(100);
+  });
+
+  it('readSave refuses another version before looking at the rest, and never throws', () => {
+    const content = fixtureContent();
+    const state = newGame(1, content);
+    expect(readSave(serialize(state), content)).toEqual({ ok: true, state });
+    const old = readSave(JSON.stringify({ version: SAVE_VERSION - 1, anything: 'else' }), content);
+    expect(old).toMatchObject({ ok: false, reason: 'old_version' });
+    expect(readSave(JSON.stringify({ ...state, version: SAVE_VERSION + 1 }), content)).toMatchObject({ ok: false, reason: 'old_version' });
+    expect(readSave(JSON.stringify({ no: 'version' }), content)).toMatchObject({ ok: false, reason: 'old_version' });
+    for (const junk of ['', '{', 'null', '[]', '42', JSON.stringify({ version: SAVE_VERSION })]) {
+      expect(readSave(junk, content)).toMatchObject({ ok: false, reason: 'corrupt' });
+    }
+    expect(readSave(JSON.stringify({ ...state, playerId: 'c404' }), content)).toMatchObject({ ok: false, reason: 'corrupt' });
   });
 });
