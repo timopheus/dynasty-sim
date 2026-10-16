@@ -13,7 +13,8 @@
 src/core/          симуляция: без DOM, без Node API, без интерфейса
   rng.ts           seed-генератор (sfc32); состояние лежит в GameState
   helpers.ts       isInt, newId, getPlayer, findCharacter — для всех модулей
-  bot.ts, sim.ts   случайный бот и прогон без интерфейса
+  bot.ts, sim.ts   бот (random и характеры cautious, greedy, duelist) и прогон без интерфейса
+  bots/            характеры ботов (D-345): оценка вариантов по признакам контента (features.ts, characters.ts), отчёт (report.ts)
   сборочные файлы (D-052, D-060): собирают части модулей, правятся только между волнами
   game.ts          newGame и хуки новой партии, apply(команда: start, choose, end, will, propose) и хуки после выбора, фазы дня DAY_PHASES (D-053, D-173, D-187)
   state.ts         GameState и Character из частей модулей, Scope (область ролей), статус (`ended` — род пресёкся), типы хуков
@@ -68,6 +69,8 @@ npm test                                # vitest
 npm run validate                        # проверка контента по схеме
 npm run sim -- --years 300 --seed 42    # прогон; хроника в out/chronicle-seed42-300y.md, журнал в out/journal-seed42-300y.md, метрики в конце
 npm run sim -- --years 300 --seed 1 --runs 10          # seeds 1..10, метрики: min / медиана / max
+npm run sim -- --years 300 --seed 1 --bot cautious     # бот с характером: random (по умолчанию), cautious, greedy, duelist (D-319, D-345)
+npx tsx tools/bot-report.ts --runs 10                  # отчёт по ботам: 4 характера × seeds 1..10, «мёртвые» варианты, «доминирующий» характер (только отчёт, D-349)
 npm run -s sim -- --years 300 --seed 1 --runs 10 --json > a.json   # то же в JSON; -s нужен, иначе npm пишет заголовок в файл
 npm run -s sim -- --compare a.json b.json # медианы двух файлов рядом, только изменившиеся
 npm run check                           # typecheck + test + validate + sim 50 лет
