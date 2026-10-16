@@ -1,0 +1,9 @@
+# expect-error: opinions.relations[0] /needs startsAsProtege and endsAsProtege/
+opinions:
+  reasons: []
+  traitEffects: []
+  background: { max: 10, rules: [] }
+  words: [{ from: -100, text: low }]
+  relations: [{ id: patron, name: Patron, symmetric: false, opinion: { a: 10, b: 20 }, acquaintance: close, starts: "{name} {other}", ends: "{name} {other}" }]
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }
+  texts: { opinionMin: "a {word} {name}", opinionMax: "a {word} {name}", relation: "a {kind} {name}", relationNone: "a {kind} {name}", acquaintedKnown: "a {name}", acquaintedClose: "a {name}" }

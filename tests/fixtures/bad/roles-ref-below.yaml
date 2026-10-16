@@ -1,0 +1,19 @@
+# expect-error: events[0].roles.first.where /unknown role "second": a role sees only hero, protagonist and the roles declared above it/
+opinions:
+  reasons: []
+  traitEffects: []
+  background: { max: 10, rules: [] }
+  words: [{ from: -100, text: low }]
+  relations: []
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }
+  texts: { opinionMin: "a {word} {name}", opinionMax: "a {word} {name}", relation: "a {kind} {name}", relationNone: "a {kind} {name}", acquaintedKnown: "a {name}", acquaintedClose: "a {name}" }
+events:
+  - id: bad_below
+    weight: 1
+    roles:
+      first: { pick: circle, where: { opinion: { toward: second, min: 10 } } }
+      second: { pick: circle }
+    text: "{first} and {second} wait."
+    options:
+      - text: Greet
+        result: "{name} greeted them."

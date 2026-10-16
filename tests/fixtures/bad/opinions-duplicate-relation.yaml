@@ -4,5 +4,6 @@ opinions:
   traitEffects: []
   background: { max: 10, rules: [] }
   words: [{ from: -100, text: low }]
-  relations: [{ id: friend, name: A, symmetric: true, opinion: { a: 10, b: 10 }, acquaintance: close }, { id: friend, name: B, symmetric: true, opinion: { a: 10, b: 10 }, acquaintance: known }]
+  relations: [{ id: friend, name: A, symmetric: true, opinion: { a: 10, b: 10 }, acquaintance: close, starts: "{name} {other}", ends: "{name} {other}" }, { id: friend, name: B, symmetric: true, opinion: { a: 10, b: 10 }, acquaintance: known, starts: "{name} {other}", ends: "{name} {other}" }]
   acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }
+  texts: { opinionMin: "a {word} {name}", opinionMax: "a {word} {name}", relation: "a {kind} {name}", relationNone: "a {kind} {name}", acquaintedKnown: "a {name}", acquaintedClose: "a {name}" }

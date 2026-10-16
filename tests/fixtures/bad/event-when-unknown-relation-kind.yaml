@@ -1,0 +1,18 @@
+# expect-error: events[0].roles.foe.where.relation_none.kind /unknown kind of relation "enemy"/
+opinions:
+  reasons: [{ id: slight, name: Slight, value: -10, kind: harm, decay: { kind: never } }]
+  traitEffects: []
+  background: { max: 10, rules: [] }
+  words: [{ from: -100, text: low }]
+  relations: [{ id: friend, name: Friend, symmetric: true, opinion: { a: 10, b: 10 }, acquaintance: close, starts: "{name} {other}", ends: "{name} {other}" }]
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }
+  texts: { opinionMin: "a {word} {name}", opinionMax: "a {word} {name}", relation: "a {kind} {name}", relationNone: "a {kind} {name}", acquaintedKnown: "a {name}", acquaintedClose: "a {name}" }
+events:
+  - id: bad_one
+    weight: 1
+    roles:
+      foe: { pick: circle, where: { relation_none: { kind: enemy, with: hero } } }
+    text: "{foe} stares."
+    options:
+      - text: Stare back
+        result: "{name} stared."

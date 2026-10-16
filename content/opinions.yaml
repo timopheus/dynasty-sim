@@ -1,5 +1,5 @@
 # Opinions, relations and acquaintance (D-035…D-037). Schema: src/core/relations/content.ts (OpinionsContentSchema).
-# No event of stage 2 adds a reason or a relation (D-051): the model waits for the events with roles of stage 3.
+# Events add and take away reasons and relations through the effects `opinion`, `opinion_end`, `relation` (3.6, D-220…D-225).
 opinions:
   # Causes of an opinion. kind: harm or benefit decides which trait memory applies. decay: fade (days), never, or
   # held (until an event ends it by name).
@@ -14,6 +14,13 @@ opinions:
     - { id: saved_life, name: Saved my life, value: 70, kind: benefit, decay: { kind: never } }
     - { id: owes_me, name: Owes me, value: 15, kind: benefit, decay: { kind: held, until: debt_repaid } }
     - { id: shamed_me, name: Shamed me, value: -40, kind: harm, decay: { kind: held, until: debt_repaid } }
+    # Starting set for the events of stage 3 (D-223); after 3.6 only 3.12 adds reasons.
+    - { id: betrayed, name: Betrayed me, value: -70, kind: harm, decay: { kind: never } }
+    - { id: humiliated, name: Humiliated me, value: -50, kind: harm, decay: { kind: fade, days: 1825 } }
+    - { id: called_coward, name: Called me a coward, value: -35, kind: harm, decay: { kind: fade, days: 1460 } }
+    - { id: spared, name: Spared me, value: 45, kind: benefit, decay: { kind: never } }
+    - { id: mentor, name: Taught me, value: 40, kind: benefit, decay: { kind: fade, days: 3650 } }
+    - { id: childhood_friend, name: Friend since childhood, value: 30, kind: benefit, decay: { kind: never } }
 
   # Memory of the holder: fade 0 never forgets, 200 forgets twice as fast; scale is the weight of the reason.
   traitEffects:
@@ -56,13 +63,51 @@ opinions:
 
   # Relations are made and broken by events (D-036). In a pair `a` is the patron; opinion is what a thinks of b and b of a.
   relations:
-    - { id: friend, name: Friend, symmetric: true, opinion: { a: 25, b: 25 }, acquaintance: close }
-    - { id: rival, name: Rival, symmetric: true, opinion: { a: -30, b: -30 }, acquaintance: known }
-    - { id: patron, name: Patron, symmetric: false, opinion: { a: 10, b: 20 }, acquaintance: close }
-    - { id: lover, name: Lover, symmetric: true, opinion: { a: 30, b: 30 }, acquaintance: close }
+    # starts / ends are chronicle lines when an event changes the hero's tie: {name} is the hero, {other} the other person.
+    # In a patron-protege pair they are for the hero as the patron; startsAsProtege / endsAsProtege for the hero as the protege.
+    - id: friend
+      name: Friend
+      symmetric: true
+      opinion: { a: 25, b: 25 }
+      acquaintance: close
+      starts: "{name} and {other} became friends."
+      ends: "{name} and {other} ceased to be friends."
+    - id: rival
+      name: Rival
+      symmetric: true
+      opinion: { a: -30, b: -30 }
+      acquaintance: known
+      starts: "{name} and {other} became rivals."
+      ends: "{name} and {other} ceased to be rivals."
+    - id: patron
+      name: Patron
+      symmetric: false
+      opinion: { a: 10, b: 20 }
+      acquaintance: close
+      starts: "{name} took {other} under {his} wing."
+      ends: "{name} no longer looked after {other}."
+      startsAsProtege: "{other} became {name}'s patron."
+      endsAsProtege: "{other} no longer looked after {name}."
+    - id: lover
+      name: Lover
+      symmetric: true
+      opinion: { a: 30, b: 30 }
+      acquaintance: close
+      starts: "{name} and {other} became lovers."
+      ends: "{name} and {other} parted as lovers."
 
   # Time near the hero (D-037): the chances are checked once a week against the circle of 2.5.
   acquaintance:
     meetPer100: 6
     closeAfterDays: 730
     closePer100: 1
+
+  # Why a condition on opinions and relations is not met (D-043, D-221). {word}: opinion word of the bound; {kind}: kind
+  # of relation in lower case; {name}: the other person (for `acquainted`, the person the condition is about).
+  texts:
+    opinionMin: "Needs {word} towards {name}"
+    opinionMax: "Needs no more than {word} towards {name}"
+    relation: "Needs a bond with {name}: {kind}"
+    relationNone: "Must not be bound to {name} as {kind}"
+    acquaintedKnown: "You must know {name}"
+    acquaintedClose: "You must be close to {name}"

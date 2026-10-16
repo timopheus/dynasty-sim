@@ -4,7 +4,8 @@ opinions:
   traitEffects: []
   background: { max: 0, rules: [] }
   words: [{ from: -100, text: low }]
-  relations: [{ id: friend, name: Friend, symmetric: true, opinion: { a: 25, b: 25 }, acquaintance: close }]
+  relations: [{ id: friend, name: Friend, symmetric: true, opinion: { a: 25, b: 25 }, acquaintance: close, starts: "{name} {other}", ends: "{name} {other}" }]
+  texts: { opinionMin: "a {word} {name}", opinionMax: "a {word} {name}", relation: "a {kind} {name}", relationNone: "a {kind} {name}", acquaintedKnown: "a {name}", acquaintedClose: "a {name}" }
   acquaintance: { meetPer100: 0, closeAfterDays: 0, closePer100: 0 }
 events:
   - id: bad_role

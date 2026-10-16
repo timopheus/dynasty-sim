@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { botCommand } from '../src/core/bot';
+import { entryText } from '../src/core/chronicle/log';
+import { conditionReport, conditionRoleRefs, type When } from '../src/core/condition-keys';
+import { applyEffects, effectRoleRefs, type Effects } from '../src/core/effects';
+import { chooseOption, fireEvent, findEvent, optionState } from '../src/core/events/events';
 import { apply, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
@@ -19,6 +23,7 @@ import {
   removeOpinionReason,
 } from '../src/core/relations/opinions';
 import { addSecret, revealSecret, secretsAbout, secretsKnownBy } from '../src/core/relations/secrets';
+import { narratorContent } from '../src/core/narrator/content';
 import { seedRng } from '../src/core/rng';
 import { deserialize, serialize } from '../src/core/save/save';
 import type { Character, Ctx, GameState } from '../src/core/state';
@@ -386,5 +391,240 @@ describe('a long game', () => {
       return state.acquaintances;
     };
     expect(run()).toEqual(run());
+  });
+});
+
+// Opinions, relations and secrets in events (3.6, D-220…D-225): the keys see people only through the scope of roles.
+const eventContent = loadOrThrow([
+  ...BASE_FILES,
+  ...readContentFiles('tests/fixtures/population'),
+  ...readContentFiles('tests/fixtures/opinions'),
+  ...readContentFiles('tests/fixtures/relations'),
+]);
+
+function eventGame(seed = 3) {
+  const state = newGame(seed, eventContent);
+  apply(state, eventContent, { type: 'start', actionId: 'rest' });
+  state.acquaintances.length = 0;
+  const ctx: Ctx = { state, content: eventContent };
+  const hero = getPlayer(state);
+  hero.traits = [];
+  const [x, y, z] = state.circle.map((id) => state.characters.find((c) => c.id === id) as Character);
+  for (const c of [x, y, z]) (c as Character).traits = [];
+  return { state, ctx, hero, x: x as Character, y: y as Character, z: z as Character };
+}
+
+/** Chooses an option of the pending event; the status is the one `apply` leaves after a choice with nothing pending. */
+function choose(ctx: Ctx, option: number): void {
+  chooseOption(ctx, option);
+  if (!ctx.state.pendingEvent) ctx.state.status = 'awaiting_action';
+}
+
+/** Fires an event and returns who took which role: the engine chooses the people (3.3). */
+function fire(ctx: Ctx, id: string) {
+  const hero = getPlayer(ctx.state);
+  expect(fireEvent(ctx, findEvent(eventContent, id), hero)).toBe('waiting');
+  const scope = ctx.state.pendingEvent!.scope;
+  const who = (role: string) => ctx.state.characters.find((c) => c.id === scope[role]) as Character;
+  return { hero, scope, who };
+}
+
+const relationLines = (state: GameState) => state.chronicle.filter((e) => e.kind === 'relation').map(entryText);
+
+describe('effects of events on roles', () => {
+  it('apply through `on` and the scope: opinions, a tie with its chronicle line, a secret, an introduction', () => {
+    const { state, ctx } = eventGame();
+    const { hero, who, scope } = fire(ctx, 'quarrel');
+    const [foe, witness] = [who('foe'), who('witness')];
+    expect(witness).toBeDefined();
+    choose(ctx, 0);
+    expect(opinionCauses(ctx, hero.id, foe.id).map((c) => c.id)).toContain('slight');
+    expect(opinionCauses(ctx, foe.id, hero.id).map((c) => c.id)).toEqual(expect.arrayContaining(['insult', 'relation']));
+    expect(activeRelationBetween(state, hero.id, foe.id, 'rival')).not.toBeNull();
+    expect(relationLines(state)).toEqual([expect.stringMatching(/ became rivals\.$/)]);
+    const line = state.chronicle.find((e) => e.kind === 'relation')!;
+    expect(line.subject).toBe(hero.id);
+    expect(line.level).toBe('chronicle');
+    expect(line.parts).toContainEqual({ id: foe.id, name: `${foe.givenName} ${foe.surname}` });
+    expect(secretsAbout(state, foe.id)[0]).toMatchObject({ kind: 'shame', knownBy: [foe.id, witness.id, hero.id] });
+    expect(acquaintanceLevel(state, eventContent, hero.id, witness.id)).toBe('close');
+    expect(acquaintanceLevel(state, eventContent, hero.id, foe.id)).toBe('known');
+    expect(scope.foe).toBe(foe.id);
+    expect(checkInvariants(state, eventContent)).toEqual([]);
+  });
+
+  it('show an option grey until the relation exists, then end it with a reason, take a reason away, reveal a secret', () => {
+    const { state, ctx } = eventGame();
+    const first = fire(ctx, 'quarrel');
+    const peace = findEvent(eventContent, 'quarrel').options![1]!;
+    expect(optionState(ctx, peace, first.hero, first.scope)).toMatchObject({ available: false, hidden: false, reasons: [expect.stringMatching(/^Needs rival with /)] });
+    choose(ctx, 0);
+    const foe = first.who('foe');
+    const witness = first.who('witness');
+    expect(witness).toBeDefined();
+    // the rival comes to make peace: the role is picked by the tie
+    const second = fire(ctx, 'reconcile');
+    expect(second.scope.foe).toBe(foe.id);
+    const secret = secretsAbout(state, foe.id)[0]!;
+    secret.knownBy = [foe.id];
+    choose(ctx, 0);
+    expect(activeRelationBetween(state, first.hero.id, foe.id, 'rival')).toBeNull();
+    expect(state.relations[0]).toMatchObject({ kind: 'rival', endReason: 'peace' });
+    expect(opinionCauses(ctx, foe.id, first.hero.id).map((c) => c.id)).not.toContain('insult');
+    expect(secret.knownBy).toContain(second.scope.witness);
+    expect(relationLines(state).map((t) => t.replace(/^.*? (became|made)/, '$1'))).toEqual(['became rivals.', 'made peace.']);
+  });
+
+  it('give the patron and the protege their own line and keep the patron first', () => {
+    const { state, ctx } = eventGame();
+    const one = fire(ctx, 'kindness');
+    choose(ctx, 0);
+    const x = one.who('pupil');
+    expect(state.relations[0]).toMatchObject({ kind: 'patron', a: one.hero.id, b: x.id });
+    expect(opinionCauses(ctx, x.id, one.hero.id).find((c) => c.id === 'gift')?.value).toBe(55);
+    const two = fire(ctx, 'kindness');
+    const y = two.who('pupil');
+    choose(ctx, 1);
+    expect(state.relations[1]).toMatchObject({ kind: 'patron', a: y.id, b: one.hero.id });
+    expect(relationLines(state).map((t) => /wing/.test(t))).toEqual([true, false]);
+    expect(relationLines(state)[1]).toMatch(/took .* in\.$/);
+    // the end of the tie is applied with the scope written by hand: the engine would pick the pupil again
+    const drop = findEvent(eventContent, 'kindness').options![2]!;
+    applyEffects(ctx, one.hero, drop.effects as Effects, { hero: one.hero.id, protagonist: one.hero.id, pupil: x.id });
+    expect(state.relations[0]?.endReason).toBe('event');
+    expect(relationLines(state)[2]).toMatch(/dropped/);
+    expect(checkInvariants(state, eventContent)).toEqual([]);
+  });
+
+  it('end a held reason by the name it waits for', () => {
+    const { state, ctx } = eventGame();
+    const one = fire(ctx, 'kindness');
+    choose(ctx, 3);
+    const x = one.who('pupil');
+    expect(opinionCauses(ctx, x.id, one.hero.id).map((c) => c.id)).toContain('debt');
+    const repaid = findEvent(eventContent, 'kindness').options![4]!;
+    applyEffects(ctx, x, repaid.on!.pupil as Effects, { hero: one.hero.id, protagonist: one.hero.id, pupil: x.id });
+    expect(opinionCauses(ctx, x.id, one.hero.id).map((c) => c.id)).not.toContain('debt');
+    expect(state.opinionReasons[0]?.end).toBe(state.day);
+  });
+
+  it('skip what has no one to act on, without errors: an empty role, oneself, a tie that exists or does not', () => {
+    const { state, ctx, hero, x } = eventGame();
+    const effects = {
+      opinion: [{ toward: 'ghost', reason: 'slight' }, { toward: 'protagonist', reason: 'slight' }],
+      relation: [{ start: 'friend', with: 'ghost' }, { end: 'friend', with: 'other' }],
+      secret: { kind: 'shame', known_by: ['ghost'] },
+      reveal: { kind: 'shame', to: ['ghost'] },
+    } as Effects;
+    expect(() => applyEffects(ctx, x, effects, { hero: hero.id, protagonist: x.id, other: hero.id })).not.toThrow();
+    expect(state.opinionReasons).toEqual([]);
+    expect(state.relations).toEqual([]);
+    expect(secretsAbout(state, x.id)[0]?.knownBy).toEqual([x.id]);
+    const start = { relation: [{ start: 'friend', with: 'other' }] } as Effects;
+    applyEffects(ctx, x, start, { hero: hero.id, protagonist: x.id, other: hero.id });
+    applyEffects(ctx, x, start, { hero: hero.id, protagonist: x.id, other: hero.id });
+    expect(state.relations).toHaveLength(1);
+    kill(ctx, getPlayer(state) === hero ? x : hero, 'illness');
+    applyEffects(ctx, x, { relation: [{ start: 'rival', with: 'other' }] } as Effects, { hero: hero.id, protagonist: x.id, other: hero.id });
+    expect(state.relations.filter((r) => r.kind === 'rival')).toEqual([]);
+  });
+
+  it('name their roles for the cross-check of events', () => {
+    const effects = {
+      opinion: [{ toward: 'a', reason: 'x' }],
+      opinion_end: [{ toward: 'b', reason: 'x' }],
+      relation: [{ start: 'friend', with: 'c' }],
+      secret: { kind: 'k', known_by: ['d'] },
+      reveal: { kind: 'k', to: ['e'] },
+      later: [{ after_days: 3, effects: { opinion: [{ toward: 'f', reason: 'x' }] } }],
+    } as Effects;
+    expect(effectRoleRefs(effects)).toEqual(['a', 'b', 'c', 'd', 'e', 'f']);
+    const when = { opinion: { toward: 'a', min: 1 }, relation: { kind: 'friend', with: 'b' }, relation_none: { kind: 'rival', with: 'c' } } as When;
+    expect(conditionRoleRefs(when)).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('conditions on opinions and relations', () => {
+  const scopeOf = (hero: Character, ...more: [string, Character][]) => ({ hero: hero.id, protagonist: hero.id, ...Object.fromEntries(more.map(([r, c]) => [r, c.id])) });
+
+  it('compare the opinion of the character about a role with the bounds and say why not', () => {
+    const { ctx, hero, x } = eventGame();
+    const scope = scopeOf(hero, ['foe', x]);
+    addOpinionReason(ctx, hero.id, x.id, 'gift');
+    const rule = (opinion: object) => conditionReport(ctx, hero, { opinion } as When, scope);
+    expect(rule({ toward: 'foe', min: 10, max: 30 })).toMatchObject({ met: true });
+    expect(rule({ toward: 'foe', min: 50 })).toMatchObject({ met: false, reasons: [`Needs devotion towards ${x.givenName} ${x.surname}`] });
+    expect(rule({ toward: 'foe', max: 10 }).reasons).toEqual([expect.stringMatching(/^Needs at most liking towards /)]);
+  });
+
+  it('hide the reason when the character is a stranger to the hero, but not the check itself', () => {
+    const { state, ctx, hero, x, y } = eventGame();
+    const scope = scopeOf(hero, ['other', y]);
+    addOpinionReason(ctx, x.id, y.id, 'insult');
+    const when = { opinion: { toward: 'other', max: -50 } } as When;
+    expect(conditionReport(ctx, x, when, scope)).toEqual({ met: true, reasons: [], hidden: false });
+    const unmet = { opinion: { toward: 'other', min: 10 } } as When;
+    expect(conditionReport(ctx, x, unmet, scope)).toEqual({ met: false, reasons: [], hidden: true });
+    introduce(ctx, x.id);
+    expect(conditionReport(ctx, x, unmet, scope)).toMatchObject({ met: false, hidden: false });
+    expect(state.acquaintances).toHaveLength(1);
+  });
+
+  it('look at a relation of either side, and at its absence', () => {
+    const { ctx, hero, x, y } = eventGame();
+    startRelation(ctx, 'patron', x.id, hero.id);
+    const scope = scopeOf(hero, ['x', x], ['y', y]);
+    const report = (when: object) => conditionReport(ctx, hero, when as When, scope);
+    expect(report({ relation: { kind: 'patron', with: 'x' } }).met).toBe(true);
+    expect(report({ relation: { kind: 'friend', with: 'x' } }).reasons).toEqual([expect.stringMatching(/^Needs friend with /)]);
+    expect(report({ relation_none: { kind: 'friend', with: 'x' } }).met).toBe(true);
+    expect(report({ relation_none: { kind: 'patron', with: 'x' } }).reasons).toEqual([expect.stringMatching(/^No patron with /)]);
+    expect(report({ relation: { kind: 'patron', with: 'y' } }).met).toBe(false);
+  });
+
+  it('are never met for an empty role, and the reason stays hidden', () => {
+    const { ctx, hero } = eventGame();
+    const scope = scopeOf(hero);
+    for (const when of [{ opinion: { toward: 'nobody', max: 100 } }, { relation: { kind: 'friend', with: 'nobody' } }, { relation_none: { kind: 'friend', with: 'nobody' } }]) {
+      expect(conditionReport(ctx, hero, when as When, scope)).toEqual({ met: false, reasons: [], hidden: true });
+    }
+  });
+
+  it('ask how well the hero knows the character', () => {
+    const { ctx, hero, x } = eventGame();
+    const scope = scopeOf(hero);
+    const known = { acquainted: 'known' } as When;
+    const close = { acquainted: 'close' } as When;
+    expect(conditionReport(ctx, x, known, scope).reasons).toEqual([`Know ${x.givenName} ${x.surname}`]);
+    expect(conditionReport(ctx, hero, close, scope).met).toBe(true);
+    introduce(ctx, x.id);
+    expect([known, close].map((w) => conditionReport(ctx, x, w, scope).met)).toEqual([true, false]);
+    introduce(ctx, x.id, 'close');
+    expect(conditionReport(ctx, x, close, scope).met).toBe(true);
+  });
+});
+
+describe('events with relations over a long game', () => {
+  // only the events of the fixture, often, so that the people of the circle meet them
+  const long = {
+    ...eventContent,
+    events: eventContent.events.filter((e) => ['quarrel', 'reconcile', 'kindness'].includes(e.id)),
+    narrator: { ...narratorContent(eventContent), eventChancePer10k: 300 },
+  };
+  const run = (seed: number) => {
+    const state = newGame(seed, long);
+    const bot = seedRng(seed, 1);
+    while (state.day < fromYmd(START_YEAR + 40, 1, 1)) {
+      apply(state, long, botCommand(state, long, bot));
+      expect(checkInvariants(state, long)).toEqual([]);
+    }
+    return state;
+  };
+
+  it('keep the invariants, are the same twice and survive saving', () => {
+    const a = run(8);
+    expect(a.relations.length + a.opinionReasons.length).toBeGreaterThan(0);
+    expect(run(8).relations).toEqual(a.relations);
+    expect(deserialize(serialize(a), long).relations).toEqual(a.relations);
   });
 });
