@@ -1,0 +1,7 @@
+# expect-error: house.renown.words[1].from /must rise strictly/
+house:
+  statuses: [{ id: commoner, name: Commoner }]
+  renown: { words: [{ from: 5, word: High }, { from: 5, word: Same }], fame: [0, 0, 0, 0], traits: [] }
+  nicknames: []
+  texts: { status: "{name} rose to {status}." }
+  reasons: { status_min: "Needs {status}.", renown_min: "Needs {renown}." }
