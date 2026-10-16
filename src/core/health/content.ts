@@ -204,7 +204,7 @@ function checkKills(event: EventDef, at: string, causeIds: Set<string>, file: st
   for (const [id, page] of Object.entries(event.pages ?? {})) checkScene(page, `${at}.pages.${id}.`);
 }
 
-export const checkHealth: CrossCheck = ({ health, traits, actions, events }) => {
+export const checkHealth: CrossCheck = ({ health, traits, actions, events, grammar }) => {
   const errors: ContentError[] = [];
   const traitById = new Map(traits.map(({ item }) => [item.id, item]));
   const actionIds = new Set(actions.map(({ item }) => item.id));
@@ -336,9 +336,14 @@ export const checkHealth: CrossCheck = ({ health, traits, actions, events }) => 
   // `kill` (3.5): the cause is known, and a hero dies only where D-164 allows. Actions always run for the hero.
   const causeIds = new Set(health.flatMap(({ item }) => item.causes.map((cause) => cause.id)));
   for (const { file, index, item } of actions) {
+    const reported = new Set<string>();
     walkKeys(item, `actions[${index}]`, ['effects'], (effects, at) => {
       if (effects === null || typeof effects !== 'object') return;
-      for (const kill of killsIn(effects as KillRefs, at)) errors.push({ file, path: kill.path, message: 'kill is not allowed in an action' });
+      for (const kill of killsIn(effects as KillRefs, at)) {
+        if (reported.has(kill.path)) continue;
+        reported.add(kill.path);
+        errors.push({ file, path: kill.path, message: 'kill is not allowed in an action' });
+      }
     });
   }
   for (const { file, index, item } of events) checkKills(item, `events[${index}]`, causeIds, file, errors);
@@ -358,5 +363,6 @@ export const checkHealth: CrossCheck = ({ health, traits, actions, events }) => 
   };
   for (const { file, index, item } of actions) checkWhen(file, item, `actions[${index}]`);
   for (const { file, index, item } of events) checkWhen(file, item, `events[${index}]`);
+  for (const { file, item } of grammar) checkWhen(file, item, 'grammar');
   return errors;
 };

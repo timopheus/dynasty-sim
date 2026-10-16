@@ -1,0 +1,5 @@
+# expect-error: grammar.mood[0].when.conditions_any[0] /unknown condition "plague"/
+grammar:
+  mood:
+    - { text: grim, when: { conditions_any: [plague] } }
+    - fine
