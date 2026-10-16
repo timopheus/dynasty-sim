@@ -1,0 +1,12 @@
+# expect-error: events[0].options[0].check.of /checked against itself/
+events:
+  - id: bad_check_of_against_same
+    weight: 1
+    roles:
+      foe: { pick: circle }
+    text: "{foe} glares."
+    options:
+      - text: Wait
+        check: { stat: prowess, of: foe, against: { role: foe, stat: prowess } }
+        success: { result: "{name} waited." }
+        failure: { result: "{name} gave up." }

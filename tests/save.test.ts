@@ -83,6 +83,7 @@ describe('saves', () => {
       JSON.stringify({ version: SAVE_VERSION, shapes: [], state: [0] }),
       JSON.stringify({ version: SAVE_VERSION, shapes: [['a']], state: [0, 1, 2] }),
       JSON.stringify({ version: SAVE_VERSION, shapes: [['__proto__']], state: [0, {}] }),
+      JSON.stringify({ version: SAVE_VERSION, shapes: [['a', 'a']], state: [0, 1, 2] }),
       JSON.stringify({ version: SAVE_VERSION, shapes: [], state: { day: 1 } }),
       JSON.stringify({ version: SAVE_VERSION, shapes: [], state: ['#', 1] }),
     ];

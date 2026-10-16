@@ -4,7 +4,7 @@ import { entryText } from '../src/core/chronicle/log';
 import type { Content } from '../src/core/content/schema';
 import { chanceBand, checkChance, rollCheck } from '../src/core/events/checks';
 import { DEFAULT_MOOD, moodOf, type EventDef } from '../src/core/events/content';
-import { eventWeight, findEvent, fireEvent, startEvent } from '../src/core/events/events';
+import { eventWeight, findEvent, fireEvent, optionState, startEvent } from '../src/core/events/events';
 import { eventView } from '../src/core/events/view';
 import { apply, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
@@ -150,6 +150,33 @@ describe('checks (D-042)', () => {
     apply(ctx.state, content, { type: 'choose', option: 0 });
     expect(entryText(lastLine(ctx))).toBe(`${hero.givenName} ${hero.surname} beat ${rival.givenName} ${rival.surname} in a duel.`);
     expect(rival.money).toBe(95);
+  });
+
+  it('checks the stat of the role `of`, with the bonuses that role meets (D-193)', () => {
+    const { ctx, hero, people } = game([5, 100, 30]);
+    const physician = people[1]!;
+    const scope = { hero: hero.id, protagonist: hero.id, physician: physician.id };
+    const ofRole = { ...check, of: 'physician' };
+    hero.baseStats.prowess = 0;
+    physician.baseStats.prowess = 10;
+    expect(checkChance(ctx, ofRole, hero, scope)).toBe(70); // 10 + 4 (the physician has 100 crowns) against 10
+    physician.money = 0;
+    hero.money = 100;
+    expect(checkChance(ctx, ofRole, hero, scope)).toBe(50); // the hero's money gives the physician nothing
+    expect(checkChance(ctx, check, hero, scope)).toBe(20); // without `of` the hero is checked: 0 + 4 against 10
+    expect(() => checkChance(ctx, ofRole, hero, { hero: hero.id, protagonist: hero.id })).toThrow(/not filled/);
+    const rival = people[2]!;
+    rival.baseStats.prowess = 6;
+    const opposed = { stat: 'prowess' as const, of: 'physician', against: { role: 'rival', stat: 'prowess' as const } };
+    expect(checkChance(ctx, opposed, hero, { ...scope, rival: rival.id })).toBe(70); // the physician's 10 against the rival's 6
+  });
+
+  it('hides an option that checks an empty optional role (D-193)', () => {
+    const { ctx, hero, people } = game();
+    const option = { text: 'Send for the physician', check: { ...check, of: 'physician' }, success: { result: '{name} got well.' }, failure: { result: '{name} stayed ill.' } };
+    const scope = { hero: hero.id, protagonist: hero.id };
+    expect(optionState(ctx, option, hero, scope)).toEqual({ available: false, hidden: true, reasons: [] });
+    expect(optionState(ctx, option, hero, { ...scope, physician: people[0]!.id })).toEqual({ available: true, hidden: false, reasons: [] });
   });
 
   it('makes the participants known to the hero', () => {

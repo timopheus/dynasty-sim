@@ -51,7 +51,9 @@ export function encodeCompact(value: unknown): Compact {
 export function decodeCompact(shapes: unknown, data: unknown): unknown {
   if (!Array.isArray(shapes)) throw new Error('shapes is not a list');
   for (const keys of shapes) {
-    if (!Array.isArray(keys) || keys.some((k) => typeof k !== 'string' || k === '__proto__')) throw new Error('bad shape');
+    if (!Array.isArray(keys) || keys.some((k) => typeof k !== 'string' || k === '__proto__') || new Set(keys).size !== keys.length) {
+      throw new Error('bad shape');
+    }
   }
   const table = shapes as string[][];
   const decode = (v: unknown): unknown => {

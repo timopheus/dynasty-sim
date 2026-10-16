@@ -1,0 +1,15 @@
+# expect-error: events[0].options /at least one option must have no when/
+events:
+  - id: bad_check_of_optional_only
+    weight: 1
+    roles:
+      physician: { pick: circle, optional: true }
+    text: "{name} is ill."
+    options:
+      - text: Call for help
+        check: { stat: learning, of: physician, difficulty: 10 }
+        success: { result: "{name} got well." }
+        failure: { result: "{name} stayed ill." }
+      - text: Pay a quack
+        when: { money_min: 5 }
+        result: "{name} paid a quack."
