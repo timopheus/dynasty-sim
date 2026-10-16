@@ -56,7 +56,7 @@ export const NUMBERS_OFF = 'Show numbers';
 export function numbersToggle(show: boolean): { text: string; attrs: Record<string, string> } {
   return {
     text: show ? NUMBERS_ON : NUMBERS_OFF,
-    attrs: { 'aria-pressed': String(show), 'aria-label': 'Numbers beside words (stats, chances, opinions)' },
+    attrs: { 'aria-pressed': String(show) },
   };
 }
 
@@ -69,6 +69,8 @@ export interface Control {
   reason: string;
   /** Plain-text DOM id of the reason, referenced by `aria-describedby`. */
   reasonId: string;
+  /** DOM id of the note, so a screen reader reads it with the button. */
+  noteId: string;
   attrs: Record<string, string>;
   key: string | null;
 }
@@ -76,18 +78,19 @@ export interface Control {
 function control(prefix: string, position: number, name: string, note: string, grey: boolean, reason: string): Control {
   const key = shortcutKey(position);
   const reasonId = `${prefix}-${position}-reason`;
+  const noteId = `${prefix}-${position}-note`;
   const attrs: Record<string, string> = {};
   if (key) attrs['aria-keyshortcuts'] = key;
-  if (grey) {
-    // aria-disabled, not disabled: the button stays focusable, so a screen reader finds it and reads the reason
-    attrs['aria-disabled'] = 'true';
-    if (reason) attrs['aria-describedby'] = reasonId;
-  }
+  // aria-disabled, not disabled: the button stays focusable, so a screen reader finds it and reads the reason
+  if (grey) attrs['aria-disabled'] = 'true';
+  const described = [note ? noteId : '', grey && reason ? reasonId : ''].filter(Boolean).join(' ');
+  if (described) attrs['aria-describedby'] = described;
   return {
     text: key ? `${key}. ${name}` : name,
     note,
     reason: grey ? `Unavailable${reason ? `: ${reason}` : ''}` : '',
     reasonId,
+    noteId,
     attrs,
     key,
   };
@@ -117,6 +120,11 @@ export function pickableAt(rows: readonly { grey: boolean }[], position: number)
 export function eventAnnouncement(text: readonly TextPart[], controls: readonly Control[]): string {
   const options = controls.map((c) => `${c.text}${c.note ? ` ${c.note}` : ''}${c.reason ? `. ${c.reason}` : ''}`).join('. ');
   return `New event. ${partsText(text)} Choices: ${options}.`;
+}
+
+/** Identity of an event page that does not change with the numbers switch: a page is announced once (D-264). */
+export function eventPageKey(text: readonly TextPart[], options: readonly OptionRow[]): string {
+  return eventAnnouncement(text, options.map((o, i) => optionControl(o, i, false)));
 }
 
 /** Text for the live region when new chronicle lines were written. */

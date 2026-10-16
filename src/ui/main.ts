@@ -10,7 +10,7 @@ import { personPage } from '../core/pages/person';
 import { heroView } from './hero';
 import { personHref, personIdFromHash } from './address';
 import { actionRows, eventScreen } from './event';
-import { actionControl, chronicleAnnouncement, eventAnnouncement, numbersToggle, optionControl, pickableAt, shortcutPosition, withNumber, type Control } from './access';
+import { actionControl, eventPageKey, chronicleAnnouncement, eventAnnouncement, numbersToggle, optionControl, pickableAt, shortcutPosition, withNumber, type Control } from './access';
 import { headIds } from './entry';
 import { entryItem, partNodes, pageView } from './page';
 import { clearGame, loadGame, saveGame, seedFromSearch, startChoice, type KeyValueStore } from './storage';
@@ -66,6 +66,8 @@ interface Session {
   focusAfterRender: boolean;
   /** Lines for the live region, spoken together at the end of the next render. */
   queue: string[];
+  /** `data-focus` key of the control to focus again after a render that replaced it (switch, tabs). */
+  refocus: string | null;
 }
 
 function saveProblemText(reason: 'quota' | 'unavailable'): string {
@@ -89,7 +91,10 @@ announcer.setAttribute('aria-atomic', 'true');
 document.body.append(announcer);
 
 function announce(text: string): void {
-  if (text) announcer.textContent = text;
+  if (!text) return;
+  // cleared first: the same text twice in a row must still be spoken
+  announcer.textContent = '';
+  setTimeout(() => { announcer.textContent = text; }, 50);
 }
 
 function applyAttrs(node: HTMLElement, attrs: Record<string, string>): void {
@@ -101,15 +106,15 @@ function choiceNode(session: Session, c: Control, command: Command | null): HTML
   const button = el('button', { className: command ? 'choice' : 'choice grey', type: 'button' }, c.text);
   applyAttrs(button, c.attrs);
   if (command) button.onclick = () => act(session, command);
-  const note = c.note ? el('span', { className: 'note' }, c.note) : '';
+  const note = c.note ? el('span', { className: 'note', id: c.noteId }, c.note) : '';
   if (command) return el('div', { className: 'option' }, button, note);
   return el('div', { className: 'unavailable' }, button, note, el('span', { className: 'reason', id: c.reasonId }, c.reason));
 }
 
 function numbersButton(session: Session): HTMLElement {
   const t = numbersToggle(session.showNumbers);
-  const b = el('button', { className: 'link numbers', type: 'button', onclick: () => { session.showNumbers = !session.showNumbers; render(session); } }, t.text);
-  applyAttrs(b, t.attrs);
+  const b = el('button', { className: 'link numbers', type: 'button', onclick: () => { session.showNumbers = !session.showNumbers; session.refocus = 'numbers'; render(session); } }, t.text);
+  applyAttrs(b, { ...t.attrs, 'data-focus': 'numbers' });
   return b;
 }
 
@@ -123,7 +128,9 @@ function render(session: Session): void {
   const pageId = personIdFromHash(location.hash);
   if (pageId !== null) {
     app?.replaceChildren(numbersButton(session), pageView(el, personPage({ state, content }, pageId), headIds(state.chronicle), session.showNumbers));
-    window.scrollTo(0, 0);
+    if (session.refocus) app?.querySelector<HTMLElement>(`[data-focus="${session.refocus}"]`)?.focus();
+    else window.scrollTo(0, 0);
+    session.refocus = null;
     return;
   }
 
@@ -153,10 +160,10 @@ function render(session: Session): void {
   if (screen) {
     const controls = screen.options.map((o, i) => optionControl(o, i, session.showNumbers));
     session.keymap = screen.options.map((o) => (o.grey ? null : { type: 'choose', option: o.index }));
-    const eventText = eventAnnouncement(screen.text, controls);
+    const eventText = eventPageKey(screen.text, screen.options);
     if (eventText !== session.announcedEvent) {
       session.announcedEvent = eventText;
-      session.queue.push(eventText);
+      session.queue.push(eventAnnouncement(screen.text, controls));
     }
     focusTarget = el('section', { className: 'event', tabIndex: -1 },
       el('p', {}, ...partNodes(el, screen.text)),
@@ -172,15 +179,20 @@ function render(session: Session): void {
   }
 
   const tabButton = (tab: Tab, label: string) =>
-    el('button', { className: session.tab === tab ? 'tab active' : 'tab', type: 'button', onclick: () => { session.tab = tab; session.focusAfterRender = false; rerender(); } }, label);
+    el('button', { className: session.tab === tab ? 'tab active' : 'tab', type: 'button', onclick: () => { session.tab = tab; session.refocus = `tab-${tab}`; rerender(); } }, label);
+  const keyed = (b: HTMLElement, tab: Tab) => { b.setAttribute('data-focus', `tab-${tab}`); return b; };
   const withPressed = (b: HTMLElement) => { b.setAttribute('aria-pressed', String(b.classList.contains('active'))); return b; };
   const level = session.tab === 'chronicle' ? 'chronicle' : 'journal';
   parts.push(
-    el('div', { className: 'tabs', role: 'group', ariaLabel: 'Chronicle or journal' }, withPressed(tabButton('chronicle', 'Chronicle')), withPressed(tabButton('journal', 'Journal'))),
+    el('div', { className: 'tabs' }, withPressed(keyed(tabButton('chronicle', 'Chronicle'), 'chronicle')), withPressed(keyed(tabButton('journal', 'Journal'), 'journal'))),
     entriesList(state, state.chronicle.filter((e) => e.level === level), level === 'chronicle'),
   );
   app?.replaceChildren(...parts);
-  announce(session.queue.splice(0).join(' '));
+  announce(session.queue.splice(0).filter(Boolean).join(' '));
+  if (session.refocus) {
+    app?.querySelector<HTMLElement>(`[data-focus="${session.refocus}"]`)?.focus();
+    session.refocus = null;
+  }
   if (session.focusAfterRender) {
     session.focusAfterRender = false;
     focusTarget.focus({ preventScroll: false });
@@ -229,7 +241,7 @@ if (!loaded.ok) {
   const outcome = loadGame(store, content);
   const requested = seedFromSearch(location.search, isValidSeed);
   const choice = startChoice(outcome, requested);
-  const session: Session = { state: outcome.kind === 'loaded' ? outcome.state : newGame(pickSeed(), content), content, store, notice: null, saveProblem: null, tab: 'chronicle', showNumbers: false, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [] };
+  const session: Session = { state: outcome.kind === 'loaded' ? outcome.state : newGame(pickSeed(), content), content, store, notice: null, saveProblem: null, tab: 'chronicle', showNumbers: false, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null };
   current = session;
   if (choice === 'continue' || (choice === 'ask_replace' && !confirm(`The address asks for seed ${String(requested)}, which replaces your saved dynasty. Replace it?`))) {
     if (choice === 'ask_replace') history.replaceState(null, '', location.pathname);

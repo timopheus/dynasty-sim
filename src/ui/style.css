@@ -205,7 +205,6 @@ main {
 
 button,
 a.back,
-.stats dd,
 button.link {
   min-height: 44px;
 }

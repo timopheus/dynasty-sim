@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  actionControl, chanceText, chronicleAnnouncement, eventAnnouncement, numbersToggle, opinionLineText, optionControl, pickableAt,
+  eventPageKey, actionControl, chanceText, chronicleAnnouncement, eventAnnouncement, numbersToggle, opinionLineText, optionControl, pickableAt,
   shortcutKey, shortcutPosition, withNumber,
 } from '../src/ui/access';
 import type { ActionRow, OptionRow } from '../src/ui/event';
@@ -45,7 +45,7 @@ describe('numbers are not hover-only', () => {
   });
 
   it('shows the switch state to a screen reader', () => {
-    expect(numbersToggle(false)).toMatchObject({ text: 'Show numbers', attrs: { 'aria-pressed': 'false' } });
+    expect(numbersToggle(false)).toEqual({ text: 'Show numbers', attrs: { 'aria-pressed': 'false' } });
     expect(numbersToggle(true)).toMatchObject({ text: 'Hide numbers', attrs: { 'aria-pressed': 'true' } });
   });
 
@@ -59,7 +59,7 @@ describe('controls', () => {
   it('labels an available option with its key, chance word and shortcut attribute', () => {
     const c = optionControl(option({ chance }), 2, false);
     expect(c).toMatchObject({ text: '3. Hunt', note: '(risky)', reason: '' });
-    expect(c.attrs).toEqual({ 'aria-keyshortcuts': '3' });
+    expect(c.attrs).toEqual({ 'aria-keyshortcuts': '3', 'aria-describedby': c.noteId });
     expect(optionControl(option({ chance }), 2, true).note).toBe('(risky, 25%)');
   });
 
@@ -84,6 +84,12 @@ describe('controls', () => {
 });
 
 describe('live region texts', () => {
+  it('keeps the page key the same whether numbers are shown or not', () => {
+    const o = [option({ chance })];
+    expect(eventPageKey(['Text.'], o)).toBe(eventAnnouncement(['Text.'], [optionControl(o[0]!, 0, false)]));
+    expect(eventPageKey(['Text.'], o)).not.toContain('25%');
+  });
+
   it('announces a new event with its choices, keys and reasons', () => {
     const controls = [optionControl(option({ chance }), 0, false), optionControl(option({ label: ['Wait'], grey: true, reason: 'Requires 5 crowns' }), 1, false)];
     expect(eventAnnouncement(['A choice for ', { id: 'c1', name: 'Anna' }, '.'], controls)).toBe(
