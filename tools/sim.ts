@@ -163,9 +163,10 @@ report.summary.elapsedMs = {
 };
 
 const counts = report.runs.map((r) => r.violations).sort((x, y) => x - y);
+// same midpoint as `times` above (same number of runs)
 report.summary.violations = {
   min: counts[0] as number,
-  median: counts[Math.floor(counts.length / 2)] as number,
+  median: counts.length % 2 === 1 ? (counts[midTime] as number) : ((counts[midTime - 1] as number) + (counts[midTime] as number)) / 2,
   max: counts[counts.length - 1] as number,
 };
 
