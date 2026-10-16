@@ -173,6 +173,7 @@
 | 3.9 | События людей мира | `src/core/events/` (выбор варианта человеком мира), `src/core/narrator/` (бросок для окружения), `content/narrator.yaml` (`npcChancePer10k`), `src/core/chronicle/log.ts`, `src/core/pages/` (строки событий на странице человека), `src/core/metrics/`, `tests/npc-events.test.ts` | 3.2, 3.3, 3.7 | Sonnet | 4 | ⬜ |
 | 3.10 | Интерфейс событий | `src/ui/`, `src/core/chronicle/markdown.ts`, `tests/ui.test.ts` | 3.2, 3.4 | Sonnet | 4 | ✅ [#36](https://github.com/timopheus/dynasty-sim/pull/36) |
 | 3.11 | Предыстория первого героя | `src/core/backstory/`, `src/core/world/phases.ts` (мир до предыстории), `content/backstory/` (новый), `content/settings.yaml` (возраст начала, строка `start`), `tests/backstory.test.ts` | 3.2, 3.3, 3.5, 3.6 | Sonnet (+ content-writer для сцен) | 5 | ⬜ |
+| 3.1c | Тег настроения события (`mood`) | схема события и валидатор (`src/core/content/`, `src/core/events/`), `docs/event-format.md`, `tests/` | 3.2 | Sonnet | перед 5 | ⬜ |
 | 3.12 | Контент: события с ролями, пачка 1 | `content/events/`, `content/actions.yaml`, `content/opinions.yaml`, `content/grammar.yaml`, `content/traits/reputation.yaml`, `.claude/agents/content-writer.md` | 3.2–3.9 | content-writer (Sonnet) | 5 | ⬜ |
 | 3.13 | Контент, пачка 2, и замеры этапа | `content/events/`, `content/opinions.yaml`, `content/grammar.yaml`, `content/narrator.yaml` (только числа) | 3.12 | content-writer (Sonnet) | 6 | ⬜ |
 
@@ -335,6 +336,8 @@
 
 ## Этап 4. Династия
 Браки и дети (D-010), смерть, наследник по правилам, наследство: деньги, долги, репутация, враги, обещания. Временный наследник из каркаса (D-007) заменяется настоящим. Игрок готовит наследника заранее (D-018); слава рода (D-015); пресечение рода, выход игрока и итог рода в конце партии (D-016).
+
+Портрет героя (D-300, GDD §8.10): architect при плане этапа разбивает на задачи — данные внешности и родство (гены детей от родителей, без игровой настройки); прототип лица одного героя со скриншотами для Тима, стиль утверждается до массового рисования; полная версия (части лица, возраст, раны, одежда, мимика по `mood`); галерея голов в итоге рода. Рисует `src/ui`, ядро без графики.
 
 ## Этап 5. Мир
 Карта из Azgaar как данные, державы-прототипы, грубая симуляция вдали и подробная рядом, история мира в хронике. В начале этапа — решение о Git LFS для `map/region.*` (D-065).
