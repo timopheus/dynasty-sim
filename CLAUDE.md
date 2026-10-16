@@ -62,9 +62,10 @@ npm run sim -- --years 300 --seed 1 --runs 10          # seeds 1..10, метри
 npm run -s sim -- --years 300 --seed 1 --runs 10 --json > a.json   # то же в JSON; -s нужен, иначе npm пишет заголовок в файл
 npm run -s sim -- --compare a.json b.json # медианы двух файлов рядом, только изменившиеся
 npm run check                           # typecheck + test + validate + sim 50 лет
+npm run gates                           # 300 лет на seeds 1…10 и коридоры метрик (D-203): таблица, код 1 при провале «валящей» метрики; `-- --from a.json` проверяет готовый файл `sim --json`
 npm run build                           # сборка в dist/
 ```
-CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck, test, validate, sim 50 лет (seed 1), build. Хроника прогона — артефакт `chronicle`.
+CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck, test, validate, sim 50 лет (seed 1), build. Хроника прогона — артефакт `chronicle`. Вторая работа CI `gates` параллельно прогоняет 300 лет на seeds 1…10 и сверяет метрики с коридорами из `tools/metrics-gates.ts` (D-203): валят инварианты и сохранение > 2 МБ, остальное — таблица в summary (⚠️). Коридор или признак «валит / только отчёт» меняются только вместе с записью DECISIONS.
 
 ## Правила ядра (src/core)
 - Ядро импортирует только свои модули, `yaml` и `zod`. Запрещены DOM, Node API, `Math.random`, `Date`, `performance`. Это проверяют `tests/architecture.test.ts` и отдельный `src/core/tsconfig.json` без DOM и Node.

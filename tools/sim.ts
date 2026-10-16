@@ -48,7 +48,7 @@ function readArgs() {
 /** The file `--json` prints: per-run metrics and a summary over runs (the part --compare reads). */
 interface Report {
   years: number;
-  runs: { seed: number; elapsedMs: number; metrics: RunMetrics }[];
+  runs: { seed: number; elapsedMs: number; violations: number; metrics: RunMetrics }[];
   summary: Record<string, Summary>;
 }
 
@@ -129,7 +129,7 @@ for (let i = 0; i < runs; i++) {
   const elapsedMs = Math.round(performance.now() - started);
   const { state, steps, violations } = result;
   const metrics = computeMetrics(state);
-  report.runs.push({ seed: runSeed, elapsedMs, metrics });
+  report.runs.push({ seed: runSeed, elapsedMs, violations: violations.length, metrics });
 
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, chronicleMarkdown(state));
@@ -160,6 +160,13 @@ report.summary.elapsedMs = {
   min: times[0] as number,
   median: times.length % 2 === 1 ? (times[midTime] as number) : ((times[midTime - 1] as number) + (times[midTime] as number)) / 2,
   max: times[times.length - 1] as number,
+};
+
+const counts = report.runs.map((r) => r.violations).sort((x, y) => x - y);
+report.summary.violations = {
+  min: counts[0] as number,
+  median: counts[Math.floor(counts.length / 2)] as number,
+  max: counts[counts.length - 1] as number,
 };
 
 if (values.json) console.log(JSON.stringify(report, null, 2));
