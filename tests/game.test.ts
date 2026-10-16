@@ -127,7 +127,7 @@ describe('choice outside an action (3.1)', () => {
     const content = fixtureNarrator({ eventChancePer10k: 10000 });
     const state = newGame(1, content);
     apply(state, content, { type: 'start', actionId: 'wait' });
-    expect(state.pendingEvent).toEqual({ eventId: 'ping', protagonist: state.playerId, scope: { hero: state.playerId, protagonist: state.playerId } });
+    expect(state.pendingEvent).toMatchObject({ eventId: 'ping', protagonist: state.playerId, scope: { hero: state.playerId, protagonist: state.playerId } });
   });
 });
 

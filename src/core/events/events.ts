@@ -1,26 +1,48 @@
 import { log } from '../chronicle/log';
+import { conditionReport } from '../condition-keys';
 import type { Content } from '../content/schema';
-import { applyEffects } from '../effects';
+import { factorParts } from '../content/types';
+import { applyEffects, type Effects } from '../effects';
 import { findCharacter, getPlayer } from '../helpers';
-import { baseScope, canFillRoles, fillRoles } from '../roles/roles';
+import { introduce } from '../relations/acquaintance';
+import { anyCandidate, baseScope, canFillRoles, fillRoles } from '../roles/roles';
 import type { Character, Ctx, DeathHook, GameState, Invariant, Scope } from '../state';
 import { renderTemplate } from '../text/render';
-import type { EventDef } from './content';
+import type { TextPart } from '../text/text';
+import { rollCheck } from './checks';
+import { ownOutcome, sceneOf, scenePath, type EventDef, type OptionDef, type OutcomeDef, type SceneDef } from './content';
 
-/** An event waiting for the player's choice: the main participant and the scope of roles it started with. */
+/**
+ * The event under way (D-040, D-172): the main participant, the scope of roles it started with, its number for the
+ * grammar, the page shown and what the pages before have gathered for the one chronicle entry of the event.
+ */
 export interface PendingEvent {
   eventId: string;
   /** Id of the main participant; the hero in hero events. */
   protagonist: string;
   scope: Scope;
+  /** Number of the event in the game (`seq` of the grammar, 3.4). */
+  seq: number;
+  /** Page shown; null is the event's own first scene. */
+  page: string | null;
+  /** Lines of the outcomes chosen on earlier pages, glued into one entry when the event ends. */
+  lines: TextPart[][];
+  /** Change of the main participant's money over the pages, for selection by sum (D-130). */
+  money: number;
+  /** Some choice so far deserves a ▸ (D-040). */
+  mark: boolean;
+  /** Some outcome so far has `chronicle: true`. */
+  important: boolean;
 }
 
 export interface EventsState {
   pendingEvent: PendingEvent | null;
+  /** Number the next event gets. */
+  eventSeq: number;
 }
 
 export function initEventsState(): EventsState {
-  return { pendingEvent: null };
+  return { pendingEvent: null, eventSeq: 0 };
 }
 
 export function findEvent(content: Content, id: string): EventDef {
@@ -29,13 +51,26 @@ export function findEvent(content: Content, id: string): EventDef {
   return event;
 }
 
+/** The pending event's definition; its current scene is `currentScene`. */
 export function pendingEventDef(state: GameState, content: Content): EventDef | null {
   return state.pendingEvent ? findEvent(content, state.pendingEvent.eventId) : null;
 }
 
+/** The scene the pending event shows now: the event itself or a page. */
+export function currentScene(state: GameState, content: Content): SceneDef | null {
+  const pending = state.pendingEvent;
+  return pending ? sceneOf(findEvent(content, pending.eventId), pending.page) : null;
+}
+
+function met(ctx: Ctx, c: Character, when: Parameters<typeof conditionReport>[2] | undefined, scope: Scope): boolean {
+  return !when || conditionReport(ctx, c, when, scope).met;
+}
+
 /**
- * Weight of the event for the main participant now; 0 means impossible (3.2 adds `when`, `weight_mods`). Rules of
- * 3.1, as before: bound to an action, the event needs the hero to be doing it; every role must be fillable. Pure.
+ * Weight of the event for the main participant now; 0 means impossible. Bound to an action, the event needs the hero
+ * to be doing it; `when` holds for the main participant; every role can be filled; then the factors of `weight_mods`
+ * whose conditions hold (by role: some candidate of the role meets them, D-161) multiply the weight, rounded down
+ * once at the end (D-040). Pure: never consumes randomness.
  */
 export function eventWeight(ctx: Ctx, event: EventDef, protagonist: Character): number {
   const { state } = ctx;
@@ -43,24 +78,133 @@ export function eventWeight(ctx: Ctx, event: EventDef, protagonist: Character): 
     const active = state.activeAction;
     if (!active || !event.actions.includes(active.actionId)) return 0;
   }
-  if (event.roles && !canFillRoles(ctx, event.roles, baseScope(getPlayer(state), protagonist))) return 0;
-  return event.weight;
+  const base = baseScope(getPlayer(state), protagonist);
+  if (!met(ctx, protagonist, event.when, base)) return 0;
+  if (event.roles && !canFillRoles(ctx, event.roles, base)) return 0;
+  let num = event.weight;
+  let den = 1;
+  for (const mod of event.weight_mods ?? []) {
+    const role = mod.role === undefined ? undefined : event.roles?.[mod.role];
+    const holds = mod.role === undefined ? met(ctx, protagonist, mod.when, base) : role !== undefined && anyCandidate(ctx, mod.role, role, mod.when, base);
+    if (!holds) continue;
+    const f = factorParts(mod.factor);
+    num *= f.num;
+    den *= f.den;
+  }
+  return Math.floor(num / den);
+}
+
+/** What firing an event led to: it waits for the player, it was carried out at once (a quiet notice), or not fired. */
+export type FireResult = 'waiting' | 'done' | 'failed';
+
+/**
+ * Fires the event: fills the roles on top of `given` (roles handed over by a follow-up), gives it a number, makes the
+ * participants known to the hero (D-041) and shows the first scene. A notice without a chronicle line is carried out
+ * at once and nothing waits (D-045). 'failed' changes nothing: a role could not be filled.
+ */
+export function fireEvent(ctx: Ctx, event: EventDef, protagonist: Character, given: Scope = {}): FireResult {
+  const { state } = ctx;
+  const scope = fillRoles(ctx, event.roles, { ...given, ...baseScope(getPlayer(state), protagonist) });
+  if (!scope) return 'failed';
+  const pending: PendingEvent = { eventId: event.id, protagonist: protagonist.id, scope, seq: state.eventSeq, page: null, lines: [], money: 0, mark: false, important: false };
+  state.eventSeq += 1;
+  if (protagonist.id === state.playerId) {
+    for (const [role, id] of Object.entries(scope)) if (role !== 'hero' && role !== 'protagonist' && id !== state.playerId) introduce(ctx, id);
+  }
+  state.pendingEvent = pending;
+  if (!event.options && event.chronicle !== true && event.mark !== true) {
+    // A quiet notice: its line goes to the journal and time runs on.
+    resolveOutcome(ctx, event, pending, ownOutcome(event), '', false);
+    if (!state.pendingEvent) return 'done';
+  }
+  state.status = 'awaiting_choice';
+  return 'waiting';
 }
 
 /**
- * Starts the event: fills the roles on top of `given` (roles handed over by a follow-up) and waits for the choice.
- * Returns false, changing nothing, if a role cannot be filled.
+ * The contract of D-172: fires the event and returns true if it now waits for the player. False if a role could not
+ * be filled (nothing changed) or the event was a quiet notice, carried out at once (see `fireEvent`).
  */
 export function startEvent(ctx: Ctx, event: EventDef, protagonist: Character, given: Scope = {}): boolean {
-  const { state } = ctx;
-  const scope = fillRoles(ctx, event.roles, { ...given, ...baseScope(getPlayer(state), protagonist) });
-  if (!scope) return false;
-  state.pendingEvent = { eventId: event.id, protagonist: protagonist.id, scope };
-  state.status = 'awaiting_choice';
-  return true;
+  return fireEvent(ctx, event, protagonist, given) === 'waiting';
 }
 
-/** Applies the chosen option of the pending event. */
+/** Effect keys that put ▸ on the hero's choice by themselves (D-040); the list grows with stages 4–6. */
+export const AUTO_MARK_KEYS = ['relation', 'schedule', 'story'] as const;
+
+function marksItself(effects: Effects | undefined): boolean {
+  if (!effects) return false;
+  if (AUTO_MARK_KEYS.some((key) => Object.hasOwn(effects, key))) return true;
+  return (effects.later ?? []).some((entry) => marksItself(entry.effects as Effects));
+}
+
+/** The outcome sets ▸ by itself: one of its blocks has a key of AUTO_MARK_KEYS. */
+export function autoMark(outcome: OutcomeDef): boolean {
+  return marksItself(outcome.effects as Effects | undefined) || Object.values(outcome.on ?? {}).some((e) => marksItself(e as Effects));
+}
+
+/** Lines of the pages, glued with a space into one text. */
+function glue(lines: TextPart[][]): TextPart[] {
+  const out: TextPart[] = [];
+  for (const [i, line] of lines.entries()) {
+    for (const part of i > 0 ? [' ', ...line] : line) {
+      const last = out.at(-1);
+      if (typeof part === 'string' && typeof last === 'string') out[out.length - 1] = last + part;
+      else out.push(part);
+    }
+  }
+  return out;
+}
+
+/**
+ * Applies an outcome: effects on the main participant and on the roles (an empty optional role is skipped), its line
+ * to the gathered ones, then the next page or the end of the event with one entry for all pages. `choice` is true
+ * for the player's choice among options: only that gets the automatic ▸.
+ */
+function resolveOutcome(ctx: Ctx, event: EventDef, pending: PendingEvent, outcome: OutcomeDef, slot: string, choice: boolean): void {
+  const { state } = ctx;
+  const protagonist = findCharacter(state, pending.protagonist);
+  if (!protagonist) throw new Error(`Unknown main participant ${pending.protagonist}`);
+  const moneyBefore = protagonist.money;
+  applyEffects(ctx, protagonist, outcome.effects, pending.scope);
+  for (const [role, effects] of Object.entries(outcome.on ?? {})) {
+    const id = pending.scope[role];
+    const person = id === undefined ? null : findCharacter(state, id);
+    if (person) applyEffects(ctx, person, effects, pending.scope);
+  }
+  pending.money += protagonist.money - moneyBefore;
+  if (outcome.result !== undefined) pending.lines.push(renderTemplate(ctx, outcome.result, pending.scope, pending.seq, `${slot}result`));
+  if (outcome.mark === true || (choice && protagonist.id === state.playerId && autoMark(outcome))) pending.mark = true;
+  if (outcome.chronicle === true) pending.important = true;
+  if (outcome.next !== undefined) {
+    pending.page = outcome.next;
+    return;
+  }
+  state.pendingEvent = null;
+  if (pending.lines.length === 0) return;
+  const notice = !event.options;
+  log(ctx, {
+    subject: protagonist,
+    kind: notice ? 'notice' : 'event',
+    level: !notice || pending.important || pending.mark ? 'chronicle' : 'journal',
+    parts: glue(pending.lines),
+    money: pending.money,
+    mark: pending.mark,
+    important: pending.important,
+  });
+}
+
+/** Whether an option can be chosen now, and whether the player may see it at all (D-043). */
+export function optionState(ctx: Ctx, option: OptionDef, protagonist: Character, scope: Scope): { available: boolean; hidden: boolean; reasons: string[] } {
+  if (!option.when) return { available: true, hidden: false, reasons: [] };
+  const report = conditionReport(ctx, protagonist, option.when, scope);
+  return { available: report.met, hidden: report.hidden, reasons: report.reasons };
+}
+
+/**
+ * Answers the pending event: option `index` of the scene shown, or 0 ("Continue") on a notice. Throws on an option
+ * that is unknown or not available. A check rolls from the world's stream; the outcome may lead to the next page.
+ */
 export function chooseOption(ctx: Ctx, index: number): void {
   const { state, content } = ctx;
   const pending = state.pendingEvent;
@@ -68,15 +212,26 @@ export function chooseOption(ctx: Ctx, index: number): void {
     throw new Error(`Cannot choose an option while ${state.status}`);
   }
   const event = findEvent(content, pending.eventId);
-  const option = event.options[index];
-  if (!Number.isInteger(index) || !option) throw new Error(`Event "${event.id}" has no option ${index}`);
+  const scene = sceneOf(event, pending.page);
+  const path = scenePath(pending.page);
   const protagonist = findCharacter(state, pending.protagonist);
   if (!protagonist) throw new Error(`Unknown main participant ${pending.protagonist}`);
-  const moneyBefore = protagonist.money;
-  applyEffects(ctx, protagonist, option.effects, pending.scope);
-  const parts = renderTemplate(ctx, option.result, pending.scope, 0, `option.${index}.result`);
-  log(ctx, { subject: protagonist, kind: 'event', level: 'chronicle', parts, money: protagonist.money - moneyBefore, mark: option.mark });
-  state.pendingEvent = null;
+  if (!scene.options) {
+    if (index !== 0) throw new Error(`Event "${event.id}" shows a notice: the only answer is 0`);
+    resolveOutcome(ctx, event, pending, ownOutcome(scene), path, false);
+    return;
+  }
+  const option = scene.options[index];
+  if (!Number.isInteger(index) || !option) throw new Error(`Event "${event.id}" has no option ${index}`);
+  if (!optionState(ctx, option, protagonist, pending.scope).available) throw new Error(`Option ${index} of event "${event.id}" is not available`);
+  const slot = `${path}options.${index}.`;
+  if (option.check) {
+    const success = rollCheck(ctx, option.check, protagonist, pending.scope);
+    const key = success ? 'success' : 'failure';
+    resolveOutcome(ctx, event, pending, option[key] ?? {}, `${slot}${key}.`, true);
+  } else {
+    resolveOutcome(ctx, event, pending, ownOutcome(option), slot, true);
+  }
 }
 
 /** The hero's death drops an unanswered event. */
@@ -84,14 +239,29 @@ export const eventsOnDeath: DeathHook = ({ state }, c) => {
   if (c.id === state.playerId) state.pendingEvent = null;
 };
 
-export const eventsInvariants: Invariant = ({ state, content }) => {
-  const pending = state.pendingEvent;
-  if (!pending) return [];
+export const eventsInvariants: Invariant = (ctx) => {
+  const { state, content } = ctx;
   const problems: string[] = [];
-  if (!content.events.some((e) => e.id === pending.eventId)) problems.push(`unknown pending event ${pending.eventId}`);
-  if (pending.scope.protagonist !== pending.protagonist) problems.push(`pending event ${pending.eventId}: protagonist is not in the scope`);
+  if (!Number.isInteger(state.eventSeq) || state.eventSeq < 0) problems.push(`event counter is ${String(state.eventSeq)}`);
+  const pending = state.pendingEvent;
+  if (!pending) return problems;
+  const event = content.events.find((e) => e.id === pending.eventId);
+  if (!event) return [...problems, `unknown pending event ${pending.eventId}`];
+  const at = `pending event ${pending.eventId}`;
+  if (pending.scope.protagonist !== pending.protagonist) problems.push(`${at}: protagonist is not in the scope`);
   for (const [role, id] of Object.entries(pending.scope)) {
-    if (!findCharacter(state, id)) problems.push(`pending event ${pending.eventId}: role ${role} is unknown character ${id}`);
+    if (!findCharacter(state, id)) problems.push(`${at}: role ${role} is unknown character ${id}`);
+  }
+  if (!Number.isInteger(pending.seq) || pending.seq < 0 || pending.seq >= state.eventSeq) problems.push(`${at}: number ${pending.seq} was never given`);
+  if (!Number.isInteger(pending.money)) problems.push(`${at}: money ${pending.money} is not an integer`);
+  for (const line of pending.lines) {
+    for (const part of line) if (typeof part !== 'string' && !findCharacter(state, part.id)) problems.push(`${at}: line links to unknown character ${part.id}`);
+  }
+  if (pending.page !== null && !event.pages?.[pending.page]) return [...problems, `${at}: unknown page ${pending.page}`];
+  const protagonist = findCharacter(state, pending.protagonist);
+  const scene = sceneOf(event, pending.page);
+  if (protagonist && scene.options && !scene.options.some((o) => optionState(ctx, o, protagonist, pending.scope).available)) {
+    problems.push(`${at}: no option is available`);
   }
   return problems;
 };
