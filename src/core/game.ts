@@ -4,21 +4,35 @@
  * of DAY_PHASES until a decision is needed.
  */
 import { actionEndPhase, startAction } from './actions/actions';
+import { archivePhase } from './archive/phases';
 import { backstoryAfterChoice, backstoryOnNewGame } from './backstory/phases';
 import { log } from './chronicle/log';
 import type { Content } from './content/schema';
 import { chooseOption } from './events/events';
+import { familyOnNewGame, familyPhase, proposeCommand, type ProposeOrder } from './family/phases';
 import { deathPhase, healthPhase } from './health/phases';
-import { createCharacter } from './lifecycle';
+import { createCharacter } from './hooks';
+import { houseOnNewGame } from './house/phases';
 import { narratorPhase } from './narrator/phases';
 import { relationsPhase } from './relations/relations';
 import { isValidSeed, pick } from './rng';
 import { initialState, type AfterChoiceHook, type Ctx, type DayPhase, type GameState, type NewGameHook } from './state';
 import { storiesPhase } from './stories/phases';
+import { endHouse, willCommand, type WillOrder } from './succession/phases';
+import { summaryPhase } from './summary/phases';
 import { newDayPhase, scheduledPhase } from './time/time';
 import { worldOnNewGame, worldPhase } from './world/phases';
 
-export type Command = { type: 'start'; actionId: string } | { type: 'choose'; option: number };
+/**
+ * Player commands. `end`: the player ends the house (D-315). `will`: a will at the notary (D-236, D-314; succession/).
+ * `propose`: a proposal of marriage from the page of a person (D-313; family/).
+ */
+export type Command =
+  | { type: 'start'; actionId: string }
+  | { type: 'choose'; option: number }
+  | { type: 'end' }
+  | ({ type: 'will' } & WillOrder)
+  | ({ type: 'propose' } & ProposeOrder);
 
 /**
  * Day order (D-053). A phase returning true ends the run: death, the end of the
@@ -31,14 +45,20 @@ export const DAY_PHASES: readonly DayPhase[] = [
   healthPhase,
   deathPhase,
   worldPhase,
+  familyPhase,
   relationsPhase,
+  summaryPhase,
+  archivePhase,
   actionEndPhase,
   storiesPhase,
   narratorPhase,
 ];
 
-/** New game, after the founder and the `start` line (D-167): the circle, then the backstory of the founder. */
-const NEW_GAME_HOOKS: readonly NewGameHook[] = [worldOnNewGame, backstoryOnNewGame];
+/**
+ * New game, after the founder and the `start` line (D-167): the circle, the house and the living kin of the founder
+ * (stage 4), then the backstory of the founder.
+ */
+const NEW_GAME_HOOKS: readonly NewGameHook[] = [worldOnNewGame, houseOnNewGame, familyOnNewGame, backstoryOnNewGame];
 
 /** After a choice that left no event waiting: the next scene of the backstory (3.11). */
 const AFTER_CHOICE_HOOKS: readonly AfterChoiceHook[] = [backstoryAfterChoice];
@@ -61,12 +81,27 @@ export function newGame(seed: number, content: Content): GameState {
  * only if no choice waits any more and the hero has an action: the next page of an event and the scenes of the
  * backstory wait for the player without time passing; a choice that ends an event lets the after-choice hooks start
  * the next scene of the backstory; without an action (or the hero's death inside the choice) the player picks one.
+ * A house that has ended takes no command (D-315); `end` ends it; `will` and `propose` go to their modules.
  */
 export function apply(state: GameState, content: Content, cmd: Command): void {
   const ctx: Ctx = { state, content };
-  if (cmd.type === 'start') startAction(ctx, cmd.actionId);
+  if (hasEnded(state)) throw new Error('The house has come to an end: no more commands');
+  if (cmd.type === 'end') {
+    endHouse(ctx);
+    return;
+  }
+  if (cmd.type === 'propose') {
+    // The answer is an event: it waits for the player, no time passes.
+    proposeCommand(ctx, { suitor: cmd.suitor, target: cmd.target });
+    return;
+  }
+  // The will starts the action at the notary (4.6): time runs as after `start`.
+  if (cmd.type === 'will') willCommand(ctx, { heir: cmd.heir, guardian: cmd.guardian, items: cmd.items });
+  else if (cmd.type === 'start') startAction(ctx, cmd.actionId);
   else {
     chooseOption(ctx, cmd.option);
+    // Nobody inherited a hero who died in the choice.
+    if (hasEnded(state)) return;
     if (state.pendingEvent) return;
     for (const hook of AFTER_CHOICE_HOOKS) hook(ctx);
     if (state.pendingEvent) return;
@@ -76,6 +111,11 @@ export function apply(state: GameState, content: Content, cmd: Command): void {
     }
   }
   runUntilDecision(ctx);
+}
+
+/** A function, not an inline test: commands change the status behind the back of the type checker. */
+function hasEnded(state: GameState): boolean {
+  return state.status === 'ended';
 }
 
 function runUntilDecision(ctx: Ctx): void {

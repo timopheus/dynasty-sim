@@ -1,11 +1,13 @@
 /**
  * Run metrics (2.7): a pure function of the game state. It reads only fields
  * every stage has (characters, chronicle, money, day), so new module parts do
- * not break it. Wall-clock time is measured by tools/, not here.
+ * not break it. History is read through archive/ (hot part and archive, D-312).
+ * Wall-clock time is measured by tools/, not here.
  */
+import { allCharacters, allChronicle, anyCharacter } from '../archive/archive';
 import { serialize } from '../save/save';
 import type { GameState } from '../state';
-import { ageYears } from '../time/calendar';
+import { ageYears, toYmd } from '../time/calendar';
 
 /** Spread of a list of numbers. `median` of an even count is the mean of the two middle values. */
 export interface Dist {
@@ -54,6 +56,10 @@ export interface RunMetrics {
   npcStoredShare: number;
   chronicle: { total: number; chronicleLevel: number; journalLevel: number };
   characters: { total: number; alive: number };
+  /** The most living characters in the state at once (yearly readings and the end, D-313). */
+  livingMax: number;
+  /** The house came to an end (status `ended`, D-315) and the calendar year it did; null while it goes on. */
+  house: { ended: boolean; endYear: number | null };
   money: { currentHead: number; atDeath: Dist };
   /** Size of the JSON save in UTF-8 bytes. */
   saveBytes: number;
@@ -99,7 +105,7 @@ export function utf8Bytes(text: string): number {
 /** Heads of the house are the subjects of "start" and "succession" lines, in order. */
 function headStarts(state: GameState): { id: string; startDay: number }[] {
   const heads: { id: string; startDay: number }[] = [];
-  for (const e of state.chronicle) {
+  for (const e of allChronicle(state)) {
     if ((e.kind === 'start' || e.kind === 'succession') && !heads.some((h) => h.id === e.subject)) {
       heads.push({ id: e.subject, startDay: e.day });
     }
@@ -108,13 +114,14 @@ function headStarts(state: GameState): { id: string; startDay: number }[] {
 }
 
 export function computeMetrics(state: GameState): RunMetrics {
-  const byId = new Map(state.characters.map((c) => [c.id, c]));
+  const chronicle = allChronicle(state);
+  const characters = allCharacters(state);
   const linesBySubject = new Map<string, { chronicle: number; journal: number }>();
   const marksBySubject = new Map<string, number>();
   let actions = 0;
   let events = 0;
   let chronicleLevel = 0;
-  for (const e of state.chronicle) {
+  for (const e of chronicle) {
     if (e.kind === 'action') actions += 1;
     if (e.kind === 'event') events += 1;
     if (e.level === 'chronicle') chronicleLevel += 1;
@@ -126,17 +133,19 @@ export function computeMetrics(state: GameState): RunMetrics {
 
   const heads = headStarts(state);
   const dead = heads.flatMap((h) => {
-    const c = byId.get(h.id);
+    const c = anyCharacter(state, h.id);
     return c && c.deathDay !== null ? [{ c, deathDay: c.deathDay, startDay: h.startDay }] : [];
   });
   const lines = (id: string) => linesBySubject.get(id) ?? { chronicle: 0, journal: 0 };
 
   const causes = new Map<string, number>();
-  for (const c of state.characters) {
+  for (const c of characters) {
     if (c.deathCause !== null) causes.set(c.deathCause, (causes.get(c.deathCause) ?? 0) + 1);
   }
 
-  const player = byId.get(state.playerId);
+  const player = anyCharacter(state, state.playerId);
+  const alive = characters.filter((c) => c.deathDay === null).length;
+  const ended = state.status === 'ended';
   return {
     days: state.day,
     heads: {
@@ -160,8 +169,10 @@ export function computeMetrics(state: GameState): RunMetrics {
     notices: state.narratorStats.notices,
     npcEventsPerYear: perYear(state.narratorStats.npcEvents, state.day),
     npcStoredShare: ratio(state.narratorStats.npcStored, state.narratorStats.npcEvents),
-    chronicle: { total: state.chronicle.length, chronicleLevel, journalLevel: state.chronicle.length - chronicleLevel },
-    characters: { total: state.characters.length, alive: state.characters.filter((c) => c.deathDay === null).length },
+    chronicle: { total: chronicle.length, chronicleLevel, journalLevel: chronicle.length - chronicleLevel },
+    characters: { total: characters.length, alive },
+    livingMax: Math.max(state.livingMax, alive),
+    house: { ended, endYear: ended ? toYmd(state.day).year : null },
     money: { currentHead: player?.money ?? 0, atDeath: dist(dead.map((d) => d.c.money)) },
     saveBytes: utf8Bytes(serialize(state)),
   };

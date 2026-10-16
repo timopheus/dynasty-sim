@@ -11,10 +11,15 @@ import { z } from 'zod';
 import { applyCharacterEffects, characterEffectShape } from './character/effects';
 import { actionsEffectShape, applyActionsEffects } from './actions/effects';
 import { applyBackstoryEffects, backstoryEffectShape } from './backstory/effects';
+import { applyEraEffects, eraEffectRoleRefs, eraEffectShape } from './era/effects';
+import { applyFamilyEffects, familyEffectRoleRefs, familyEffectShape } from './family/effects';
 import { applyHealthEffects, healthEffectShape } from './health/health';
+import { applyHeirloomEffects, heirloomEffectRoleRefs, heirloomEffectShape } from './heirloom/effects';
+import { applyHouseEffects, houseEffectRoleRefs, houseEffectShape } from './house/effects';
 import { applyRelationsEffects, relationsEffectRoleRefs, relationsEffectShape } from './relations/effects';
 import type { Character, Ctx, Scope } from './state';
 import { applyStoriesEffects, storiesEffectRoleRefs, storiesEffectShape } from './stories/effects';
+import { applySuccessionEffects, successionEffectRoleRefs, successionEffectShape } from './succession/effects';
 import { applyTimeEffects, timeEffectShape } from './time/effects';
 
 export const EffectsSchema = z.strictObject({
@@ -25,6 +30,11 @@ export const EffectsSchema = z.strictObject({
   ...relationsEffectShape,
   ...storiesEffectShape,
   ...backstoryEffectShape,
+  ...familyEffectShape,
+  ...houseEffectShape,
+  ...successionEffectShape,
+  ...heirloomEffectShape,
+  ...eraEffectShape,
 });
 
 export type Effects = z.infer<typeof EffectsSchema>;
@@ -37,10 +47,23 @@ const APPLY: readonly ((ctx: Ctx, c: Character, effects: Effects, scope: Scope) 
   applyRelationsEffects,
   applyStoriesEffects,
   applyBackstoryEffects,
+  applyFamilyEffects,
+  applyHouseEffects,
+  applySuccessionEffects,
+  applyHeirloomEffects,
+  applyEraEffects,
 ];
 
 /** Roles each module's keys refer to, for the cross-check of events; `later` is followed in effectRoleRefs. */
-const EFFECT_ROLE_REFS: readonly ((effects: Effects) => string[])[] = [relationsEffectRoleRefs, storiesEffectRoleRefs];
+const EFFECT_ROLE_REFS: readonly ((effects: Effects) => string[])[] = [
+  relationsEffectRoleRefs,
+  storiesEffectRoleRefs,
+  familyEffectRoleRefs,
+  houseEffectRoleRefs,
+  successionEffectRoleRefs,
+  heirloomEffectRoleRefs,
+  eraEffectRoleRefs,
+];
 
 export function applyEffects(ctx: Ctx, c: Character, effects: Effects | undefined, scope: Scope): void {
   if (!effects) return;

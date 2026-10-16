@@ -76,7 +76,8 @@ export const characterInvariants: Invariant = (ctx) => {
   }
   const player = state.characters.find((c) => c.id === state.playerId);
   if (!player) problems.push(`player ${state.playerId} does not exist`);
-  else if (!isAlive(player)) problems.push(`player ${state.playerId} is dead`);
+  // A house that ended with the death of its last head keeps that head as the player (D-315).
+  else if (!isAlive(player) && state.status !== 'ended') problems.push(`player ${state.playerId} is dead`);
   return problems;
 };
 

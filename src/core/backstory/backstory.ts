@@ -1,5 +1,5 @@
 import { isInt } from '../helpers';
-import type { Invariant } from '../state';
+import type { Invariant, RefsFn } from '../state';
 
 /**
  * Backstory of the first hero (D-038, D-167, task 3.11). While `running` the founder lives through the scenes of the
@@ -23,6 +23,9 @@ export interface BackstoryState {
 export function initBackstoryState(): BackstoryState {
   return { backstory: { running: false, founder: null, stage: 0, inStage: 0, offered: [], played: [] } };
 }
+
+/** The founder whose scenes these are (D-312). */
+export const backstoryRefs: RefsFn = ({ state }) => (state.backstory.founder === null ? [] : [state.backstory.founder]);
 
 export const backstoryInvariants: Invariant = ({ state, content }) => {
   const st = state.backstory;

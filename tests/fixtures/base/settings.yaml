@@ -1,6 +1,7 @@
 settings:
   startAge: { min: 20, max: 20 }
   heirAge: { min: 18, max: 18 }
+  adultAge: 16
   startMoney: 10
   texts:
     start: "{name} started at {age}."

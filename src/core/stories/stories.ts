@@ -1,6 +1,6 @@
 import type { Content } from '../content/schema';
 import { findCharacter, isInt } from '../helpers';
-import type { Ctx, DeathHook, GameState, Invariant, Scope } from '../state';
+import type { Ctx, DeathHook, GameState, Invariant, RefsFn, Scope } from '../state';
 
 /**
  * Follow-ups and stories with a deadline (D-044, D-240…D-243). A follow-up is an event scheduled for a day with the
@@ -115,6 +115,12 @@ export function storyWeight({ state, content }: Ctx, storyId: string, characterI
   const passed = Math.min(span, Math.max(0, state.day - story.openedDay));
   return STORY_WEIGHT_MIN + Math.floor(((STORY_WEIGHT_MAX - STORY_WEIGHT_MIN) * passed) / span);
 }
+
+/** People the follow-ups and open stories refer to (D-312): main participants and the roles handed over. */
+export const storiesRefs: RefsFn = ({ state }) => [
+  ...state.followups.flatMap((f) => [f.protagonist, ...Object.values(f.given)]),
+  ...state.openStories.flatMap((s) => [s.owner, ...Object.values(s.given)]),
+];
 
 /** Death of the main participant cancels their follow-ups and stories (D-044); the hero's stories close with them. */
 export const storiesOnDeath: DeathHook = ({ state }, c) => {

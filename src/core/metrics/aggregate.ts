@@ -35,11 +35,15 @@ export function flatten(m: RunMetrics): Record<string, number> {
     'chronicle.journalLevel': m.chronicle.journalLevel,
     'characters.total': m.characters.total,
     'characters.alive': m.characters.alive,
+    'characters.livingMax': m.livingMax,
+    // 1 for a run whose house ended: over runs, the share of houses that ended (summarize takes the mean).
+    'house.endedShare': m.house.ended ? 1 : 0,
     'money.currentHead': m.money.currentHead,
     'money.atDeath.median': m.money.atDeath.median,
     saveBytes: m.saveBytes,
   };
   for (const { cause, count } of m.deathCauses) flat[`deaths.${cause}`] = count;
+  if (m.house.endYear !== null) flat['house.endYear'] = m.house.endYear;
   return flat;
 }
 
@@ -48,14 +52,25 @@ function median(sorted: number[]): number {
   return sorted.length % 2 === 1 ? (sorted[mid] as number) : ((sorted[mid - 1] as number) + (sorted[mid] as number)) / 2;
 }
 
-/** Min, median and max of every scalar over runs. A name missing in a run counts as 0 (e.g. no deaths of that cause). */
+/** Names counted only over the runs that have them: the year the house ended means nothing for a house that did not. */
+const ONLY_WHERE_PRESENT: ReadonlySet<string> = new Set(['house.endYear']);
+/** Names whose min, median and max over runs are all the mean, two decimals: a share of runs (D-315). */
+const SHARES: ReadonlySet<string> = new Set(['house.endedShare']);
+
+/**
+ * Min, median and max of every scalar over runs. A name missing in a run counts as 0 (e.g. no deaths of that cause),
+ * except the names of ONLY_WHERE_PRESENT; a share (SHARES) is the mean over runs in all three.
+ */
 export function summarize(runs: RunMetrics[]): Record<string, Summary> {
   const flats = runs.map(flatten);
   const names = [...new Set(flats.flatMap((f) => Object.keys(f)))].sort();
   const out: Record<string, Summary> = {};
   for (const name of names) {
-    const values = flats.map((f) => f[name] ?? 0).sort((a, b) => a - b);
-    out[name] = { min: values[0] as number, median: median(values), max: values[values.length - 1] as number };
+    const values = (ONLY_WHERE_PRESENT.has(name) ? flats.flatMap((f) => (f[name] === undefined ? [] : [f[name]])) : flats.map((f) => f[name] ?? 0)).sort((a, b) => a - b);
+    if (SHARES.has(name)) {
+      const share = Math.round((values.reduce((s, v) => s + v, 0) * 100) / values.length) / 100;
+      out[name] = { min: share, median: share, max: share };
+    } else out[name] = { min: values[0] as number, median: median(values), max: values[values.length - 1] as number };
   }
   return out;
 }

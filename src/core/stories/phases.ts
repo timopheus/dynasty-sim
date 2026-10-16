@@ -7,9 +7,15 @@ import { fireEvent } from '../events/events';
 import { runNpcEvent } from '../events/npc';
 import { findCharacter, getPlayer } from '../helpers';
 import { baseScope, canFillRoles } from '../roles/roles';
-import type { Character, Ctx, DayPhase, Scope } from '../state';
+import type { Character, Ctx, DayPhase, Scope, SuccessionHook } from '../state';
 import { fillTemplate } from '../text/text';
 import { storyResolved, type Followup, type OpenStory } from './stories';
+
+/**
+ * 4.8: open stories and follow-ups of the dead head pass to the heir when their roles can be filled (the main
+ * participant becomes the new hero); until then they close with the death (storiesOnDeath). Never imports lifecycle.ts.
+ */
+export const storiesOnSuccession: SuccessionHook = () => {};
 
 /** Journal lines of a cancelled follow-up (D-242). Kept in code: stories have no content key of their own. */
 export const CANCELLED_WITH = "{name}'s business with {other} came to nothing.";

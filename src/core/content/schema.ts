@@ -10,11 +10,16 @@ import { ActionSchema, checkActions } from '../actions/content';
 import { BackstoryContentSchema, checkBackstory } from '../backstory/content';
 import { checkCharacter, NamesSchema, TraitSchema } from '../character/content';
 import { checkChronicle, ChronicleContentSchema } from '../chronicle/content';
+import { checkEras, ErasContentSchema } from '../era/content';
 import { checkEvents, EventSchema } from '../events/content';
+import { checkFamily, FamilyContentSchema } from '../family/content';
 import { checkHealth, HealthContentSchema } from '../health/content';
+import { checkHeirlooms, HeirloomsContentSchema } from '../heirloom/content';
+import { checkHouse, HouseContentSchema } from '../house/content';
 import { checkNarrator, NarratorContentSchema } from '../narrator/content';
 import { checkRelations, OpinionsContentSchema } from '../relations/content';
 import { checkStories } from '../stories/content';
+import { checkSuccession, SuccessionContentSchema } from '../succession/content';
 import { checkGrammar, GrammarSchema } from '../text/grammar';
 import { checkTime, TimeContentSchema } from '../time/content';
 import { checkWorld, PopulationContentSchema } from '../world/content';
@@ -25,8 +30,10 @@ import { Int, Range, Text, type ContentError, type Located } from './types';
 export const SettingsSchema = z.strictObject({
   /** Age in years of the first head of the house. */
   startAge: Range,
-  /** Age in years of a placeholder heir (stub until the Dynasty stage). */
-  heirAge: Range,
+  /** Age in years of a placeholder heir (D-007); optional: 4.6 removes it, then the placeholder heir is `adultAge`. */
+  heirAge: Range.optional(),
+  /** Age of coming of age (D-313, D-314): a child of the household, a head under it needs a guardian. */
+  adultAge: Int.min(1),
   startMoney: Int.min(0),
   texts: z.strictObject({
     start: Text,
@@ -36,7 +43,20 @@ export const SettingsSchema = z.strictObject({
 });
 
 export const SINGLE_KEYS = ['settings', 'names', 'health'] as const;
-export const OPTIONAL_KEYS = ['time', 'population', 'opinions', 'chronicle', 'grammar', 'narrator', 'backstory'] as const;
+export const OPTIONAL_KEYS = [
+  'time',
+  'population',
+  'opinions',
+  'chronicle',
+  'grammar',
+  'narrator',
+  'backstory',
+  'family',
+  'succession',
+  'house',
+  'heirlooms',
+  'eras',
+] as const;
 export const LIST_KEYS = ['actions', 'events', 'traits'] as const;
 
 export const ContentFileSchema = z.strictObject({
@@ -50,6 +70,11 @@ export const ContentFileSchema = z.strictObject({
   grammar: GrammarSchema.optional(),
   narrator: NarratorContentSchema.optional(),
   backstory: BackstoryContentSchema.optional(),
+  family: FamilyContentSchema.optional(),
+  succession: SuccessionContentSchema.optional(),
+  house: HouseContentSchema.optional(),
+  heirlooms: HeirloomsContentSchema.optional(),
+  eras: ErasContentSchema.optional(),
   actions: z.array(ActionSchema).optional(),
   events: z.array(EventSchema).optional(),
   traits: z.array(TraitSchema).optional(),
@@ -100,4 +125,9 @@ export const CROSS_CHECKS: readonly CrossCheck[] = [
   checkNarrator,
   checkBackstory,
   checkStories,
+  checkFamily,
+  checkSuccession,
+  checkHouse,
+  checkHeirlooms,
+  checkEras,
 ];

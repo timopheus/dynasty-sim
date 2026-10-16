@@ -1,7 +1,7 @@
 import type { Content } from '../content/schema';
 import { findCharacter } from '../helpers';
 import type { Character, Ctx, GameState } from '../state';
-import { characterById } from '../world/world';
+import { characterById, isNear } from '../world/world';
 import type { OpinionsContent, ReasonDef, ReasonKindId } from './content';
 import type { OpinionReason } from './types';
 
@@ -20,9 +20,9 @@ function clamp(n: number): number {
   return Math.max(-OPINION_LIMIT, Math.min(OPINION_LIMIT, n));
 }
 
-/** The hero or someone of the circle: data is kept only for them (D-063). */
+/** The hero or someone near them (the household or the circle, `isNear`): data is kept only for them (D-063). */
 export function inScope(state: GameState, id: string): boolean {
-  return id === state.playerId || state.circle.includes(id);
+  return isNear(state, id);
 }
 
 /** Speed of forgetting and weight of a reason of this kind for this holder, in percent, from the holder's traits. */

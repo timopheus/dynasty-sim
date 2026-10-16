@@ -1,10 +1,12 @@
+import { allChronicle, anyCharacter } from '../archive/archive';
 import { fullName, isAlive } from '../character/character';
 import { findTrait } from '../character/holding';
 import { STAT_IDS } from '../character/stat-ids';
 import { fameWord, stats, statWord } from '../character/stats';
 import type { ChronicleEntry } from '../chronicle/log';
 import { conditionsText } from '../health/course';
-import { findCharacter } from '../helpers';
+import { familySection } from '../family/page';
+import { houseSection } from '../house/page';
 import { acquaintanceLevel } from '../relations/acquaintance';
 import { findRelationKind } from '../relations/links';
 import { findReason, opinionCauses, opinionValue, opinionWord } from '../relations/opinions';
@@ -12,6 +14,7 @@ import { secretsKnownBy } from '../relations/secrets';
 import type { Character, Ctx } from '../state';
 import { renderText, type TextPart } from '../text/text';
 import { ageYears, toYmd } from '../time/calendar';
+import { isNear } from '../world/world';
 
 /**
  * Data of the page of a person (2.10, GDD 8.8-8.9, D-150). A pure query: no randomness, no changes to the state.
@@ -75,13 +78,32 @@ export interface PersonPage {
    * people the hero knows: only the events the person had themselves (D-166, 3.9).
    */
   journal: ChronicleEntry[];
+  /** Sections other modules add (PERSON_SECTIONS), in that order; a module with nothing to show adds none. */
+  sections: PageSection[];
 }
+
+/** A section of the page of a person from another module (stage 4): a title and lines "label → text with links". */
+export interface PageSection {
+  /** Module id of the section, e.g. `family`. */
+  id: string;
+  title: string;
+  lines: { label: string; parts: TextPart[] }[];
+}
+
+/** Builds a module's section of the page, or null when there is nothing the player may see. A pure query. */
+export type PersonSection = (ctx: Ctx, c: Character, level: PageLevel) => PageSection | null;
+
+/**
+ * Sections of the page of a person from other modules, in the order shown (4.1): the family (4.5), the house and the
+ * nickname (4.7). A module fills its own function and does not touch pages/ (D-052).
+ */
+export const PERSON_SECTIONS: readonly PersonSection[] = [familySection, houseSection];
 
 const ENTRY_LIMIT = 30;
 
 /** Heads of the house are open books to the player: the hero and those who were before. */
 export function isHouseHead(ctx: Ctx, id: string): boolean {
-  return id === ctx.state.playerId || ctx.state.chronicle.some((e) => e.subject === id && (e.kind === 'start' || e.kind === 'succession'));
+  return id === ctx.state.playerId || allChronicle(ctx.state).some((e) => e.subject === id && (e.kind === 'start' || e.kind === 'succession'));
 }
 
 /** How much of the person the player may see. */
@@ -91,7 +113,7 @@ export function pageLevel(ctx: Ctx, id: string): PageLevel {
 }
 
 function ref(ctx: Ctx, id: string): PersonRef {
-  const c = findCharacter(ctx.state, id);
+  const c = anyCharacter(ctx.state, id);
   return c ? { id, name: fullName(c), dead: !isAlive(c) } : { id, name: id, dead: false };
 }
 
@@ -135,8 +157,8 @@ function opinionOfHero(ctx: Ctx, c: Character, numbers: boolean): PersonPage['op
   const { state, content } = ctx;
   if (!content.opinions) return null;
   const hero = state.playerId;
-  const inCircle = state.circle.includes(c.id);
-  if (!inCircle && !state.opinionReasons.some((r) => r.holder === c.id && r.target === hero)) return null;
+  const near = isNear(state, c.id);
+  if (!near && !state.opinionReasons.some((r) => r.holder === c.id && r.target === hero)) return null;
   const value = opinionValue(ctx, c.id, hero);
   const lines = numbers
     ? opinionCauses(ctx, c.id, hero).map((cause): OpinionLine => {
@@ -167,12 +189,12 @@ function visibleTraits(ctx: Ctx, c: Character, level: PageLevel): string[] {
 
 function entriesAbout(ctx: Ctx, id: string, level: ChronicleEntry['level']): ChronicleEntry[] {
   const about = (e: ChronicleEntry) => e.subject === id || e.parts.some((p: TextPart) => typeof p !== 'string' && p.id === id);
-  return ctx.state.chronicle.filter((e) => e.level === level && about(e)).slice(-ENTRY_LIMIT);
+  return allChronicle(ctx.state).filter((e) => e.level === level && about(e)).slice(-ENTRY_LIMIT);
 }
 
 /** Journal lines of events that happened to the person themselves, newest last. */
 function ownEvents(ctx: Ctx, id: string): ChronicleEntry[] {
-  return ctx.state.chronicle.filter((e) => e.level === 'journal' && e.subject === id && e.kind === 'npc_event').slice(-ENTRY_LIMIT);
+  return allChronicle(ctx.state).filter((e) => e.level === 'journal' && e.subject === id && e.kind === 'npc_event').slice(-ENTRY_LIMIT);
 }
 
 /**
@@ -185,7 +207,7 @@ function ownEvents(ctx: Ctx, id: string): ChronicleEntry[] {
  */
 export function personPage(ctx: Ctx, id: string): PersonPage | null {
   const { state, content } = ctx;
-  const c = findCharacter(state, id);
+  const c = anyCharacter(state, id);
   if (!c) return null;
   const level = pageLevel(ctx, id);
   const full = level === 'self';
@@ -222,5 +244,6 @@ export function personPage(ctx: Ctx, id: string): PersonPage | null {
     secrets: secretsKnownBy(state, state.playerId).filter((s) => s.about === id).map((s) => s.kind.replace(/_/g, ' ')),
     chronicle: entriesAbout(ctx, id, 'chronicle'),
     journal: full ? entriesAbout(ctx, id, 'journal') : acquainted ? ownEvents(ctx, id) : [],
+    sections: PERSON_SECTIONS.flatMap((section) => section(ctx, c, level) ?? []),
   };
 }

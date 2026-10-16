@@ -4,7 +4,8 @@ settings:
   # The age the story starts at; the scenes of the backstory add up to 3 years (age_years), so the hero
   # goes out into the world at 16-21 (D-038, checkBackstory).
   startAge: { min: 16, max: 18 }
-  heirAge: { min: 16, max: 25 } # placeholder heir until the Dynasty stage (D-007)
+  heirAge: { min: 16, max: 25 } # placeholder heir until the Dynasty stage (D-007); 4.6 removes it
+  adultAge: 16 # coming of age (D-313, D-314)
   startMoney: 50
   texts:
     start: "The life of {name} begins."
