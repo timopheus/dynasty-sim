@@ -1,3 +1,4 @@
+import { findCharacter } from '../helpers';
 import type { Character, Ctx, DayPhase, GameState } from '../state';
 import { relationsArchiveSize, relationsHeld, takeRelations } from '../relations/archive';
 import { hotRefs } from '../refs';
@@ -44,7 +45,8 @@ function takeChunk(ctx: Ctx, cutoff: number): ArchiveChunk | null {
   const refs = hotRefs(ctx);
   const leaving = new Set<string>();
   for (const c of state.characters) if (c.deathDay !== null && c.deathDay < cutoff && !refs.has(c.id)) leaving.add(c.id);
-  closeOver(state, leaving);
+  const dead = (id: string) => findCharacter(state, id)?.deathDay !== null;
+  closeOver(state, leaving, dead);
   const characters: Character[] = [];
   if (leaving.size > 0) {
     const kept: Character[] = [];
@@ -52,19 +54,22 @@ function takeChunk(ctx: Ctx, cutoff: number): ArchiveChunk | null {
     // A new array: the index of findCharacter belongs to the old one (D-194).
     state.characters = kept;
   }
-  const relations = takeRelations(state, leaving);
+  const relations = takeRelations(state, leaving, dead);
   if (chronicle.length === 0 && characters.length === 0 && relationsArchiveSize(relations) === 0) return null;
   return { day: state.day, chronicle, characters, relations };
 }
 
-/** Keeps hot whoever a person staying hot names as a parent, and whoever a record of relations staying hot names. */
-function closeOver(state: GameState, leaving: Set<string>): void {
+/**
+ * Keeps hot whoever a person staying hot names as a parent (kinship for the rules, D-312), and whoever a record of
+ * relations staying hot names (relations/archive.ts).
+ */
+function closeOver(state: GameState, leaving: Set<string>, dead: (id: string) => boolean): void {
   for (let changed = true; changed && leaving.size > 0; ) {
     changed = false;
     for (const c of state.characters) {
       if (leaving.has(c.id)) continue;
       for (const parent of [c.father, c.mother]) if (parent !== null && leaving.delete(parent)) changed = true;
     }
-    for (const id of relationsHeld(state, leaving)) if (leaving.delete(id)) changed = true;
+    for (const id of relationsHeld(state, leaving, dead)) if (leaving.delete(id)) changed = true;
   }
 }

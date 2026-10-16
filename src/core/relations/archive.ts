@@ -4,9 +4,12 @@ import type { RelationsState } from './relations';
 import type { Acquaintance, OpinionReason, Relation, Secret } from './types';
 
 /**
- * Records of opinions, acquaintance, ended relations and secrets that go to the archive with their people (D-312).
- * A record goes only when every person it names goes; an active relation never goes. The archive phase asks
- * `relationsHeld` which of the leaving people a record that stays still names, keeps them hot and asks again.
+ * Records of opinions, acquaintance, ended relations and secrets that go to the archive (D-312, D-335). A record goes
+ * when everyone it names is dead and at least one of them goes to the archive; an active relation never goes. Rules
+ * read only records with a living person in them (relationsRefs keeps those people hot), so a record of the dead
+ * is history. It may name someone who stays hot for a while: the archive is read together with the hot part.
+ * Waiting until everyone in it leaves would keep whole chains of the dead hot (the acquaintances of past heads, and
+ * theirs), which is most of the people of a long game.
  */
 export interface RelationsArchive {
   opinionReasons: OpinionReason[];
@@ -27,27 +30,16 @@ function recordsOf(part: Records): { people: string[]; movable: boolean }[] {
   ];
 }
 
-const goes = (people: readonly string[], leaving: ReadonlySet<string>) => people.every((id) => leaving.has(id));
-
-/** Leaving people that a record staying hot still names: they must stay too. A pure query. */
-export function relationsHeld(state: Records, leaving: ReadonlySet<string>): string[] {
-  const out: string[] = [];
-  for (const { people, movable } of recordsOf(state)) {
-    if (movable && goes(people, leaving)) continue;
-    for (const id of people) if (leaving.has(id)) out.push(id);
-  }
-  return out;
-}
-
 /**
- * Takes out of the state the records whose people all leave (and that may go), in their order; the rest stay in
- * order. Call only after `relationsHeld` gives nothing, or a record left behind names someone who is gone.
+ * Takes out of the state the records that go (see above), in their order; the rest stay in order. `dead` says whether
+ * a person is dead, `leaving` who goes to the archive now.
  */
-export function takeRelations(state: Records, leaving: ReadonlySet<string>): RelationsArchive {
+export function takeRelations(state: Records, leaving: ReadonlySet<string>, dead: (id: string) => boolean): RelationsArchive {
+  const goes = (people: readonly string[]) => people.every(dead) && people.some((id) => leaving.has(id));
   const split = <T>(list: T[], people: (x: T) => string[], movable: (x: T) => boolean = () => true) => {
     const gone: T[] = [];
     const kept: T[] = [];
-    for (const x of list) (movable(x) && goes(people(x), leaving) ? gone : kept).push(x);
+    for (const x of list) (movable(x) && goes(people(x)) ? gone : kept).push(x);
     return { gone, kept };
   };
   const opinions = split(state.opinionReasons, (r) => [r.holder, r.target]);
@@ -59,6 +51,16 @@ export function takeRelations(state: Records, leaving: ReadonlySet<string>): Rel
   state.acquaintances = acquaintances.kept;
   state.secrets = secrets.kept;
   return { opinionReasons: opinions.gone, relations: relations.gone, acquaintances: acquaintances.gone, secrets: secrets.gone };
+}
+
+/** Leaving people that a record staying hot still names (none, if the rule above and relationsRefs agree). */
+export function relationsHeld(state: Records, leaving: ReadonlySet<string>, dead: (id: string) => boolean): string[] {
+  const out: string[] = [];
+  for (const { people, movable } of recordsOf(state)) {
+    if (movable && people.every(dead) && people.some((id) => leaving.has(id))) continue;
+    for (const id of people) if (leaving.has(id)) out.push(id);
+  }
+  return out;
 }
 
 export function relationsArchiveSize(part: RelationsArchive): number {
