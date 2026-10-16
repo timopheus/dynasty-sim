@@ -1,0 +1,8 @@
+# expect-error: opinions.words[0].from /must start at -100/
+opinions:
+  reasons: [{ id: slight, name: Slight, value: -10, kind: harm, decay: { kind: never } }]
+  traitEffects: []
+  background: { max: 10, rules: [] }
+  words: [{ from: -50, text: low }]
+  relations: []
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }

@@ -1,0 +1,30 @@
+# Exact numbers for the opinion tests; goes on top of tests/fixtures/base and tests/fixtures/population.
+opinions:
+  reasons:
+    - { id: slight, name: Slight, value: -40, kind: harm, decay: { kind: fade, days: 100 } }
+    - { id: insult, name: Insult, value: -60, kind: harm, decay: { kind: never } }
+    - { id: gift, name: Gift, value: 20, kind: benefit, decay: { kind: fade, days: 100 } }
+    - { id: debt, name: Debt, value: 30, kind: benefit, decay: { kind: held, until: repaid } }
+    - { id: rescue, name: Rescue, value: 90, kind: benefit, decay: { kind: never } }
+  traitEffects:
+    - { trait: vengeful, kind: harm, fade: 0 }
+    - { trait: forgiving, kind: harm, fade: 200 }
+    - { trait: generous, kind: benefit, scale: 50 }
+    - { trait: greedy, kind: benefit, scale: 150 }
+  background:
+    max: 10
+    rules:
+      - { holder: proud, target: proud, value: -8 }
+      - { holder: proud, target: humble, value: -5 }
+      - { holder: brave, target: brave, value: 6 }
+  words:
+    - { from: -100, text: hatred }
+    - { from: -50, text: dislike }
+    - { from: -10, text: indifference }
+    - { from: 10, text: liking }
+    - { from: 50, text: devotion }
+  relations:
+    - { id: friend, name: Friend, symmetric: true, opinion: { a: 25, b: 25 }, acquaintance: close }
+    - { id: rival, name: Rival, symmetric: true, opinion: { a: -30, b: -30 }, acquaintance: known }
+    - { id: patron, name: Patron, symmetric: false, opinion: { a: 10, b: 20 }, acquaintance: close }
+  acquaintance: { meetPer100: 100, closeAfterDays: 30, closePer100: 100 }
