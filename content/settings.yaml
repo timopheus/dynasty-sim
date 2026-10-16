@@ -1,5 +1,5 @@
 # Global simulation settings. Schema: src/core/content/schema.ts (SettingsSchema).
-# Text placeholders: {name}, {age}. Avoid pronouns: characters have no gender yet.
+# Text placeholders: {name}, {age}, and pronouns for the same character: {he} {him} {his} {He} {His}.
 settings:
   eventChancePer10k: 150        # chance per day that an event fires, out of 10000
   minDaysBetweenEvents: 20      # storyteller pacing: quiet days after any event
