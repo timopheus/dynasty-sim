@@ -12,7 +12,8 @@ import { deserialize, serialize } from '../src/core/save/save';
 import { backstoryAfterChoice } from '../src/core/backstory/phases';
 import { stats } from '../src/core/character/stats';
 import type { GameState } from '../src/core/state';
-import { ageYears } from '../src/core/time/calendar';
+import { ageYears, fromYmd, toYmd } from '../src/core/time/calendar';
+import { applyBackstoryEffects } from '../src/core/backstory/effects';
 import { readContentFiles } from '../tools/content-files';
 import { BASE_FILES, loadOrThrow, realContent } from './fixtures/content';
 
@@ -126,7 +127,7 @@ describe('the backstory of the first hero (D-167)', () => {
     const first = eventView({ state, content })!.options[0]!.index;
     expect([0, 1, 2]).toContain(first);
     playBackstory(state, content, pickOffered);
-    const s = stats(state && { state, content }, hero);
+    const s = stats({ state, content }, hero);
     expect(hero.traits).toContain('courtly_1');
     expect(ageYears(hero.birthDay, state.day)).toBe(before + 1);
     expect(Object.values(s).some((v) => v !== 5)).toBe(true);
@@ -135,16 +136,16 @@ describe('the backstory of the first hero (D-167)', () => {
 
   it('a heir does not live through the backstory', () => {
     const state = newGame(3, content);
-    playBackstory(state, content);
     const ctx = { state, content };
-    kill(ctx, getPlayer(state), 'old_age');
+    // The founder dies in the middle of it (not by a scene: only by what the test does): the heir starts no scene.
+    const founder = getPlayer(state);
+    kill(ctx, founder, 'old_age');
+    expect(getPlayer(state).id).not.toBe(founder.id);
+    backstoryAfterChoice(ctx);
     expect(state.backstory.running).toBe(false);
     expect(state.pendingEvent).toBeNull();
     expect(state.status).toBe('awaiting_action');
-    // Also if the flag were left on, the hook drops it for anyone but the founder.
-    state.backstory.running = true;
-    backstoryAfterChoice(ctx);
-    expect(state.backstory.running).toBe(false);
+    expect(checkInvariants(state, content)).toEqual([]);
   });
 
   it('continues after a save in the middle of the backstory', () => {
@@ -172,11 +173,32 @@ describe('the backstory of the first hero (D-167)', () => {
   });
 });
 
+describe('effects of the scenes', () => {
+  it('stats_roll stays in its range and in 0..20; age_years moves a 29 February birth to the 28th', () => {
+    const state = newGame(3, content);
+    const ctx = { state, content };
+    const hero = getPlayer(state);
+    const seen = new Set<number>();
+    for (let i = 0; i < 60; i++) {
+      hero.baseStats.martial = 5;
+      applyBackstoryEffects(ctx, hero, { stats_roll: { martial: { min: 1, max: 3 } } }, {});
+      seen.add(hero.baseStats.martial);
+    }
+    expect([...seen].sort()).toEqual([6, 7, 8]);
+    hero.baseStats.martial = 19;
+    applyBackstoryEffects(ctx, hero, { stats_roll: { martial: { min: 3, max: 3 } } }, {});
+    expect(hero.baseStats.martial).toBe(20);
+    hero.birthDay = fromYmd(1684, 2, 29);
+    applyBackstoryEffects(ctx, hero, { age_years: 1 }, {});
+    expect(toYmd(hero.birthDay)).toMatchObject({ year: 1683, month: 2, day: 28 });
+  });
+});
+
 describe('the real backstory', () => {
   const real = realContent();
   const scenes = real.events.filter((e) => e.deck === 'backstory');
 
-  it('has 8-12 scenes on 4-5 stages, 2 or more on each stage after the origin', () => {
+  it('has 8-12 scenes on 4-5 stages, 2 or more on each stage after the origin (which is one scene, D-271)', () => {
     const stages = real.backstory!.stages;
     expect(stages.length).toBeGreaterThanOrEqual(4);
     expect(stages.length).toBeLessThanOrEqual(5);

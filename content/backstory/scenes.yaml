@@ -72,6 +72,7 @@ events:
         result: "{name} fought {friend} over a toy as a child and won, and neither forgot it."
         chronicle: true
       - text: Keep to yourself and watch from the doorstep
+        mood: neutral
         effects: { stats_roll: { learning: { min: 0, max: 2 }, intrigue: { min: 0, max: 1 } } }
         result: "{name} kept apart as a child and watched the neighbours' games from the doorstep."
         chronicle: true
@@ -81,7 +82,7 @@ events:
     stage: childhood
     weight: 8
     mood: threat
-    text: "One winter the stores ran low. The wolves came near the village, and your household looked to every pair of hands."
+    text: "One winter the stores ran low. The wolves came near the houses, and your household looked to every pair of hands."
     options:
       - text: Go out with the men to set snares
         check: { stat: prowess, difficulty: 5 }
@@ -175,6 +176,7 @@ events:
           result: "{name} could find no answer to {rival}'s mockery and left in silence."
           chronicle: true
       - text: Walk away
+        mood: neutral
         effects: { stats_roll: { learning: { min: 0, max: 1 }, intrigue: { min: 0, max: 1 } } }
         result: "{name} walked away from the mockery of {rival}."
         chronicle: true
@@ -245,7 +247,7 @@ events:
     mood: neutral
     roles:
       master: { pick: circle, where: { occupation: [craftsman, clerk, physician, merchant, priest], age_min: 25 } }
-    text: "{master} agreed to take you as an apprentice for two years, for board and a promise of obedience."
+    text: "{master} agreed to take you as an apprentice, for board and a promise of obedience."
     options:
       - text: Learn the counting and the keeping of books
         effects:
@@ -280,6 +282,7 @@ events:
     stage: training
     weight: 7
     mood: neutral
+    when: { sex: male }  # the army is closed to women (D-034)
     roles:
       sergeant: { pick: circle, where: { occupation: [sergeant, soldier, mercenary], age_min: 26 } }
     text: "{sergeant} was gathering recruits, and the pay was better than at home. The drill was hard."
@@ -340,7 +343,7 @@ events:
           money: -25
         result: "{name} studied for three years at a town school."
         chronicle: true
-      - text: Enter the household of a great man as a page
+      - text: Enter the household of a great man as a ward
         effects:
           traits: { add: [courtly_2] }
           stats_roll: { diplomacy: { min: 0, max: 1 } }
