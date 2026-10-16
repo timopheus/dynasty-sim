@@ -1,0 +1,25 @@
+# Injuries (GDD 8.2, 8.4): outcomes of healed wounds, given by the health module (content/health.yaml).
+# Weight 0: never given at random to a new character.
+traits:
+  - id: scarred
+    name: Scarred
+    category: body
+    visibility: obvious
+
+  - id: one_eyed
+    name: One-eyed
+    category: body
+    stats: { martial: -1, prowess: -2 }
+    visibility: obvious
+
+  - id: lame
+    name: Lame
+    category: body
+    stats: { prowess: -3 }
+    visibility: obvious
+
+  - id: maimed_hand
+    name: Maimed hand
+    category: body
+    stats: { prowess: -2, stewardship: -1 }
+    visibility: obvious

@@ -1,0 +1,121 @@
+# Health test content: replaces tests/fixtures/base/health.yaml. Chances are 0 or 10000 so outcomes are certain.
+health:
+  conditions:
+    - id: mortal
+      name: Mortal wound
+      kind: wound
+      cause: illness
+      permanent: true
+      stages:
+        - id: fatal
+          name: fatal
+          transitions:
+            - { to: death, per10k: 10000 }
+    - id: cut
+      name: Cut
+      kind: wound
+      cause: illness
+      stages:
+        - id: fresh
+          name: fresh
+          minDays: 10
+          penalties: { prowess: -2, martial: -1 }
+          transitions:
+            - { to: heal, per10k: 10000 }
+      outcomes:
+        - { weight: 1, trait: maimed, removes: [steady], text: "{name} lost the use of a hand." }
+    - id: rot
+      name: Rot
+      kind: wound
+      cause: rot_death
+      stages:
+        - id: early
+          name: early
+          transitions:
+            - { to: late, per10k: 10000 }
+        - id: late
+          name: late
+          severe: true
+          minDays: 7
+          mortality: 5
+          text: "{name}'s wound rotted."
+          transitions:
+            - { to: death, per10k: 10000 }
+      outcomes:
+        - { weight: 1 }
+    - id: gash
+      name: Gash
+      kind: wound
+      cause: illness
+      stages:
+        - id: fresh
+          name: fresh
+          transitions:
+            - { to: heal, per10k: 10000 }
+      outcomes:
+        - { weight: 1, condition: old_wound, text: "{name}'s gash never quite healed." }
+    - id: old_wound
+      name: Old wound
+      kind: wound
+      cause: rot_death
+      permanent: true
+      stages:
+        - id: closed
+          name: closed
+          transitions:
+            - { to: reopened, per10k: 10000 }
+        - id: reopened
+          name: reopened
+          severe: true
+          mortality: 3
+          text: "{name}'s old wound opened."
+    - id: flu
+      name: Flu
+      kind: disease
+      cause: illness
+      stages:
+        - id: sick
+          name: sick
+          transitions:
+            - { to: heal, per10k: 10000 }
+      outcomes:
+        - { weight: 1 }
+    - id: ague
+      name: Ague
+      kind: frailty
+      cause: old_age
+      permanent: true
+      stages:
+        - id: frail
+          name: frail
+          mortality: 2
+  onsets:
+    - { condition: ague, per10k: 10000, ageMin: 60, text: "{name} grew frail." }
+  mortality:
+    - { below: 60, per100k: 1000, cause: illness }
+    - { per100k: 5000, cause: old_age }
+  causes:
+    - { id: illness, text: "Illness took {him}." }
+    - { id: old_age, text: "Old age took {him}." }
+    - { id: rot_death, text: "Rot took {him}." }
+  rest: { actions: [rest], better: 100, worse: 0 }
+  road: { actions: [march], better: 0, worse: 100 }
+  texts:
+    interrupted: "{name} took to bed."
+    unfit: Too ill
+actions:
+  - id: march
+    name: March
+    duration: { min: 30, max: 30 }
+    when: { fit: true }
+    text: "{name} marched."
+traits:
+  - id: steady
+    name: Steady
+    category: skill
+    visibility: normal
+  - id: maimed
+    name: Maimed
+    category: body
+    stats: { prowess: -2 }
+    visibility: obvious

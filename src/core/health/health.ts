@@ -1,45 +1,97 @@
 import { z } from 'zod';
-import { int } from '../rng';
+import { log } from '../chronicle/log';
+import { Id } from '../content/types';
 import { isInt } from '../helpers';
 import type { Character, CreateHook, Ctx, DeathHook, Invariant } from '../state';
+import { addCondition, healStep, isSeverelyIll, stageOf, type HealthCondition } from './course';
 
-/** Health part of a character. A 0..100 scale until 2.9 replaces it with conditions (D-033). */
+/** Health part of a character: conditions with stages instead of a scale (D-033). */
 export interface HealthPart {
-  /** 0..100. At 0 the character dies on the next day. */
-  health: number;
+  /** In the order they began; at most one of each condition id. */
+  conditions: HealthCondition[];
 }
 
-export const createHealth: CreateHook = ({ state, content }, c) => {
-  const { min, max } = content.health.startHealth;
-  c.health = int(state.rng, min, max);
+/** Characters start healthy. */
+export const createHealth: CreateHook = (_ctx, c) => {
+  c.conditions = [];
 };
 
-export const healthOnDeath: DeathHook = () => {};
+/** After the death line, the line of its cause, if the content has one (D-061). */
+export const healthOnDeath: DeathHook = ({ state, content }, c, cause) => {
+  const text = content.health.causes.find((x) => x.id === cause)?.text;
+  if (text) log(state, { subject: c, kind: 'death_cause', level: 'chronicle', template: text });
+};
 
+/** Effect keys of this module; effects.ts merges them into the content schema. */
 export const healthEffectShape = {
-  health: z.int().optional(),
+  /** Gives a wound condition at its first stage (nothing if the character already has it). */
+  wound: Id.optional(),
+  /** Gives a disease condition at its first stage (nothing if the character already has it). */
+  disease: Id.optional(),
+  /** One stage back for the condition, or for all of them; recovery from the first stage. */
+  heal: Id.optional(),
 };
 
-export function applyHealthEffects(_ctx: Ctx, c: Character, effects: { health?: number | undefined }): void {
-  if (effects.health !== undefined) c.health = Math.min(100, Math.max(0, c.health + effects.health));
+interface HealthEffects {
+  wound?: string | undefined;
+  disease?: string | undefined;
+  heal?: string | undefined;
 }
 
-/** Condition keys of this module (D-054); filled by 2.9. */
-export const healthConditionShape = {};
-
-/** Stat modifiers from health (2.9 registers stage penalties); stats arrive with 2.3. */
-export function healthStatModifiers(_ctx: Ctx, _c: Character): Record<string, number> {
-  return {};
+/** Order: heal, then new wounds and diseases, so `heal: all` with a new wound keeps the wound. */
+export function applyHealthEffects(ctx: Ctx, c: Character, effects: HealthEffects): void {
+  if (effects.heal !== undefined) {
+    for (const hc of [...c.conditions]) {
+      if (effects.heal === 'all' || effects.heal === hc.id) healStep(ctx, c, hc);
+    }
+  }
+  if (effects.wound !== undefined) addCondition(ctx, c, effects.wound);
+  if (effects.disease !== undefined) addCondition(ctx, c, effects.disease);
 }
 
-export const healthInvariants: Invariant = ({ state }) => {
+/** Condition keys of this module (D-054): `fit: true` needs no condition at a severe stage. */
+export const healthConditionShape = {
+  fit: z.literal(true).optional(),
+};
+
+export function checkHealthConditions({ content }: Ctx, c: Character, when: { fit?: true | undefined }): string[] {
+  if (when.fit && isSeverelyIll(content, c)) return [content.health.texts.unfit];
+  return [];
+}
+
+/** Stage penalties of all conditions, summed (D-080: stats.ts adds them). */
+export function healthStatModifiers({ content }: Ctx, c: Character): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const hc of c.conditions) {
+    for (const [stat, value] of Object.entries(stageOf(content, hc).penalties ?? {})) {
+      if (value !== undefined) out[stat] = (out[stat] ?? 0) + value;
+    }
+  }
+  return out;
+}
+
+export const healthInvariants: Invariant = ({ state, content }) => {
   const problems: string[] = [];
   for (const c of state.characters) {
-    if (!isInt(c.health) || c.health < 0 || c.health > 100) problems.push(`${c.id} health out of range: ${c.health}`);
+    if (!Array.isArray(c.conditions)) {
+      problems.push(`${c.id} has no list of conditions`);
+      continue;
+    }
+    const seen = new Set<string>();
+    for (const hc of c.conditions) {
+      if (seen.has(hc.id)) problems.push(`${c.id} has condition ${hc.id} twice`);
+      seen.add(hc.id);
+      const def = content.health.conditions.find((d) => d.id === hc.id);
+      if (!def) {
+        problems.push(`${c.id} has unknown condition ${hc.id}`);
+        continue;
+      }
+      if (!def.stages.some((s) => s.id === hc.stage)) problems.push(`${c.id} condition ${hc.id} has unknown stage ${hc.stage}`);
+      const end = c.deathDay ?? state.day;
+      if (!isInt(hc.start) || !isInt(hc.since) || hc.start > hc.since || hc.since > end || hc.start < c.birthDay) {
+        problems.push(`${c.id} condition ${hc.id} has invalid days ${hc.start}..${hc.since}`);
+      }
+    }
   }
   return problems;
 };
-
-export function checkHealthConditions(_ctx: Ctx, _c: Character, _when: object): string[] {
-  return [];
-}

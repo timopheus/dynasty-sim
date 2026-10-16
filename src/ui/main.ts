@@ -4,6 +4,7 @@ import { entryText } from '../core/chronicle/log';
 import { loadContent } from '../core/content/load';
 import type { Content } from '../core/content/schema';
 import { pendingEventDef } from '../core/events/events';
+import { conditionsText } from '../core/health/course';
 import { apply, newGame, type Command } from '../core/game';
 import { isValidSeed } from '../core/rng';
 import { getPlayer } from '../core/helpers';
@@ -41,7 +42,7 @@ function render(state: GameState, content: Content, act: (cmd: Command) => void)
   const parts: Node[] = [
     el('h1', {}, `House of ${player.surname}`),
     el('p', { className: 'meta' }, `${formatDate(state.day)} · seed ${state.seed} · `, el('a', { href: `?seed=${state.seed}` }, 'restart'), ' · ', el('a', { href: '?' }, 'new seed')),
-    el('p', {}, `${fullName(player)}, aged ${age}. Health ${player.health}/100. Money ${player.money}.`),
+    el('p', {}, `${fullName(player)}, aged ${age}. Health: ${conditionsText(content, player) || 'healthy'}. Money ${player.money}.`),
   ];
 
   const event = pendingEventDef(state, content);

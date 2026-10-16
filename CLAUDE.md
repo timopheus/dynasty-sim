@@ -25,7 +25,7 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   content/         schema.ts (верхние ключи, перекрёстные проверки), load.ts, types.ts
   модули-папки: у каждого своя часть состояния, контент, хуки, фазы, инварианты
   character/       пол, имя, рождение, деньги, характеристики (stats.ts), черты (holding.ts, traits.ts), генерация (generate.ts), местоимения (2.3)
-  health/          здоровье, смертность annualDeathChance, фазы здоровья и смерти (2.9)
+  health/          состояния и стадии (course.ts), смертность и annualDeathChance (mortality.ts), фазы здоровья и смерти (phases.ts) (2.9)
   time/            calendar.ts, фазы нового дня и назначенного (2.2)
   actions/         действия: начало, конец, прерывание (2.2)
   conditions/      общие ключи условий (2.2)
