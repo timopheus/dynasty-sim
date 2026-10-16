@@ -61,3 +61,21 @@ jobs:
 
       - name: Metric gates (300 years, pinned seeds)
         run: npm run gates
+
+  bots:
+    # Report only (D-349): never fails the PR; the table goes to the job summary.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Bot report (4 characters, 5 seeds, 300 years)
+        run: npx tsx tools/bot-report.ts --runs 5

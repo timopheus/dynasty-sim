@@ -1,5 +1,5 @@
 /**
- * Headless simulation run: a random bot plays, the chronicle goes to a file.
+ * Headless simulation run: a bot plays (random by default, or a character with --bot, D-319), the chronicle goes to a file.
  * Usage: npm run sim -- --years 300 --seed 42 [--out path/to/chronicle.md]
  *        npm run sim -- --years 300 --seed 1 --runs 10 [--json]   metrics of seeds 1..10
  *        npm run sim -- --compare a.json b.json                          medians side by side
@@ -13,6 +13,7 @@ import { loadContent } from '../src/core/content/load';
 import { conditionsText } from '../src/core/health/course';
 import { compare, computeMetrics, summarize, type RunMetrics, type Summary } from '../src/core/metrics';
 import { isValidSeed, MAX_SEED } from '../src/core/rng';
+import { BOT_CHARACTERS, isBotCharacter } from '../src/core/bots/characters';
 import { runSim } from '../src/core/sim';
 import { getPlayer } from '../src/core/helpers';
 import { ageYears, formatDate } from '../src/core/time/calendar';
@@ -24,7 +25,7 @@ function fail(message: string): never {
 }
 
 const USAGE =
-  'Usage: npm run sim -- --years 300 --seed 42 [--out path/to/chronicle.md] [--runs N] [--json]\n' +
+  'Usage: npm run sim -- --years 300 --seed 42 [--out path/to/chronicle.md] [--runs N] [--json] [--bot random|cautious|greedy|duelist]\n' +
   '       npm run sim -- --compare a.json b.json';
 
 function readArgs() {
@@ -38,6 +39,7 @@ function readArgs() {
         runs: { type: 'string', default: '1' },
         json: { type: 'boolean', default: false },
         compare: { type: 'string' },
+        bot: { type: 'string', default: 'random' },
       },
     });
   } catch (err) {
@@ -85,6 +87,8 @@ if (values.compare !== undefined) {
   process.exit(0);
 }
 
+const bot = values.bot;
+if (!isBotCharacter(bot)) fail(`--bot must be one of ${BOT_CHARACTERS.join(', ')}, got "${bot}"`);
 const DIGITS = /^\d+$/;
 const years = DIGITS.test(values.years) ? Number(values.years) : NaN;
 const seed = DIGITS.test(values.seed) ? Number(values.seed) : NaN;
@@ -93,7 +97,7 @@ if (!Number.isInteger(years) || years < 1) fail(`--years must be a positive inte
 if (!isValidSeed(seed)) fail(`--seed must be an integer in 0..${MAX_SEED}, got "${values.seed}"`);
 if (!Number.isInteger(runs) || runs < 1) fail(`--runs must be a positive integer, got "${values.runs}"`);
 if (!isValidSeed(seed + runs - 1)) fail(`--seed + --runs - 1 must be at most ${MAX_SEED}`);
-if (runs > 1 && values.out !== undefined) fail('--out names one chronicle file; with --runs the files are out/chronicle-seed<N>-<years>y.md');
+if (runs > 1 && values.out !== undefined) fail('--out names one chronicle file; with --runs the files are out/chronicle-seed<N>-<years>y[-<bot>].md');
 
 /** The journal goes next to the chronicle: chronicle-seed1-300y.md → journal-seed1-300y.md. */
 function journalPath(chroniclePath: string): string {
@@ -117,11 +121,11 @@ let violationCount = 0;
 
 for (let i = 0; i < runs; i++) {
   const runSeed = seed + i;
-  const out = values.out ?? `out/chronicle-seed${runSeed}-${years}y.md`;
+  const out = values.out ?? `out/chronicle-seed${runSeed}-${years}y${bot === 'random' ? '' : `-${bot}`}.md`;
   const started = performance.now();
   let result;
   try {
-    result = runSim(content, { seed: runSeed, years });
+    result = runSim(content, { seed: runSeed, years, bot });
   } catch (err) {
     console.error(err);
     fail(`Simulation crashed (seed ${runSeed}, ${years} years).`);
