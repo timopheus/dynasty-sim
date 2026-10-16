@@ -97,7 +97,7 @@ if (!Number.isInteger(years) || years < 1) fail(`--years must be a positive inte
 if (!isValidSeed(seed)) fail(`--seed must be an integer in 0..${MAX_SEED}, got "${values.seed}"`);
 if (!Number.isInteger(runs) || runs < 1) fail(`--runs must be a positive integer, got "${values.runs}"`);
 if (!isValidSeed(seed + runs - 1)) fail(`--seed + --runs - 1 must be at most ${MAX_SEED}`);
-if (runs > 1 && values.out !== undefined) fail('--out names one chronicle file; with --runs the files are out/chronicle-seed<N>-<years>y.md');
+if (runs > 1 && values.out !== undefined) fail('--out names one chronicle file; with --runs the files are out/chronicle-seed<N>-<years>y[-<bot>].md');
 
 /** The journal goes next to the chronicle: chronicle-seed1-300y.md → journal-seed1-300y.md. */
 function journalPath(chroniclePath: string): string {

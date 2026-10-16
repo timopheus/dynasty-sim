@@ -121,7 +121,7 @@ function eventFeatures(content: Content, event: EventDef, depth: number): Featur
 }
 
 /**
- * What an action brings: its own money per day and the mean risk of the events that happen only during it (their
+ * What an action brings: its own money per 30 days and the mean risk of the events that happen only during it (their
  * `actions` list names it), weighted equally. The events themselves are read as a stranger reads them.
  */
 export function actionFeatures(content: Content, action: ActionDef): Features & { days: number } {

@@ -62,6 +62,7 @@ export function botCommand(state: GameState, content: Content, rng: RngState, ch
     return scoreOf(character, f) + (debt ? f.money : 0);
   };
   const ranked = actions.map((a) => ({ a, s: score(a) })).sort((x, y) => y.s - x.s);
-  return { type: 'start', actionId: pick(rng, ranked.slice(0, Math.max(1, Math.ceil(ranked.length / 2)))).a.id };
+  const cut = (ranked[Math.max(1, Math.ceil(ranked.length / 2)) - 1] as { s: number }).s;
+  // Everything scoring at least as the last one of the better half: equal scores do not depend on the order in content.
+  return { type: 'start', actionId: pick(rng, ranked.filter((r) => r.s >= cut)).a.id };
 }
-

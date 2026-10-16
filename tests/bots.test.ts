@@ -127,7 +127,7 @@ describe('bot characters (D-247, D-319)', () => {
     }
   });
 
-  it('does not repeat one action for a lifetime, and the greedy favours the paid one', () => {
+  it('favours the paid action on the fixture, and does not repeat one action for a lifetime on the real content', () => {
     const state = newGame(1, content);
     const seen = new Set<string>();
     const rng = seedRng(1, 12);

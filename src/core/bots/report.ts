@@ -64,4 +64,3 @@ export function dominant(rows: readonly CharacterRow[]): BotCharacter | null {
   }
   return null;
 }
-
