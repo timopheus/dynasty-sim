@@ -21,7 +21,9 @@ export const RUNS = { years: 300, seed: 1, count: 10 };
 
 export const GATES: Gate[] = [
   { metric: 'violations', label: 'invariant violations (any seed)', stat: 'max', max: 0, mode: 'fail', ref: 'D-203' },
-  { metric: 'saveBytes', label: 'save size, bytes', stat: 'max', max: 2_000_000, mode: 'fail', ref: 'D-113' },
+  // The hot part is rewritten after every command; the whole save (with the archive) only grows the archive (D-312, D-337).
+  { metric: 'hotBytes', label: 'hot part of the save, bytes', stat: 'max', max: 300_000, mode: 'fail', ref: 'D-312, D-337' },
+  { metric: 'saveBytes', label: 'whole save with the archive, bytes', stat: 'max', mode: 'report', ref: 'D-234, D-337' },
   // Fails since stage 3 closed with the median in the corridor (D-205).
   { metric: 'heads.chronicleLinesPerLife.median', label: 'chronicle lines per head life', stat: 'median', min: 25, max: 45, mode: 'fail', ref: 'D-019, D-065, D-205' },
   { metric: 'heads.ageAtDeath.median', label: 'head age at death', stat: 'median', min: 45, max: 55, mode: 'report', ref: 'D-059' },

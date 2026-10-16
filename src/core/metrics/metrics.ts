@@ -5,7 +5,7 @@
  * Wall-clock time is measured by tools/, not here.
  */
 import { allCharacters, allChronicle, anyCharacter } from '../archive/archive';
-import { serialize } from '../save/save';
+import { saveParts, SAVE_VERSION } from '../save/save';
 import type { GameState } from '../state';
 import { ageYears, toYmd } from '../time/calendar';
 
@@ -61,8 +61,12 @@ export interface RunMetrics {
   /** The house came to an end (status `ended`, D-315) and the calendar year it did; null while it goes on. */
   house: { ended: boolean; endYear: number | null };
   money: { currentHead: number; atDeath: Dist };
-  /** Size of the JSON save in UTF-8 bytes. */
+  /** Size of the whole JSON save (hot part and archive, as `serialize` writes it) in UTF-8 bytes. */
   saveBytes: number;
+  /** Size of the hot part of the save, rewritten after every command (D-312), in UTF-8 bytes. */
+  hotBytes: number;
+  /** Size of the chunks of the archive, each written once (D-312), in UTF-8 bytes. */
+  archiveBytes: number;
 }
 
 const DAYS_PER_YEAR_X100 = 36525;
@@ -143,6 +147,11 @@ export function computeMetrics(state: GameState): RunMetrics {
     if (c.deathCause !== null) causes.set(c.deathCause, (causes.get(c.deathCause) ?? 0) + 1);
   }
 
+  const parts = saveParts(state);
+  const hotBytes = utf8Bytes(parts.hot);
+  const archiveBytes = parts.chunks.reduce((sum, text) => sum + utf8Bytes(text), 0);
+  // serialize() wraps the parts: {"version":V,"hot":…,"chunks":[…]} with commas between the chunks.
+  const wrapper = `{"version":${SAVE_VERSION},"hot":,"chunks":[]}`.length + Math.max(0, parts.chunks.length - 1);
   const player = anyCharacter(state, state.playerId);
   const alive = characters.filter((c) => c.deathDay === null).length;
   const ended = state.status === 'ended';
@@ -174,6 +183,8 @@ export function computeMetrics(state: GameState): RunMetrics {
     livingMax: Math.max(state.livingMax, alive),
     house: { ended, endYear: ended ? toYmd(state.day).year : null },
     money: { currentHead: player?.money ?? 0, atDeath: dist(dead.map((d) => d.c.money)) },
-    saveBytes: utf8Bytes(serialize(state)),
+    saveBytes: hotBytes + archiveBytes + wrapper,
+    hotBytes,
+    archiveBytes,
   };
 }

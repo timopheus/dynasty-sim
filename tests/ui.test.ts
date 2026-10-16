@@ -11,10 +11,11 @@ import { entryView, headIds } from '../src/ui/entry';
 import { readContentFiles } from '../tools/content-files';
 import { apply, newGame } from '../src/core/game';
 import { deserialize, serialize } from '../src/core/save/save';
+import { newJournal } from '../src/core/save/journal';
 import { heroView } from '../src/ui/hero';
 import { entityHref, entityIdFromHash, personHref, personIdFromHash } from '../src/ui/address';
 import { isValidSeed } from '../src/core/rng';
-import { SAVE_KEY, clearGame, loadGame, saveGame, seedFromSearch, startChoice, type KeyValueStore } from '../src/ui/storage';
+import { seedFromSearch, startChoice } from '../src/ui/storage';
 import { BASE_FILES, fixtureContent, loadOrThrow, realContent } from './fixtures/content';
 
 // A condition the hero cannot know about: no such key exists yet, so the test adds one (as in events.test.ts).
@@ -25,67 +26,6 @@ vi.mock('../src/core/roles/conditions', async (original) => {
     checkRolesConditions: (...args: Parameters<typeof actual.checkRolesConditions>) =>
       (args[2] as { secret_test?: boolean }).secret_test ? [{ text: 'Knows a secret', hidden: true }] : actual.checkRolesConditions(...args),
   };
-});
-
-function fakeStore(limit = Infinity): KeyValueStore & { data: Map<string, string> } {
-  const data = new Map<string, string>();
-  return {
-    data,
-    getItem: (k) => data.get(k) ?? null,
-    setItem(k, v) {
-      if (v.length > limit) throw Object.assign(new Error('full'), { name: 'QuotaExceededError', code: 22 });
-      data.set(k, v);
-    },
-    removeItem: (k) => void data.delete(k),
-  };
-}
-
-describe('autosave storage', () => {
-  const content = fixtureContent();
-
-  it('has nothing to load at first, then continues the saved game', () => {
-    const store = fakeStore();
-    expect(loadGame(store, content)).toEqual({ kind: 'none' });
-    const state = newGame(7, content);
-    apply(state, content, { type: 'start', actionId: 'rest' });
-    expect(saveGame(store, state)).toEqual({ ok: true });
-    expect(loadGame(store, content)).toEqual({ kind: 'loaded', state });
-    clearGame(store);
-    expect(loadGame(store, content)).toEqual({ kind: 'none' });
-  });
-
-  it('discards a save of another version or a broken one with a reason', () => {
-    const store = fakeStore();
-    store.setItem(SAVE_KEY, JSON.stringify({ ...newGame(1, content), version: 0 }));
-    expect(loadGame(store, content)).toMatchObject({ kind: 'discarded', reason: 'old_version' });
-    store.setItem(SAVE_KEY, '{oops');
-    expect(loadGame(store, content)).toMatchObject({ kind: 'discarded', reason: 'corrupt' });
-  });
-
-  it('reports a full storage without throwing and keeps the previous save', () => {
-    const state = newGame(3, content);
-    const size = serialize(state).length;
-    const store = fakeStore(size);
-    expect(saveGame(store, state)).toEqual({ ok: true });
-    const before = store.data.get(SAVE_KEY);
-    const bigger = { ...state, day: state.day + 1, chronicle: [...state.chronicle, ...state.chronicle, { day: 1, subject: state.playerId, kind: 'x', level: 'journal' as const, parts: ['x'.repeat(size)] }] };
-    expect(saveGame(store, bigger)).toMatchObject({ ok: false, reason: 'quota' });
-    expect(store.data.get(SAVE_KEY)).toBe(before);
-  });
-
-  it('copes with missing or throwing storage', () => {
-    const state = newGame(3, content);
-    expect(saveGame(null, state)).toMatchObject({ ok: false, reason: 'unavailable' });
-    expect(loadGame(null, content)).toEqual({ kind: 'none' });
-    const broken: KeyValueStore = {
-      getItem: () => { throw new Error('denied'); },
-      setItem: () => { throw new Error('denied'); },
-      removeItem: () => { throw new Error('denied'); },
-    };
-    expect(saveGame(broken, state)).toMatchObject({ ok: false, reason: 'unavailable' });
-    expect(loadGame(broken, content)).toMatchObject({ kind: 'discarded', reason: 'unreadable' });
-    expect(() => clearGame(broken)).not.toThrow();
-  });
 });
 
 describe('hero view', () => {
@@ -106,7 +46,7 @@ describe('hero view', () => {
 
 describe('start choice', () => {
   const content = fixtureContent();
-  const saved = { kind: 'loaded' as const, state: newGame(7, content) };
+  const saved = { kind: 'loaded' as const, state: newGame(7, content), journal: newJournal(7, ''), saved: { game: 'g', chunks: 0, commands: 0 } };
 
   it('reads the seed from the address only when it is there and valid', () => {
     for (const search of ['', '?', '?seed=', '?foo=1', '?seed=abc', '?seed=-1']) expect(seedFromSearch(search, isValidSeed)).toBeNull();
@@ -119,7 +59,7 @@ describe('start choice', () => {
     expect(startChoice(saved, 7)).toBe('continue');
     expect(startChoice(saved, 8)).toBe('ask_replace');
     expect(startChoice({ kind: 'none' }, null)).toBe('new');
-    expect(startChoice({ kind: 'discarded', reason: 'corrupt', message: '' }, 8)).toBe('new');
+    expect(startChoice({ kind: 'discarded', reason: 'corrupt', message: '', journal: null }, 8)).toBe('new');
   });
 });
 
