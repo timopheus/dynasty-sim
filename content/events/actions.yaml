@@ -90,7 +90,6 @@ events:
         failure:
           effects: { money: -20, wound: light_wound }
           result: "{name} was caught with smuggled brandy, beaten and fined."
-          chronicle: true
           mood: pain
       - text: Refuse and ride on
         result: "{name} refused to carry brandy for {smuggler}."
@@ -98,7 +97,6 @@ events:
         effects: { money: 10, traits: { add: [traitor] } }
         on: { smuggler: { opinion: [{ toward: hero, reason: betrayed }] } }
         result: "{name} informed on {smuggler} to the revenue men for a reward."
-        chronicle: true
         mood: shame
 
   # --- Contract service -----------------------------------------------------------------------------------------
@@ -198,7 +196,6 @@ events:
         effects: { money: -10, traits: { add: [coward] } }
         on: { employer: { opinion: [{ toward: hero, reason: wronged }] } }
         result: "{name} fled a bandit ambush with {coward}, leaving {employer}'s wine to the robbers."
-        chronicle: true
         mood: shame
     pages:
       shamed:
@@ -279,12 +276,10 @@ events:
         success:
           effects: { money: 20, relation: [{ start: friend, with: ringleader }] }
           result: "{name} sided with {ringleader} in a mutiny over pay, and the back wages were paid."
-          chronicle: true
           mood: triumph
         failure:
           effects: { money: -15 }
           result: "{name} was flogged as a mutineer when a pay mutiny failed."
-          chronicle: true
           mood: shame
       - text: Draw your sword on the mob
         when: { traits_any: [brave, wrathful] }
@@ -323,7 +318,6 @@ events:
         failure:
           effects: { money: -30, opinion: [{ toward: seller, reason: cheated_me }] }
           result: "{name} bought a cheap cargo of cloth from {seller} that turned out to be rotten."
-          chronicle: true
           mood: shame
       - text: Refuse
         result: "{name} refused a suspiciously cheap cargo of cloth from {seller}."
@@ -452,7 +446,6 @@ events:
         failure:
           effects: { wound: severe_wound, money: 10 }
           result: "{name} killed a charging boar but was gored."
-          chronicle: true
           mood: pain
       - text: Climb a tree
         result: "{name} waited out a wild boar from the branches of a tree."

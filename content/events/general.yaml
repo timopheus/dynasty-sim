@@ -4,7 +4,7 @@
 # outcomes that are not neutral (D-177).
 events:
   - id: fever
-    weight: 10
+    weight: 5
     mood: pain
     roles:
       physician:
@@ -17,12 +17,17 @@ events:
     text: "The shivering began last night, and this morning you cannot stand. The fever has taken hold."
     options:
       - text: "{physician?Send for {physician}}"
-        # Hidden while no physician is known: the condition names the role, which is empty (D-221).
-        when: { opinion: { toward: physician, min: -100 } }
-        effects: { money: -10 }
-        on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
-        result: "{name} paid {physician?{physician}, a physician,} and got over a fever."
-        mood: joy
+        # Hidden while no physician is known: the check names the role, which is empty (D-193).
+        check: { stat: learning, of: physician, difficulty: 2 }
+        success:
+          effects: { money: -10 }
+          on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
+          result: "{name} paid {physician?{physician}, a physician,} and got over a fever."
+          mood: joy
+        failure:
+          effects: { money: -10, disease: fever }
+          result: "{name} paid {physician?{physician}, a physician,} in vain: the fever ran its course for weeks."
+          mood: pain
       - text: Buy a remedy from a travelling quack
         effects: { money: -4 }
         result: "{name} bought a quack's remedy and got over a fever, more by luck than by the physic."
@@ -225,7 +230,6 @@ events:
         effects: { traits: { add: [coward] } }
         on: { rival: { opinion: [{ toward: hero, reason: no_spine }] } }
         result: "{name} refused to face {rival} at dawn and went home in shame."
-        chronicle: true
         mood: shame
 
   - id: lend_to_a_comrade
@@ -257,25 +261,46 @@ events:
     roles:
       debtor: { pick: given }
     mood: joy
-    text: "{debtor} finds you with a heavy purse: the 25 crowns, and something over for your patience."
+    text: "{debtor} finds you with a purse in hand: the 25 crowns, if the season has been kind enough to {debtor.him}."
     options:
-      - text: Take it with thanks
-        effects:
-          money: 30
-          opinion_end: [{ toward: debtor, reason: debt_repaid }]
-        on: { debtor: { money: -30 } }
-        result: "{name} was repaid in full, with interest, by {debtor}."
-        chronicle: true
-        mood: joy
+      - text: Ask for the 25 crowns with something over for your patience
+        # Repaying takes a head for money (the debtor's Stewardship, D-193): not everyone can.
+        check: { stat: stewardship, of: debtor, difficulty: 7 }
+        success:
+          effects:
+            money: 30
+            opinion_end: [{ toward: debtor, reason: debt_repaid }]
+          on: { debtor: { money: -30 } }
+          result: "{name} was repaid in full, with interest, by {debtor}."
+          chronicle: true
+          mood: joy
+        failure:
+          effects:
+            money: 8
+            opinion_end: [{ toward: debtor, reason: debt_repaid }]
+            opinion: [{ toward: debtor, reason: wronged }]
+          on: { debtor: { money: -8 } }
+          result: "{name} got back only 8 of the 25 crowns lent to {debtor} and let the rest go."
+          chronicle: true
+          mood: shame
       - text: Take the 25 and wave the rest away
-        effects:
-          money: 25
-          opinion_end: [{ toward: debtor, reason: debt_repaid }]
-          relation: [{ start: friend, with: debtor }]
-        on: { debtor: { money: -25, opinion: [{ toward: hero, reason: stood_by_me }] } }
-        result: "{name} took back the loan from {debtor} and waved the interest away."
-        chronicle: true
-        mood: joy
+        check: { stat: stewardship, of: debtor, difficulty: 4 }
+        success:
+          effects:
+            money: 25
+            opinion_end: [{ toward: debtor, reason: debt_repaid }]
+            relation: [{ start: friend, with: debtor }]
+          on: { debtor: { money: -25, opinion: [{ toward: hero, reason: stood_by_me }] } }
+          result: "{name} took back the loan from {debtor} and waved the interest away."
+          mood: joy
+        failure:
+          effects:
+            money: 8
+            opinion_end: [{ toward: debtor, reason: debt_repaid }]
+          on: { debtor: { money: -8, opinion: [{ toward: hero, reason: stood_by_me }] } }
+          result: "{name} took the 8 crowns {debtor} could spare and forgave the rest."
+          chronicle: true
+          mood: neutral
 
   - id: debtor_defaults
     story: debt_owed
@@ -303,7 +328,6 @@ events:
           effects: { opinion_end: [{ toward: debtor, reason: debt_repaid }], opinion: [{ toward: debtor, reason: wronged }] }
           on: { debtor: { opinion: [{ toward: hero, reason: insulted_in_public }] } }
           result: "{name} hunted {debtor} for a debt and came back with nothing but an enemy."
-          chronicle: true
           mood: shame
 
   - id: priest_alms

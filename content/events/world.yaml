@@ -67,9 +67,15 @@ events:
     options:
       - text: Send for a physician
         ai: { base: 6, traits: { diligent: 3, trusting: 3, craven: 3, greedy: -3 } }
-        effects: { money: -10 }
-        result: "{name} paid for a physician{physician?, {physician},} and got over a fever."
-        mood: joy
+        check: { stat: learning, of: physician, difficulty: 2 }
+        success:
+          effects: { money: -10 }
+          result: "{name} paid for a physician{physician?, {physician},} and got over a fever."
+          mood: joy
+        failure:
+          effects: { money: -10, disease: fever }
+          result: "{name} paid for a physician{physician?, {physician},} in vain: the fever ran its course for weeks."
+          mood: pain
       - text: Sweat it out
         ai: { base: 8, traits: { brave: 3, content: 3, suspicious: 2 } }
         effects: { disease: fever }
