@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { botCommand } from '../src/core/bot';
 import { mortalityRow } from '../src/core/health/mortality';
 import { createCharacter, kill } from '../src/core/lifecycle';
@@ -7,22 +7,12 @@ import { checkInvariants } from '../src/core/invariants';
 import { getPlayer } from '../src/core/helpers';
 import { seedRng } from '../src/core/rng';
 import { deserialize, serialize } from '../src/core/save/save';
-import type { Character, Ctx, DayPhase, GameState } from '../src/core/state';
+import type { Character, Ctx, GameState } from '../src/core/state';
 import { fromYmd, START_YEAR } from '../src/core/time/calendar';
 import { detailedCharacters } from '../src/core/world/world';
 import { worldPhase } from '../src/core/world/phases';
 import { BASE_FILES, loadOrThrow } from './fixtures/content';
 import { readContentFiles } from '../tools/content-files';
-
-/**
- * game.ts still imports the placeholder `worldPhase` from world/world.ts; the working phase is in
- * world/phases.ts (it needs lifecycle.ts). Until the lead session of the stage points game.ts at
- * phases.ts, the tests swap the phase in; afterwards this is a no-op and can be deleted.
- */
-beforeAll(() => {
-  const phases = DAY_PHASES as DayPhase[];
-  phases[phases.findIndex((p) => p.id === 'world')] = worldPhase;
-});
 
 const content = loadOrThrow([...BASE_FILES, ...readContentFiles('tests/fixtures/population')]);
 const pop = content.population ?? fail('fixture has no population');
@@ -45,6 +35,12 @@ function play(state: GameState, years: number, seed = 1): void {
     expect(state.circle.length).toBeLessThanOrEqual(pop.circle.max);
   }
 }
+
+describe('day phases', () => {
+  it('run the working world phase from world/phases.ts', () => {
+    expect(DAY_PHASES).toContain(worldPhase);
+  });
+});
 
 describe('the circle', () => {
   it('is empty at the start and filled to its lower bound on the first day', () => {

@@ -13,7 +13,7 @@ import { relationsPhase } from './relations/relations';
 import { isValidSeed, pick } from './rng';
 import { initialState, type Ctx, type DayPhase, type GameState } from './state';
 import { newDayPhase, scheduledPhase } from './time/time';
-import { worldPhase } from './world/world';
+import { worldPhase } from './world/phases';
 
 export type Command = { type: 'start'; actionId: string } | { type: 'choose'; option: number };
 
