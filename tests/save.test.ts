@@ -2,10 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { botCommand } from '../src/core/bot';
 import { apply, newGame } from '../src/core/game';
 import { decodeCompact, encodeCompact } from '../src/core/save/compact';
-import { SAVE_VERSION, deserialize, jsonProblems, readSave, serialize } from '../src/core/save/save';
+import { SAVE_VERSION, deserialize, jsonProblems, readSave, readSaveParts, saveParts, savedContentVersion, serialize } from '../src/core/save/save';
+import { contentVersion } from '../src/core/save/content-version';
+import { applyRecorded, newJournal, readJournal, replay } from '../src/core/save/journal';
+import { runSim } from '../src/core/sim';
+import type { Content } from '../src/core/content/schema';
 import { seedRng } from '../src/core/rng';
 import { fromYmd, START_YEAR } from '../src/core/time/calendar';
-import { fixtureContent, fixtureNarrator, realContent } from './fixtures/content';
+import { BASE_FILES, fixtureContent, fixtureNarrator, realContent } from './fixtures/content';
 
 describe('saves', () => {
   it('continues identically after a JSON save and load mid-game', () => {
@@ -60,6 +64,8 @@ describe('saves', () => {
       steps += 1;
     }
     expect(steps).toBeGreaterThan(100);
+    // From the eleventh year on the archive phase makes a chunk a year (D-312): they survive too.
+    expect(straight.archive.length).toBeGreaterThan(5);
     // ~3 s alone, more under the load of the whole suite: the default 5 s is too tight.
   }, 30_000);
 
@@ -116,5 +122,84 @@ describe('saves', () => {
     const loaded = deserialize(serialize(state), content);
     expect(JSON.stringify(loaded)).toBe(JSON.stringify(state));
     expect(serialize(state).length).toBeLessThan(JSON.stringify(state).length);
+  });
+});
+
+describe('hot part and archive in the save (D-312, D-336)', () => {
+  const content = realContent();
+  const { state } = runSim(content, { seed: 7, years: 30 });
+
+  it('keeps the chunks apart from the hot part, and reads them back as one state', () => {
+    expect(state.archive.length).toBeGreaterThan(10);
+    const parts = saveParts(state, 'v1');
+    expect(parts.chunks).toHaveLength(state.archive.length);
+    expect(JSON.parse(parts.hot)).toMatchObject({ version: SAVE_VERSION, content: 'v1', archive: state.archive.length });
+    // Nobody archived is in the hot part.
+    for (const c of state.archive.flatMap((chunk) => chunk.characters)) expect(parts.hot).not.toContain(`"${c.id}"`);
+    expect(readSaveParts(parts, content, 'v1')).toEqual({ ok: true, state });
+    expect(readSave(serialize(state, 'v1'), content, 'v1')).toEqual({ ok: true, state });
+    expect(savedContentVersion(parts.hot)).toBe('v1');
+    expect(savedContentVersion(serialize(state, 'v1'))).toBe('v1');
+  });
+
+  it('refuses a chunk missing, out of place or of another format', () => {
+    const parts = saveParts(state, 'v1');
+    expect(readSaveParts({ ...parts, chunks: parts.chunks.slice(1) }, content)).toMatchObject({ ok: false, reason: 'corrupt' });
+    const swapped = [parts.chunks[1] as string, parts.chunks[0] as string, ...parts.chunks.slice(2)];
+    expect(readSaveParts({ ...parts, chunks: swapped }, content)).toMatchObject({ ok: false, reason: 'corrupt', message: /chunk 0/ });
+    const old = parts.chunks.map((c, i) => (i === 3 ? c.replace(`"version":${SAVE_VERSION}`, '"version":1') : c));
+    expect(readSaveParts({ ...parts, chunks: old }, content)).toMatchObject({ ok: false, reason: 'corrupt' });
+    expect(readSaveParts({ ...parts, hot: parts.hot.replace(`"version":${SAVE_VERSION}`, '"version":1') }, content)).toMatchObject({ ok: false, reason: 'old_version' });
+    expect(readSaveParts({ hot: '{', chunks: [] }, content)).toMatchObject({ ok: false, reason: 'corrupt' });
+  });
+
+  it('a save that no longer fits a changed content is content_changed, on the same content corrupt (D-202)', () => {
+    // An id gone from the content: a trait someone in the archive holds.
+    const held = new Set(state.archive.flatMap((c) => c.characters.flatMap((p) => p.traits)));
+    const trait = [...held][0] as string;
+    const gone: Content = { ...content, traits: content.traits.filter((t) => t.id !== trait) };
+    const json = serialize(state, 'v1');
+    expect(readSave(json, gone, 'v2')).toMatchObject({ ok: false, reason: 'content_changed', message: new RegExp(trait) });
+    expect(readSave(json, gone, 'v1')).toMatchObject({ ok: false, reason: 'corrupt' });
+    expect(readSave(json, gone)).toMatchObject({ ok: false, reason: 'corrupt' });
+    // Another version of a content the save still fits: it loads.
+    expect(readSave(json, content, 'v2')).toEqual({ ok: true, state });
+  });
+});
+
+describe('content version and journal of commands (D-202, D-338)', () => {
+  it('the content version is a pure hash of paths and texts', () => {
+    const v = contentVersion(BASE_FILES);
+    expect(v).toMatch(/^[0-9a-f]{16}$/);
+    expect(contentVersion(BASE_FILES)).toBe(v);
+    const [first, ...rest] = BASE_FILES;
+    if (!first) throw new Error('no files');
+    expect(contentVersion([{ ...first, text: first.text + ' ' }, ...rest])).not.toBe(v);
+    expect(contentVersion([{ ...first, path: first.path + 'x' }, ...rest])).not.toBe(v);
+    expect(contentVersion([{ path: 'ab', text: 'c' }])).not.toBe(contentVersion([{ path: 'a', text: 'bc' }]));
+  });
+
+  it('replays a recorded game into the same state', () => {
+    const content = realContent();
+    const state = newGame(12, content);
+    const journal = newJournal(12, 'v1');
+    const bot = seedRng(12, 1);
+    while (state.day < fromYmd(START_YEAR + 25, 1, 1)) applyRecorded(journal, state, content, botCommand(state, content, bot));
+    expect(state.archive.length).toBeGreaterThan(0);
+    const read = readJournal(JSON.stringify(journal));
+    if (!read.ok) throw new Error(read.message);
+    expect(replay(content, read.journal)).toEqual(state);
+  }, 30_000);
+
+  it('a refused command is not recorded; a broken journal is refused with a reason', () => {
+    const content = fixtureContent();
+    const state = newGame(1, content);
+    const journal = newJournal(1, '');
+    expect(() => applyRecorded(journal, state, content, { type: 'start', actionId: 'no_such_action' })).toThrow();
+    expect(journal.commands).toEqual([]);
+    expect(() => replay(content, { ...journal, commands: [{ type: 'choose', option: 5 }] })).toThrow(/Command 1 \(choose\)/);
+    expect(readJournal('{')).toMatchObject({ ok: false });
+    expect(readJournal(JSON.stringify({ ...journal, journal: 99 }))).toMatchObject({ ok: false });
+    expect(readJournal(JSON.stringify({ ...journal, commands: [{ type: 'fly' }] }))).toMatchObject({ ok: false, message: /Command 1/ });
   });
 });

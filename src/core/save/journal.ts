@@ -43,14 +43,21 @@ export function replay(content: Content, journal: Journal): GameState {
 
 const COMMAND_TYPES: readonly string[] = ['start', 'choose', 'end', 'will', 'propose'];
 
+export type JournalResult = { ok: true; journal: Journal } | { ok: false; message: string };
+
 /** Reads a journal from JSON; an error message instead of throwing. Commands are checked for their type only. */
-export function readJournal(json: string): { ok: true; journal: Journal } | { ok: false; message: string } {
+export function readJournal(json: string): JournalResult {
   let data: unknown;
   try {
     data = JSON.parse(json);
   } catch {
     return { ok: false, message: 'The journal is not valid JSON' };
   }
+  return journalFromData(data);
+}
+
+/** The same for data already parsed. */
+export function journalFromData(data: unknown): JournalResult {
   const j = data as Partial<Journal> | null;
   if (typeof j !== 'object' || j === null || j.journal !== JOURNAL_VERSION) return { ok: false, message: `Not a journal of format ${JOURNAL_VERSION}` };
   if (typeof j.seed !== 'number' || typeof j.content !== 'string' || !Array.isArray(j.commands)) return { ok: false, message: 'The journal has no seed, content or commands' };

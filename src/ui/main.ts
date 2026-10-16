@@ -1,7 +1,10 @@
+import { allChronicle } from '../core/archive/archive';
 import { entryText, type ChronicleEntry } from '../core/chronicle/log';
 import { loadContent } from '../core/content/load';
 import type { Content } from '../core/content/schema';
-import { apply, newGame, type Command } from '../core/game';
+import { newGame, type Command } from '../core/game';
+import { contentVersion } from '../core/save/content-version';
+import { applyRecorded, newJournal, type Journal } from '../core/save/journal';
 import { isValidSeed } from '../core/rng';
 import type { GameState } from '../core/state';
 import { formatDate } from '../core/time/calendar';
@@ -13,7 +16,7 @@ import { actionRows, eventScreen } from './event';
 import { actionControl, eventPageKey, chronicleAnnouncement, eventAnnouncement, numbersToggle, optionControl, pickableAt, shortcutPosition, withNumber, type Control } from './access';
 import { headIds } from './entry';
 import { entryItem, partNodes, pageView } from './page';
-import { clearGame, loadGame, saveGame, seedFromSearch, startChoice, type KeyValueStore } from './storage';
+import { dropOldSave, loadGame, openIndexedDb, saveGame, seedFromSearch, startChoice, startGame, type AsyncStore, type Saved, type SaveOutcome } from './storage';
 import './style.css';
 
 const CHRONICLE_LIMIT = 60;
@@ -37,12 +40,24 @@ function pickSeed(): number {
   return seedFromSearch(location.search, isValidSeed) ?? (crypto.getRandomValues(new Uint32Array(1))[0] ?? 1);
 }
 
-/** `localStorage`, or null where even touching it throws (privacy modes, blocked storage). */
-export function browserStore(): KeyValueStore | null {
+/** IndexedDB, or null where it is missing or refused (privacy modes, blocked storage). Asks to keep it (D-234). */
+async function browserStore(): Promise<AsyncStore | null> {
   try {
-    return window.localStorage;
+    const store = await openIndexedDb(window.indexedDB);
+    // Not awaited: the answer does not change how the game saves, only whether the browser may clear it.
+    navigator.storage?.persist?.().catch(() => false);
+    return store;
   } catch {
     return null;
+  }
+}
+
+/** The old autosave cell of `localStorage` (D-140) goes away. */
+function dropLocalStorageSave(): void {
+  try {
+    dropOldSave(window.localStorage);
+  } catch {
+    // localStorage itself may throw in privacy modes.
   }
 }
 
@@ -51,7 +66,16 @@ type Tab = 'chronicle' | 'journal';
 interface Session {
   state: GameState;
   content: Content;
-  store: KeyValueStore | null;
+  /** contentVersion() of the files the game runs on (D-202). */
+  contentVersion: string;
+  store: AsyncStore | null;
+  /** Journal of commands of this game (D-202) and how much of it and of the archive the store holds. */
+  journal: Journal;
+  saved: Saved;
+  /** A command is being applied and saved: the next waits for the write (D-234). */
+  busy: boolean;
+  /** A journal to offer for download: of the game that could not be continued (D-202). */
+  lostJournal: Journal | null;
   /** Shown above the hero: why a game was discarded, or that saving failed. */
   notice: string | null;
   saveProblem: string | null;
@@ -70,16 +94,28 @@ interface Session {
   refocus: string | null;
 }
 
-function saveProblemText(reason: 'quota' | 'unavailable'): string {
-  return reason === 'quota'
+function saveProblemText(outcome: SaveOutcome): string | null {
+  if (outcome.ok) return null;
+  if (outcome.reason === 'conflict') return 'This game was saved from another tab, so this tab no longer saves. Reload to continue from the latest save.';
+  return outcome.reason === 'quota'
     ? 'Autosave failed: browser storage is full. The game goes on, but progress since the last successful save will be lost if you reload. Starting a new game frees the space.'
     : 'Autosave is not available in this browser. The game goes on, but it will not survive a reload.';
 }
 
+/** Offers a journal of commands as a file (D-202): to send with a report or to replay (`npm run replay`). */
+function downloadJournal(journal: Journal): void {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(journal)], { type: 'application/json' }));
+  const link = el('a', { href: url, download: `dynasty-journal-seed${journal.seed}.json` });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 /** Own lines lose the subject in the chronicle only; the journal mixes people, so names stay (D-162). */
-function entriesList(state: GameState, entries: ChronicleEntry[], ownLines: boolean): HTMLElement {
+function entriesList(state: GameState, entries: readonly ChronicleEntry[], ownLines: boolean): HTMLElement {
   const recent = entries.slice(-CHRONICLE_LIMIT).reverse();
-  const heads = headIds(state.chronicle);
+  const heads = headIds(allChronicle(state));
   return el('ul', { className: 'chronicle' }, ...recent.map((e) => entryItem(el, e, ownLines ? state.playerId : null, heads)));
 }
 
@@ -130,20 +166,25 @@ function render(session: Session): void {
     // pages of other kinds are drawn by 4.2; until then they read as "nobody by that name"
     const found = entityPage({ state, content }, pageId);
     const page = found?.type === 'person' ? found.page : null;
-    app?.replaceChildren(numbersButton(session), pageView(el, page, headIds(state.chronicle), session.showNumbers, (cmd) => act(session, cmd)));
+    app?.replaceChildren(numbersButton(session), pageView(el, page, headIds(allChronicle(state)), session.showNumbers, (cmd) => act(session, cmd)));
     if (session.refocus) app?.querySelector<HTMLElement>(`[data-focus="${session.refocus}"]`)?.focus();
     else window.scrollTo(0, 0);
     session.refocus = null;
     return;
   }
 
-  if (session.notice) parts.push(el('p', { className: 'notice' }, session.notice));
+  if (session.notice) {
+    const lost = session.lostJournal;
+    parts.push(el('p', { className: 'notice' }, session.notice,
+      lost ? el('button', { className: 'link', type: 'button', onclick: () => downloadJournal(lost) }, 'Download the journal of that game') : ''));
+  }
   if (session.saveProblem) parts.push(el('p', { className: 'notice warn', role: 'alert' }, session.saveProblem));
 
   parts.push(
     el('h1', {}, `House of ${hero.surname}`),
     el('div', { className: 'meta bar' }, el('span', {}, `${formatDate(state.day)} · seed ${state.seed}`),
-      el('button', { className: 'link', type: 'button', onclick: () => newGameWithConfirm(session) }, 'New game'), numbersButton(session)),
+      el('button', { className: 'link', type: 'button', onclick: () => newGameWithConfirm(session) }, 'New game'),
+      el('button', { className: 'link', type: 'button', onclick: () => downloadJournal(session.journal) }, 'Journal'), numbersButton(session)),
     el('section', { className: 'hero' },
       el('h2', {}, el('a', { href: personHref(player.id), className: 'person' }, hero.name)),
       el('p', {}, `${hero.sex === 'male' ? 'Man' : 'Woman'}, aged ${hero.age}${hero.fame ? `, ${hero.fame}` : ''}. Money ${hero.money}.`),
@@ -188,7 +229,7 @@ function render(session: Session): void {
   const level = session.tab === 'chronicle' ? 'chronicle' : 'journal';
   parts.push(
     el('div', { className: 'tabs' }, withPressed(keyed(tabButton('chronicle', 'Chronicle'), 'chronicle')), withPressed(keyed(tabButton('journal', 'Journal'), 'journal'))),
-    entriesList(state, state.chronicle.filter((e) => e.level === level), level === 'chronicle'),
+    entriesList(state, allChronicle(state).filter((e) => e.level === level), level === 'chronicle'),
   );
   app?.replaceChildren(...parts);
   announce(session.queue.splice(0).filter(Boolean).join(' '));
@@ -202,32 +243,79 @@ function render(session: Session): void {
   }
 }
 
-/** Applies a command, then autosaves (D-016): one save after every command. */
-function act(session: Session, cmd: Command): void {
-  const seen = session.state.chronicle.length;
-  apply(session.state, session.content, cmd);
-  session.focusAfterRender = true;
-  // new chronicle lines go to the live region first, the event page follows in render()
-  const lines = session.state.chronicle.slice(seen).filter((e) => e.level === 'chronicle').map(entryText);
-  session.queue.push(chronicleAnnouncement(lines));
-  const outcome = saveGame(session.store, session.state);
-  session.saveProblem = outcome.ok ? null : saveProblemText(outcome.reason);
-  render(session);
+/**
+ * Applies a command, then autosaves (D-016): one save after every command. The screen changes only once the write is
+ * done, and no command is taken meanwhile (D-234): a reload never shows a choice that was not saved.
+ */
+async function act(session: Session, cmd: Command): Promise<void> {
+  if (session.busy) return;
+  session.busy = true;
+  try {
+    // the archive phase moves old lines out of the hot part: count over the whole chronicle
+    const seen = allChronicle(session.state).length;
+    applyRecorded(session.journal, session.state, session.content, cmd);
+    session.focusAfterRender = true;
+    // new chronicle lines go to the live region first, the event page follows in render()
+    const lines = allChronicle(session.state).slice(seen).filter((e) => e.level === 'chronicle').map(entryText);
+    session.queue.push(chronicleAnnouncement(lines));
+    session.saveProblem = saveProblemText(await saveGame(session.store, session.state, session.journal, session.saved, session.contentVersion));
+    render(session);
+  } finally {
+    session.busy = false;
+  }
 }
 
-function startSession(session: Session, seed: number): void {
+async function startSession(session: Session, seed: number): Promise<void> {
   session.state = newGame(seed, session.content);
-  const outcome = saveGame(session.store, session.state);
-  session.saveProblem = outcome.ok ? null : saveProblemText(outcome.reason);
+  session.journal = newJournal(seed, session.contentVersion);
+  const started = await startGame(session.store, session.state, session.journal, session.contentVersion);
+  session.saved = started.saved;
+  session.saveProblem = saveProblemText(started.outcome);
   render(session);
 }
 
-function newGameWithConfirm(session: Session): void {
-  if (!confirm('Start a new game? The current dynasty will be lost for good.')) return;
-  clearGame(session.store);
-  history.replaceState(null, '', location.pathname);
-  session.notice = null;
-  startSession(session, pickSeed());
+async function newGameWithConfirm(session: Session): Promise<void> {
+  if (session.busy || !confirm('Start a new game? The current dynasty will be lost for good.')) return;
+  session.busy = true;
+  try {
+    history.replaceState(null, '', location.pathname);
+    session.notice = null;
+    session.lostJournal = null;
+    await startSession(session, pickSeed());
+  } finally {
+    session.busy = false;
+  }
+}
+
+const DISCARDED: Record<string, string> = {
+  old_version: 'Your saved game is from another version of the game and cannot be continued. A new game has begun.',
+  content_changed: "The game's content has changed and your saved game no longer fits it. A new game has begun.",
+};
+
+async function boot(content: Content, version: string): Promise<void> {
+  dropLocalStorageSave();
+  const store = await browserStore();
+  const outcome = await loadGame(store, content, version);
+  const requested = seedFromSearch(location.search, isValidSeed);
+  const choice = startChoice(outcome, requested);
+  const loadedGame = outcome.kind === 'loaded' ? outcome : null;
+  const state = loadedGame?.state ?? newGame(pickSeed(), content);
+  const session: Session = {
+    state, content, contentVersion: version, store,
+    journal: loadedGame?.journal ?? newJournal(state.seed, version), saved: loadedGame?.saved ?? { chunks: 0, commands: 0 }, busy: false, lostJournal: null,
+    notice: null, saveProblem: null, tab: 'chronicle', showNumbers: false, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null,
+  };
+  current = session;
+  if (choice === 'continue' || (choice === 'ask_replace' && !confirm(`The address asks for seed ${String(requested)}, which replaces your saved dynasty. Replace it?`))) {
+    if (choice === 'ask_replace') history.replaceState(null, '', location.pathname);
+    render(session);
+  } else {
+    if (outcome.kind === 'discarded') {
+      session.notice = DISCARDED[outcome.reason] ?? 'Your saved game could not be read. A new game has begun.';
+      session.lostJournal = outcome.journal;
+    }
+    await startSession(session, requested ?? pickSeed());
+  }
 }
 
 const loaded = loadContent(files);
@@ -239,24 +327,7 @@ if (!loaded.ok) {
     el('pre', { className: 'errors' }, loaded.errors.map((e) => `${e.file}: ${e.path}: ${e.message}`).join('\n')),
   );
 } else {
-  const { content } = loaded;
-  const store = browserStore();
-  const outcome = loadGame(store, content);
-  const requested = seedFromSearch(location.search, isValidSeed);
-  const choice = startChoice(outcome, requested);
-  const session: Session = { state: outcome.kind === 'loaded' ? outcome.state : newGame(pickSeed(), content), content, store, notice: null, saveProblem: null, tab: 'chronicle', showNumbers: false, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null };
-  current = session;
-  if (choice === 'continue' || (choice === 'ask_replace' && !confirm(`The address asks for seed ${String(requested)}, which replaces your saved dynasty. Replace it?`))) {
-    if (choice === 'ask_replace') history.replaceState(null, '', location.pathname);
-    render(session);
-  } else {
-    if (outcome.kind === 'discarded') {
-      session.notice = outcome.reason === 'old_version'
-        ? 'Your saved game is from another version of the game and cannot be continued. A new game has begun.'
-        : 'Your saved game could not be read. A new game has begun.';
-    }
-    startSession(session, requested ?? pickSeed());
-  }
+  void boot(loaded.content, contentVersion(files));
 }
 
 window.addEventListener('keydown', (e) => {
@@ -267,5 +338,5 @@ window.addEventListener('keydown', (e) => {
   const command = picked === null ? null : current.keymap[picked];
   if (!command) return;
   e.preventDefault();
-  act(current, command);
+  void act(current, command);
 });
