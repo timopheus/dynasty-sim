@@ -35,8 +35,9 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   chronicle/       log() — единственная запись в хронику, markdown (2.6)
   save/            serialize/deserialize, версия формата (2.8)
   metrics/         computeMetrics(state) — метрики прогона (2.7), сводка и сравнение
+  pages/           personPage — страница человека с учётом видимости (2.10)
   text/            шаблоны: части текста и ссылки
-src/ui/            браузерный интерфейс (main.ts, style.css)
+src/ui/            браузерный интерфейс: main.ts, hero.ts (экран героя), page.ts (страницы людей), address.ts (адреса #/person/<id>), storage.ts (автосохранение в localStorage), style.css
 content/           игровой контент в YAML, тексты на английском
 map/               исходники карты из Azgaar (region.map/json/svg, D-025); как править — docs/map-guide.md
 tools/             validate.ts, sim.ts, content-files.ts (чтение content/ с диска)
@@ -48,11 +49,11 @@ docs/              GDD, ROADMAP, DECISIONS, STATUS, CHANGELOG (по-русски
 ## Команды
 ```
 npm ci                                  # первым делом в новой сессии
-npm run dev                             # игра в браузере; ?seed=N фиксирует seed
+npm run dev                             # игра в браузере; продолжает автосохранение; ?seed=N с другим seed — новая партия после подтверждения (D-140)
 npm run typecheck                       # tsc для core, ui и tools+tests
 npm test                                # vitest
 npm run validate                        # проверка контента по схеме
-npm run sim -- --years 300 --seed 42    # прогон; хроника в out/chronicle-seed42-300y.md, метрики в конце
+npm run sim -- --years 300 --seed 42    # прогон; хроника в out/chronicle-seed42-300y.md, журнал в out/journal-seed42-300y.md, метрики в конце
 npm run sim -- --years 300 --seed 1 --runs 10          # seeds 1..10, метрики: min / медиана / max
 npm run -s sim -- --years 300 --seed 1 --runs 10 --json > a.json   # то же в JSON; -s нужен, иначе npm пишет заголовок в файл
 npm run -s sim -- --compare a.json b.json # медианы двух файлов рядом, только изменившиеся
@@ -69,7 +70,7 @@ CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck,
 - Обходить массивы контента, а не ключи объектов.
 - Состояние меняет только `apply(state, content, command)`. Функции-запросы (`availableActions`, `pendingEventDef`) случайность не тратят.
 - Новое правило согласованности — в инварианты своего модуля (они собраны в `invariants.ts`): ими пользуются прогон и тесты.
-- Хроника пишется только через `log(ctx, {subject, kind, level, template, money?})` из `chronicle/log.ts` (D-057, D-064). Запись хранит части текста: строки и ссылки `{id, name}`; `money` — изменение денег субъекта для отбора, в записи не хранится.
+- Хроника пишется только через `log(ctx, {subject, kind, level, template, money?, mark?})` из `chronicle/log.ts` (D-057, D-064, D-130). Отбор — при записи, итоговый уровень в `entry.level`; строку о человеке вне героя и окружения `log` не хранит и возвращает `null`. Запись хранит части текста: строки и ссылки `{id, name}`; `money` — изменение денег субъекта для отбора (в записи не хранится), `mark` — выбор игрока со значком ▸.
 - id сущностей — `newId(state, prefix)`; сущности не удаляются.
 
 ## Владение файлами (D-052, D-060)
@@ -81,7 +82,7 @@ CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck,
 - У модулей следующих задач уже заведены пустые точки: часть состояния и персонажа, хуки создания и смерти, фаза, ключи эффектов и условий, верхний ключ контента со схемой и перекрёстной проверкой, инварианты. Задача заполняет их в своей папке.
 
 ## Контент (content/)
-- Любой `*.yaml` в `content/` — объект с верхними ключами модулей (`SINGLE_KEYS`, `OPTIONAL_KEYS`, `LIST_KEYS` в `content/schema.ts`): одиночные `settings`, `names`, `health` — ровно по одному разу; необязательные `time`, `population`, `opinions`, `chronicle` — не больше одного раза; списки `actions`, `events`, `traits` складываются. Файлы сливаются в алфавитном порядке пути.
+- Любой `*.yaml` в `content/` — объект с верхними ключами модулей (`SINGLE_KEYS`, `OPTIONAL_KEYS`, `LIST_KEYS` в `content/schema.ts`): одиночные `settings`, `names`, `health` — ровно по одному разу; `time` — тоже обязателен (формально в `OPTIONAL_KEYS`, но его требует перекрёстная проверка `checkTime`); необязательные `population`, `opinions`, `chronicle` — не больше одного раза; списки `actions`, `events`, `traits` складываются. Файлы сливаются в алфавитном порядке пути.
 - Схема ключа лежит в модуле (`actions/content.ts` и т. п.). Новое поле: схема модуля → перекрёстная проверка модуля → плохой пример в `tests/fixtures/bad/`. Первая строка плохого примера — ожидаемая ошибка: `# expect-error: <путь> /<регулярка>/`; тест находит файлы сам.
 - id в `lower_snake_case`. Тексты на английском, плейсхолдеры `{name}`, `{age}` и местоимения того же персонажа `{he} {him} {his} {He} {His}` (список — `character/text.ts`, D-055). Пол задан у каждого персонажа: тексты читаются для обоих полов.
 - После правки контента: `npm run validate` и прогон.
