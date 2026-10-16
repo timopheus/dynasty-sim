@@ -8,6 +8,7 @@ import { findCharacter, getPlayer } from '../helpers';
 import { chancePer, pick, weightedPick } from '../rng';
 import { baseScope } from '../roles/roles';
 import type { Character, Ctx, DayPhase, GameState, Scope } from '../state';
+import { ageYears } from '../time/calendar';
 import { dueEvents, storyGiven, storyWeight } from '../stories/stories';
 import { DEFAULT_LONG_ACTION_DAYS, narratorContent, type NarratorContent } from './content';
 
@@ -88,8 +89,12 @@ function candidates(ctx: Ctx, pace: NarratorContent, hero: Character, bottom: bo
   const high = pace.tension !== undefined && tension >= pace.tension.high;
   const deck: Candidate[] = [];
   const stories: Candidate[] = [];
+  // A hero under `adultAge` gets only the events bound to the action (upbringing, the guardian; D-314, D-364).
+  const child = ageYears(hero.birthDay, state.day) < content.settings.adultAge;
+  const action = state.activeAction?.actionId;
   for (const event of content.events) {
     if (event.followup_only || event.deck === 'backstory' || event.who === 'npc') continue;
+    if (child && (action === undefined || !event.actions?.includes(action))) continue;
     if (event.once === 'game' && Object.hasOwn(state.lastFired, event.id)) continue;
     if (event.once === 'life' && state.lifeFired.includes(event.id)) continue;
     const cooldown = event.cooldown_days ?? pace.eventRepeatCooldownDays;
