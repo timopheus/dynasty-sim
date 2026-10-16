@@ -1,0 +1,278 @@
+# Second batch of varied events (3.13): five tied to actions, three general, two of people of the world.
+# Format: docs/event-format.md. Small sums only; almost nothing here goes to the chronicle by itself.
+events:
+  # --- Tied to actions ------------------------------------------------------------------------------------------
+  - id: bedside_gossip
+    weight: 5
+    cooldown_days: 730
+    actions: [rest]
+    roles:
+      gossip: { pick: circle, where: { occupation: [servant, innkeeper, clerk, priest] } }
+    text: "Laid up in bed, you have little to do but listen. {gossip} sits by the window and lets slip which house in the street keeps a purse of ready money and which one is only keeping up appearances."
+    options:
+      - text: Listen closely and remember it
+        check: { stat: intrigue, difficulty: 6, bonus: [{ when: { traits_any: [suspicious] }, add: 1 }] }
+        success:
+          effects: { money: 15 }
+          result: "{name} picked up a useful piece of gossip from {gossip} while resting and turned it to profit."
+          mood: joy
+        failure:
+          effects: { money: -6 }
+          on: { gossip: { opinion: [{ toward: hero, reason: slighted }] } }
+          result: "{name} acted on bad gossip from {gossip} and lost a few crowns."
+          mood: shame
+      - text: Change the subject
+        result: "{name} would hear no gossip from {gossip} while resting."
+
+  - id: leaking_roof
+    weight: 6
+    cooldown_days: 730
+    actions: [winter_quarters]
+    roles:
+      landlord: { pick: circle, where: { occupation: [innkeeper, craftsman, merchant] } }
+    mood: threat
+    text: "Meltwater is coming through the ceiling of your room and has soaked the bedding. {landlord} shrugs: mending the roof is the tenant's business, or so the lease says."
+    options:
+      - text: Hire a man to mend it
+        effects: { money: -12 }
+        result: "{name} paid to have the roof of the winter lodgings mended."
+      - text: Climb up and patch it yourself
+        check: { stat: stewardship, difficulty: 6, bonus: [{ when: { traits_any: [steady_hand] }, add: 2 }] }
+        success:
+          on: { landlord: { opinion: [{ toward: hero, reason: favour }] } }
+          result: "{name} patched the roof of the winter lodgings and earned the thanks of {landlord}."
+          mood: joy
+        failure:
+          effects: { wound: light_wound }
+          result: "{name} fell from the roof while patching it in the cold."
+          mood: pain
+      - text: Argue that the landlord must pay
+        check: { stat: diplomacy, difficulty: 7 }
+        success:
+          effects: { money: 8 }
+          result: "{name} made {landlord} pay for the mending and take a little off the rent."
+          mood: triumph
+        failure:
+          on: { landlord: { opinion: [{ toward: hero, reason: slighted }] } }
+          result: "{name} quarrelled with {landlord} over a leaking roof and got nothing."
+          mood: anger
+
+  - id: stray_hound
+    weight: 5
+    cooldown_days: 730
+    actions: [hunt]
+    roles:
+      owner: { pick: circle, where: { occupation: [farmhand, servant, soldier, merchant] } }
+    text: "A lean hound has been trailing you through the woods since morning, a good one, by the look of the collar. It is plainly lost, and you know whose dog it is: {owner}'s."
+    options:
+      - text: Take the hound back to {owner}
+        effects: { money: 5 }
+        on: { owner: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} brought a lost hound home to {owner} and was rewarded with a few coins."
+        mood: joy
+      - text: Keep it for the hunt
+        effects: { money: 10 }
+        on: { owner: { opinion: [{ toward: hero, reason: wronged }] } }
+        result: "{name} kept {owner}'s hound for the hunt and took a good bag with it."
+        mood: shame
+      - text: Shoo it off and go on
+        result: "{name} sent a stray hound away on the hunt."
+
+  - id: weights_inspector
+    weight: 6
+    cooldown_days: 730
+    actions: [trade]
+    roles:
+      inspector: { pick: circle, where: { occupation: [clerk, sergeant, priest] } }
+    mood: threat
+    text: "{inspector} comes down the row of stalls with a bag of brass weights and a ledger, stopping at each and frowning at the scales. Yours is next."
+    options:
+      - text: Submit to the inspection
+        check: { stat: stewardship, difficulty: 6, bonus: [{ when: { traits_any: [honest] }, add: 2 }, { when: { traits_any: [deceitful] }, add: -2 }] }
+        success:
+          effects: { money: 8 }
+          on: { inspector: { opinion: [{ toward: hero, reason: favour }] } }
+          result: "{name} passed the inspection of {inspector} and had the seal on the scales as proof of honest dealing."
+          mood: triumph
+        failure:
+          effects: { money: -14 }
+          result: "{name} was fined by {inspector} for a short weight at the market."
+          mood: shame
+      - text: Slip {inspector} a coin
+        check: { stat: intrigue, difficulty: 7 }
+        success:
+          effects: { money: -4 }
+          result: "{name} bought off {inspector} with a coin and went on selling."
+        failure:
+          effects: { money: -20 }
+          on: { inspector: { opinion: [{ toward: hero, reason: insulted_in_public }] } }
+          result: "{name} was caught trying to bribe {inspector} in front of the whole market."
+          mood: shame
+      - text: Pack up and leave for the day
+        effects: { money: -3 }
+        result: "{name} packed up the stall rather than face the weights inspector."
+
+  - id: sentry_asleep
+    weight: 6
+    cooldown_days: 730
+    actions: [serve_contract]
+    roles:
+      recruit: { pick: circle, where: { occupation: [soldier, mercenary] } }
+    text: "Making your rounds before dawn, you find {recruit} asleep on the post with a musket across {recruit.his} knees. The officers are not far behind you."
+    options:
+      - text: Wake {recruit.him} and cover for {recruit.him}
+        check: { stat: intrigue, difficulty: 6 }
+        success:
+          effects: { relation: [{ start: friend, with: recruit }] }
+          on: { recruit: { opinion: [{ toward: hero, reason: favour }] } }
+          result: "{name} covered for {recruit}, who had fallen asleep on guard, and made a friend of {recruit.him}."
+          mood: joy
+        failure:
+          effects: { money: -10 }
+          on: { recruit: { opinion: [{ toward: hero, reason: slighted }] } }
+          result: "{name} was docked pay along with {recruit} when the officers found the post asleep."
+          mood: shame
+      - text: Report it
+        on: { recruit: { opinion: [{ toward: hero, reason: wronged }] } }
+        effects: { money: 5 }
+        result: "{name} reported {recruit} for sleeping on guard."
+      - text: Walk on and say nothing
+        result: "{name} walked past {recruit}, asleep on guard, and said nothing."
+
+  # --- General --------------------------------------------------------------------------------------------------
+  - id: sealed_letter
+    weight: 5
+    cooldown_days: 730
+    roles:
+      sender: { pick: circle, where: { occupation: [clerk, merchant, priest] } }
+    text: "{sender} presses a sealed letter into your hand. It must reach a house in the next town by the end of the week, and {sender.he} will pay fifteen crowns for it."
+    options:
+      - text: Carry it faithfully
+        effects: { money: 15 }
+        on: { sender: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} delivered a sealed letter for {sender}."
+      - text: Break the seal and read it first
+        check: { stat: intrigue, difficulty: 7, bonus: [{ when: { traits_any: [deceitful] }, add: 1 }] }
+        success:
+          effects: { money: 25 }
+          result: "{name} read a sealed letter from {sender} unseen and sold what it said."
+          mood: triumph
+        failure:
+          effects: { money: -10 }
+          on: { sender: { opinion: [{ toward: hero, reason: wronged }] } }
+          result: "{name} was caught with the broken seal of a letter from {sender}."
+          mood: shame
+      - text: Say you have no time
+        result: "{name} refused to carry a letter for {sender}."
+
+  - id: fire_in_the_street
+    weight: 5
+    severity: medium
+    cooldown_days: 1095
+    roles:
+      neighbour: { pick: circle, where: { occupation: [craftsman, innkeeper, farmhand] } }
+    mood: threat
+    text: "Smoke rolls out of a thatched roof along the street and a bell starts to ring. {neighbour} is on the doorstep, shouting for buckets."
+    options:
+      - text: Join the bucket chain
+        check: { stat: prowess, difficulty: 6, bonus: [{ when: { traits_any: [strong] }, add: 1 }] }
+        success:
+          effects: { money: 20 }
+          on: { neighbour: { opinion: [{ toward: hero, reason: favour }] } }
+          result: "{name} helped save a burning house in the street, and {neighbour} paid {him} for it."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { wound: light_wound }
+          result: "{name} was burnt on the hand fighting a fire in the street."
+          mood: pain
+      - text: Bring the parish fire cart
+        check: { stat: stewardship, difficulty: 6 }
+        success:
+          on: { neighbour: { opinion: [{ toward: hero, reason: comrade }] } }
+          result: "{name} fetched the fire cart in time to save the street."
+          mood: joy
+        failure:
+          result: "{name} fetched the fire cart too late to save a house."
+          mood: loss
+      - text: Keep out of the way
+        result: "{name} stood back and watched a house in the street burn."
+
+  - id: mistaken_for_another
+    weight: 4
+    severity: medium
+    cooldown_days: 1095
+    roles:
+      bailiff: { pick: circle, where: { occupation: [sergeant, soldier, clerk] } }
+    text: "{bailiff} takes you by the sleeve. \"There you are,\" {bailiff.he} says. \"The man who owes the tailor thirty crowns, with your height and your coat.\" The crowd is turning to look."
+    options:
+      - text: Prove who you are
+        check: { stat: diplomacy, difficulty: 6, bonus: [{ when: { traits_any: [linguist] }, add: 1 }] }
+        success:
+          effects: { fame: 1 }
+          result: "{name} talked {bailiff} out of an arrest for another man's debt."
+          mood: triumph
+        failure:
+          effects: { money: -15 }
+          result: "{name} could not prove who {he} was and paid a debtor's fine to settle it."
+          mood: shame
+      - text: Play along and talk the tailor down
+        check: { stat: intrigue, difficulty: 8 }
+        success:
+          effects: { money: 25 }
+          on: { bailiff: { opinion: [{ toward: hero, reason: cheated_me }] } }
+          result: "{name} played the man {bailiff} was looking for and settled the debt for less than half."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { money: -20 }
+          on: { bailiff: { opinion: [{ toward: hero, reason: humiliated }] } }
+          result: "{name} was exposed by {bailiff} for playing another man and was fined for the trick."
+          mood: shame
+      - text: Slip away through the crowd
+        result: "{name} slipped away from {bailiff} through the crowd."
+
+  # --- People of the world --------------------------------------------------------------------------------------
+  - id: npc_old_debt
+    who: npc
+    weight: 5
+    cooldown_days: 365
+    roles:
+      creditor: { pick: circle }
+    text: "{name} meets {creditor}, to whom {name} has owed ten crowns since last harvest."
+    options:
+      - text: Pay it in full
+        ai: { base: 6, traits: { honest: 8, diligent: 3, greedy: -3, deceitful: -4 } }
+        effects: { money: -10 }
+        on: { creditor: { money: 10, opinion: [{ toward: protagonist, reason: favour }] } }
+        result: "{name} paid an old debt of ten crowns to {creditor}."
+        mood: joy
+      - text: Ask for more time
+        ai: { base: 8, traits: { lazy: 3, craven: 2, honest: 1 } }
+        on: { creditor: { opinion: [{ toward: protagonist, reason: slighted }] } }
+        result: "{name} begged {creditor} for more time over a debt."
+      - text: Pretend to have forgotten it
+        ai: { base: 2, traits: { deceitful: 10, greedy: 6, honest: -8 } }
+        on: { creditor: { opinion: [{ toward: protagonist, reason: cheated_me }] } }
+        result: "{name} pretended to have forgotten a debt owed to {creditor}."
+        mood: shame
+
+  - id: npc_pilgrimage
+    who: npc
+    weight: 4
+    cooldown_days: 730
+    text: "{name} has been unwell since the cold came, and a neighbour speaks of a shrine three days' walk away where the sick are healed."
+    options:
+      - text: Walk to the shrine
+        ai: { base: 5, traits: { content: 3, diligent: 4, trusting: 5, suspicious: -5 } }
+        effects: { money: -6, heal: all }
+        result: "{name} walked to a distant shrine and came back stronger."
+        mood: joy
+      - text: Spend the money on wine instead
+        ai: { base: 3, traits: { lazy: 6, greedy: 3, suspicious: 3, diligent: -4 } }
+        effects: { money: -4 }
+        result: "{name} spent the shrine money on wine."
+        mood: shame
+      - text: Stay home and wait it out
+        ai: { base: 8, traits: { craven: 2, lazy: 2, brave: 1 } }
+        result: "{name} stayed at home and waited out a sickness."
