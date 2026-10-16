@@ -173,7 +173,7 @@
 | 3.9 | События людей мира | `src/core/events/` (выбор варианта человеком мира), `src/core/narrator/` (бросок для окружения), `content/narrator.yaml` (`npcChancePer10k`), `src/core/chronicle/log.ts`, `src/core/pages/` (строки событий на странице человека), `src/core/metrics/`, `tests/npc-events.test.ts` | 3.2, 3.3, 3.7 | Sonnet | 4 | ✅ [#35](https://github.com/timopheus/dynasty-sim/pull/35) |
 | 3.10 | Интерфейс событий | `src/ui/`, `src/core/chronicle/markdown.ts`, `tests/ui.test.ts` | 3.2, 3.4 | Sonnet | 4 | ✅ [#36](https://github.com/timopheus/dynasty-sim/pull/36) |
 | 3.11 | Предыстория первого героя | `src/core/backstory/`, `src/core/world/phases.ts` (мир до предыстории), `content/backstory/` (новый), `content/settings.yaml` (возраст начала, строка `start`), `tests/backstory.test.ts` | 3.2, 3.3, 3.5, 3.6, 3.1c | Sonnet (+ content-writer для сцен) | 5 | ⬜ |
-| 3.1c | Тег настроения события (`mood`) | `src/core/content/`, `src/core/events/`, `content/narrator.yaml` (список `moods`), `docs/event-format.md`, `tests/` | 3.2 | ведущая сессия этапа 3 (Opus) | между 4 и 5 | ⬜ |
+| 3.1c | Тег настроения события (`mood`) | `src/core/content/`, `src/core/events/`, `src/core/narrator/content.ts`, `content/narrator.yaml` (список `moods`), `docs/event-format.md`, `tests/` | 3.2 | ведущая сессия этапа 3 (Opus) | между 4 и 5 | ✅ [#39](https://github.com/timopheus/dynasty-sim/pull/39) |
 | 3.12 | Контент: события с ролями, пачка 1 | `content/events/`, `content/actions.yaml`, `content/opinions.yaml`, `content/grammar.yaml`, `content/traits/reputation.yaml`, `.claude/agents/content-writer.md` | 3.2–3.9, 3.1c | content-writer (Sonnet) | 5 | ⬜ |
 | 3.13 | Контент, пачка 2, и замеры этапа | `content/events/`, `content/opinions.yaml`, `content/grammar.yaml`, `content/narrator.yaml` (только числа) | 3.12 | content-writer (Sonnet) | 6 | ⬜ |
 
@@ -345,10 +345,12 @@
 
 Номера решений: портрет — D-300…D-309; план этапа 4 берёт номера с D-310.
 
+Портрет (D-300, D-301): каждая деталь лица — не меньше трёх вариантов, выбор и сдвиги — от генов человека; у разных людей одна и та же черта или рана выглядит по-разному, у одного человека лицо стабильно. Это критерий задач портрета.
+
 Портрет героя (D-300, GDD §8.10): architect при плане этапа разбивает на задачи — данные внешности и родство (гены детей от родителей, без игровой настройки); прототип лица одного героя со скриншотами для Тима, стиль утверждается до массового рисования; полная версия (части лица, возраст, раны, одежда, мимика по `mood`); галерея голов в итоге рода. Рисует `src/ui`, ядро без графики.
 
 ## Этап 5. Мир
-Карта из Azgaar как данные, державы-прототипы, грубая симуляция вдали и подробная рядом, история мира в хронике. В начале этапа — решение о Git LFS для `map/region.*` (D-065).
+Карта из Azgaar как данные, державы-прототипы, грубая симуляция вдали и подробная рядом, история мира в хронике. В начале этапа — решение о Git LFS для `map/region.*` (D-065). Architect в начале этапа предлагает Тиму I-003 «Карта региона на экране» (IDEAS).
 
 ## Этап 6. Роль авантюриста
 Сцены предыстории авантюриста (D-038); отряд, контракты, покровители, рекомендательные письма, векселя; амбиции главы рода, у авантюриста главная — осесть (D-015); положения падения с путями наверх (D-017). Первая роль как пакет поверх ядра.

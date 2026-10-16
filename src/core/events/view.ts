@@ -3,7 +3,7 @@ import type { Ctx } from '../state';
 import { renderTemplate } from '../text/render';
 import type { TextPart } from '../text/text';
 import { chanceBand, checkChance, type ChanceBand } from './checks';
-import { scenePath } from './content';
+import { moodOf, scenePath } from './content';
 import { currentScene, optionState, pendingEventDef } from './events';
 
 /** One answer the player sees. */
@@ -26,6 +26,8 @@ export interface EventView {
   text: TextPart[];
   /** Options the player may see: hidden ones are left out (D-043). Always at least one available. */
   options: OptionView[];
+  /** Mood of the scene shown, for the portrait (D-177, D-300). */
+  mood: string;
 }
 
 /**
@@ -59,5 +61,5 @@ export function eventView(ctx: Ctx): EventView | null {
       });
     });
   }
-  return { eventId: event.id, protagonist: pending.protagonist, page: pending.page, text: render(scene.text, `${path}text`), options };
+  return { eventId: event.id, protagonist: pending.protagonist, page: pending.page, text: render(scene.text, `${path}text`), options, mood: moodOf(scene) };
 }

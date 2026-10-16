@@ -48,6 +48,26 @@ describe('content', () => {
     expect(match, JSON.stringify(result.errors, null, 2)).toBeDefined();
   });
 
+  it('accepts moods on scenes and outcomes from narrator.moods (D-177)', () => {
+    const text = [
+      'events:',
+      '  - id: moody',
+      '    weight: 1',
+      '    text: "x"',
+      '    mood: threat',
+      '    options:',
+      '      - text: A',
+      '        result: "{name} did."',
+      '        mood: joy',
+      '      - text: B',
+      '        check: { stat: prowess, difficulty: 10 }',
+      '        success: { result: "{name} won.", mood: joy }',
+      '        failure: { result: "{name} lost." }',
+    ].join('\n');
+    const result = loadContent([...BASE_FILES, { path: 'moody.yaml', text }]);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.errors, null, 2)).toBe(true);
+  });
+
   it('accepts the optional keys of later modules at most once', () => {
     const opinions = [
       'opinions:',

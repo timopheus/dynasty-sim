@@ -28,7 +28,20 @@ const outcomeShape = {
   mark: z.boolean().optional(),
   /** Page of the same event that follows; without it the event ends here. */
   next: Id.optional(),
+  /**
+   * Mood of how it ended (D-177, for the hero's portrait, D-300): an id from `narrator.moods`. On a scene it is the
+   * mood while the scene is shown; an outcome's mood wins over its scene's. Never changes the course of the game.
+   */
+  mood: Id.optional(),
 };
+
+/** Mood of a scene or outcome that sets none (D-177). `narrator.moods` must list it. */
+export const DEFAULT_MOOD = 'neutral';
+
+/** Mood to show: the outcome's, else the scene's, else neutral (D-177). */
+export function moodOf(scene: SceneDef, outcome: OutcomeDef | null = null): string {
+  return outcome?.mood ?? scene.mood ?? DEFAULT_MOOD;
+}
 
 export const OutcomeSchema = z.strictObject(outcomeShape);
 
@@ -127,8 +140,9 @@ export function ownOutcome(holder: OutcomeDef): OutcomeDef {
   return out;
 }
 
-function hasOutcomeFields(holder: OutcomeDef): boolean {
-  return OUTCOME_KEYS.some((key) => holder[key] !== undefined);
+/** Outcome fields set on the holder; `mood` may also stand on a scene with options, as the scene's own mood. */
+function hasOutcomeFields(holder: OutcomeDef, except: readonly (keyof OutcomeDef)[] = []): boolean {
+  return OUTCOME_KEYS.some((key) => !except.includes(key) && holder[key] !== undefined);
 }
 
 /** The scene of a page; null for the event itself. */
@@ -155,7 +169,15 @@ interface EventEnv {
   optional: string[];
   /** Grammar symbols the texts may use: the general grammar and the event's own. */
   symbols: string[];
+  /** Moods an event may name: `narrator.moods` (D-177). */
+  moods: Set<string>;
   errors: ContentError[];
+}
+
+function checkMood(env: EventEnv, path: string, mood: string | undefined): void {
+  if (mood !== undefined && !env.moods.has(mood)) {
+    env.errors.push({ file: env.file, path: `${path}.mood`, message: `unknown mood "${mood}"; moods are listed in narrator.moods` });
+  }
 }
 
 function pushRefs(env: EventEnv, path: string, refs: string[]): void {
@@ -194,6 +216,7 @@ function checkOutcome(env: EventEnv, path: string, outcome: OutcomeDef): void {
     }
   }
   checkText(env, `${path}.result`, outcome.result);
+  checkMood(env, path, outcome.mood);
   if (outcome.next !== undefined && !event.pages?.[outcome.next]) {
     errors.push({ file, path: `${path}.next`, message: `unknown page "${outcome.next}"` });
   }
@@ -234,7 +257,8 @@ function checkScene(env: EventEnv, path: string, scene: SceneDef): void {
   checkText(env, `${path}text`, scene.text);
   const at = path.endsWith('.') ? path.slice(0, -1) : path;
   if (scene.options) {
-    if (hasOutcomeFields(scene)) env.errors.push({ file: env.file, path: at, message: 'outcome fields belong to options; only a notice without options has them' });
+    if (hasOutcomeFields(scene, ['mood'])) env.errors.push({ file: env.file, path: at, message: 'outcome fields belong to options; only a notice without options has them' });
+    checkMood(env, at, scene.mood);
     if (scene.options.every((o) => o.when !== undefined)) {
       env.errors.push({ file: env.file, path: `${path}options`, message: 'at least one option must have no when, so the player always has a choice' });
     }
@@ -288,7 +312,8 @@ function checkEvent(sources: ContentSources, file: string, at: string, event: Ev
   const roles = Object.keys(event.roles ?? {});
   const optional = roles.filter((r) => event.roles?.[r]?.optional === true);
   const symbols = [...new Set([...sources.grammar.flatMap((g) => Object.keys(g.item)), ...Object.keys(event.grammar ?? {})])];
-  const env: EventEnv = { file, at, event, known: new Set(['hero', 'protagonist', ...roles]), roles, optional, symbols, errors };
+  const moods = new Set(sources.narrator.flatMap((n) => n.item.moods ?? []));
+  const env: EventEnv = { file, at, event, known: new Set(['hero', 'protagonist', ...roles]), roles, optional, symbols, moods, errors };
   if ((event.who ?? 'hero') === 'npc') {
     if (event.actions) errors.push({ file, path: `${at}.actions`, message: 'an event of who: npc is not bound to an action of the hero' });
     if (event.once === 'life') errors.push({ file, path: `${at}.once`, message: 'once: life counts the lives of the heads of the house; an event of who: npc has only once: game' });

@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].mood /unknown mood "glee"/
+events:
+  - id: bad_mood
+    weight: 1
+    text: "x"
+    options:
+      - text: A
+        result: "{name} did."
+        mood: glee

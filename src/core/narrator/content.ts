@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { conditionRoleRefs, WhenSchema } from '../condition-keys';
 import type { Content, CrossCheck } from '../content/schema';
-import { Factor, Int, type ContentError } from '../content/types';
+import { Factor, Id, Int, type ContentError } from '../content/types';
+import { DEFAULT_MOOD } from '../events/content';
 
 /** From this nominal duration (days) an action counts as long (D-168); the default of `longActionDays`. */
 export const DEFAULT_LONG_ACTION_DAYS = 60;
@@ -50,6 +51,11 @@ export const NarratorContentSchema = z.strictObject({
   eventRepeatCooldownDays: Int.min(0),
   tension: TensionSchema.optional(),
   bottom: BottomSchema.optional(),
+  /**
+   * Moods an event or outcome may name (D-177): what the hero's portrait shows (D-300). Must list `neutral`, the
+   * mood of everything that sets none. Without the list no event may name a mood.
+   */
+  moods: z.array(Id).min(1).optional(),
 });
 
 export type NarratorContent = z.infer<typeof NarratorContentSchema>;
@@ -64,6 +70,10 @@ export const checkNarrator: CrossCheck = ({ narrator }) => {
   if (narrator.length === 0) return [{ file: '(content)', path: 'narrator', message: 'the narrator section (pace of events) is required' }];
   const errors: ContentError[] = [];
   for (const { file, item } of narrator) {
+    if (item.moods) {
+      if (!item.moods.includes(DEFAULT_MOOD)) errors.push({ file, path: 'narrator.moods', message: `the list of moods must include "${DEFAULT_MOOD}"` });
+      if (new Set(item.moods).size !== item.moods.length) errors.push({ file, path: 'narrator.moods', message: 'a mood is listed twice' });
+    }
     const when = item.bottom?.when;
     // The bottom is a state of the hero; there is no other participant yet.
     for (const role of when ? conditionRoleRefs(when) : []) {

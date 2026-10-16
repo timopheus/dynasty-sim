@@ -16,3 +16,6 @@ narrator:
     when: { money_max: 10 }
     wayUpFactor: 4              # events tagged way_up weigh this many times more at the bottom
     forceAfterDays: 180         # this long at the bottom without one: the next roll is a way_up event
+  # Moods an event or outcome may name with mood: (D-177): what the hero's portrait shows (D-300).
+  # neutral is the mood of everything that sets none. On the course of the game they have no effect.
+  moods: [neutral, joy, triumph, threat, pain, loss, shame, anger]
