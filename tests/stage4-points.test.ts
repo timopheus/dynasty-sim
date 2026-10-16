@@ -247,7 +247,8 @@ describe('pages through the archive access (D-311, D-312)', () => {
 
   it('pages, markdown and metrics read the archive and the hot part as one', () => {
     const real = realContent();
-    const { state } = runSim(real, { seed: 2, years: 60 });
+    // Under HOT_YEARS (archive/phases.ts): the archive phase has made no chunk yet.
+    const { state } = runSim(real, { seed: 2, years: 9 });
     const ctx: Ctx = { state, content: real };
     expect(allChronicle(state)).toBe(state.chronicle);
     expect(allCharacters(state)).toBe(state.characters);
@@ -255,7 +256,7 @@ describe('pages through the archive access (D-311, D-312)', () => {
     const journal = journalMarkdown(state);
     const metrics = computeMetrics(state);
     const heroPage = personPage(ctx, state.playerId);
-    // What 4.3 will do: old lines and long-dead people nobody hot names go into a chunk.
+    // A chunk made by hand, as the archive phase does: old lines and long-dead people nobody hot names go into a chunk.
     const cut = Math.floor(state.chronicle.length / 2);
     const old = state.chronicle.slice(0, cut);
     state.chronicle = state.chronicle.slice(cut);
@@ -263,13 +264,14 @@ describe('pages through the archive access (D-311, D-312)', () => {
     const gone = state.characters.filter((c) => c.deathDay !== null && !refs.has(c.id));
     expect(gone.length).toBeGreaterThan(0);
     state.characters = state.characters.filter((c) => !gone.includes(c));
-    state.archive.push({ chronicle: old, characters: gone });
+    state.archive.push({ day: state.day, chronicle: old, characters: gone, relations: { opinionReasons: [], relations: [], acquaintances: [], secrets: [] } });
     expect(allChronicle(state)).toHaveLength(old.length + state.chronicle.length);
     expect(anyCharacter(state, (gone[0] as Character).id)).toBe(gone[0]);
     expect(personPage(ctx, (gone[0] as Character).id)).not.toBeNull();
     expect(chronicleMarkdown(state)).toBe(chronicle);
     expect(journalMarkdown(state)).toBe(journal);
-    expect({ ...computeMetrics(state), saveBytes: 0 }).toEqual({ ...metrics, saveBytes: 0 });
+    const sizes = { saveBytes: 0, hotBytes: 0, archiveBytes: 0 };
+    expect({ ...computeMetrics(state), ...sizes }).toEqual({ ...metrics, ...sizes });
     expect(personPage(ctx, state.playerId)).toEqual(heroPage);
   }, 30_000);
 });

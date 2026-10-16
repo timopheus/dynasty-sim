@@ -1,4 +1,4 @@
-import { allChronicle, anyCharacter } from '../archive/archive';
+import { allChronicle, allRelations, anyCharacter } from '../archive/archive';
 import { fullName, isAlive } from '../character/character';
 import { findTrait } from '../character/holding';
 import { STAT_IDS } from '../character/stat-ids';
@@ -134,7 +134,8 @@ function lifeText(c: Character, day: number, exact: boolean): string {
 function relationLines(ctx: Ctx, c: Character): { allies: RelationLine[]; rivals: RelationLine[] } {
   const allies: RelationLine[] = [];
   const rivals: RelationLine[] = [];
-  for (const r of ctx.state.relations) {
+  // ended relations of the long dead are in the archive (D-335)
+  for (const r of allRelations(ctx.state)) {
     if (r.a !== c.id && r.b !== c.id) continue;
     const kind = findRelationKind(ctx.content, r.kind);
     if (!kind) continue;

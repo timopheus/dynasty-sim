@@ -5,7 +5,8 @@ import { GATES, type Gate } from '../tools/metrics-gates';
 const s = (min: number, median: number, max: number): Summary => ({ min, median, max });
 const good: Record<string, Summary> = {
   violations: s(0, 0, 0),
-  saveBytes: s(1_300_000, 1_350_000, 1_400_000),
+  hotBytes: s(60_000, 80_000, 120_000),
+  saveBytes: s(1_300_000, 1_350_000, 2_400_000),
   'heads.chronicleLinesPerLife.median': s(30, 35, 40),
   'heads.ageAtDeath.median': s(48, 50, 53),
   'heads.count': s(9, 10, 11),
@@ -19,10 +20,12 @@ describe('metric gates', () => {
     expect(Object.values(statusOf(good)).every((x) => x === 'ok')).toBe(true);
   });
 
-  it('fail on violations and on a save over 2 MB', () => {
-    const st = statusOf({ ...good, violations: s(0, 0, 3), saveBytes: s(1, 2, 2_000_001) });
+  it('fail on violations and on a hot part over 300 KB; the whole save is only reported (D-337)', () => {
+    const st = statusOf({ ...good, violations: s(0, 0, 3), hotBytes: s(1, 2, 300_001) });
     expect(st.violations).toBe('fail');
-    expect(st.saveBytes).toBe('fail');
+    expect(st.hotBytes).toBe('fail');
+    expect(statusOf({ ...good, hotBytes: s(1, 2, 300_000) }).hotBytes).toBe('ok');
+    expect(statusOf({ ...good, saveBytes: s(1, 2, 9_000_000) }).saveBytes).toBe('ok');
   });
 
   it('only warn on a report-only metric', () => {
@@ -44,8 +47,8 @@ describe('metric gates', () => {
   });
 
   it('a missing fail metric does not pass silently; a gate without corridor never fails', () => {
-    const { saveBytes: _gone, ...rest } = good;
-    expect(statusOf(rest).saveBytes).toBe('fail');
+    const { hotBytes: _gone, ...rest } = good;
+    expect(statusOf(rest).hotBytes).toBe('fail');
     expect(statusOf({}, [{ metric: 'a', label: 'a', stat: 'max', mode: 'fail', ref: 't' }]).a).toBe('ok');
   });
 
@@ -58,6 +61,6 @@ describe('metric gates', () => {
 
   it('keeps D-203 mandatory gates in the config', () => {
     const fails = GATES.filter((g) => g.mode === 'fail').map((g) => g.metric).sort();
-    expect(fails).toEqual(['heads.chronicleLinesPerLife.median', 'saveBytes', 'violations']);
+    expect(fails).toEqual(['heads.chronicleLinesPerLife.median', 'hotBytes', 'violations']);
   });
 });

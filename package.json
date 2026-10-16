@@ -16,6 +16,8 @@
     "validate": "tsx tools/validate.ts",
     "sim": "tsx tools/sim.ts",
     "gates": "tsx tools/gates.ts",
+    "replay": "tsx tools/replay.ts",
+    "save-bench": "tsx tools/save-bench.ts",
     "check": "npm run typecheck && npm test && npm run validate && npm run sim -- --years 50 --seed 1"
   },
   "devDependencies": {

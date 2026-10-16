@@ -39,18 +39,18 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   world/           detailedCharacters (герой, дом героя household, окружение), isNear, фаза мира (2.5, D-313)
   relations/       мнения и отношения (2.4)
   chronicle/       log() — единственная запись в хронику, markdown (2.6)
-  archive/         архив (D-312): куски состояния (chunks.ts), фаза архива (phases.ts), чтение всей истории allChronicle/allCharacters/anyCharacter (archive.ts) — только для страниц, markdown, метрик, итога, сохранения
+  archive/         архив (D-312, D-335): куски состояния (chunks.ts), фаза архива раз в год (phases.ts), проверка куска (check.ts), чтение всей истории allChronicle/allCharacters/anyCharacter и проверка архива (archive.ts) — только для страниц, markdown, метрик, итога, сохранения
   family/          браки и родство (4.5): father/mother, записи браков, запросы родства (kin.ts), proposalOptions (proposals.ts), раздел «Семья» (page.ts)
   succession/      смена главы (4.6): chooseHeir, succeed, endHouse, команда will, фаза succession, хук смерти (phases.ts)
   house/           род (4.7): роды, поле house, хук брака (house.ts), раздел и страница рода (page.ts)
   heirloom/        родовая вещь (4.9), страница вещи (page.ts)
   era/             эпоха (4.11): eraOf(ctx, day)
   summary/         итог рода (4.14): годовая фаза (phases.ts), пока — живых людей max
-  save/            serialize/deserialize, версия формата (2.8)
+  save/            горячая часть и куски (hotSave, chunkSave, readSaveParts), serialize/readSave, версия формата (2.8, D-336); версия контента (content-version.ts), журнал команд и replay (journal.ts, D-338)
   metrics/         computeMetrics(state) — метрики прогона (2.7), сводка и сравнение
   pages/           personPage — страница человека с учётом видимости, разделы модулей PERSON_SECTIONS (2.10); entityPage — страница сущности по id (entity.ts, D-311)
   text/            шаблоны: части текста и ссылки (text.ts), тексты событий с ролями (render.ts), их проверка (check.ts), грамматика (grammar.ts, 3.4)
-src/ui/            браузерный интерфейс: main.ts, hero.ts (экран героя), page.ts (страницы людей), address.ts (адреса #/<вид>/<id>, старый #/person/<id> работает), storage.ts (автосохранение в localStorage), style.css
+src/ui/            браузерный интерфейс: main.ts, hero.ts (экран героя), page.ts (страницы людей), address.ts (адреса #/<вид>/<id>, старый #/person/<id> работает), storage.ts (автосохранение в IndexedDB: горячая часть, куски, журнал, D-339), style.css
 content/           игровой контент в YAML, тексты на английском
 map/               исходники карты из Azgaar (region.map/json/svg, D-025); как править — docs/map-guide.md
 tools/             validate.ts, sim.ts, content-files.ts (чтение content/ с диска)
@@ -62,7 +62,7 @@ docs/              GDD, ROADMAP, DECISIONS, STATUS, CHANGELOG (по-русски
 ## Команды
 ```
 npm ci                                  # первым делом в новой сессии
-npm run dev                             # игра в браузере; продолжает автосохранение; ?seed=N с другим seed — новая партия после подтверждения (D-140)
+npm run dev                             # игра в браузере; продолжает автосохранение (IndexedDB); ?seed=N с другим seed — новая партия после подтверждения (D-140)
 npm run typecheck                       # tsc для core, ui и tools+tests
 npm test                                # vitest
 npm run validate                        # проверка контента по схеме
@@ -72,15 +72,18 @@ npm run -s sim -- --years 300 --seed 1 --runs 10 --json > a.json   # то же �
 npm run -s sim -- --compare a.json b.json # медианы двух файлов рядом, только изменившиеся
 npm run check                           # typecheck + test + validate + sim 50 лет
 npm run gates                           # 300 лет на seeds 1…10 и коридоры метрик (D-203): таблица, код 1 при провале «валящей» метрики; `-- --from a.json` проверяет готовый файл `sim --json`
+npm run replay -- journal.json          # партия из журнала команд (скачан в игре, «Journal»): хроника и журнал в out/, метрики (D-338)
+npm run replay -- --record out/j.json --seed 1 --years 50   # записать журнал случайного бота
+npm run save-bench                      # размер и время записи горячей части и кусков по seeds 1…10 (D-312, D-337)
 npm run build                           # сборка в dist/
 ```
-CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck, test, validate, sim 50 лет (seed 1), build. Хроника прогона — артефакт `chronicle`. Вторая работа CI `gates` параллельно прогоняет 300 лет на seeds 1…10 и сверяет метрики с коридорами из `tools/metrics-gates.ts` (D-203): валят инварианты, сохранение > 2 МБ и медиана строк хроники на жизнь главы вне 25–45 (D-205), остальное — таблица в summary (⚠️). Коридор или признак «валит / только отчёт» меняются только вместе с записью DECISIONS.
+CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck, test, validate, sim 50 лет (seed 1), build. Хроника прогона — артефакт `chronicle`. Вторая работа CI `gates` параллельно прогоняет 300 лет на seeds 1…10 и сверяет метрики с коридорами из `tools/metrics-gates.ts` (D-203): валят инварианты, горячая часть сохранения > 300 КБ (D-337) и медиана строк хроники на жизнь главы вне 25–45 (D-205), остальное — таблица в summary (⚠️). Коридор или признак «валит / только отчёт» меняются только вместе с записью DECISIONS.
 
 ## Правила ядра (src/core)
 - Ядро импортирует только свои модули, `yaml` и `zod`. Запрещены DOM, Node API, `Math.random`, `Date`, `performance`. Это проверяют `tests/architecture.test.ts` и отдельный `src/core/tsconfig.json` без DOM и Node.
 - Вся случайность — через `src/core/rng.ts` и `state.rng`. Отдельный поток (например, для бота) — `seedRng(seed, stream)`, мировой поток не трогать.
 - В состоянии и вероятностях только целые числа (`chancePer(r, n, d)`). Никаких `Math.exp/pow/log/sin…` в расчётах: результат может отличаться между движками.
-- GameState — только JSON-данные: без классов, Map/Set и `undefined` (вместо него `null`). Сохранение — `serialize` из `save/`: проверка, что состояние — чистый JSON, и компактная запись `{version, shapes, state}` (D-195).
+- GameState — только JSON-данные: без классов, Map/Set и `undefined` (вместо него `null`). Сохранение — `save/`: проверка, что состояние — чистый JSON, и компактная запись D-195 горячей части и кусков архива по отдельности (D-336).
 - Обходить массивы контента, а не ключи объектов. Исключение — роли события и символы грамматики: по контракту это карты (D-161), порядок их ключей задан файлом (id начинаются с буквы).
 - Состояние меняет только `apply(state, content, command)`. Функции-запросы (`availableActions`, `pendingEventDef`) случайность не тратят.
 - Новое правило согласованности — в инварианты своего модуля (они собраны в `invariants.ts`): ими пользуются прогон и тесты.
