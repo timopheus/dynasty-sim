@@ -114,7 +114,8 @@ describe('succession (D-007 until 4.6)', () => {
     expect(state.characters).toHaveLength(before + 1);
     expect(heir.surname).toBe(hero.surname);
     expect(ageYears(heir.birthDay, state.day)).toBe(content.settings.heirAge!.min);
-    expect([heir.father, heir.mother, heir.house]).toEqual([null, null, null]);
+    expect([heir.father, heir.mother]).toEqual([null, null]);
+    expect(heir.house).toBeNull(); // the succession hook of the house gives the house, not chooseHeir (4.7)
   });
 
   it('the death of the hero hands the house and the money to that heir', () => {
@@ -244,8 +245,9 @@ describe('pages through the archive access (D-311, D-312)', () => {
     expect(entityPage(ctx, hero.id)).toEqual({ type: 'person', page: personPage(ctx, hero.id) });
     expect(entityPage(ctx, x)).toEqual({ type: 'person', page: personPage(ctx, x) });
     expect(entityPage(ctx, 'c9999')).toBeNull();
-    expect(entityPage(ctx, 'h1')).toBeNull();
-    expect(personPage(ctx, hero.id)!.sections).toEqual([]);
+    expect(entityPage(ctx, 'h999')).toBeNull();
+    // the house section of 4.7 is the only one filled so far: the house of the hero
+    expect(personPage(ctx, hero.id)!.sections.map((s) => s.id)).toEqual(['house']);
   });
 
   it('pages, markdown and metrics read the archive and the hot part as one', () => {

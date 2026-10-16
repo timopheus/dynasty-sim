@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].effects.house_renown /needs the top-level key "house"/
+events:
+  - id: bad_renown
+    weight: 1
+    text: "{name} boasts."
+    options:
+      - text: Boast
+        effects: { house_renown: 2 }
+        result: "{name} boasted."
