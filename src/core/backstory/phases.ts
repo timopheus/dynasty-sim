@@ -4,6 +4,7 @@ import type { EventDef } from '../events/content';
 import { findCharacter, getPlayer } from '../helpers';
 import { pick, weightedPick } from '../rng';
 import type { AfterChoiceHook, Ctx, NewGameHook } from '../state';
+import { shiftYears } from './effects';
 
 /** Scenes of a stage that can be shown now, with weights; never consumes randomness. */
 function candidates(ctx: Ctx, stageId: string): { event: EventDef; weight: number }[] {
@@ -27,10 +28,14 @@ function advance(ctx: Ctx): void {
   while (st.running) {
     const stage = bs.stages[st.stage];
     if (!stage) {
+      dateLines(ctx);
       st.running = false;
+      st.lines = [];
       log(ctx, { subject: getPlayer(state), kind: 'backstory_end', level: 'chronicle', template: bs.texts.leave });
       return;
     }
+    // The first line of the stage, for its date (D-324); a stage with no scene to show marks the same place.
+    if (st.inStage === 0 && st.lines.length === st.stage + 1) st.lines.push(state.chronicle.length);
     if (st.inStage === 0 && stage.offer) {
       // The offer is drawn when the stage begins: `count` of the variants by chance (D-167), in the order of the content.
       const left = [...stage.offer.variants];
@@ -52,6 +57,26 @@ function advance(ctx: Ctx): void {
 }
 
 /**
+ * Dates the lines of the backstory by age (D-324): from the founder's first line to the first stage — the day of
+ * birth (after every `age_years`); the lines of a stage with `age` — that birthday; of a stage without it — the start
+ * of the game, today. No day passes in the world: only the dates of the lines change, they never fall and never
+ * pass today. Spends no randomness.
+ */
+function dateLines(ctx: Ctx): void {
+  const { state, content } = ctx;
+  const st = state.backstory;
+  const stages = content.backstory?.stages ?? [];
+  const birth = Math.min(getPlayer(state).birthDay, state.day);
+  const bounds = [...st.lines, state.chronicle.length];
+  let day = birth;
+  for (let k = 0; k + 1 < bounds.length; k++) {
+    const age = k === 0 ? 0 : stages[k - 1]?.age;
+    day = Math.max(day, age === undefined ? state.day : Math.min(state.day, shiftYears(birth, age)));
+    for (let i = bounds[k] as number; i < (bounds[k + 1] as number); i++) (state.chronicle[i] as { day: number }).day = day;
+  }
+}
+
+/**
  * New game hook (D-167): brings the founder to the neutral base — base stats, no traits, no education — and starts
  * the first scene of the backstory. Runs after the circle is filled (worldOnNewGame), so scenes find people for their
  * roles. Without the key `backstory` the founder stays as generated.
@@ -62,7 +87,9 @@ export const backstoryOnNewGame: NewGameHook = (ctx) => {
   const founder = getPlayer(ctx.state);
   founder.baseStats = { ...bs.base };
   founder.traits = [];
-  ctx.state.backstory = { running: true, founder: founder.id, stage: 0, inStage: 0, offered: [], played: [] };
+  const first = ctx.state.chronicle.findIndex((e) => e.kind === 'start' && e.subject === founder.id);
+  const lines = [first === -1 ? ctx.state.chronicle.length : first];
+  ctx.state.backstory = { running: true, founder: founder.id, stage: 0, inStage: 0, offered: [], played: [], lines };
   advance(ctx);
 };
 
@@ -78,6 +105,7 @@ export const backstoryAfterChoice: AfterChoiceHook = (ctx) => {
   const hero = findCharacter(state, state.playerId);
   if (!hero || hero.id !== st.founder || hero.deathDay !== null) {
     st.running = false;
+    st.lines = [];
     return;
   }
   advance(ctx);

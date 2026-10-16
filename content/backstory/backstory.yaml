@@ -3,15 +3,21 @@
 # this order, before the first action. Scenes are events with `deck: backstory` and `stage:` (scenes.yaml).
 backstory:
   base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
+  # `age`: the lines of a stage are dated at this birthday of the founder (D-324); `leaving` has none, its lines are
+  # dated at the start of the game. The world is not simulated in these years: only the dates of the lines move.
   stages:
     # The player is offered 3 of the 6 variants by chance and picks one (D-167, D-188).
     - id: origin
+      age: 0
       offer:
         count: 3
         variants: [guild_house, soldier_family, parish_house, gentry_house, waterfront, plain_house]
     - id: childhood
+      age: 7
     - id: youth
+      age: 12
     - id: training
+      age: 15
     - id: leaving
   texts:
     leave: "{name}, aged {age}, went out into the world."

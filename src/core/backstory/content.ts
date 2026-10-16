@@ -10,6 +10,12 @@ const StageSchema = z.strictObject({
   /** How many scenes of this stage the founder lives through; 1 by default. */
   scenes: Int.min(1).max(3).optional(),
   /**
+   * Age of the founder, in full years, the chronicle lines of this stage are dated at (D-324); without it they are
+   * dated at the start of the game. Stages with an age come first, the ages do not fall and stay below
+   * settings.startAge.min.
+   */
+  age: Int.min(0).optional(),
+  /**
    * The player is offered `count` of the `variants` by chance (D-167); scenes show a variant only when it was offered
    * (condition `offered`, D-179).
    */
@@ -92,6 +98,21 @@ export const checkBackstory: CrossCheck = ({ backstory, events, actions, setting
         variants.add(v);
       }
     }
+  });
+  // Dates of the lines of the stages (D-324): by age, then the start of the game; time never goes back.
+  let lastAge = 0;
+  let undated: string | null = null;
+  bs.stages.forEach((stage, i) => {
+    if (stage.age === undefined) {
+      undated ??= stage.id;
+      return;
+    }
+    const at = `backstory.stages[${i}].age`;
+    if (undated !== null) errors.push({ file, path: at, message: `stage "${undated}" before it has no age: its lines are dated at the start of the game` });
+    else if (stage.age < lastAge) errors.push({ file, path: at, message: `age ${stage.age} is below ${lastAge} of a stage before it` });
+    const min = settings[0]?.item.startAge.min;
+    if (min !== undefined && stage.age >= min) errors.push({ file, path: at, message: `age ${stage.age} is not below settings.startAge.min ${min}` });
+    lastAge = Math.max(lastAge, stage.age);
   });
   const leave = checkTemplate(bs.texts.leave);
   if (leave) errors.push({ file, path: 'backstory.texts.leave', message: leave });
