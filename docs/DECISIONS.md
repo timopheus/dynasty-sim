@@ -919,3 +919,40 @@
 2026-10-16 · принято (решение Тима, задача 3.0); уточняет D-058
 
 **Решение.** Каждая задача, меняющая формат состояния, поднимает `SAVE_VERSION`; при сведении с main берёт номер, следующий за main. Без этого старое автосохранение Тима падало бы при загрузке вместо сообщения «другая версия».
+
+## D-170. Темп переехал в `narrator`, фаза события — в рассказчика
+2026-10-16 · принято (задача 3.1); исполняет D-160, уточняет D-045, D-053
+
+**Решение.**
+- Ключи `eventChancePer10k`, `minDaysBetweenEvents`, `eventRepeatCooldownDays` — в верхнем ключе `narrator:` (`content/narrator.yaml`, схема `narrator/content.ts`). Ключ обязателен (`checkNarrator`, как `time`); код читает его через `narratorContent(content)`. В `settings` их больше нет — старый файл даёт ошибку «Unrecognized keys».
+- Память темпа (`lastFired`, `lastEventDay`) переехала из части `events` в часть `narrator` (`narrator/narrator.ts`): ею владеет рассказчик (3.7).
+- Фаза `event` заменена фазами `stories` (пустая, 3.8) и `narrator` (`narrator/phases.ts`) в конце дня. Бросок прежний: промежуток, шанс, отбор по повтору и `eventWeight`, взвешенный выбор; затем `startEvent`. Хроники seed 1, 7, 42 на 300 лет совпали с main байт в байт.
+
+## D-171. Условия и эффекты с областью ролей
+2026-10-16 · принято (задача 3.1); исполняет D-162
+
+**Решение.**
+- Проверка ключа условия — `(ctx, c, when, scope) → Unmet[]`, `Unmet = {text, hidden}`. `conditionReport(ctx, c, when, scope)` даёт `{met, reasons, hidden}`; `unmetConditions` — только видимые тексты. Доступность — по `met`, не по пустому списку текстов: скрытая причина делает вариант недоступным и невидимым. У `actionAvailability` новое поле `hidden` (интерфейс 3.10 должен такие действия не показывать).
+- `applyEffects(ctx, c, effects, scope)` — область обязательна, чтобы роли не терялись молча. Действия и их `later` идут с областью `{hero, protagonist}` = герой. `later` хранит область (`ScheduledEffect.scope`), фаза назначенного применяет эффекты с ней; вложенный `later` получает ту же область.
+- Реестры ссылок на роли: `conditionRoleRefs(when)` (`condition-keys.ts`) и `effectRoleRefs(effects)` (`effects.ts`, `later` рекурсивно). Модуль с ключами, называющими роль, добавляет свою функцию в реестр (сейчас `relations/`, `stories/` — пустые). Проверка событий уже сверяет ссылки эффектов вариантов с ролями события.
+
+## D-172. Контракты 3.1 для волны 2: события, роли, тексты
+2026-10-16 · принято (задача 3.1); уточняет план 3.1 в ROADMAP
+
+**Решение (сигнатуры, которые задачи 3.2–3.4 наполняют, не меняя):**
+- `events/`: `eventWeight(ctx, event, protagonist) → число` (0 — невозможно; сейчас — привязка к действию, заполнимость ролей, `weight`); `startEvent(ctx, event, protagonist, given = {}) → boolean` (false и ничего не меняет, если роль не заполнить). Ожидающее событие — `{eventId, protagonist, scope}`; варианты применяются к главному участнику с этой областью, строка — через `renderTemplate`. У схемы события уже есть поле `roles` (схема `RoleSchema`), тексты события проверяет `checkEventTemplate`, роли — `checkRoles`.
+- `roles/`: `baseScope(hero, protagonist)`, `fillRoles(ctx, roles, base) → Scope | null`, `canFillRoles` — по порядку объявления, первый подходящий из окружения без случайности; `circle` — окружение, `known`/`close` — знакомство героя, `relation` — активная связь с главным участником (`kind`), `given` — человек из области, если жив и в окружении. **Отличие от плана:** `anyCandidate(ctx, name, role, when, scope)` получает имя роли — для `pick: given` кандидат берётся из области по имени. `checkRoles` уже отказывает в именах `hero`, `protagonist` и плейсхолдеров подлежащего.
+- `text/`: `renderTemplate(ctx, template, scope, seq, slot) → TextPart[]` — `{name}`, `{he}`… от `protagonist`, `{role}` ссылкой, `{role.he}`, `{role.age}`… (`{role.name}` нет — это `{role}`); `seq`, `slot` пока не используются. `checkEventTemplate(template, {roles})`. Схема `grammar:` по контракту (`text/grammar.ts`): символ → список строк или `{text, when}`.
+- `stories/`: `dueEvents(ctx) → DueEvent[]` (`{eventId, protagonist, given}`), `isStoryOpen(state, characterId, storyId)`, `storyWeight(ctx, storyId, characterId)` — заглушки (пусто, false, 0).
+- `content/types.ts`: `Factor` (целое ≥ 1 или строка `"n/d"` из положительных целых; 0 отвергается схемой) и `factorParts`.
+
+## D-173. Выбор без действия, запросы смерти, страж прогона
+2026-10-16 · принято (задача 3.1); исполняет D-164, D-167
+
+**Решение.**
+- `apply` после выбора: осталось ожидающее событие (следующая страница, 3.2) — дни не идут; нет действия (сцена предыстории или смерть героя внутри выбора) — статус `awaiting_action`, дни не идут; иначе дни идут как раньше. Инвариант: `awaiting_choice` требует ожидающее событие, действие не обязательно.
+- Хуки новой партии `NEW_GAME_HOOKS` после строки `start`: `worldOnNewGame` (пустой; окружение по-прежнему заполняет первая фаза мира), `backstoryOnNewGame` (пустой). Хук смерти `storiesOnDeath` — последним.
+- `state.deathRequests` (часть `health`): фаза смерти первым делом исполняет запросы по порядку через `kill`, запрос на умершего отбрасывается. Если так погиб герой, фаза сразу возвращает true — обычный бросок смерти в этот день не делается (у нового главы он начнётся завтра).
+- `sim.ts`: команда `start` обязана продвинуть время; выбор может оставить день прежним, но не больше 50 раз подряд (`MAX_STEPS_WITHOUT_TIME`).
+- `log` принимает `template` или готовые `parts`; флаг `important` у видов `action`/`event` отправляет строку в хронику, как `mark` (без ▸).
+- `SAVE_VERSION = 3`.
