@@ -1,0 +1,8 @@
+# expect-error: events[0].options[0].result /undefined grammar symbol <nowhere>/
+events:
+  - id: bad_symbol
+    weight: 1
+    text: "A quiet day."
+    options:
+      - text: Wait
+        result: "<Nowhere>, {name} waited."

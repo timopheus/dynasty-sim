@@ -1,0 +1,3 @@
+# expect-error: grammar.morning[0] /undefined grammar symbol <noon>/
+grammar:
+  morning: ["<noon> in the yard"]

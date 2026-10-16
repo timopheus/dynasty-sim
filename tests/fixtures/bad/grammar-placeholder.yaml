@@ -1,0 +1,3 @@
+# expect-error: grammar.morning[0] /unknown placeholder \{nobody\}/
+grammar:
+  morning: ["{nobody} in the yard"]

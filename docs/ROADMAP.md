@@ -165,7 +165,7 @@
 | 3.1 | Точки подключения этапа 3 | весь `src/core`, `content/settings.yaml` → `content/narrator.yaml`, `content/time.yaml` (текст `money_max`), `tests/`, CLAUDE.md | 3.0 | Opus | 1 | ✅ [#26](https://github.com/timopheus/dynasty-sim/pull/26) |
 | 3.2 | Движок: событие, страницы, варианты, проверки | `src/core/events/`, `src/core/bot.ts`, `tests/events.test.ts`, `tests/fixtures/events/`, `tests/fixtures/base/events.yaml`, `docs/event-format.md` | 3.1 | Opus | 2 | ⬜ |
 | 3.3 | Роли: подбор участников | `src/core/roles/`, `src/core/world/content.ts` и `content/population.yaml` (только текст причины `occupation`), `tests/roles.test.ts`, `tests/fixtures/roles/` | 3.1 | Sonnet | 2 | ⬜ |
-| 3.4 | Тексты: роли в шаблонах и мини-грамматика | `src/core/text/`, `content/grammar.yaml` (новый), `tests/text.test.ts` | 3.1 | Sonnet | 2 | ⬜ |
+| 3.4 | Тексты: роли в шаблонах и мини-грамматика | `src/core/text/`, `content/grammar.yaml` (новый), `tests/text.test.ts` | 3.1 | Sonnet | 2 | 🟡 |
 | 3.5 | Персонаж и здоровье в событиях | `src/core/character/`, `src/core/health/`, `src/core/conditions/`, `content/health.yaml` (причины смерти, тексты причин), `content/names.yaml` (тексты причин), `tests/character.test.ts`, `tests/health.test.ts` | 3.1 | Sonnet | 3 | ⬜ |
 | 3.6 | Мнения и связи в событиях | `src/core/relations/`, `content/opinions.yaml`, `tests/relations.test.ts` | 3.1 | Sonnet | 3 | ⬜ |
 | 3.7 | Рассказчик | `src/core/narrator/`, `src/core/metrics/`, `content/narrator.yaml`, `tests/narrator.test.ts`, `tests/metrics.test.ts` | 3.2 | Sonnet | 3 | ⬜ |

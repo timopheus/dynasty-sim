@@ -1,0 +1,10 @@
+# expect-error: events[0].text /unbalanced/
+events:
+  - id: bad_brace
+    weight: 1
+    roles:
+      second: { pick: circle, optional: true }
+    text: "You ride out{second?, with {second}."
+    options:
+      - text: Wave
+        result: "{name} waved."

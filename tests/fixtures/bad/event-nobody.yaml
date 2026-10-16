@@ -1,0 +1,8 @@
+# expect-error: events[0].text /unknown placeholder \{nobody\}/
+events:
+  - id: bad_nobody
+    weight: 1
+    text: "You see {nobody}."
+    options:
+      - text: Wave
+        result: "{name} waved."
