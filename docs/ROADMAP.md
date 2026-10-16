@@ -167,7 +167,7 @@
 | 3.3 | Роли: подбор участников | `src/core/roles/`, `src/core/world/content.ts` и `content/population.yaml` (только текст причины `occupation`), `tests/roles.test.ts`, `tests/fixtures/roles/` | 3.1 | Sonnet | 2 | ✅ [#27](https://github.com/timopheus/dynasty-sim/pull/27) |
 | 3.4 | Тексты: роли в шаблонах и мини-грамматика | `src/core/text/`, `content/grammar.yaml` (новый), `tests/text.test.ts` | 3.1 | Sonnet | 2 | ✅ [#29](https://github.com/timopheus/dynasty-sim/pull/29) |
 | 3.5 | Персонаж и здоровье в событиях | `src/core/character/`, `src/core/health/`, `src/core/conditions/`, `content/health.yaml` (причины смерти, тексты причин), `content/names.yaml` (тексты причин), `tests/character.test.ts`, `tests/health.test.ts` | 3.1 | Sonnet | 3 | ⬜ |
-| 3.6 | Мнения и связи в событиях | `src/core/relations/`, `content/opinions.yaml`, `tests/relations.test.ts` | 3.1 | Sonnet | 3 | ⬜ |
+| 3.6 | Мнения и связи в событиях | `src/core/relations/`, `content/opinions.yaml`, `tests/relations.test.ts` | 3.1 | Sonnet | 3 | ✅ [#31](https://github.com/timopheus/dynasty-sim/pull/31) |
 | 3.7 | Рассказчик | `src/core/narrator/`, `src/core/metrics/`, `content/narrator.yaml`, `tests/narrator.test.ts`, `tests/metrics.test.ts` | 3.2 | Sonnet | 3 | ⬜ |
 | 3.8 | Продолжения и истории со сроком | `src/core/stories/`, `tests/stories.test.ts` | 3.2, 3.3, 3.7 | Opus | 4 | ⬜ |
 | 3.9 | События людей мира | `src/core/events/` (выбор варианта человеком мира), `src/core/narrator/` (бросок для окружения), `content/narrator.yaml` (`npcChancePer10k`), `src/core/chronicle/log.ts`, `src/core/pages/` (строки событий на странице человека), `src/core/metrics/`, `tests/npc-events.test.ts` | 3.2, 3.3, 3.7 | Sonnet | 4 | ⬜ |

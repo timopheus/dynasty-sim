@@ -1,0 +1,64 @@
+# Events with opinions, relations and secrets for the tests of 3.6; goes on top of base, population and opinions.
+events:
+  - id: quarrel
+    weight: 1
+    roles:
+      foe: { pick: circle, where: { relation_none: { kind: rival, with: hero } } }
+      witness: { pick: circle, optional: true }
+    text: "{foe} sneers at {name}."
+    options:
+      - text: Insult {foe} back
+        effects: { opinion: [{ toward: foe, reason: slight }] }
+        on:
+          foe:
+            opinion: [{ toward: hero, reason: insult }]
+            relation: [{ start: rival, with: hero }]
+            secret: { kind: shame, known_by: [witness, hero] }
+          witness: { introduce: close }
+        result: "{name} insulted {foe}."
+      - text: Make peace with {foe}
+        when: { relation: { kind: rival, with: foe } }
+        result: "{name} made peace with {foe}."
+      - text: Leave
+        result: "{name} left."
+
+  - id: reconcile
+    weight: 1
+    roles:
+      foe: { pick: relation, kind: rival }
+      witness: { pick: circle, optional: true }
+    text: "{foe} offers {name} a hand."
+    options:
+      - text: Make peace with {foe}
+        when: { relation: { kind: rival, with: foe } }
+        on:
+          foe:
+            relation: [{ end: rival, with: hero, reason: peace }]
+            opinion_end: [{ toward: hero, reason: insult }]
+            reveal: { kind: shame, to: [witness] }
+        result: "{name} made peace with {foe}."
+      - text: Refuse
+        result: "{name} refused."
+
+  - id: kindness
+    weight: 1
+    roles:
+      pupil: { pick: circle, where: { relation_none: { kind: patron, with: hero } } }
+    text: "{pupil} asks {name} for help."
+    options:
+      - text: Take {pupil} in
+        effects: { relation: [{ start: patron, with: pupil }] }
+        on: { pupil: { opinion: [{ toward: hero, reason: gift, value: 55 }] } }
+        result: "{name} helped {pupil}."
+      - text: Be taken in by {pupil}
+        on: { pupil: { relation: [{ start: patron, with: hero }] } }
+        result: "{name} was helped by {pupil}."
+      - text: Drop {pupil}
+        effects: { relation: [{ end: patron, with: pupil }] }
+        result: "{name} dropped {pupil}."
+      - text: Lend money
+        on: { pupil: { opinion: [{ toward: hero, reason: debt }] } }
+        result: "{name} lent money to {pupil}."
+      - text: Be repaid
+        on: { pupil: { opinion_end: [{ toward: hero, reason: repaid }] } }
+        result: "{name} was repaid."

@@ -1,0 +1,19 @@
+# expect-error: events[0].options[0].on.foe.opinion[0].value /does not go the way/
+opinions:
+  reasons: [{ id: slight, name: Slight, value: -10, kind: harm, decay: { kind: never } }]
+  traitEffects: []
+  background: { max: 10, rules: [] }
+  words: [{ from: -100, text: low }]
+  relations: []
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }
+  texts: { opinionMin: "a {word} {name}", opinionMax: "a {word} {name}", relation: "a {kind} {name}", relationNone: "a {kind} {name}", acquaintedKnown: "a {name}", acquaintedClose: "a {name}" }
+events:
+  - id: bad_sign
+    weight: 1
+    roles:
+      foe: { pick: circle }
+    text: "{foe} scowls."
+    options:
+      - text: Scowl back
+        on: { foe: { opinion: [{ toward: hero, reason: slight, value: 20 }] } }
+        result: "{name} scowled."
