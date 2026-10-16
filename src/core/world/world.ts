@@ -1,4 +1,4 @@
-import { getPlayer } from '../helpers';
+import { findCharacter, getPlayer } from '../helpers';
 import type { Character, CreateHook, DeathHook, GameState, Invariant } from '../state';
 
 /**
@@ -25,24 +25,9 @@ export function initWorldState(): WorldState {
   return { circle: [], lastTickYear: null, lastMoveEndDay: null };
 }
 
-/**
- * A character by id. Ids are `c<n>` with n rising along the list (newId), so a binary search finds
- * them without scanning the whole history; falls back to a scan if that ever stops being true.
- */
+/** A character by id: the indexed lookup of `findCharacter` (D-194). */
 export function characterById(state: GameState, id: string): Character | null {
-  const n = Number(id.slice(1));
-  const list = state.characters;
-  let lo = 0;
-  let hi = list.length - 1;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    const c = list[mid] as Character;
-    const m = Number(c.id.slice(1));
-    if (m === n) return c.id === id ? c : (list.find((x) => x.id === id) ?? null);
-    if (m < n) lo = mid + 1;
-    else hi = mid - 1;
-  }
-  return list.find((x) => x.id === id) ?? null;
+  return findCharacter(state, id);
 }
 
 /**
