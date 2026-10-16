@@ -230,7 +230,6 @@ events:
         effects: { traits: { add: [coward] } }
         on: { rival: { opinion: [{ toward: hero, reason: no_spine }] } }
         result: "{name} refused to face {rival} at dawn and went home in shame."
-        chronicle: true
         mood: shame
 
   - id: lend_to_a_comrade
@@ -273,7 +272,6 @@ events:
             opinion_end: [{ toward: debtor, reason: debt_repaid }]
           on: { debtor: { money: -30 } }
           result: "{name} was repaid in full, with interest, by {debtor}."
-          chronicle: true
           mood: joy
         failure:
           effects:
@@ -292,7 +290,6 @@ events:
             relation: [{ start: friend, with: debtor }]
           on: { debtor: { money: -25, opinion: [{ toward: hero, reason: stood_by_me }] } }
           result: "{name} took back the loan from {debtor} and waved the interest away."
-          chronicle: true
           mood: joy
         failure:
           effects:
@@ -328,7 +325,6 @@ events:
           effects: { opinion_end: [{ toward: debtor, reason: debt_repaid }], opinion: [{ toward: debtor, reason: wronged }] }
           on: { debtor: { opinion: [{ toward: hero, reason: insulted_in_public }] } }
           result: "{name} hunted {debtor} for a debt and came back with nothing but an enemy."
-          chronicle: true
           mood: shame
 
   - id: priest_alms
