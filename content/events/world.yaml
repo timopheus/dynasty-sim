@@ -1,0 +1,101 @@
+# Events of people of the world (who: npc, 3.12). The person around the hero chooses by `ai` weights (D-166); nothing
+# here changes the hero (D-174): only the person and the others in their roles. `{name}` is the person.
+events:
+  - id: npc_quarrel
+    who: npc
+    weight: 6
+    cooldown_days: 180
+    roles:
+      other:
+        pick: circle
+        prefer:
+          - { when: { opinion: { toward: protagonist, max: -10 } }, factor: 4 }
+    text: "{name} and {other} fall to quarrelling over a debt of a few crowns."
+    options:
+      - text: Trade insults
+        ai: { base: 10, traits: { wrathful: 6, proud: 4, calm: -6 } }
+        on: { other: { opinion: [{ toward: protagonist, reason: insulted_in_public }] } }
+        result: "{name} traded insults with {other} over a debt."
+        mood: anger
+      - text: Draw knives
+        ai: { base: 2, traits: { wrathful: 14, vengeful: 6, calm: -2, craven: -2 } }
+        effects: { wound: light_wound }
+        on:
+          other:
+            wound: light_wound
+            opinion: [{ toward: protagonist, reason: wronged }]
+            relation: [{ start: rival, with: protagonist }]
+        result: "{name} and {other} cut each other with knives over a debt and became bitter rivals."
+        mood: pain
+      - text: Walk away
+        ai: { base: 8, traits: { calm: 8, craven: 6, forgiving: 4, wrathful: -6 } }
+        result: "{name} walked away from a quarrel with {other}."
+
+  - id: npc_kindness
+    who: npc
+    weight: 6
+    cooldown_days: 180
+    when: { money_min: 20 }
+    roles:
+      other:
+        pick: circle
+        where: { money_max: 20 }
+    text: "{name} sees that {other} has not eaten properly in days."
+    options:
+      - text: Help {other} quietly
+        ai: { base: 4, traits: { generous: 12, forgiving: 3, greedy: -4 } }
+        effects: { money: -8 }
+        on:
+          other:
+            money: 8
+            opinion: [{ toward: protagonist, reason: favour }]
+            relation: [{ start: friend, with: protagonist }]
+        result: "{name} helped {other} with a few crowns, and the two became friends."
+        mood: joy
+      - text: Look the other way
+        ai: { base: 8, traits: { greedy: 6, generous: -3 } }
+        result: "{name} looked the other way while {other} went hungry."
+
+  - id: npc_fever
+    who: npc
+    weight: 5
+    cooldown_days: 365
+    roles:
+      physician:
+        pick: circle
+        where: { occupation: [physician] }
+        optional: true
+    text: "A fever takes {name}."
+    options:
+      - text: Send for a physician
+        ai: { base: 6, traits: { diligent: 3, trusting: 3, craven: 3, greedy: -3 } }
+        when: { money_min: 10 }
+        effects: { money: -10 }
+        result: "{name} paid for a physician{physician?, {physician},} and got over a fever."
+        mood: joy
+      - text: Sweat it out
+        ai: { base: 8, traits: { brave: 3, content: 3, suspicious: 2 } }
+        effects: { disease: fever }
+        result: "{name} lay sick with fever for weeks."
+        mood: pain
+
+  - id: npc_theft
+    who: npc
+    weight: 4
+    cooldown_days: 365
+    when: { money_max: 25 }
+    roles:
+      victim:
+        pick: circle
+        where: { money_min: 20 }
+    text: "{name} is hungry, and {victim} has left a coat with a heavy purse hanging on a peg."
+    options:
+      - text: Take the purse
+        ai: { base: 3, traits: { greedy: 8, deceitful: 6, lazy: 3, honest: -3 } }
+        effects: { money: 12, traits: { add: [thief] } }
+        on: { victim: { money: -12, opinion: [{ toward: protagonist, reason: wronged }] } }
+        result: "{name} stole a purse from {victim} and was marked a thief."
+        mood: shame
+      - text: Leave it hanging
+        ai: { base: 10, traits: { honest: 8, craven: 2, diligent: 2 } }
+        result: "{name} left {victim}'s purse untouched."

@@ -1,80 +1,524 @@
-# Events tied to specific actions (`actions:` lists where they can fire). Schema: EventSchema.
+# Events tied to specific actions (`actions:` lists where they can fire), 3.12. Format: docs/event-format.md.
 events:
+  # --- Travel ---------------------------------------------------------------------------------------------------
   - id: highwaymen
     weight: 10
+    severity: medium
     actions: [travel]
-    text: "Highwaymen bar the road ahead of {name}."
+    mood: threat
+    text: "Armed men step out of the hedge <road_weather> and bar the road. One of them names a price for your passage."
     options:
-      - text: Fight
-        result: "{name} fought off highwaymen and took their purse."
-        effects: { wound: light_wound, money: 15 }
+      - text: Fight them
+        check: { stat: prowess, difficulty: 6, bonus: [{ when: { traits_any: [duelist, horseman] }, add: 1 }] }
+        success:
+          effects: { wound: light_wound, money: 15 }
+          result: "{name} fought off highwaymen on the road and took their purse."
+          mood: triumph
+        failure:
+          effects: { wound: light_wound, money: -25 }
+          result: "{name} was beaten and robbed by highwaymen on the road."
+          chronicle: true
+          mood: pain
       - text: Pay them off
-        result: "{name} paid off highwaymen on the road."
         effects: { money: -20 }
+        result: "{name} paid off highwaymen on the road."
 
   - id: broken_wheel
     weight: 8
     actions: [travel, trade]
-    text: "A cart wheel breaks on a muddy road."
+    roles:
+      wheelwright:
+        pick: circle
+        where: { occupation: [craftsman, teamster] }
+        optional: true
+    text: "A cart wheel cracks on a muddy road{wheelwright?, and {wheelwright} is already looking over the damage}."
     options:
       - text: Pay a wheelwright
-        result: "{name} paid a wheelwright to mend a broken wheel."
         effects: { money: -8 }
+        result: "{name} paid a wheelwright{wheelwright?, {wheelwright},} to mend a broken wheel."
       - text: Mend it yourself
-        result: "{name} mended a broken wheel by hand in the mud."
+        check: { stat: stewardship, difficulty: 6 }
+        success:
+          result: "{name} mended a broken wheel by hand in the mud."
+        failure:
+          effects: { money: -12 }
+          result: "{name} botched the mending of a broken wheel and paid twice for it."
+          mood: shame
 
+  - id: fellow_traveller
+    weight: 6
+    actions: [travel]
+    roles:
+      companion: { pick: circle }
+    text: "On the road you fall in step with {companion}, who is bound the same way and offers to share the miles and the cost of the inns."
+    options:
+      - text: Share the road and the cost
+        check: { stat: diplomacy, difficulty: 6, bonus: [{ when: { traits_any: [generous, trusting] }, add: 1 }] }
+        success:
+          effects: { relation: [{ start: friend, with: companion }] }
+          result: "{name} shared a long road with {companion}, and the two became friends."
+          chronicle: true
+          mood: joy
+        failure:
+          on: { companion: { opinion: [{ toward: hero, reason: slighted }] } }
+          result: "{name} fell out with {companion} over the cost of an inn."
+          mood: anger
+      - text: Go your own way
+        result: "{name} declined the company of {companion} on the road."
+
+  - id: smugglers_lantern
+    weight: 4
+    severity: medium
+    actions: [travel]
+    when: { fit: true }
+    roles:
+      smuggler:
+        pick: circle
+        where: { occupation: [sailor, teamster, merchant] }
+        prefer:
+          - { when: { traits_any: [deceitful] }, factor: 4 }
+    mood: threat
+    text: "After dark, a lantern winks twice from a barn. {smuggler} steps into the road: there is brandy to move before dawn, and a share for a man who does not ask questions."
+    options:
+      - text: Carry a load for the smugglers
+        check: { stat: intrigue, difficulty: 8 }
+        success:
+          effects: { money: 35 }
+          on: { smuggler: { opinion: [{ toward: hero, reason: comrade }] } }
+          result: "{name} ran a load of brandy past the revenue men for {smuggler}."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { money: -20, wound: light_wound }
+          result: "{name} was caught with smuggled brandy, beaten and fined."
+          chronicle: true
+          mood: pain
+      - text: Refuse and ride on
+        result: "{name} refused to carry brandy for {smuggler}."
+      - text: Tell the revenue men
+        effects: { money: 10, traits: { add: [traitor] } }
+        on: { smuggler: { opinion: [{ toward: hero, reason: betrayed }] } }
+        result: "{name} informed on {smuggler} to the revenue men for a reward."
+        chronicle: true
+        mood: shame
+
+  # --- Contract service -----------------------------------------------------------------------------------------
   - id: night_patrol
     weight: 10
     actions: [serve_contract]
-    text: "The captain offers a bonus for a dangerous night patrol."
+    roles:
+      sergeant: { pick: circle, where: { occupation: [sergeant, soldier] } }
+    text: "{sergeant} offers a bonus to whoever will take a dangerous night patrol along the river."
     options:
       - text: Volunteer
-        result: "{name} volunteered for a night patrol and earned a bonus."
-        effects: { wound: light_wound, money: 30 }
+        check: { stat: prowess, difficulty: 6 }
+        success:
+          effects: { money: 30 }
+          on: { sergeant: { opinion: [{ toward: hero, reason: favour }] } }
+          result: "{name} volunteered for a night patrol and earned a bonus from {sergeant}."
+          mood: triumph
+        failure:
+          effects: { wound: light_wound, money: 15 }
+          result: "{name} was wounded on a night patrol but earned half a bonus."
+          mood: pain
       - text: Stay in camp
         result: "{name} stayed in camp while others went on patrol."
 
   - id: late_wages
     weight: 8
     actions: [serve_contract]
-    text: "The paymaster is late with the wages again."
+    roles:
+      paymaster: { pick: circle, where: { occupation: [clerk, sergeant, merchant] } }
+    text: "{paymaster} is late with the wages again. The men are muttering."
     options:
       - text: Complain loudly
-        result: "{name} complained to the paymaster and got part of the wages."
-        effects: { money: 10 }
+        check: { stat: diplomacy, difficulty: 7 }
+        success:
+          effects: { money: 10 }
+          result: "{name} complained to {paymaster} and got part of the wages."
+        failure:
+          on: { paymaster: { opinion: [{ toward: hero, reason: slighted }] } }
+          result: "{name} complained to {paymaster} and was sent away with nothing."
+          mood: anger
       - text: Wait patiently
-        result: "{name} waited out a late payday on credit."
         effects: { money: -5 }
+        result: "{name} waited out a late payday on credit."
 
-  - id: shared_lodgings
-    weight: 8
-    actions: [winter_quarters]
-    text: "A fellow lodger proposes to share the costs of the winter."
+  - id: escort_ambush
+    weight: 4
+    severity: heavy
+    actions: [serve_contract]
+    when: { fit: true }
+    roles:
+      employer: { pick: circle, where: { occupation: [merchant] } }
+      coward:
+        pick: circle
+        where: { occupation: [soldier, mercenary], traits_none: [brave] }
+        prefer:
+          - { when: { traits_any: [craven] }, factor: 5 }
+          - { when: { opinion: { toward: hero, max: -10 } }, factor: 2 }
+    grammar:
+      ambush_opening:
+        - shots crack from the treeline
+        - men rise from the ditch with pistols in their hands
+        - a tree comes down across the road
+    mood: threat
+    text: "You are guarding {employer}'s wine wagons when <ambush_opening>. Out of the corner of your eye you see {coward} drop {coward.his} musket and run."
     options:
-      - text: Agree
-        result: "{name} shared winter lodgings and costs with a stranger."
-        effects: { money: 10 }
-      - text: Refuse
-        result: "{name} kept to a room alone for the winter."
+      - text: Stand and hold the wagons
+        check: { stat: prowess, difficulty: 8, bonus: [{ when: { traits_any: [duelist] }, add: 2 }, { when: { traits_any: [brave] }, add: 1 }] }
+        success:
+          effects: { wound: light_wound }
+          on: { employer: { opinion: [{ toward: hero, reason: favour }] } }
+          result: "{name} held {employer}'s wagons against a bandit ambush."
+          chronicle: true
+          mood: triumph
+          next: shamed
+        failure:
+          effects: { wound: severe_wound, money: -15 }
+          result: "{name} was badly wounded in a bandit ambush while guarding {employer}'s wine."
+          chronicle: true
+          mood: pain
+          next: shamed
+      - text: Charge the ambushers alone
+        check: { stat: prowess, difficulty: 11, bonus: [{ when: { traits_any: [duelist] }, add: 2 }, { when: { traits_any: [brave] }, add: 2 }] }
+        success:
+          effects: { money: 40, fame: 1 }
+          on: { employer: { opinion: [{ toward: hero, reason: saved_life }] } }
+          result: "{name} charged a bandit ambush alone, broke it and saved {employer}'s wagons."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { kill: killed }
+          result: "{name} charged a bandit ambush alone and was cut down."
+          chronicle: true
+          mood: loss
+      - text: Run with {coward}
+        when: { traits_none: [brave] }
+        effects: { money: -10, traits: { add: [coward] } }
+        on: { employer: { opinion: [{ toward: hero, reason: wronged }] } }
+        result: "{name} fled a bandit ambush with {coward}, leaving {employer}'s wine to the robbers."
+        chronicle: true
+        mood: shame
+    pages:
+      shamed:
+        mood: anger
+        text: "At the inn that night, {coward} is already telling the carters how bravely {coward.he} fought."
+        options:
+          - text: Name {coward} a coward and a liar, before everyone
+            on:
+              coward:
+                traits: { add: [coward] }
+                opinion: [{ toward: hero, reason: insulted_in_public }]
+                relation: [{ start: rival, with: hero }]
+            result: "{name} publicly named {coward} a coward and a liar."
+            chronicle: true
+            mood: anger
+          - text: Say nothing
+            on: { coward: { opinion: [{ toward: hero, reason: favour }] } }
+            result: "{name} kept quiet about {coward}."
 
+  - id: skirmish_at_the_ford
+    weight: 4
+    severity: heavy
+    actions: [serve_contract]
+    when: { fit: true }
+    roles:
+      sergeant: { pick: circle, where: { occupation: [sergeant, soldier] } }
+    mood: threat
+    text: "<Dawn> {sergeant} shakes you awake: skirmishers are fording the river below the camp, and the officers are nowhere to be seen."
+    options:
+      - text: Hold the bank with the picket
+        check: { stat: martial, difficulty: 8, bonus: [{ when: { traits_any: [sapper] }, add: 2 }] }
+        success:
+          effects: { money: 25 }
+          on: { sergeant: { opinion: [{ toward: hero, reason: comrade }] } }
+          result: "{name} held the river bank with the picket and drove the skirmishers off."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { wound: light_wound, money: -10 }
+          result: "{name} was beaten back from the river bank and wounded."
+          chronicle: true
+          mood: pain
+      - text: Lead a sortie across the ford
+        check: { stat: prowess, difficulty: 10, bonus: [{ when: { traits_any: [horseman, duelist] }, add: 2 }] }
+        success:
+          effects: { money: 40, fame: 1 }
+          on: { sergeant: { opinion: [{ toward: hero, reason: stood_by_me }] } }
+          result: "{name} led a sortie across a ford and routed the enemy skirmishers."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { kill: killed }
+          result: "{name} fell leading a sortie across a ford."
+          chronicle: true
+          mood: loss
+      - text: Fall back to the camp
+        on: { sergeant: { opinion: [{ toward: hero, reason: called_coward }] } }
+        result: "{name} fell back from the ford and left the picket to hold it."
+        mood: shame
+
+  - id: mutiny_in_camp
+    weight: 3
+    severity: heavy
+    actions: [serve_contract]
+    when: { fit: true }
+    roles:
+      ringleader:
+        pick: circle
+        where: { occupation: [soldier, mercenary] }
+        prefer:
+          - { when: { traits_any: [wrathful, ambitious] }, factor: 3 }
+    mood: threat
+    text: "Three months without pay. {ringleader} climbs onto a wagon and tells the company to stack arms and march home. Half the men are already nodding."
+    options:
+      - text: Side with the men
+        check: { stat: diplomacy, difficulty: 8 }
+        success:
+          effects: { money: 20, relation: [{ start: friend, with: ringleader }] }
+          result: "{name} sided with {ringleader} in a mutiny over pay and the back wages were paid."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { wound: light_wound, money: -15 }
+          result: "{name} was flogged as a mutineer when a pay mutiny failed."
+          chronicle: true
+          mood: shame
+      - text: Draw your sword on the mob
+        check: { stat: prowess, difficulty: 10, bonus: [{ when: { traits_any: [duelist] }, add: 2 }] }
+        success:
+          effects: { fame: 1, money: 15 }
+          on: { ringleader: { wound: light_wound, opinion: [{ toward: hero, reason: defeated_me }] } }
+          result: "{name} drew on a mutinous mob and broke it up."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { kill: killed }
+          result: "{name} was cut down trying to break up a pay mutiny."
+          chronicle: true
+          mood: loss
+      - text: Keep out of it
+        result: "{name} kept out of a pay mutiny in the camp."
+
+  # --- Trade ----------------------------------------------------------------------------------------------------
   - id: cheap_cargo
     weight: 8
     actions: [trade]
-    text: "A merchant offers {name} a cargo of cloth at a suspiciously low price."
+    roles:
+      seller:
+        pick: circle
+        where: { occupation: [merchant] }
+    text: "{seller} offers you a cargo of cloth at a suspiciously low price."
     options:
       - text: Buy it
-        result: "{name} bought a cheap cargo of cloth that turned out to be rotten."
-        effects: { money: -30 }
+        check: { stat: stewardship, difficulty: 8, bonus: [{ when: { traits_any: [suspicious] }, add: 2 }] }
+        success:
+          effects: { money: 20 }
+          result: "{name} bought a cheap cargo of cloth from {seller}, found it sound and sold it at a profit."
+          mood: joy
+        failure:
+          effects: { money: -30, opinion: [{ toward: seller, reason: cheated_me }] }
+          result: "{name} bought a cheap cargo of cloth from {seller} that turned out to be rotten."
+          chronicle: true
+          mood: shame
       - text: Refuse
-        result: "{name} refused a suspiciously cheap cargo of cloth."
+        result: "{name} refused a suspiciously cheap cargo of cloth from {seller}."
 
+  - id: market_rival
+    weight: 6
+    actions: [trade]
+    roles:
+      rival: { pick: circle, where: { occupation: [merchant, craftsman] } }
+    text: "{rival} has taken the stall next to yours and is selling the same goods for less."
+    options:
+      - text: Cut your prices to match
+        check: { stat: stewardship, difficulty: 7 }
+        success:
+          effects: { money: 15, traits: { add: [fair_dealer] } }
+          result: "{name} met {rival}'s prices in the market and kept the custom."
+          mood: triumph
+        failure:
+          effects: { money: -10 }
+          result: "{name} cut prices against {rival} and sold at a loss."
+          mood: loss
+      - text: Spread word that {rival} gives short measure
+        check: { stat: intrigue, difficulty: 8 }
+        success:
+          effects: { money: 20, relation: [{ start: rival, with: rival }] }
+          on: { rival: { money: -10, opinion: [{ toward: hero, reason: wronged }] } }
+          result: "{name} ruined the custom of {rival} in the market with a whispering campaign."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { money: -5 }
+          on: { rival: { opinion: [{ toward: hero, reason: insulted_in_public }], relation: [{ start: rival, with: hero }] } }
+          result: "{name} was caught slandering {rival} in the market and made an enemy of {rival.him}."
+          chronicle: true
+          mood: shame
+      - text: Share the market peaceably
+        result: "{name} traded beside {rival} without a quarrel."
+
+  - id: patron_offer
+    weight: 5
+    severity: medium
+    tags: [way_up]
+    actions: [trade]
+    when: { fit: true }
+    roles:
+      patron:
+        pick: circle
+        where: { occupation: [merchant], money_min: 40 }
+    mood: joy
+    text: "{patron}, an established merchant, has watched you deal for some weeks. \"A man who deals honestly could go far,\" {patron.he} says. \"Let me back you.\""
+    options:
+      - text: Accept the backing
+        effects: { money: 40 }
+        on: { patron: { relation: [{ start: patron, with: hero }] } }
+        result: "{name} took the backing of {patron}, a merchant, and went into trade under {patron.his} name."
+        chronicle: true
+        mood: joy
+      - text: Thank {patron} and stay independent
+        effects: { traits: { add: [proud] } }
+        on: { patron: { opinion: [{ toward: hero, reason: slighted }] } }
+        result: "{name} turned down the backing of {patron}, preferring to be {his} own master."
+        mood: neutral
+
+  # --- Winter quarters ------------------------------------------------------------------------------------------
+  - id: shared_lodgings
+    weight: 8
+    actions: [winter_quarters]
+    roles:
+      lodger: { pick: circle }
+    text: "{lodger}, who has the next room, proposes to share the costs of the winter."
+    options:
+      - text: Agree
+        check: { stat: diplomacy, difficulty: 6 }
+        success:
+          effects: { money: 10, relation: [{ start: friend, with: lodger }] }
+          result: "{name} shared winter lodgings with {lodger}, and the two became friends."
+          chronicle: true
+          mood: joy
+        failure:
+          effects: { money: -12 }
+          on: { lodger: { traits: { add: [thief] }, opinion: [{ toward: hero, reason: wronged }] } }
+          result: "{name} shared winter lodgings with {lodger}, who left in the spring with {name}'s purse."
+          chronicle: true
+          mood: anger
+      - text: Refuse
+        result: "{name} kept to a room alone for the winter."
+
+  - id: cold_snap
+    weight: 6
+    actions: [winter_quarters]
+    when: { season: [winter] }
+    effects: { money: -8 }
+    text: "The frost holds the town for a week. Firewood and bread cost double, and you pay what is asked."
+    result: "{name} paid dearly for firewood in a hard frost."
+
+  # --- Rest -----------------------------------------------------------------------------------------------------
+  - id: kindly_nurse
+    weight: 6
+    actions: [rest]
+    roles:
+      nurse: { pick: circle, where: { occupation: [servant, innkeeper, priest, physician] } }
+    text: "You are still weak from the road when {nurse} starts bringing broth to your room without being asked."
+    options:
+      - text: Accept the broth gratefully
+        effects: { heal: all, relation: [{ start: friend, with: nurse }] }
+        on: { nurse: { opinion: [{ toward: hero, reason: gift }] } }
+        result: "{name} was nursed back to strength by {nurse}, and they became friends."
+        chronicle: true
+        mood: joy
+      - text: Send {nurse} away, you want no fuss
+        on: { nurse: { opinion: [{ toward: hero, reason: slighted }] } }
+        result: "{name} sent {nurse} away and recovered alone."
+
+  # --- Hunting --------------------------------------------------------------------------------------------------
   - id: wild_boar
     weight: 8
     actions: [hunt]
-    text: "A wild boar charges at {name}."
+    when: { fit: true }
+    mood: threat
+    text: "A wild boar charges you out of the undergrowth."
     options:
       - text: Stand and strike
-        result: "{name} killed a charging boar but was gored."
-        effects: { wound: severe_wound, money: 10 }
+        check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [brave] }, add: 1 }] }
+        success:
+          effects: { wound: light_wound, money: 10 }
+          result: "{name} killed a charging boar and was only scratched."
+          mood: triumph
+        failure:
+          effects: { wound: severe_wound, money: 10 }
+          result: "{name} killed a charging boar but was gored."
+          chronicle: true
+          mood: pain
       - text: Climb a tree
         result: "{name} waited out a wild boar from the branches of a tree."
+
+  - id: bear_in_the_thicket
+    weight: 3
+    severity: heavy
+    actions: [hunt]
+    when: { fit: true }
+    mood: threat
+    text: "The dogs go quiet, then yelp. In the thicket ahead something very large rises on its hind legs: a bear, and it has seen you."
+    options:
+      - text: Face the bear with a spear
+        check: { stat: prowess, difficulty: 10, bonus: [{ when: { traits_any: [brave, duelist] }, add: 2 }] }
+        success:
+          effects: { money: 25, fame: 1, traits: { add: [bear_slayer] } }
+          result: "{name} killed a bear with a boar spear, to the wonder of the neighbourhood."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { kill: killed }
+          result: "{name} was mauled to death by a bear in a thicket."
+          chronicle: true
+          mood: loss
+      - text: Loose an arrow from the trees
+        check: { stat: prowess, difficulty: 8 }
+        success:
+          effects: { money: 15 }
+          result: "{name} shot a bear from the trees and sold the pelt."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { wound: severe_wound }
+          result: "{name} wounded a bear with an arrow and was badly clawed for it."
+          chronicle: true
+          mood: pain
+      - text: Back away slowly
+        result: "{name} backed away from a bear and left the dogs to their luck."
+
+  - id: poacher_charge
+    weight: 6
+    actions: [hunt]
+    roles:
+      warden: { pick: circle, where: { occupation: [farmhand, servant, soldier] } }
+    text: "You are dressing a deer in a wood that belongs to a lord when {warden}, the keeper, steps out between the trees and asks whose deer it is."
+    options:
+      - text: Pay the fine
+        effects: { money: -15 }
+        result: "{name} paid {warden} a fine for a deer taken in a lord's wood."
+      - text: Slip away through the undergrowth
+        check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [horseman] }, add: 1 }] }
+        success:
+          effects: { money: 10 }
+          result: "{name} escaped {warden} with the deer."
+        failure:
+          effects: { money: -25 }
+          on: { warden: { opinion: [{ toward: hero, reason: insulted_in_public }] } }
+          result: "{name} was caught by {warden} with a poached deer and fined heavily."
+          chronicle: true
+          mood: shame
+      - text: Talk your way out of it
+        check: { stat: diplomacy, difficulty: 8, bonus: [{ when: { traits_any: [linguist] }, add: 1 }] }
+        success:
+          effects: { money: 5 }
+          on: { warden: { opinion: [{ toward: hero, reason: favour }] } }
+          result: "{name} talked {warden} out of reporting a poached deer."
+          mood: triumph
+        failure:
+          effects: { money: -15 }
+          result: "{name} tried to talk {warden} round and was fined all the same."

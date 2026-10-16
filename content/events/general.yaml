@@ -1,67 +1,372 @@
-# Events that can happen during any action. Schema: EventSchema.
-# `text` is shown to the player; each option's `result` goes to the chronicle.
+# Events that can happen during any action (3.12, event format of docs/event-format.md).
+# `text` and option labels are for the player (second person); `result` is the chronicle line (third person, starts
+# with {name}, D-162). Where a person appears, the event has a role for them (D-041). `mood` marks the scene and the
+# outcomes that are not neutral (D-177).
 events:
   - id: fever
     weight: 10
-    text: "A fever takes hold of {name}."
+    mood: pain
+    roles:
+      physician:
+        pick: circle
+        optional: true
+        where: { occupation: [physician] }
+        prefer:
+          - { when: { traits_any: [physician] }, factor: 3 }
+          - { when: { stats: { learning: { min: 10 } } }, factor: 2 }
+    text: "The shivering began last night, and this morning you cannot stand. The fever has taken hold."
     options:
-      - text: Send for a physician
-        result: "{name} paid a physician and got over a fever."
+      - text: "{physician?Send for {physician}}"
+        # Hidden while no physician is known: the condition names the role, which is empty (D-221).
+        when: { opinion: { toward: physician, min: -100 } }
         effects: { money: -10 }
+        on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} paid {physician?{physician}, a physician,} and got over a fever."
+        mood: joy
+      - text: Buy a remedy from a travelling quack
+        effects: { money: -4 }
+        result: "{name} bought a quack's remedy and got over a fever, more by luck than by the physic."
       - text: Rest and hope
-        result: "{name} lay sick with fever for weeks."
         effects: { disease: fever }
+        result: "{name} lay sick with fever for weeks."
+        mood: pain
 
   - id: card_game
     weight: 8
-    text: "A stranger at an inn invites {name} to a game of cards."
+    roles:
+      stranger:
+        pick: circle
+        prefer:
+          - { when: { traits_any: [deceitful] }, factor: 3 }
+    text: "At <inn_name>, {stranger} sets down a worn deck and invites you to a game of cards."
     options:
       - text: Play for high stakes
-        result: "{name} lost heavily at cards to a stranger."
-        effects: { money: -20 }
+        check: { stat: intrigue, difficulty: 8, bonus: [{ when: { traits_any: [suspicious] }, add: 2 }] }
+        success:
+          effects: { money: 25 }
+          on:
+            stranger:
+              opinion: [{ toward: hero, reason: humiliated }]
+              relation: [{ start: rival, with: hero }]
+          result: "{name} caught {stranger} cheating at cards and took 25 crowns off {stranger.him}."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { money: -20 }
+          on: { stranger: { opinion: [{ toward: hero, reason: gift }] } }
+          result: "{name} lost heavily at cards to {stranger}."
+          mood: loss
       - text: Play a modest hand
-        result: "{name} won a few coins at cards."
         effects: { money: 5 }
+        result: "{name} won a few coins at cards from {stranger}."
       - text: Decline
-        result: "{name} declined a game of cards with a stranger."
+        result: "{name} declined a game of cards with {stranger}."
 
   - id: letter_from_home
     weight: 5
-    text: "A letter finds {name}: an old debt owed to the family has been repaid."
+    mood: joy
+    text: "A letter finds you, in a clerk's hand: an old debt owed to your family has been repaid."
     options:
       - text: Buy new clothes
-        result: "{name} spent a repaid family debt on new clothes."
         effects: { money: 5 }
+        result: "{name} spent a repaid family debt on new clothes."
       - text: Keep the money
-        result: "{name} received a repaid family debt and kept it."
         effects: { money: 25 }
+        result: "{name} received a repaid family debt and kept it."
 
   - id: old_wound
     weight: 8
-    text: "An old wound aches in the damp weather."
+    when: { conditions_any: [old_wound] }
+    mood: pain
+    text: "Your old wound aches in the damp weather, a dull, deep pain."
     options:
       - text: Ignore it
         result: "{name} ignored an aching old wound."
       - text: Rest for a few days
-        result: "{name} rested an old wound for a few days."
         effects: { heal: old_wound, money: -3 }
+        result: "{name} rested an old wound for a few days."
 
   - id: pickpocket
     weight: 6
-    text: "{name} feels a hand slipping into a purse at the market."
+    roles:
+      thief:
+        pick: circle
+        prefer:
+          - { when: { traits_any: [deceitful, greedy] }, factor: 3 }
+    text: "At the market you feel a hand slipping into your purse. You turn in time to see {thief} pulling away with it."
     options:
       - text: Give chase
-        result: "{name} chased a pickpocket through the market."
+        check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [horseman] }, add: 1 }] }
+        success:
+          on:
+            thief:
+              traits: { add: [thief] }
+              opinion: [{ toward: hero, reason: humiliated }]
+          result: "{name} ran down {thief}, a pickpocket, in the market and took the purse back."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { money: -10 }
+          result: "{name} chased {thief} through the market in vain and lost a purse."
+          mood: anger
       - text: Let it go
-        result: "{name} was robbed by a pickpocket at the market."
         effects: { money: -10 }
+        result: "{name} was robbed by {thief} at the market."
+        mood: shame
 
   - id: tavern_brawl
     weight: 6
-    text: "A brawl breaks out in the tavern where {name} is drinking."
+    roles:
+      brawler:
+        pick: circle
+        where: { traits_any: [wrathful, proud] }
+        optional: true
+    text: "A brawl breaks out in <inn_name>{brawler?, with {brawler} in the middle of it}, and a bench comes flying across the room."
     options:
       - text: Join in
-        result: "{name} was bruised in a tavern brawl."
-        effects: { wound: light_wound }
+        check: { stat: prowess, difficulty: 6 }
+        success:
+          effects: { traits: { add: [brawler] } }
+          on: { brawler: { opinion: [{ toward: hero, reason: comrade }] } }
+          result: "{name} won a tavern brawl{brawler?, fighting at {brawler}'s side}."
+          mood: triumph
+        failure:
+          effects: { wound: light_wound }
+          result: "{name} was bruised in a tavern brawl."
+          mood: pain
+      - text: Try to talk the room down
+        check: { stat: diplomacy, difficulty: 8 }
+        success:
+          effects: { fame: 1 }
+          result: "{name} talked a tavern brawl down before blood was drawn."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { wound: light_wound }
+          result: "{name} tried to calm a tavern brawl and was knocked down for it."
+          mood: pain
       - text: Slip out
         result: "{name} slipped out of a tavern brawl unharmed."
+
+  - id: slighted_at_the_inn
+    weight: 6
+    severity: medium
+    roles:
+      rival:
+        pick: circle
+        where: { money_min: 0 }
+        prefer:
+          - { when: { traits_any: [wrathful, proud] }, factor: 4 }
+          - { when: { opinion: { toward: hero, max: -10 } }, factor: 2 }
+    text: "At <inn_name>, {rival} says over a cup, loudly enough for the whole room, that you cheat at cards."
+    mood: anger
+    options:
+      - text: Throw down your glove
+        effects:
+          schedule: [{ event: duel_at_dawn, after_days: { min: 3, max: 10 }, roles: { rival: rival } }]
+        result: "{name} challenged {rival} to a duel over an insult at the inn."
+        chronicle: true
+        mood: anger
+      - text: Answer with a cutting word
+        check: { stat: diplomacy, difficulty: 7, bonus: [{ when: { traits_any: [linguist] }, add: 1 }] }
+        success:
+          on: { rival: { opinion: [{ toward: hero, reason: humiliated }] } }
+          result: "{name} answered {rival}'s insult so sharply that the whole room laughed at {rival.him}."
+          mood: triumph
+        failure:
+          on: { rival: { opinion: [{ toward: hero, reason: slighted }] } }
+          result: "{name} traded insults with {rival} at the inn and came off worse."
+          mood: shame
+      - text: Swallow the insult
+        on: { rival: { opinion: [{ toward: hero, reason: called_coward }] } }
+        result: "{name} let {rival}'s insult pass and drank in silence."
+        mood: shame
+
+  - id: duel_at_dawn
+    followup_only: true
+    severity: heavy
+    weight: 1
+    roles:
+      rival: { pick: given }
+    mood: threat
+    text: "<Dawn>, in a wet meadow outside the town. {rival} is already there, with a second and a surgeon's bag on the grass."
+    options:
+      - text: Fight to first blood
+        check: { stat: prowess, against: { role: rival, stat: prowess }, bonus: [{ when: { traits_any: [duelist] }, add: 2 }] }
+        success:
+          effects: { fame: 1 }
+          on:
+            rival:
+              wound: light_wound
+              opinion: [{ toward: hero, reason: defeated_me }]
+              relation: [{ start: rival, with: hero }]
+          result: "{name} wounded {rival} in a duel at dawn."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { wound: light_wound }
+          on: { rival: { relation: [{ start: rival, with: hero }] } }
+          result: "{name} was wounded by {rival} in a duel at dawn."
+          chronicle: true
+          mood: pain
+      - text: Fight to the death
+        check: { stat: prowess, against: { role: rival, stat: prowess }, bonus: [{ when: { traits_any: [duelist] }, add: 2 }] }
+        success:
+          effects: { fame: 1 }
+          on: { rival: { kill: killed_in_duel } }
+          result: "{name} killed {rival} in a duel at dawn."
+          chronicle: true
+          mood: loss
+        failure:
+          effects: { kill: killed_in_duel }
+          result: "{name} was killed by {rival} in a duel at dawn."
+          chronicle: true
+          mood: loss
+      - text: Refuse to draw
+        effects: { traits: { add: [coward] } }
+        on: { rival: { opinion: [{ toward: hero, reason: called_coward }] } }
+        result: "{name} refused to face {rival} at dawn and went home in shame."
+        chronicle: true
+        mood: shame
+
+  - id: lend_to_a_comrade
+    weight: 6
+    roles:
+      debtor:
+        pick: circle
+        where: { money_max: 40 }
+    text: "{debtor} takes you aside, hat in hand. A bad season, a bad debt: could you lend 25 crowns until the harvest?"
+    options:
+      - text: Lend the 25 crowns
+        when: { money_min: 25 }
+        effects:
+          money: -25
+          opinion: [{ toward: debtor, reason: owes_me }]
+          story: { open: debt_owed, days: 300, fallback: [debtor_defaults], roles: { debtor: debtor } }
+        on: { debtor: { money: 25, opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} lent {debtor} 25 crowns until the harvest."
+        mood: joy
+      - text: Refuse
+        on: { debtor: { opinion: [{ toward: hero, reason: slighted }] } }
+        result: "{name} refused to lend {debtor} money."
+        mood: shame
+
+  - id: debtor_repays
+    story: debt_owed
+    weight: 6
+    roles:
+      debtor: { pick: given }
+    mood: joy
+    text: "{debtor} finds you with a heavy purse: the 25 crowns, and something over for your patience."
+    options:
+      - text: Take it with thanks
+        effects:
+          money: 30
+          opinion_end: [{ toward: debtor, reason: debt_repaid }]
+        on: { debtor: { money: -30 } }
+        result: "{name} was repaid in full, with interest, by {debtor}."
+        chronicle: true
+        mood: joy
+      - text: Take the 25 and wave the rest away
+        effects:
+          money: 25
+          opinion_end: [{ toward: debtor, reason: debt_repaid }]
+          relation: [{ start: friend, with: debtor }]
+        on: { debtor: { money: -25, opinion: [{ toward: hero, reason: stood_by_me }] } }
+        result: "{name} took back the loan from {debtor} and waved the interest away."
+        chronicle: true
+        mood: joy
+
+  - id: debtor_defaults
+    story: debt_owed
+    followup_only: true
+    weight: 1
+    roles:
+      debtor: { pick: given }
+    mood: anger
+    text: "The year is out and {debtor} has not come. Someone says {debtor.he} was seen spending coin at a fair two counties away."
+    options:
+      - text: Write the debt off
+        effects:
+          opinion_end: [{ toward: debtor, reason: debt_repaid }]
+          opinion: [{ toward: debtor, reason: wronged }]
+        result: "{name} wrote off a loan to {debtor} that was never repaid."
+        mood: shame
+      - text: Go after {debtor} for the money
+        check: { stat: intrigue, difficulty: 8 }
+        success:
+          effects: { money: 25, opinion_end: [{ toward: debtor, reason: debt_repaid }] }
+          on: { debtor: { money: -25, opinion: [{ toward: hero, reason: humiliated }] } }
+          result: "{name} ran {debtor} to ground and got the 25 crowns back."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { opinion_end: [{ toward: debtor, reason: debt_repaid }], opinion: [{ toward: debtor, reason: wronged }] }
+          on: { debtor: { opinion: [{ toward: hero, reason: insulted_in_public }] } }
+          result: "{name} hunted {debtor} for a debt and came back with nothing but an enemy."
+          chronicle: true
+          mood: shame
+
+  - id: priest_alms
+    weight: 6
+    tags: [way_up]
+    when: { money_max: 15 }
+    roles:
+      priest: { pick: circle, where: { occupation: [priest] } }
+    mood: loss
+    text: "You have not eaten properly in two days. {priest} stops you at the church door and looks at your coat, then at your face."
+    options:
+      - text: Accept the bread and the coins
+        effects: { money: 12 }
+        on: { priest: { opinion: [{ toward: hero, reason: gift }] } }
+        result: "{name}, with an empty purse, was given alms by {priest}."
+        mood: loss
+      - text: Ask for work instead of charity
+        check: { stat: diplomacy, difficulty: 7 }
+        success:
+          effects: { money: 22 }
+          on: { priest: { opinion: [{ toward: hero, reason: favour }] } }
+          result: "{name} asked {priest} for work instead of alms and was given a copying job for the parish."
+          chronicle: true
+          mood: joy
+        failure:
+          effects: { money: 5 }
+          result: "{name} asked {priest} for work and was sent away with a few coins."
+      - text: Pass by with your head up
+        effects: { traits: { add: [proud] } }
+        result: "{name} refused a priest's charity out of pride."
+        mood: shame
+
+  - id: odd_job_offer
+    weight: 6
+    tags: [way_up]
+    when: { money_max: 15, fit: true }
+    roles:
+      employer: { pick: circle, where: { occupation: [innkeeper, craftsman, merchant] } }
+    text: "{employer} has heard that you are looking for work. There is a roof to mend, a cellar to clear, a load to carry, and the pay is fair."
+    options:
+      - text: Take the job
+        effects: { money: 18 }
+        on: { employer: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} did odd jobs for {employer} and was paid fairly for them."
+        mood: joy
+      - text: Say that you are above such work
+        effects: { traits: { add: [proud] } }
+        on: { employer: { opinion: [{ toward: hero, reason: slighted }] } }
+        result: "{name} turned down honest work from {employer} and went hungry."
+        mood: shame
+
+  - id: lucky_find
+    weight: 4
+    effects: { money: 12 }
+    mood: joy
+    text: "Among the stones of a dry ditch you find a purse someone lost. There is no name inside it, only twelve crowns."
+    result: "{name} found a lost purse by the road."
+
+  - id: news_of_an_old_comrade
+    weight: 4
+    roles:
+      comrade: { pick: known }
+    on: { comrade: { opinion: [{ toward: hero, reason: comrade }] } }
+    text: "A carter brings word from {comrade}: {comrade.he} has taken a small inn farther south, and there is always a bed for you."
+    result: "{name} had word from {comrade}, who has settled at an inn."
