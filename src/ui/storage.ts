@@ -201,8 +201,10 @@ export interface IdbFactory {
 function committed(tx: IdbTransaction): Promise<void> {
   return new Promise((resolve, reject) => {
     tx.oncomplete = () => resolve();
-    tx.onabort = () => reject(tx.error ?? new Error('The transaction was aborted'));
-    tx.onerror = () => reject(tx.error ?? new Error('The transaction failed'));
+    // The failed request carries the error (a ConstraintError for a key written twice); tx.error may still be null.
+    const fail = (event: { target?: { error?: unknown } | null }) => reject(event.target?.error ?? tx.error ?? new Error('The transaction failed'));
+    tx.onerror = fail;
+    tx.onabort = fail;
   });
 }
 
