@@ -210,7 +210,8 @@ describe('pages', () => {
     const cctx = { state: ctx.state, content: c };
     fireEvent(cctx, rel, hero);
     apply(ctx.state, c, { type: 'choose', option: 0 });
-    expect(lastLine(ctx)).toMatchObject({ kind: 'event', level: 'chronicle', mark: true });
+    // The tie's own line follows the line of the event (D-176).
+    expect(ctx.state.chronicle.at(-2)).toMatchObject({ kind: 'event', level: 'chronicle', mark: true });
     fireEvent(cctx, base, hero);
     apply(ctx.state, c, { type: 'choose', option: 1 });
     expect(lastLine(ctx).mark).toBeUndefined();

@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].ai.traits.prowd /unknown trait "prowd"/
+events:
+  - id: bad_npc
+    weight: 1
+    who: npc
+    text: "{name} goes about the day."
+    options:
+      - text: Walk
+        ai: { base: 1, traits: { prowd: 30 } }

@@ -4,6 +4,7 @@ import { conditionRoleRefs, WhenSchema, type When } from '../condition-keys';
 import type { ContentSources, CrossCheck } from '../content/schema';
 import { Factor, Id, Int, Text, type ContentError } from '../content/types';
 import { effectRoleRefs, EffectsSchema, type Effects } from '../effects';
+import { heroEffectProblems } from './hero-effects';
 import { checkRoles, RolesSchema } from '../roles/content';
 import { checkEventTemplate } from '../text/check';
 import { GrammarSchema } from '../text/grammar';
@@ -180,6 +181,18 @@ function checkOutcome(env: EventEnv, path: string, outcome: OutcomeDef): void {
     if (!env.known.has(role)) errors.push({ file, path: `${path}.on.${role}`, message: `unknown role "${role}"` });
     pushRefs(env, `${path}.on.${role}`, effectRoleRefs(effects as Effects));
   }
+  if ((event.who ?? 'hero') === 'npc') {
+    // A person of the world chooses, not the player: nothing of what they do changes the hero (D-174).
+    const blocks: [string, Effects][] = [...(outcome.effects ? [[`${path}.effects`, outcome.effects as Effects] as [string, Effects]] : []), ...Object.entries(outcome.on ?? {}).map(([role, effects]): [string, Effects] => [`${path}.on.${role}`, effects as Effects])];
+    if (outcome.on && Object.hasOwn(outcome.on, 'hero')) {
+      errors.push({ file, path: `${path}.on.hero`, message: 'an event of who: npc cannot change the hero (D-174); make it an event of the hero with this person as a role' });
+    }
+    for (const [at, effects] of blocks) {
+      for (const problem of heroEffectProblems(effects)) {
+        errors.push({ file, path: at, message: `an event of who: npc cannot change the hero (D-174): ${problem}; make it an event of the hero with this person as a role` });
+      }
+    }
+  }
   checkText(env, `${path}.result`, outcome.result);
   if (outcome.next !== undefined && !event.pages?.[outcome.next]) {
     errors.push({ file, path: `${path}.next`, message: `unknown page "${outcome.next}"` });
@@ -259,11 +272,27 @@ function checkPages(env: EventEnv): void {
   }
 }
 
+/** Traits named in `ai.traits` of the options must exist. */
+function checkAiTraits(sources: ContentSources, file: string, at: string, scene: SceneDef, errors: ContentError[]): void {
+  const traitIds = new Set(sources.traits.map((t) => t.item.id));
+  scene.options?.forEach((option, i) => {
+    for (const id of Object.keys(option.ai?.traits ?? {})) {
+      if (!traitIds.has(id)) errors.push({ file, path: `${at}.options[${i}].ai.traits.${id}`, message: `unknown trait "${id}"` });
+    }
+  });
+}
+
 function checkEvent(sources: ContentSources, file: string, at: string, event: EventDef, errors: ContentError[]): void {
+  checkAiTraits(sources, file, at, event, errors);
+  for (const [id, page] of Object.entries(event.pages ?? {})) checkAiTraits(sources, file, `${at}.pages.${id}`, page, errors);
   const roles = Object.keys(event.roles ?? {});
   const optional = roles.filter((r) => event.roles?.[r]?.optional === true);
   const symbols = [...new Set([...sources.grammar.flatMap((g) => Object.keys(g.item)), ...Object.keys(event.grammar ?? {})])];
   const env: EventEnv = { file, at, event, known: new Set(['hero', 'protagonist', ...roles]), roles, optional, symbols, errors };
+  if ((event.who ?? 'hero') === 'npc') {
+    if (event.actions) errors.push({ file, path: `${at}.actions`, message: 'an event of who: npc is not bound to an action of the hero' });
+    if (event.once === 'life') errors.push({ file, path: `${at}.once`, message: 'once: life counts the lives of the heads of the house; an event of who: npc has only once: game' });
+  }
   if (event.roles) errors.push(...checkRoles(event.roles, { file, path: `${at}.roles`, sources }));
   // The weight is counted before the roles are filled (D-184): its conditions see only the built-in roles.
   const weightEnv: EventEnv = { ...env, known: new Set(['hero', 'protagonist']) };

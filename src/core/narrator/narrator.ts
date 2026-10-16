@@ -11,6 +11,9 @@ export interface NarratorStats {
   /** Heavy events and notices started (any action). */
   heavy: number;
   notices: number;
+  /** Events of people of the world (3.9), and those whose line was stored. */
+  npcEvents: number;
+  npcStored: number;
 }
 
 /** Narrator part of the game state: the pace of events (D-045, D-230). The deck is rolled in narrator/phases.ts. */
@@ -43,7 +46,7 @@ export function initNarratorState(): NarratorState {
     bottomSince: null,
     lastWayUpDay: null,
     seenActionEnd: null,
-    narratorStats: { shortActions: 0, shortEvents: 0, longActions: 0, longEvents: 0, heavy: 0, notices: 0 },
+    narratorStats: { shortActions: 0, shortEvents: 0, longActions: 0, longEvents: 0, heavy: 0, notices: 0, npcEvents: 0, npcStored: 0 },
   };
 }
 

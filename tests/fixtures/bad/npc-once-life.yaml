@@ -1,0 +1,9 @@
+# expect-error: events[0].once /only once: game/
+events:
+  - id: bad_npc
+    weight: 1
+    who: npc
+    once: life
+    text: "{name} goes about the day."
+    options:
+      - text: Walk
