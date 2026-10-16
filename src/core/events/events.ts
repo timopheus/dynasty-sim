@@ -78,7 +78,7 @@ function met(ctx: Ctx, c: Character, when: Parameters<typeof conditionReport>[2]
  * whose conditions hold (by role: some candidate of the role meets them, D-161) multiply the weight, rounded down
  * once at the end (D-040). Pure: never consumes randomness.
  */
-export function eventWeight(ctx: Ctx, event: EventDef, protagonist: Character): number {
+export function eventWeight(ctx: Ctx, event: EventDef, protagonist: Character, given: Scope = {}): number {
   const { state } = ctx;
   if (event.actions) {
     const active = state.activeAction;
@@ -86,7 +86,8 @@ export function eventWeight(ctx: Ctx, event: EventDef, protagonist: Character): 
   }
   const base = baseScope(getPlayer(state), protagonist);
   if (!met(ctx, protagonist, event.when, base)) return 0;
-  if (event.roles && !canFillRoles(ctx, event.roles, base)) return 0;
+  // People handed over (roles `pick: given`, D-178) count for filling the roles, not for the conditions of the weight.
+  if (event.roles && !canFillRoles(ctx, event.roles, { ...base, ...given })) return 0;
   let num = event.weight;
   let den = 1;
   for (const mod of event.weight_mods ?? []) {

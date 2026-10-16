@@ -40,10 +40,12 @@ events:
   - id: feud_settled
     weight: 1
     story: feud
-    text: "The feud comes to a head."
+    roles:
+      accuser: { pick: given }
+    text: "The feud with {accuser} comes to a head."
     options:
       - text: Settle it
-        result: "{name} settled the feud."
+        result: "{name} settled the feud with {accuser}."
 
   - id: feud_fades
     weight: 1

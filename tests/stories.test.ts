@@ -145,11 +145,26 @@ describe('stories', () => {
     const run = { state: ctx.state, content: c };
     ctx.state.activeAction = { actionId: 'wait', endDay: 100 };
     ctx.state.day = 3;
+    const accuser = storyGiven(ctx.state, hero.id, 'feud').accuser;
     expect(narratorPhase.run(run)).toBe(true);
     expect(ctx.state.pendingEvent?.eventId).toBe('feud_settled');
+    // The story event from the deck comes with the people of the story (D-178).
+    expect(ctx.state.pendingEvent?.scope.accuser).toBe(accuser);
     apply(ctx.state, c, { type: 'choose', option: 0 });
     expect(isStoryOpen(ctx.state, hero.id, 'feud')).toBe(false);
     expect(storyWeight(run, 'feud', hero.id)).toBe(0);
+  });
+
+  it('a story event from the deck does not fall when its person of the story is gone (D-178)', () => {
+    const { ctx, hero } = game();
+    answer(ctx, 'accusation');
+    const accuser = ctx.state.characters.find((p) => p.id === storyGiven(ctx.state, hero.id, 'feud').accuser)!;
+    kill(ctx, accuser, 'old_age');
+    const run = { state: ctx.state, content: { ...ctx.content, narrator: { ...ctx.content.narrator!, eventChancePer10k: 10000 } } };
+    ctx.state.activeAction = { actionId: 'wait', endDay: 100 };
+    ctx.state.day = 3;
+    narratorPhase.run(run);
+    expect(ctx.state.pendingEvent?.eventId).not.toBe('feud_settled');
   });
 
   it('an event of the story on the day it opens (inside later) closes it too', () => {

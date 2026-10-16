@@ -8,12 +8,14 @@ import { findCharacter, getPlayer } from '../helpers';
 import { chancePer, pick, weightedPick } from '../rng';
 import { baseScope } from '../roles/roles';
 import type { Character, Ctx, DayPhase, GameState, Scope } from '../state';
-import { dueEvents, storyWeight } from '../stories/stories';
+import { dueEvents, storyGiven, storyWeight } from '../stories/stories';
 import { DEFAULT_LONG_ACTION_DAYS, narratorContent, type NarratorContent } from './content';
 
 interface Candidate {
   event: EventDef;
   weight: number;
+  /** People of the story for its events (D-178); empty for the deck. */
+  given: Scope;
 }
 
 const scale = (weight: number, factor: FactorValue): number => {
@@ -94,21 +96,22 @@ function candidates(ctx: Ctx, pace: NarratorContent, hero: Character, bottom: bo
     if (Object.hasOwn(state.lastFired, event.id) && state.day - (state.lastFired[event.id] ?? 0) < cooldown) continue;
     const severity = event.severity ?? 'light';
     if (high && severity === 'heavy') continue;
-    let weight = eventWeight(ctx, event, hero);
+    const given = event.story === undefined ? {} : storyGiven(state, hero.id, event.story);
+    let weight = eventWeight(ctx, event, hero, given);
     if (weight <= 0) continue;
     if (event.story !== undefined) {
       weight = storyWeight(ctx, event.story, hero.id);
-      if (weight > 0) stories.push({ event, weight });
+      if (weight > 0) stories.push({ event, weight, given });
       continue;
     }
     if (high && severity === 'light' && pace.tension) weight = scale(weight, pace.tension.lightFactor);
     if (bottom && pace.bottom && event.tags?.includes('way_up')) weight = scale(weight, pace.bottom.wayUpFactor);
-    if (weight > 0) deck.push({ event, weight });
+    if (weight > 0) deck.push({ event, weight, given: {} });
   }
   return { deck, stories };
 }
 
-const pickFrom = (ctx: Ctx, pool: Candidate[]): EventDef => weightedPick(ctx.state.rng, pool, (c) => c.weight).event;
+const pickFrom = (ctx: Ctx, pool: Candidate[]): Candidate => weightedPick(ctx.state.rng, pool, (c) => c.weight);
 
 /** Events a person of the world can have now: `who: npc|both`, not from the hero's own list (3.9). */
 function npcPool(ctx: Ctx, person: Character): Candidate[] {
@@ -120,7 +123,7 @@ function npcPool(ctx: Ctx, person: Character): Candidate[] {
     if (event.once === 'game' && Object.hasOwn(state.lastFired, event.id)) continue;
     if (event.cooldown_days !== undefined && Object.hasOwn(state.lastFired, event.id) && state.day - (state.lastFired[event.id] ?? 0) < event.cooldown_days) continue;
     const weight = eventWeight(ctx, event, person);
-    if (weight > 0) pool.push({ event, weight });
+    if (weight > 0) pool.push({ event, weight, given: {} });
   }
   return pool;
 }
@@ -141,7 +144,7 @@ function rollNpcEvent(ctx: Ctx, pace: NarratorContent): void {
   const person = pick(state.rng, people);
   const pool = npcPool(ctx, person);
   if (pool.length === 0) return;
-  const event = pickFrom(ctx, pool);
+  const { event } = pickFrom(ctx, pool);
   if (!runNpcEvent(ctx, event, person)) return;
   // Only what the event itself asks for is remembered, so that a both-event of the hero is not held back by it.
   if (event.once === 'game' || event.cooldown_days !== undefined) state.lastFired[event.id] = state.day;
@@ -191,7 +194,7 @@ export const narratorPhase: DayPhase = {
       if (state.day - since >= pace.bottom.forceAfterDays) {
         const wayUp = candidates(ctx, pace, hero, true).deck.filter((c) => c.event.tags?.includes('way_up'));
         // If it cannot be started after all, today has no event: the usual roll is not made.
-        if (wayUp.length > 0) return launch(ctx, pace, pickFrom(ctx, wayUp), hero, long) === 'waiting';
+        if (wayUp.length > 0) return launch(ctx, pace, pickFrom(ctx, wayUp).event, hero, long) === 'waiting';
       }
     }
 
@@ -202,6 +205,7 @@ export const narratorPhase: DayPhase = {
     const { deck, stories } = candidates(ctx, pace, hero, bottom);
     const pool = stories.length > 0 ? stories : deck;
     if (pool.length === 0) return false;
-    return launch(ctx, pace, pickFrom(ctx, pool), hero, long) === 'waiting';
+    const chosen = pickFrom(ctx, pool);
+    return launch(ctx, pace, chosen.event, hero, long, chosen.given) === 'waiting';
   },
 };
