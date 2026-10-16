@@ -15,7 +15,7 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   helpers.ts       isInt, newId, getPlayer, findCharacter — для всех модулей
   bot.ts, sim.ts   случайный бот и прогон без интерфейса
   сборочные файлы (D-052, D-060): собирают части модулей, правятся только между волнами
-  game.ts          newGame и хуки новой партии, apply(команда), фазы дня DAY_PHASES (D-053, D-173)
+  game.ts          newGame и хуки новой партии, apply(команда) и хуки после выбора, фазы дня DAY_PHASES (D-053, D-173, D-187)
   state.ts         GameState и Character из частей модулей, Scope (область ролей), типы хуков
   lifecycle.ts     createCharacter (хуки создания), kill (причина, хуки смерти), временный наследник
   invariants.ts    checkInvariants: инварианты модулей

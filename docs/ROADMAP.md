@@ -172,9 +172,10 @@
 | 3.8 | Продолжения и истории со сроком | `src/core/stories/`, `tests/stories.test.ts` | 3.2, 3.3, 3.7 | Opus | 4 | ✅ [#34](https://github.com/timopheus/dynasty-sim/pull/34) |
 | 3.9 | События людей мира | `src/core/events/` (выбор варианта человеком мира), `src/core/narrator/` (бросок для окружения), `content/narrator.yaml` (`npcChancePer10k`), `src/core/chronicle/log.ts`, `src/core/pages/` (строки событий на странице человека), `src/core/metrics/`, `tests/npc-events.test.ts` | 3.2, 3.3, 3.7 | Sonnet | 4 | ✅ [#35](https://github.com/timopheus/dynasty-sim/pull/35) |
 | 3.10 | Интерфейс событий | `src/ui/`, `src/core/chronicle/markdown.ts`, `tests/ui.test.ts` | 3.2, 3.4 | Sonnet | 4 | ✅ [#36](https://github.com/timopheus/dynasty-sim/pull/36) |
-| 3.11 | Предыстория первого героя | `src/core/backstory/`, `src/core/world/phases.ts` (мир до предыстории), `content/backstory/` (новый), `content/settings.yaml` (возраст начала, строка `start`), `tests/backstory.test.ts` | 3.2, 3.3, 3.5, 3.6, 3.1c, 3.1d | Sonnet (+ content-writer для сцен) | 5 | ⬜ |
+| 3.11 | Предыстория первого героя | `src/core/backstory/`, `src/core/world/phases.ts` (мир до предыстории), `content/backstory/` (новый), `content/settings.yaml` (возраст начала, строка `start`), `tests/backstory.test.ts` | 3.2, 3.3, 3.5, 3.6, 3.1c, 3.1d, 3.1e | Sonnet (+ content-writer для сцен) | 5 | ⬜ |
 | 3.1c | Тег настроения события (`mood`) | `src/core/content/`, `src/core/events/`, `src/core/narrator/content.ts`, `content/narrator.yaml` (список `moods`), `docs/event-format.md`, `tests/` | 3.2 | ведущая сессия этапа 3 (Opus) | между 4 и 5 | ✅ [#39](https://github.com/timopheus/dynasty-sim/pull/39) |
 | 3.1d | Люди истории в событиях из колоды; ключи условий предыстории | `src/core/events/events.ts`, `src/core/narrator/phases.ts`, `src/core/stories/content.ts`, `src/core/backstory/conditions.ts`, `src/core/condition-keys.ts`, `docs/event-format.md`, `tests/` | 3.8 | ведущая сессия этапа 3 (Opus) | между 4 и 5 | ✅ [#40](https://github.com/timopheus/dynasty-sim/pull/40) |
+| 3.1e | Хук после выбора для сцен предыстории | `src/core/game.ts`, `src/core/state.ts`, `src/core/backstory/phases.ts` (пустой хук), `tests/after-choice.test.ts` | 3.1d | ведущая сессия этапа 3 (Opus) | волна 5 (по просьбе 3.11) | ✅ |
 | 3.12 | Контент: события с ролями, пачка 1 | `content/events/`, `content/actions.yaml`, `content/opinions.yaml`, `content/grammar.yaml`, `content/traits/reputation.yaml`, `.claude/agents/content-writer.md` | 3.2–3.9, 3.1c, 3.1d | content-writer (Sonnet) | 5 | ⬜ |
 | 3.13 | Контент, пачка 2, и замеры этапа | `content/events/`, `content/opinions.yaml`, `content/grammar.yaml`, `content/narrator.yaml` (только числа) | 3.12 | content-writer (Sonnet) | 6 | ⬜ |
 
@@ -327,7 +328,7 @@
 - У задачи свой файл тестов и своя фикстура; точные числа не зависят от случайности чужих модулей (шанс 0 или 10000, фиксированные характеристики).
 - Версия сохранения: каждая задача, меняющая формат состояния, поднимает `SAVE_VERSION`; при сведении с main берёт следующий номер после main (D-169).
 - Время прогона и сохранение на 300 лет меряют 3.6, 3.7, 3.9, 3.12, 3.13 (метрики 2.7).
-- Номера решений: план — D-160…D-169; 3.1 — D-170…D-179; 3.2 — D-180…D-189; 3.3 — D-190…D-199; 3.4 — D-200…D-209; 3.5 — D-210…D-219; 3.6 — D-220…D-229; 3.7 — D-230…D-239; 3.8 — D-240…D-249; 3.9 — D-250…D-259; 3.10 — D-260…D-269; 3.11 — D-270…D-279; 3.12 — D-280…D-289; 3.13 — D-290…D-299. Неиспользованные номера остаются свободными.
+- Номера решений: план — D-160…D-169; 3.1 и PR ведущей сессии между волнами — D-170…D-179 (исчерпаны; дальше ведущая сессия берёт свободные остатки закрытых задач, с D-187); 3.2 — D-180…D-189; 3.3 — D-190…D-199; 3.4 — D-200…D-209; 3.5 — D-210…D-219; 3.6 — D-220…D-229; 3.7 — D-230…D-239; 3.8 — D-240…D-249; 3.9 — D-250…D-259; 3.10 — D-260…D-269; 3.11 — D-270…D-279; 3.12 — D-280…D-289; 3.13 — D-290…D-299. Неиспользованные номера остаются свободными.
 
 ### Риски
 - 3.1 и контракты делаются до движка: часть имён и сигнатур придётся поправить (`[3.1a]`). Защита — простейшие реализации в 3.1 и интеграционный тест последней влитой задачи волны.

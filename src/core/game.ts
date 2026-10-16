@@ -4,7 +4,7 @@
  * of DAY_PHASES until a decision is needed.
  */
 import { actionEndPhase, startAction } from './actions/actions';
-import { backstoryOnNewGame } from './backstory/phases';
+import { backstoryAfterChoice, backstoryOnNewGame } from './backstory/phases';
 import { log } from './chronicle/log';
 import type { Content } from './content/schema';
 import { chooseOption } from './events/events';
@@ -13,7 +13,7 @@ import { createCharacter } from './lifecycle';
 import { narratorPhase } from './narrator/phases';
 import { relationsPhase } from './relations/relations';
 import { isValidSeed, pick } from './rng';
-import { initialState, type Ctx, type DayPhase, type GameState, type NewGameHook } from './state';
+import { initialState, type AfterChoiceHook, type Ctx, type DayPhase, type GameState, type NewGameHook } from './state';
 import { storiesPhase } from './stories/phases';
 import { newDayPhase, scheduledPhase } from './time/time';
 import { worldOnNewGame, worldPhase } from './world/phases';
@@ -40,6 +40,9 @@ export const DAY_PHASES: readonly DayPhase[] = [
 /** New game, after the founder and the `start` line (D-167): the circle, then the backstory of the founder. */
 const NEW_GAME_HOOKS: readonly NewGameHook[] = [worldOnNewGame, backstoryOnNewGame];
 
+/** After a choice that left no event waiting: the next scene of the backstory (3.11). */
+const AFTER_CHOICE_HOOKS: readonly AfterChoiceHook[] = [backstoryAfterChoice];
+
 export function newGame(seed: number, content: Content): GameState {
   if (!isValidSeed(seed)) throw new Error(`Invalid seed ${seed}`);
   const state = initialState(seed);
@@ -56,14 +59,16 @@ export function newGame(seed: number, content: Content): GameState {
 /**
  * Applies a player command and runs time forward to the next decision. Mutates state. After a choice the days run
  * only if no choice waits any more and the hero has an action: the next page of an event and the scenes of the
- * backstory wait for the player without time passing; without an action (a scene, or the hero's death inside the
- * choice) the player picks one.
+ * backstory wait for the player without time passing; a choice that ends an event lets the after-choice hooks start
+ * the next scene of the backstory; without an action (or the hero's death inside the choice) the player picks one.
  */
 export function apply(state: GameState, content: Content, cmd: Command): void {
   const ctx: Ctx = { state, content };
   if (cmd.type === 'start') startAction(ctx, cmd.actionId);
   else {
     chooseOption(ctx, cmd.option);
+    if (state.pendingEvent) return;
+    for (const hook of AFTER_CHOICE_HOOKS) hook(ctx);
     if (state.pendingEvent) return;
     if (!state.activeAction) {
       state.status = 'awaiting_action';
