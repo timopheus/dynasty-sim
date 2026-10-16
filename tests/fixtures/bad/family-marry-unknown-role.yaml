@@ -1,0 +1,11 @@
+# expect-error: events[0] /unknown role "bride"/
+events:
+  - id: wed_nobody
+    weight: 1
+    text: "A wedding without a bride."
+    options:
+      - text: Marry
+        effects: { marry: bride }
+        result: "{name} married nobody."
+      - text: Refuse
+        result: "{name} did not marry."

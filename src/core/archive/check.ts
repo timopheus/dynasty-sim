@@ -1,5 +1,6 @@
 import { checkTraitHolding } from '../character/holding';
 import type { Content } from '../content/schema';
+import { marriagesArchiveProblems } from '../family/archive';
 import { isInt } from '../helpers';
 import { relationsArchiveProblems } from '../relations/archive';
 import type { ArchiveChunk } from './chunks';
@@ -25,5 +26,6 @@ export function chunkProblems(chunk: ArchiveChunk, index: number, content: Conte
     for (const p of checkTraitHolding(content, c)) problems.push(`${at}: ${p}`);
   }
   for (const p of relationsArchiveProblems(chunk.relations, known, content)) problems.push(`${at}: ${p}`);
+  for (const p of marriagesArchiveProblems(chunk.marriages, known)) problems.push(`${at}: ${p}`);
   return problems;
 }

@@ -25,7 +25,7 @@ export const GATES: Gate[] = [
   { metric: 'hotBytes', label: 'hot part of the save, bytes', stat: 'max', max: 300_000, mode: 'fail', ref: 'D-312, D-337' },
   { metric: 'saveBytes', label: 'whole save with the archive, bytes', stat: 'max', mode: 'report', ref: 'D-234, D-337' },
   // Fails since stage 3 closed with the median in the corridor (D-205).
-  { metric: 'heads.chronicleLinesPerLife.median', label: 'chronicle lines per head life', stat: 'median', min: 25, max: 45, mode: 'fail', ref: 'D-019, D-065, D-205' },
+  { metric: 'heads.chronicleLinesPerLife.median', label: 'chronicle lines per head life', stat: 'median', min: 25, max: 50, mode: 'fail', ref: 'D-019, D-065, D-205, D-318' },
   { metric: 'heads.ageAtDeath.median', label: 'head age at death', stat: 'median', min: 45, max: 55, mode: 'report', ref: 'D-059' },
   { metric: 'heads.count', label: 'heads of the house', stat: 'median', min: 8, max: 11, mode: 'report', ref: 'D-059' },
   { metric: 'eventsPerYear', label: 'events per year', stat: 'median', mode: 'report', ref: 'D-203' },

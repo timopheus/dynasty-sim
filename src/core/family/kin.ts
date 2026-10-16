@@ -63,8 +63,13 @@ export function isAncestor(state: GameState, ancestor: string, id: string): bool
   return false;
 }
 
+/** True if the two share a known parent; a direct comparison, so the rules can ask it often (4.5). */
 function shareParent(state: GameState, a: string, b: string): boolean {
-  return siblingsOf(state, a).some((s) => s.id === b);
+  const x = findCharacter(state, a);
+  const y = findCharacter(state, b);
+  if (!x || !y || x.id === y.id) return false;
+  const theirs = [y.father, y.mother];
+  return [x.father, x.mother].some((p) => p !== null && theirs.includes(p));
 }
 
 /**
@@ -77,4 +82,29 @@ export function isCloseKin(state: GameState, a: string, b: string): boolean {
   if (shareParent(state, a, b)) return true;
   // uncle or aunt: a sibling of a parent, either way round
   return parentsOf(state, b).some((p) => shareParent(state, a, p.id)) || parentsOf(state, a).some((p) => shareParent(state, b, p.id));
+}
+
+/** The kinds of kin of conditions and roles (4.5): the spouse now, a child, a parent, a brother or sister. */
+export type KinKindId = 'spouse' | 'child' | 'parent' | 'sibling';
+
+/** Kin of this kind of the person `of`, living or dead, in the order of the state. The spouse is the one of now. */
+export function kinOf(state: GameState, kind: KinKindId, of: string): Character[] {
+  if (kind === 'spouse') {
+    const id = findCharacter(state, of)?.spouse ?? null;
+    const spouse = id === null ? null : findCharacter(state, id);
+    return spouse ? [spouse] : [];
+  }
+  if (kind === 'child') return childrenOf(state, of);
+  if (kind === 'parent') return parentsOf(state, of);
+  return siblingsOf(state, of);
+}
+
+/** True if `id` is the `kind` of `of`: `isKin(state, 'child', son, father)`. */
+export function isKin(state: GameState, kind: KinKindId, id: string, of: string): boolean {
+  if (id === of) return false;
+  if (kind === 'spouse') return findCharacter(state, of)?.spouse === id;
+  const c = findCharacter(state, kind === 'child' ? id : of);
+  const other = kind === 'child' ? of : id;
+  if (kind === 'child' || kind === 'parent') return c !== null && (c.father === other || c.mother === other);
+  return shareParent(state, id, of);
 }

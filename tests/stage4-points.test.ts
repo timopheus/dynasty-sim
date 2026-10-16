@@ -130,11 +130,11 @@ describe('succession (D-007 until 4.6)', () => {
     expect(checkInvariants(state, content)).toEqual([]);
   });
 
-  it('`will` and `propose` are refused until 4.6 and 4.5, and change nothing', () => {
+  it('`will` is refused until 4.6, `propose` without a match it may offer (4.5); neither changes anything', () => {
     const { state, hero } = setup();
     const before = serialize(state);
     expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/not in the game yet/);
-    expect(() => apply(state, content, { type: 'propose', suitor: hero.id, target: hero.id })).toThrow(/not in the game yet/);
+    expect(() => apply(state, content, { type: 'propose', suitor: hero.id, target: hero.id })).toThrow(/family section/);
     expect(serialize(state)).toBe(before);
   });
 });
@@ -189,6 +189,9 @@ describe('kinship queries (family/kin.ts)', () => {
     const { state, ctx } = setup();
     const f = family(ctx);
     state.marriages.push({ a: f.father.id, b: f.mother.id, start: 0, end: null, endReason: null });
+    // The spouses name each other while the marriage lasts (4.5).
+    f.father.spouse = f.mother.id;
+    f.mother.spouse = f.father.id;
     expect(spousesOf(state, f.mother.id).map((c) => c.id)).toEqual([f.father.id]);
     expect(spousesOf(state, f.second.id)).toEqual([]);
     expect(checkInvariants(state, content)).toEqual([]);
@@ -271,7 +274,7 @@ describe('pages through the archive access (D-311, D-312)', () => {
     const gone = state.characters.filter((c) => c.deathDay !== null && !refs.has(c.id));
     expect(gone.length).toBeGreaterThan(0);
     state.characters = state.characters.filter((c) => !gone.includes(c));
-    state.archive.push({ day: state.day, chronicle: old, characters: gone, relations: { opinionReasons: [], relations: [], acquaintances: [], secrets: [] } });
+    state.archive.push({ day: state.day, chronicle: old, characters: gone, relations: { opinionReasons: [], relations: [], acquaintances: [], secrets: [] }, marriages: [] });
     expect(allChronicle(state)).toHaveLength(old.length + state.chronicle.length);
     expect(anyCharacter(state, (gone[0] as Character).id)).toBe(gone[0]);
     expect(personPage(ctx, (gone[0] as Character).id)).not.toBeNull();

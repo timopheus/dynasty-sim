@@ -1,4 +1,5 @@
 import type { ChronicleEntry } from '../chronicle/log';
+import type { Marriage } from '../family/family';
 import type { RelationsArchive } from '../relations/archive';
 import type { Character } from '../state';
 
@@ -17,6 +18,8 @@ export interface ArchiveChunk {
   characters: Character[];
   /** Opinions, acquaintance, ended relations and secrets of those people only (relations/archive.ts). */
   relations: RelationsArchive;
+  /** Marriage records of those people whose spouses are both dead (family/archive.ts, 4.5). */
+  marriages: Marriage[];
 }
 
 export interface ArchiveState {

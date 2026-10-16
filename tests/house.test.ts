@@ -328,7 +328,8 @@ describe('the real game', () => {
     const state = newGame(1, real);
     for (let i = 0; i < 40 && state.status !== 'ended'; i++) {
       state.day += 365;
-      for (const c of [...state.characters]) if (c.id === state.playerId) kill({ state, content: real }, c, 'natural');
+      // One death of the head a year: the heir may already be among the people (kin from the pedigree, 4.5).
+      kill({ state, content: real }, getPlayer(state), 'natural');
       expect(houseInvariants({ state, content: real })).toEqual([]);
     }
     expect(state.houses).toHaveLength(1);

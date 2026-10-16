@@ -35,7 +35,9 @@ describe('metric gates', () => {
     expect(Object.values(st)).not.toContain('fail');
   });
 
-  it('fails on chronicle lines out of the corridor since stage 3 closed (D-205)', () => {
+  it('fails on chronicle lines out of the corridor 25–50 (D-205; widened for families by D-318)', () => {
+    expect(statusOf({ ...good, 'heads.chronicleLinesPerLife.median': s(40, 48, 52) })['heads.chronicleLinesPerLife.median']).toBe('ok');
+    expect(statusOf({ ...good, 'heads.chronicleLinesPerLife.median': s(48, 51, 55) })['heads.chronicleLinesPerLife.median']).toBe('fail');
     expect(statusOf({ ...good, 'heads.chronicleLinesPerLife.median': s(55, 59, 62) })['heads.chronicleLinesPerLife.median']).toBe('fail');
     expect(statusOf({ ...good, 'heads.chronicleLinesPerLife.median': s(10, 20, 30) })['heads.chronicleLinesPerLife.median']).toBe('fail');
   });

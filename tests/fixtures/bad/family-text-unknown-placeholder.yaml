@@ -1,0 +1,35 @@
+# expect-error: family.texts.married /unknown placeholder {bride}/
+family:
+  livingMax: 10
+  conception: [{ per10k: 0 }]
+  pregnancyDays: { min: 1, max: 1 }
+  childbirthDeathPer10k: 0
+  proposalEvent: offer
+  pedigree:
+    alive: [{ per10k: 0 }]
+    married: [{ per10k: 0 }]
+    parentGap: { min: 20, max: 20 }
+    spouseGap: { min: 0, max: 0 }
+    siblings: { min: 0, max: 0 }
+    siblingSpread: 0
+    childrenPer10Years: { min: 0, max: 0 }
+  texts:
+    married: "{name} married {bride}."
+    born: "{name} {other} {child} {kind}."
+    bornToHer: "{name} {child} {kind}."
+    childDied: "{name} {other} {kind}."
+    spouseDied: "{name} {other}."
+    reasons: { married: a, unmarried: b, kin: "{name} {kind}", childrenMin: "{count}", canMarry: "{name}" }
+    kinds: { spouse: s, child: c, parent: p, sibling: b }
+events:
+  - id: offer
+    followup_only: true
+    weight: 1
+    roles:
+      suitor: { pick: given }
+      target: { pick: given }
+    text: "An offer to {target}."
+    options:
+      - text: Yes
+        result: "{name} offered."
+
