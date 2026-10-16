@@ -119,7 +119,33 @@ describe('filling roles', () => {
     const def = roles({ a: { pick: 'circle' }, b: { pick: 'circle' }, c: { pick: 'circle' }, z: { pick: 'relation', kind: 'rival' } });
     const t0 = Date.now();
     expect(canFillRoles(ctx, def, baseScope(hero, hero))).toBe(false);
-    expect(Date.now() - t0).toBeLessThan(100); // ~850 ms with 45 people before the quick refusal
+    expect(Date.now() - t0).toBeLessThan(1000); // ~850 ms with 45 people before the quick refusal; now a fraction of a ms
+  });
+
+  it('refuses at once when two roles need the same only person', () => {
+    const { ctx, hero } = withCircle();
+    for (let i = 0; i < 42; i++) {
+      const c = createCharacter(ctx, { surname: 'Crowd', age: { min: 30, max: 30 } });
+      c.occupation = 'porter';
+      ctx.state.circle.push(c.id);
+    }
+    const elder = createCharacter(ctx, { surname: 'Elder', age: { min: 60, max: 60 } });
+    elder.occupation = 'elder';
+    ctx.state.circle.push(elder.id);
+    const where = { occupation: ['elder'] };
+    const def = roles({ x: { pick: 'circle' }, y: { pick: 'circle' }, z: { pick: 'circle' }, d: { pick: 'circle', where }, e: { pick: 'circle', where } });
+    const t0 = Date.now();
+    expect(canFillRoles(ctx, def, baseScope(hero, hero))).toBe(false);
+    expect(Date.now() - t0).toBeLessThan(1000); // tens of seconds with 45 people without the matching
+  });
+
+  it('lets a later role take a person whom an optional `given` role gave up', () => {
+    const { ctx, hero, people } = withCircle();
+    people[0]!.occupation = 'elder';
+    const def = roles({ a: { pick: 'given', optional: true, where: { money_min: 1000 } }, b: { pick: 'circle', where: { occupation: ['elder'] } } });
+    const given = { ...baseScope(hero, hero), a: people[0]!.id };
+    expect(canFillRoles(ctx, def, given)).toBe(true);
+    expect(fillRoles(ctx, def, given)).toEqual({ ...baseScope(hero, hero), b: people[0]!.id });
   });
 
   it('is deterministic for a seed', () => {

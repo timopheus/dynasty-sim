@@ -74,17 +74,42 @@ function without(scope: Scope, name: string): Scope {
 }
 
 /**
- * Quick refusal: a later role that is not optional and whose `where` needs only roles already in the scope has
- * nobody even before the roles between are filled (they only take people away). Keeps a hopeless event from
- * searching every combination of the earlier roles.
+ * Quick refusal, a necessary condition only: the later roles that are not optional and whose `where` needs only
+ * roles already in the scope must be able to get different people (a matching), even before the roles between are
+ * filled — those only take people away. Keeps a hopeless event from searching every combination of the earlier
+ * roles. People held by later optional `given` roles are counted as free, since such a role may give its person up.
  */
 function laterRolesHaveCandidates(ctx: Ctx, entries: readonly [string, RoleDef][], index: number, scope: Scope): boolean {
-  for (const [name, role] of entries.slice(index)) {
+  const later = entries.slice(index);
+  let open: Scope = scope;
+  for (const [name, role] of later) if (role.pick === 'given' && role.optional) open = without(open, name);
+  const wanted: string[][] = [];
+  for (const [name, role] of later) {
     if (role.optional) continue;
-    if (role.where && conditionRoleRefs(role.where).some((ref) => scope[ref] === undefined)) continue;
-    if (candidates(ctx, name, role, scope).length === 0) return false;
+    if (role.where && conditionRoleRefs(role.where).some((ref) => open[ref] === undefined)) continue;
+    const ids = candidates(ctx, name, role, open).map((c) => c.id);
+    if (ids.length === 0) return false;
+    if (role.pick !== 'given') wanted.push(ids);
   }
-  return true;
+  return hasMatching(wanted);
+}
+
+/** Can every role (a list of fitting people) get a different person? Augmenting paths (Kuhn). */
+function hasMatching(wanted: readonly string[][]): boolean {
+  const holder = new Map<string, number>();
+  const assign = (role: number, seen: Set<string>): boolean => {
+    for (const id of wanted[role] ?? []) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const other = holder.get(id);
+      if (other === undefined || assign(other, seen)) {
+        holder.set(id, role);
+        return true;
+      }
+    }
+    return false;
+  };
+  return wanted.every((_ids, role) => assign(role, new Set()));
 }
 
 /**
