@@ -1,4 +1,7 @@
 # expect-error: names.given /.+/
 names:
-  given: []
+  given: { male: [], female: [Anne] }
   surnames: [Nobody]
+  statScale: [{ from: 0, word: Poor }]
+  fame: [A, B, C, D]
+  requiresSex: { male: "m", female: "f" }
