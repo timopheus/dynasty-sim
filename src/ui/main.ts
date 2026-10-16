@@ -31,9 +31,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLEl
 
 /** Seed from ?seed=N, otherwise a random one (the UI may use host randomness; the core may not). */
 function pickSeed(): number {
-  const param = new URLSearchParams(location.search).get('seed');
-  const seed = param ? Number(param) : NaN;
-  return isValidSeed(seed) ? seed : (crypto.getRandomValues(new Uint32Array(1))[0] ?? 1);
+  return seedFromSearch(location.search, isValidSeed) ?? (crypto.getRandomValues(new Uint32Array(1))[0] ?? 1);
 }
 
 /** `localStorage`, or null where even touching it throws (privacy modes, blocked storage). */
@@ -166,8 +164,9 @@ if (!loaded.ok) {
   const outcome = loadGame(store, content);
   const requested = seedFromSearch(location.search, isValidSeed);
   const choice = startChoice(outcome, requested);
-  const session: Session = { state: outcome.kind === 'loaded' ? outcome.state : newGame(requested ?? pickSeed(), content), content, store, notice: null, saveProblem: null, tab: 'chronicle' };
+  const session: Session = { state: outcome.kind === 'loaded' ? outcome.state : newGame(pickSeed(), content), content, store, notice: null, saveProblem: null, tab: 'chronicle' };
   if (choice === 'continue' || (choice === 'ask_replace' && !confirm(`The address asks for seed ${String(requested)}, which replaces your saved dynasty. Replace it?`))) {
+    if (choice === 'ask_replace') history.replaceState(null, '', location.pathname);
     render(session);
   } else {
     if (outcome.kind === 'discarded') {
