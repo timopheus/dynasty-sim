@@ -1,4 +1,4 @@
-import { conditionReport, type When } from '../condition-keys';
+import { conditionReport, conditionRoleRefs, type When } from '../condition-keys';
 import { factorParts } from '../content/types';
 import { weightedPick } from '../rng';
 import { acquaintanceLevel } from '../relations/acquaintance';
@@ -11,7 +11,7 @@ import type { RoleDef, RolesDef } from './content';
 const BASE_WEIGHT = 720720;
 
 /**
- * Filling the roles of an event (D-041, D-056, D-190…D-193). Roles are filled in their order from the people of the
+ * Filling the roles of an event (D-041, D-056, D-190…D-192). Roles are filled in their order from the people of the
  * hero's circle; `where` of a role sees the built-in roles and the roles above it.
  */
 
@@ -74,12 +74,27 @@ function without(scope: Scope, name: string): Scope {
 }
 
 /**
+ * Quick refusal: a later role that is not optional and whose `where` needs only roles already in the scope has
+ * nobody even before the roles between are filled (they only take people away). Keeps a hopeless event from
+ * searching every combination of the earlier roles.
+ */
+function laterRolesHaveCandidates(ctx: Ctx, entries: readonly [string, RoleDef][], index: number, scope: Scope): boolean {
+  for (const [name, role] of entries.slice(index)) {
+    if (role.optional) continue;
+    if (role.where && conditionRoleRefs(role.where).some((ref) => scope[ref] === undefined)) continue;
+    if (candidates(ctx, name, role, scope).length === 0) return false;
+  }
+  return true;
+}
+
+/**
  * Can the roles from `index` on be filled given the scope so far? Searches all choices, so an early role never
  * takes the only person a later one needs. Pure.
  */
 function feasible(ctx: Ctx, entries: readonly [string, RoleDef][], index: number, scope: Scope): boolean {
   const entry = entries[index];
   if (!entry) return true;
+  if (!laterRolesHaveCandidates(ctx, entries, index, scope)) return false;
   const [name, role] = entry;
   if (role.pick === 'given') {
     if (candidates(ctx, name, role, scope).length > 0) return feasible(ctx, entries, index + 1, scope);

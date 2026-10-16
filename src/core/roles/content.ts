@@ -40,7 +40,7 @@ export interface RoleCheckEnv {
 /**
  * Cross-check of the roles of one event; the check of events (3.2) calls it. Names of roles are not built-in ones
  * or placeholders; `kind` goes with `pick: relation` and names a kind from `opinions`; `where` and `prefer` refer
- * only to `hero`, `protagonist` and roles declared above; occupations exist in `population` (3.3, D-194).
+ * only to `hero`, `protagonist` and roles declared above; occupations exist in `population` (3.3, D-192).
  */
 export function checkRoles(roles: RolesDef, env: RoleCheckEnv): ContentError[] {
   const errors: ContentError[] = [];

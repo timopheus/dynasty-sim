@@ -109,6 +109,19 @@ describe('filling roles', () => {
     expect(rich).toBeLessThan(580);
   });
 
+  it('refuses a hopeless event at once instead of trying every combination of the earlier roles', () => {
+    const { ctx, hero } = withCircle();
+    for (let i = 0; i < 42; i++) {
+      const c = createCharacter(ctx, { surname: 'Crowd', age: { min: 30, max: 30 } });
+      c.occupation = 'porter';
+      ctx.state.circle.push(c.id);
+    }
+    const def = roles({ a: { pick: 'circle' }, b: { pick: 'circle' }, c: { pick: 'circle' }, z: { pick: 'relation', kind: 'rival' } });
+    const t0 = Date.now();
+    expect(canFillRoles(ctx, def, baseScope(hero, hero))).toBe(false);
+    expect(Date.now() - t0).toBeLessThan(100); // ~850 ms with 45 people before the quick refusal
+  });
+
   it('is deterministic for a seed', () => {
     const def = roles({ a: { pick: 'circle' }, b: { pick: 'circle' } });
     const run = () => {
