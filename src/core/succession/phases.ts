@@ -1,6 +1,6 @@
 import { log } from '../chronicle/log';
 import { createCharacter } from '../hooks';
-import type { Character, Ctx } from '../state';
+import type { Character, Ctx, DayPhase, DeathHook } from '../state';
 
 /**
  * The change of the head of the house (D-016, D-314, D-315). `kill` of lifecycle.ts calls `chooseHeir` when the hero
@@ -42,6 +42,18 @@ export function endHouse(ctx: Ctx): void {
   state.pendingEvent = null;
   state.status = 'ended';
 }
+
+/**
+ * Succession phase (4.6): the notice that the will is out of date (the named heir died, a child was born), the end of
+ * the guardianship when the head comes of age (D-314). Runs after the family phase (births). Nothing yet.
+ */
+export const successionPhase: DayPhase = {
+  id: 'succession',
+  run: () => false,
+};
+
+/** 4.6: a death that makes the will out of date (the named heir or guardian) or ends a guardianship. Nothing yet. */
+export const successionOnDeath: DeathHook = () => {};
 
 /** What the `will` command carries (D-236, D-314). */
 export interface WillOrder {

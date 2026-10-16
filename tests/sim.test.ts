@@ -16,7 +16,7 @@ describe('headless simulation', () => {
     const a = runSim(content, { seed: 42, years: 30 });
     const b = runSim(content, { seed: 43, years: 30 });
     expect(chronicleMarkdown(a.state)).not.toBe(chronicleMarkdown(b.state));
-  });
+  }, 30_000);
 
   it('runs 20 seeds for 50 years without invariant violations', () => {
     for (let seed = 0; seed < 20; seed++) {

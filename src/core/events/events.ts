@@ -274,7 +274,6 @@ export function answerOption(ctx: Ctx, event: EventDef, pending: PendingEvent, o
   }
 }
 
-/** The hero's death drops an unanswered event. */
 /**
  * People the waiting event refers to (D-312): the main participant, its scope of roles and the people named in the
  * lines that wait for the end of the event.
@@ -291,6 +290,7 @@ export const eventsRefs: RefsFn = ({ state }) => {
   ];
 };
 
+/** The hero's death drops an unanswered event. */
 export const eventsOnDeath: DeathHook = ({ state }, c) => {
   if (c.id !== state.playerId || !state.pendingEvent) return;
   flushAfter(state, state.pendingEvent);

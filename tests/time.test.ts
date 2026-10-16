@@ -31,7 +31,7 @@ function reasons(state: GameState, id: string): string[] {
 describe('day phases', () => {
   it('run in the order of D-053 and stage 4 (4.1)', () => {
     expect(DAY_PHASES.map((p) => p.id)).toEqual([
-      'new_day', 'scheduled', 'health', 'death', 'world', 'family', 'relations', 'summary', 'archive', 'action_end', 'stories', 'narrator',
+      'new_day', 'scheduled', 'health', 'death', 'world', 'family', 'succession', 'relations', 'summary', 'archive', 'action_end', 'stories', 'narrator',
     ]);
   });
 });

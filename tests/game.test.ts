@@ -134,7 +134,7 @@ describe('choice outside an action (3.1)', () => {
 describe('day loop', () => {
   it('runs the phases in the order of D-053 and stage 4 (4.1)', () => {
     expect(DAY_PHASES.map((p) => p.id)).toEqual([
-      'new_day', 'scheduled', 'health', 'death', 'world', 'family', 'relations', 'summary', 'archive', 'action_end', 'stories', 'narrator',
+      'new_day', 'scheduled', 'health', 'death', 'world', 'family', 'succession', 'relations', 'summary', 'archive', 'action_end', 'stories', 'narrator',
     ]);
   });
 });

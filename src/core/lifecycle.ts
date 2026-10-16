@@ -17,7 +17,7 @@ import { houseOnSuccession } from './house/phases';
 import { relationsOnDeath, relationsOnSuccession } from './relations/relations';
 import { storiesOnDeath } from './stories/stories';
 import { storiesOnSuccession } from './stories/phases';
-import { chooseHeir, endHouse, succeed } from './succession/phases';
+import { chooseHeir, endHouse, succeed, successionOnDeath } from './succession/phases';
 import type { Character, Ctx, DeathHook, SuccessionHook } from './state';
 import { timeOnDeath } from './time/time';
 import { worldOnDeath } from './world/world';
@@ -35,6 +35,7 @@ const DEATH_HOOKS: readonly DeathHook[] = [
   storiesOnDeath,
   familyOnDeath,
   houseOnDeath,
+  successionOnDeath,
 ];
 
 /**

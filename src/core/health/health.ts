@@ -35,10 +35,10 @@ export const createHealth: CreateHook = (_ctx, c) => {
   c.conditions = [];
 };
 
-/** After the death line, the line of its cause, if the content has one (D-061). */
 /** People the death requests refer to (D-312, D-164). */
 export const healthRefs: RefsFn = ({ state }) => state.deathRequests.map((r) => r.characterId);
 
+/** After the death line, the line of its cause, if the content has one (D-061). */
 export const healthOnDeath: DeathHook = (ctx, c, cause) => {
   const text = ctx.content.health.causes.find((x) => x.id === cause)?.text;
   if (text) log(ctx, { subject: c, kind: 'death_cause', level: 'chronicle', template: text });

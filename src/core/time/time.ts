@@ -74,10 +74,10 @@ export const timeInvariants: Invariant = ({ state }) => {
   return problems;
 };
 
-/** Death cancels what is scheduled for the character (D-053). */
 /** People the scheduled effects refer to (D-312): whom they apply to and the scope they keep (D-162). */
 export const timeRefs: RefsFn = ({ state }) => state.scheduled.flatMap((s) => [s.characterId, ...Object.values(s.scope ?? {})]);
 
+/** Death cancels what is scheduled for the character (D-053). */
 export const timeOnDeath: DeathHook = ({ state }, c) => {
   state.scheduled = state.scheduled.filter((s) => s.characterId !== c.id);
 };

@@ -1783,12 +1783,13 @@
 **Решение.**
 - Новый сборочный файл `hooks.ts`: `createCharacter` с `CREATE_HOOKS` и `MARRIAGE_HOOKS` с `afterMarriage(ctx, marriage)` — списки, которые зовут сами модули. Импортирует только файлы модулей без `lifecycle.ts`, `events/` и `effects.ts`. `lifecycle.ts` реэкспортирует `createCharacter` для старых вызовов.
 - `lifecycle.ts`: `kill` → `DEATH_HOOKS` → для героя `chooseHeir` (`succession/phases.ts`); `null` — `endHouse` (статус `ended`), иначе `succeed` (деньги, место героя, строка `succession` — всё в `succession/`, чтобы 4.6 меняла раздел денег и строку «by will / by law», не трогая сборочный файл) и `SUCCESSION_HOOKS`. Порядок и случайность прежние: хроники seeds 1, 7, 42 совпадают байт в байт.
+- Для 4.6 (по ревью 4.1): пустая фаза дня `succession` (`succession/phases.ts`, сразу после фазы семьи: извещение «завещание устарело» после рождений, конец опеки в `adultAge`) и пустой хук смерти `successionOnDeath` в конце `DEATH_HOOKS` (умер названный наследник или опекун).
 - Хуки смены главы: `family/phases.ts`, `house/phases.ts`, `relations/relations.ts`, `stories/phases.ts`, `heirloom/phases.ts`; эти файлы и `succession/phases.ts` не импортируют `lifecycle.ts`. Хук брака рода — в `house/house.ts`, а не в `house/phases.ts`: до него дотягивается эффект `marry`.
 - Команды: отказ — исключение, как у `start`/`choose`. В статусе `ended` `apply` отказывает любой команде. `end` снимает действие и событие и ставит `ended` (строку «род пресёкся» пишет 4.6 в `endHouse`). `will` после хука запускает дни, как `start` (действие «у нотариуса»); `propose` — нет (ответ — событие).
 - `settings.heirAge` необязателен; без него временный наследник — ровно `adultAge` лет.
 - `entityPage(ctx, id)` отдаёт `{type: 'person', page}` или `{type: 'entity', page}` (`AnyPage`); пока только люди. Разделы модулей на странице человека — `sections` из `PERSON_SECTIONS` (заголовок и строки «подпись → части текста»).
 
-**Последствия.** Сборочных файлов этапа 4 три новых по сравнению с этапом 3: `refs.ts` (по плану) и `hooks.ts`. CLAUDE.md описывает правило импорта для файлов хуков смены главы и брака.
+**Последствия.** Сборочных файлов этапа 4 два новых по сравнению с этапом 3: `refs.ts` (по плану) и `hooks.ts`. CLAUDE.md описывает правило импорта для файлов хуков смены главы и брака.
 
 ## D-321. Дом героя «рядом»: `isNear`
 2026-10-16 · принято (задача 4.1, ведущая сессия); уточняет D-313, D-056, D-063

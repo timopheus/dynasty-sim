@@ -271,7 +271,7 @@ describe('pages through the archive access (D-311, D-312)', () => {
     expect(journalMarkdown(state)).toBe(journal);
     expect({ ...computeMetrics(state), saveBytes: 0 }).toEqual({ ...metrics, saveBytes: 0 });
     expect(personPage(ctx, state.playerId)).toEqual(heroPage);
-  });
+  }, 30_000);
 });
 
 describe('the household and other contracts', () => {

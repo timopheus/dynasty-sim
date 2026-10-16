@@ -18,7 +18,7 @@ import { relationsPhase } from './relations/relations';
 import { isValidSeed, pick } from './rng';
 import { initialState, type AfterChoiceHook, type Ctx, type DayPhase, type GameState, type NewGameHook } from './state';
 import { storiesPhase } from './stories/phases';
-import { endHouse, willCommand, type WillOrder } from './succession/phases';
+import { endHouse, successionPhase, willCommand, type WillOrder } from './succession/phases';
 import { summaryPhase } from './summary/phases';
 import { newDayPhase, scheduledPhase } from './time/time';
 import { worldOnNewGame, worldPhase } from './world/phases';
@@ -46,6 +46,7 @@ export const DAY_PHASES: readonly DayPhase[] = [
   deathPhase,
   worldPhase,
   familyPhase,
+  successionPhase,
   relationsPhase,
   summaryPhase,
   archivePhase,
