@@ -4,7 +4,7 @@ import { Id } from '../content/types';
 import { isInt } from '../helpers';
 import type { Unmet } from '../condition-keys';
 import { fillReason, joinOr } from '../conditions/reasons';
-import type { Character, CreateHook, Ctx, DeathHook, Invariant, Scope } from '../state';
+import type { Character, CreateHook, Ctx, DeathHook, Invariant, RefsFn, Scope } from '../state';
 import { addCondition, healStep, isSeverelyIll, stageOf, type HealthCondition } from './course';
 
 /** A death ordered by an effect (`kill`, 3.5): the next death phase carries it out (D-164). */
@@ -34,6 +34,9 @@ export interface HealthPart {
 export const createHealth: CreateHook = (_ctx, c) => {
   c.conditions = [];
 };
+
+/** People the death requests refer to (D-312, D-164). */
+export const healthRefs: RefsFn = ({ state }) => state.deathRequests.map((r) => r.characterId);
 
 /** After the death line, the line of its cause, if the content has one (D-061). */
 export const healthOnDeath: DeathHook = (ctx, c, cause) => {

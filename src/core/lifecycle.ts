@@ -1,21 +1,28 @@
 /**
- * Assembly file (D-052): birth and death of characters. Module hooks run in the
- * fixed order below; the order is part of the random sequence, so a new hook
- * goes at the end unless a decision says otherwise.
+ * Assembly file (D-052): death of characters and the change of the head of the house. Module hooks run in the
+ * fixed order below; the order is part of the random sequence, so a new hook goes at the end unless a decision says
+ * otherwise. Birth (`createCharacter`) lives in hooks.ts so that the succession and its hooks can create people
+ * without an import cycle (D-320); it is re-exported here.
  */
 import { actionsOnDeath } from './actions/actions';
-import { characterOnDeath, createCharacterBase } from './character/character';
+import { characterOnDeath } from './character/character';
 import { log } from './chronicle/log';
 import { eventsOnDeath } from './events/events';
-import { createHealth, healthOnDeath } from './health/health';
-import { createRelations, relationsOnDeath } from './relations/relations';
-import { newId } from './helpers';
+import { familyOnDeath } from './family/family';
+import { familyOnSuccession } from './family/phases';
+import { healthOnDeath } from './health/health';
+import { heirloomOnSuccession } from './heirloom/phases';
+import { houseOnDeath } from './house/house';
+import { houseOnSuccession } from './house/phases';
+import { relationsOnDeath, relationsOnSuccession } from './relations/relations';
 import { storiesOnDeath } from './stories/stories';
-import type { Character, CreateHook, Ctx, DeathHook, NewCharacter } from './state';
+import { storiesOnSuccession } from './stories/phases';
+import { chooseHeir, endHouse, succeed, successionOnDeath } from './succession/phases';
+import type { Character, Ctx, DeathHook, SuccessionHook } from './state';
 import { timeOnDeath } from './time/time';
-import { createWorld, worldOnDeath } from './world/world';
+import { worldOnDeath } from './world/world';
 
-const CREATE_HOOKS: readonly CreateHook[] = [createCharacterBase, createHealth, createWorld, createRelations];
+export { createCharacter } from './hooks';
 
 const DEATH_HOOKS: readonly DeathHook[] = [
   characterOnDeath,
@@ -26,32 +33,36 @@ const DEATH_HOOKS: readonly DeathHook[] = [
   worldOnDeath,
   relationsOnDeath,
   storiesOnDeath,
+  familyOnDeath,
+  houseOnDeath,
+  successionOnDeath,
 ];
 
-/** Creates a living character; every module fills its part through its hook. */
-export function createCharacter(ctx: Ctx, spec: NewCharacter): Character {
-  const c = { id: newId(ctx.state, 'c'), deathDay: null, deathCause: null } as Character;
-  for (const hook of CREATE_HOOKS) hook(ctx, c, spec);
-  ctx.state.characters.push(c);
-  return c;
-}
+/**
+ * After the heir has taken over (stage 4, D-314): what else passes to the new head. Files of these hooks never
+ * import this file (import cycle).
+ */
+const SUCCESSION_HOOKS: readonly SuccessionHook[] = [familyOnSuccession, houseOnSuccession, relationsOnSuccession, storiesOnSuccession, heirloomOnSuccession];
 
-/** Kills a character today with a cause id. The player's death hands the house to an heir. */
+/**
+ * Kills a character today with a cause id. The player's death hands the house to an heir (succession/phases.ts),
+ * or ends the house when there is none (D-315).
+ */
 export function kill(ctx: Ctx, c: Character, cause: string): void {
   const { state, content } = ctx;
   c.deathDay = state.day;
   c.deathCause = cause;
   log(ctx, { subject: c, kind: 'death', level: 'chronicle', template: content.settings.texts.death });
   for (const hook of DEATH_HOOKS) hook(ctx, c, cause);
-  if (c.id === state.playerId) succession(ctx, c);
+  if (c.id === state.playerId) handOver(ctx, c);
 }
 
-/** Placeholder succession until the Dynasty stage (D-007): a generated adult heir inherits the money. */
-function succession(ctx: Ctx, deceased: Character): void {
-  const { state, content } = ctx;
-  const heir = createCharacter(ctx, { surname: deceased.surname, age: content.settings.heirAge });
-  heir.money = deceased.money;
-  state.playerId = heir.id;
-  log(ctx, { subject: heir, kind: 'succession', level: 'chronicle', template: content.settings.texts.succession });
-  state.status = 'awaiting_action';
+function handOver(ctx: Ctx, deceased: Character): void {
+  const heir = chooseHeir(ctx, deceased);
+  if (heir === null) {
+    endHouse(ctx);
+    return;
+  }
+  succeed(ctx, deceased, heir);
+  for (const hook of SUCCESSION_HOOKS) hook(ctx, deceased, heir);
 }

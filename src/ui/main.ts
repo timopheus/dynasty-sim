@@ -6,9 +6,9 @@ import { isValidSeed } from '../core/rng';
 import type { GameState } from '../core/state';
 import { formatDate } from '../core/time/calendar';
 import { getPlayer } from '../core/helpers';
-import { personPage } from '../core/pages/person';
+import { entityPage } from '../core/pages/entity';
 import { heroView } from './hero';
-import { personHref, personIdFromHash } from './address';
+import { entityIdFromHash, personHref } from './address';
 import { actionRows, eventScreen } from './event';
 import { actionControl, eventPageKey, chronicleAnnouncement, eventAnnouncement, numbersToggle, optionControl, pickableAt, shortcutPosition, withNumber, type Control } from './access';
 import { headIds } from './entry';
@@ -125,9 +125,12 @@ function render(session: Session): void {
   const rerender = () => render(session);
   const parts: Node[] = [];
 
-  const pageId = personIdFromHash(location.hash);
+  const pageId = entityIdFromHash(location.hash);
   if (pageId !== null) {
-    app?.replaceChildren(numbersButton(session), pageView(el, personPage({ state, content }, pageId), headIds(state.chronicle), session.showNumbers));
+    // pages of other kinds are drawn by 4.2; until then they read as "nobody by that name"
+    const found = entityPage({ state, content }, pageId);
+    const page = found?.type === 'person' ? found.page : null;
+    app?.replaceChildren(numbersButton(session), pageView(el, page, headIds(state.chronicle), session.showNumbers, (cmd) => act(session, cmd)));
     if (session.refocus) app?.querySelector<HTMLElement>(`[data-focus="${session.refocus}"]`)?.focus();
     else window.scrollTo(0, 0);
     session.refocus = null;
@@ -257,7 +260,7 @@ if (!loaded.ok) {
 }
 
 window.addEventListener('keydown', (e) => {
-  if (!current || personIdFromHash(location.hash) !== null) return;
+  if (!current || entityIdFromHash(location.hash) !== null) return;
   const position = shortcutPosition({ key: e.key, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey, repeat: e.repeat, target: (e.target as HTMLElement | null)?.tagName });
   if (position === null) return;
   const picked = pickableAt(current.keymap.map((c) => ({ grey: c === null })), position);

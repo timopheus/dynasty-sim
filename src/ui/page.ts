@@ -1,3 +1,4 @@
+import type { Command } from '../core/game';
 import type { ChronicleEntry } from '../core/chronicle/log';
 import type { PersonPage, RelationLine } from '../core/pages/person';
 import type { TextPart } from '../core/text/text';
@@ -33,7 +34,9 @@ function sexWord(p: PersonPage): string {
 }
 
 /** The page of a person (2.10): only what the player may know; the numbers sit beside the words on request, hover is a bonus (D-031, D-248). */
-export function pageView(make: Make, page: PersonPage | null, heads: ReadonlySet<string>, showNumbers = false): HTMLElement {
+/** `onCommand` sends a command from a button on the page (proposals, 4.5); the page itself never changes the state. */
+export function pageView(make: Make, page: PersonPage | null, heads: ReadonlySet<string>, showNumbers = false, onCommand: (cmd: Command) => void = () => {}): HTMLElement {
+  void onCommand;
   if (!page) {
     return make('section', { className: 'page' }, make('p', { className: 'meta' }, make('a', { href: '#', className: 'back' }, '← Your house')), make('h1', {}, 'Nobody by that name'));
   }

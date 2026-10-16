@@ -6,7 +6,7 @@ import { applyEffects, type Effects } from '../effects';
 import { findCharacter, getPlayer } from '../helpers';
 import { introduce } from '../relations/acquaintance';
 import { anyCandidate, baseScope, canFillRoles, fillRoles } from '../roles/roles';
-import type { Character, Ctx, DeathHook, GameState, Invariant, Scope } from '../state';
+import type { Character, Ctx, DeathHook, GameState, Invariant, RefsFn, Scope } from '../state';
 import { renderTemplate } from '../text/render';
 import type { TextPart } from '../text/text';
 import { rollCheck } from './checks';
@@ -273,6 +273,22 @@ export function answerOption(ctx: Ctx, event: EventDef, pending: PendingEvent, o
     resolveOutcome(ctx, event, pending, ownOutcome(option), slot, choice);
   }
 }
+
+/**
+ * People the waiting event refers to (D-312): the main participant, its scope of roles and the people named in the
+ * lines that wait for the end of the event.
+ */
+export const eventsRefs: RefsFn = ({ state }) => {
+  const pending = state.pendingEvent;
+  if (!pending) return [];
+  const linked = (parts: readonly TextPart[]) => parts.flatMap((p) => (typeof p === 'string' ? [] : [p.id]));
+  return [
+    pending.protagonist,
+    ...Object.values(pending.scope),
+    ...pending.lines.flatMap(linked),
+    ...pending.after.flatMap((e) => [e.subject, ...linked(e.parts)]),
+  ];
+};
 
 /** The hero's death drops an unanswered event. */
 export const eventsOnDeath: DeathHook = ({ state }, c) => {

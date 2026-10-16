@@ -1,5 +1,5 @@
 import { botCommand } from './bot';
-import { formatDate, fromYmd, START_YEAR } from './time/calendar';
+import { formatDate, fromYmd, START_YEAR, toYmd } from './time/calendar';
 import type { Content } from './content/schema';
 import { apply, newGame } from './game';
 import { checkInvariants } from './invariants';
@@ -18,9 +18,11 @@ export interface SimResult {
   state: GameState;
   steps: number;
   violations: string[];
+  /** Calendar year the house came to an end (status `ended`, D-315); null if it lasted the run. */
+  endYear: number | null;
 }
 
-/** Headless run: a random bot plays until the given number of years has passed. */
+/** Headless run: a random bot plays until the given number of years has passed or the house ends (D-315). */
 export function runSim(content: Content, { seed, years }: SimOptions): SimResult {
   if (!Number.isInteger(years) || years < 1) throw new Error(`years must be a positive integer, got ${years}`);
   const state = newGame(seed, content);
@@ -29,7 +31,7 @@ export function runSim(content: Content, { seed, years }: SimOptions): SimResult
   const violations = checkInvariants(state, content);
   let steps = 0;
   let still = 0;
-  while (state.day < endDay && violations.length === 0) {
+  while (state.day < endDay && violations.length === 0 && state.status !== 'ended') {
     const prevDay = state.day;
     const cmd = botCommand(state, content, botRng);
     apply(state, content, cmd);
@@ -40,5 +42,5 @@ export function runSim(content: Content, { seed, years }: SimOptions): SimResult
     else if (++still > MAX_STEPS_WITHOUT_TIME) violations.push(`step ${steps}: ${still} choices in a row without time moving from day ${prevDay}`);
     for (const v of checkInvariants(state, content)) violations.push(`step ${steps}, ${formatDate(state.day)}: ${v}`);
   }
-  return { state, steps, violations };
+  return { state, steps, violations, endYear: state.status === 'ended' ? toYmd(state.day).year : null };
 }

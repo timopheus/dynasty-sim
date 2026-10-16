@@ -8,13 +8,18 @@ import { characterInvariants } from './character/character';
 import { chronicleInvariants } from './chronicle/log';
 import type { Content } from './content/schema';
 import { eventsInvariants } from './events/events';
+import { familyInvariants } from './family/family';
 import { healthInvariants } from './health/health';
+import { heirloomInvariants } from './heirloom/heirloom';
+import { houseInvariants } from './house/house';
 import { narratorInvariants } from './narrator/narrator';
 import { relationsInvariants } from './relations/relations';
 import { SAVE_VERSION } from './save/version';
 import { isInt } from './helpers';
 import type { GameState, Invariant } from './state';
 import { storiesInvariants } from './stories/stories';
+import { successionInvariants } from './succession/succession';
+import { summaryInvariants } from './summary/summary';
 import { timeInvariants } from './time/time';
 import { worldInvariants } from './world/world';
 
@@ -32,6 +37,9 @@ const coreInvariants: Invariant = ({ state }) => {
   } else if (state.status === 'awaiting_choice') {
     // No action is fine: the scenes of the backstory come before the first action (D-167).
     if (!state.pendingEvent) problems.push('awaiting_choice without a pending event');
+  } else if (state.status === 'ended') {
+    // The house has come to an end (D-315): nothing goes on.
+    if (state.activeAction !== null || state.pendingEvent !== null) problems.push('ended with an active action or pending event');
   } else {
     problems.push(`unknown status ${String(state.status)}`);
   }
@@ -51,6 +59,11 @@ const INVARIANTS: readonly Invariant[] = [
   narratorInvariants,
   storiesInvariants,
   backstoryInvariants,
+  familyInvariants,
+  houseInvariants,
+  successionInvariants,
+  heirloomInvariants,
+  summaryInvariants,
 ];
 
 /** Returns a list of broken rules; empty means the state is consistent. */

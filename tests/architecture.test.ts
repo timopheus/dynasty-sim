@@ -21,6 +21,21 @@ function coreFiles(): string[] {
     .map((f) => join(CORE, f));
 }
 
+/** Runtime imports of every core file (type-only imports left out), as normalised paths with `.ts`. */
+function runtimeGraph(): Map<string, string[]> {
+  const graph = new Map<string, string[]>();
+  for (const file of coreFiles()) {
+    const deps: string[] = [];
+    for (const [, clause, spec] of readFileSync(file, 'utf8').matchAll(/^(?:import|export)\s+(?!type\b)([^;]*?)from\s+['"](\.[^'"]+)['"]/gm)) {
+      const names = /^\s*\{([^}]*)\}\s*$/.exec(clause ?? '')?.[1];
+      const typesOnly = names !== undefined && names.split(',').map((n) => n.trim()).filter(Boolean).every((n) => n.startsWith('type '));
+      if (!typesOnly && spec) deps.push(`${posix.join(posix.dirname(file.split('\\').join('/')), spec)}.ts`);
+    }
+    graph.set(file.split('\\').join('/'), deps);
+  }
+  return graph;
+}
+
 describe('core architecture', () => {
   it('imports only relative core modules and allowed packages', () => {
     for (const file of coreFiles()) {
@@ -50,16 +65,7 @@ describe('core architecture', () => {
 
   // A runtime cycle loads one file half-initialised: tsx throws, a bundle silently drops values.
   it('has no runtime import cycles', () => {
-    const graph = new Map<string, string[]>();
-    for (const file of coreFiles()) {
-      const deps: string[] = [];
-      for (const [, clause, spec] of readFileSync(file, 'utf8').matchAll(/^(?:import|export)\s+(?!type\b)([^;]*?)from\s+['"](\.[^'"]+)['"]/gm)) {
-        const names = /^\s*\{([^}]*)\}\s*$/.exec(clause ?? '')?.[1];
-        const typesOnly = names !== undefined && names.split(',').map((n) => n.trim()).filter(Boolean).every((n) => n.startsWith('type '));
-        if (!typesOnly && spec) deps.push(`${posix.join(posix.dirname(file.split('\\').join('/')), spec)}.ts`);
-      }
-      graph.set(file.split('\\').join('/'), deps);
-    }
+    const graph = runtimeGraph();
     const done = new Set<string>();
     const visit = (file: string, path: string[]) => {
       if (path.includes(file)) expect.fail(`import cycle: ${[...path.slice(path.indexOf(file)), file].join(' -> ')}`);
@@ -68,6 +74,36 @@ describe('core architecture', () => {
       done.add(file);
     };
     for (const file of graph.keys()) visit(file, []);
+  });
+
+  // The archive is history for the player (pages, markdown, metrics, the summary, the save), never input of a rule
+  // (D-312): moving data into it must not change the run. Rules are everything the day loop, commands, hooks,
+  // effects, conditions, roles, the narrator, invariants and HOT_REFS reach.
+  it('keeps the archive out of reach of the rules of the simulation', () => {
+    const graph = runtimeGraph();
+    const access = `${CORE}/archive/archive.ts`;
+    expect(graph.has(access), 'the archive access file exists').toBe(true);
+    for (const reader of ['pages/person.ts', 'chronicle/markdown.ts', 'metrics/metrics.ts']) {
+      expect(graph.get(`${CORE}/${reader}`), `${reader} reads history through archive/`).toContain(access);
+    }
+    const assembly = ['game.ts', 'lifecycle.ts', 'hooks.ts', 'effects.ts', 'condition-keys.ts', 'invariants.ts', 'refs.ts', 'modifiers.ts'];
+    const roots = [
+      ...assembly.map((f) => `${CORE}/${f}`),
+      ...[...graph.keys()].filter((f) => /\/(phases|effects|conditions)\.ts$/.test(f) || /\/(roles|narrator|events)\//.test(f)),
+    ];
+    expect(roots.length).toBeGreaterThan(assembly.length);
+    for (const root of roots) {
+      const seen = new Set<string>();
+      const stack: string[][] = [[root]];
+      while (stack.length > 0) {
+        const path = stack.pop() as string[];
+        const file = path.at(-1) as string;
+        if (seen.has(file)) continue;
+        seen.add(file);
+        if (file === access) expect.fail(`a rule reads the archive: ${path.join(' -> ')}`);
+        for (const dep of graph.get(file) ?? []) stack.push([...path, dep]);
+      }
+    }
   });
 
   it('does not use host APIs or non-deterministic sources', () => {

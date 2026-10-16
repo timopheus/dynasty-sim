@@ -1,3 +1,4 @@
+import { allChronicle, anyCharacter } from '../archive/archive';
 import { fullName, type CharacterBase } from '../character/character';
 import type { GameState } from '../state';
 import { ownLine, type TextPart } from '../text/text';
@@ -20,11 +21,10 @@ interface Section {
 
 /** One section per head of the house: from the "start" or "succession" line to the next one (D-019). */
 function sections(state: GameState, keep: (e: ChronicleEntry) => boolean): Section[] {
-  const byId = new Map(state.characters.map((c) => [c.id, c]));
   const out: Section[] = [];
-  for (const e of state.chronicle) {
+  for (const e of allChronicle(state)) {
     if (e.kind === 'start' || e.kind === 'succession') {
-      const head = byId.get(e.subject);
+      const head = anyCharacter(state, e.subject);
       if (head && !out.some((s) => s.head.id === head.id)) out.push({ head, entries: [] });
     }
     if (out.length > 0 && keep(e)) out.at(-1)?.entries.push(e);
@@ -46,7 +46,9 @@ function renderText(parts: readonly TextPart[], own: string, heads: ReadonlySet<
 }
 
 function render(state: GameState, title: string, keep: (e: ChronicleEntry) => boolean, dated: boolean, ownLines: boolean): string {
-  const founder = state.characters[0];
+  // The founder is the subject of the `start` line, the first person of the game.
+  const start = allChronicle(state).find((e) => e.kind === 'start');
+  const founder = start ? anyCharacter(state, start.subject) : null;
   const house = founder ? founder.surname : 'Unknown';
   const lines: string[] = [`# ${title} of the House of ${house}`, '', `Seed ${state.seed} · ${formatDate(0)} – ${formatDate(state.day)}`];
   const secs = sections(state, keep);

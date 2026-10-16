@@ -1,6 +1,6 @@
 import { isInt } from '../helpers';
 import type { RngState } from '../rng';
-import type { CreateHook, DayPhase, DeathHook, Invariant } from '../state';
+import type { CreateHook, DayPhase, DeathHook, Invariant, RefsFn, SuccessionHook } from '../state';
 import { characterById } from '../world/world';
 import { acquaintanceWeek } from './acquaintance';
 import { endRelationsOf } from './links';
@@ -30,6 +30,23 @@ export const createRelations: CreateHook = () => {};
 /** Death closes every active relation of the dead with the reason `death` (GDD 8.7). */
 export const relationsOnDeath: DeathHook = (ctx, c) => {
   endRelationsOf(ctx, c.id, 'death');
+};
+
+/** 4.8: enmity, knowledge of people and feuds pass to the heir (GDD §3, §8.6). */
+export const relationsOnSuccession: SuccessionHook = () => {};
+
+/**
+ * People the relations part of the hot data refers to (D-312): both sides of a relation, an opinion reason or a
+ * secret with a living person in it, and the people the hero knows. Records of the long dead only may be archived.
+ */
+export const relationsRefs: RefsFn = ({ state }) => {
+  const alive = (id: string) => characterById(state, id)?.deathDay === null;
+  const out: string[] = [];
+  for (const r of state.relations) if (alive(r.a) || alive(r.b)) out.push(r.a, r.b);
+  for (const r of state.opinionReasons) if (alive(r.holder) || alive(r.target)) out.push(r.holder, r.target);
+  for (const a of state.acquaintances) if (a.holder === state.playerId) out.push(a.holder, a.other);
+  for (const s of state.secrets) if (alive(s.about) || s.knownBy.some(alive)) out.push(s.about, ...s.knownBy);
+  return out;
 };
 
 /** Weekly acquaintance step of the hero with the circle (D-037). Never stops the day. */

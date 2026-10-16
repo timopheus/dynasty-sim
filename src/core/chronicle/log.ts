@@ -1,6 +1,7 @@
-import type { Character, Ctx, GameState, Invariant } from '../state';
+import type { Character, Ctx, GameState, Invariant, RefsFn } from '../state';
 import { characterParts, partsText, type TextPart } from '../text/text';
 import { formatDate } from '../time/calendar';
+import { isNear } from '../world/world';
 
 /** "chronicle" lines are for the story, "journal" for everyday detail (D-057); 2.6 selects on top. */
 export type ChronicleLevel = 'chronicle' | 'journal';
@@ -61,13 +62,13 @@ function lineParts(line: LogLine, day: number): TextPart[] {
  */
 function selectLevel({ state, content }: Ctx, line: LogLine): ChronicleLevel | null {
   // An event of a person of the world is stored only when the author wants it (`chronicle: true`, D-166).
-  if (line.kind === 'npc_event') return line.important && state.circle.includes(line.subject.id) ? 'journal' : null;
+  if (line.kind === 'npc_event') return line.important && line.subject.id !== state.playerId && isNear(state, line.subject.id) ? 'journal' : null;
   const sel = content.chronicle;
   if (!sel) return line.level;
   const { subject, kind } = line;
   if (subject.id !== state.playerId) {
     // People far from the hero leave no lines; their death is in deathDay and deathCause (D-063).
-    if (!state.circle.includes(subject.id)) return null;
+    if (!isNear(state, subject.id)) return null;
     const death = kind === 'death' || kind === 'death_cause';
     return death && subject.fame >= sel.famousFame ? 'chronicle' : 'journal';
   }
@@ -117,6 +118,19 @@ export function log(ctx: Ctx, line: LogLine): ChronicleEntry | null {
 export function entryText(entry: ChronicleEntry): string {
   return partsText(entry.parts);
 }
+
+/**
+ * People the hot chronicle refers to (D-312): subjects and links of every entry still in `state.chronicle`. The
+ * archive phase (4.3) moves old entries out, so what stays is the fresh part.
+ */
+export const chronicleRefs: RefsFn = ({ state }) => {
+  const out: string[] = [];
+  for (const e of state.chronicle) {
+    out.push(e.subject);
+    for (const p of e.parts) if (typeof p !== 'string') out.push(p.id);
+  }
+  return out;
+};
 
 export const chronicleInvariants: Invariant = ({ state }) => {
   const problems: string[] = [];

@@ -15,9 +15,11 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   helpers.ts       isInt, newId, getPlayer, findCharacter — для всех модулей
   bot.ts, sim.ts   случайный бот и прогон без интерфейса
   сборочные файлы (D-052, D-060): собирают части модулей, правятся только между волнами
-  game.ts          newGame и хуки новой партии, apply(команда) и хуки после выбора, фазы дня DAY_PHASES (D-053, D-173, D-187)
-  state.ts         GameState и Character из частей модулей, Scope (область ролей), типы хуков
-  lifecycle.ts     createCharacter (хуки создания), kill (причина, хуки смерти), временный наследник
+  game.ts          newGame и хуки новой партии, apply(команда: start, choose, end, will, propose) и хуки после выбора, фазы дня DAY_PHASES (D-053, D-173, D-187)
+  state.ts         GameState и Character из частей модулей, Scope (область ролей), статус (`ended` — род пресёкся), типы хуков
+  hooks.ts         createCharacter (хуки создания), хуки брака MARRIAGE_HOOKS — их зовут сами модули (D-320)
+  lifecycle.ts     kill (причина, хуки смерти), смена главы: chooseHeir → succeed / endHouse, хуки смены главы SUCCESSION_HOOKS; createCharacter — реэкспорт из hooks.ts
+  refs.ts          HOT_REFS: id людей, на которых ссылаются горячие данные модулей; их архив не забирает (D-312)
   invariants.ts    checkInvariants: инварианты модулей
   effects.ts       ключи эффектов модулей, applyEffects(… scope), effectRoleRefs
   condition-keys.ts  ключи условий модулей (when, D-054), conditionReport со скрытыми причинами, conditionRoleRefs
@@ -34,14 +36,21 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   roles/           роли события: RoleSchema, checkRoles (content.ts), fillRoles, canFillRoles, anyCandidate (roles.ts) (3.3)
   stories/         продолжения и истории со сроком; фаза историй (phases.ts) (3.8)
   backstory/       предыстория первого героя; хук новой партии (phases.ts) (3.11)
-  world/           detailedCharacters, фаза мира (2.5)
+  world/           detailedCharacters (герой, дом героя household, окружение), isNear, фаза мира (2.5, D-313)
   relations/       мнения и отношения (2.4)
   chronicle/       log() — единственная запись в хронику, markdown (2.6)
+  archive/         архив (D-312): куски состояния (chunks.ts), фаза архива (phases.ts), чтение всей истории allChronicle/allCharacters/anyCharacter (archive.ts) — только для страниц, markdown, метрик, итога, сохранения
+  family/          браки и родство (4.5): father/mother, записи браков, запросы родства (kin.ts), proposalOptions (proposals.ts), раздел «Семья» (page.ts)
+  succession/      смена главы (4.6): chooseHeir, succeed, endHouse, команда will, фаза succession, хук смерти (phases.ts)
+  house/           род (4.7): роды, поле house, хук брака (house.ts), раздел и страница рода (page.ts)
+  heirloom/        родовая вещь (4.9), страница вещи (page.ts)
+  era/             эпоха (4.11): eraOf(ctx, day)
+  summary/         итог рода (4.14): годовая фаза (phases.ts), пока — живых людей max
   save/            serialize/deserialize, версия формата (2.8)
   metrics/         computeMetrics(state) — метрики прогона (2.7), сводка и сравнение
-  pages/           personPage — страница человека с учётом видимости (2.10)
+  pages/           personPage — страница человека с учётом видимости, разделы модулей PERSON_SECTIONS (2.10); entityPage — страница сущности по id (entity.ts, D-311)
   text/            шаблоны: части текста и ссылки (text.ts), тексты событий с ролями (render.ts), их проверка (check.ts), грамматика (grammar.ts, 3.4)
-src/ui/            браузерный интерфейс: main.ts, hero.ts (экран героя), page.ts (страницы людей), address.ts (адреса #/person/<id>), storage.ts (автосохранение в localStorage), style.css
+src/ui/            браузерный интерфейс: main.ts, hero.ts (экран героя), page.ts (страницы людей), address.ts (адреса #/<вид>/<id>, старый #/person/<id> работает), storage.ts (автосохранение в localStorage), style.css
 content/           игровой контент в YAML, тексты на английском
 map/               исходники карты из Azgaar (region.map/json/svg, D-025); как править — docs/map-guide.md
 tools/             validate.ts, sim.ts, content-files.ts (чтение content/ с диска)
@@ -75,8 +84,10 @@ CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck,
 - Обходить массивы контента, а не ключи объектов. Исключение — роли события и символы грамматики: по контракту это карты (D-161), порядок их ключей задан файлом (id начинаются с буквы).
 - Состояние меняет только `apply(state, content, command)`. Функции-запросы (`availableActions`, `pendingEventDef`) случайность не тратят.
 - Новое правило согласованности — в инварианты своего модуля (они собраны в `invariants.ts`): ими пользуются прогон и тесты.
-- Хроника пишется только через `log(ctx, {subject, kind, level, template | parts, money?, mark?, important?})` из `chronicle/log.ts` (D-057, D-064, D-130). Отбор — при записи, итоговый уровень в `entry.level`; строку о человеке вне героя и окружения `log` не хранит и возвращает `null`. Запись хранит части текста: строки и ссылки `{id, name}`; `parts` — готовые части (текст события с ролями); `money` — изменение денег субъекта для отбора (в записи не хранится), `mark` — выбор игрока со значком ▸, `important` — строка хроники по решению автора.
+- Хроника пишется только через `log(ctx, {subject, kind, level, template | parts, money?, mark?, important?})` из `chronicle/log.ts` (D-057, D-064, D-130). Отбор — при записи, итоговый уровень в `entry.level`; строку о человеке вне героя, его дома и окружения (`isNear`) `log` не хранит и возвращает `null`. Запись хранит части текста: строки и ссылки `{id, name}`; `parts` — готовые части (текст события с ролями); `money` — изменение денег субъекта для отбора (в записи не хранится), `mark` — выбор игрока со значком ▸, `important` — строка хроники по решению автора.
 - id сущностей — `newId(state, prefix)`; сущности не удаляются.
+- Правила симуляции не читают архив (D-312): фазы, эффекты, условия, роли, рассказчик, хуки, инварианты и `HOT_REFS` видят только горячую часть (`state.characters`, `state.chronicle` и т. д.). Вся история — `allChronicle`/`allCharacters`/`anyCharacter` из `archive/archive.ts`, только для страниц, markdown, метрик, итога рода и сохранения; тест архитектуры не пускает `archive/archive.ts` в то, до чего дотягиваются правила. Правилу нужны давние данные — их держит горячими `HOT_REFS` своего модуля (`refs.ts`), а не чтение архива.
+- Модуль, данные которого ссылаются на людей, отдаёт их своей функцией `RefsFn` в `HOT_REFS` (`refs.ts`): иначе архив (4.3) заберёт человека, на которого ссылаются.
 
 ## Роли и область ролей (D-162, D-171, D-172)
 - Формат события — контракт `docs/event-format.md`; меняет его только ведущая сессия этапа (и 3.2 — справочник). Не подходит — опиши в PR.
@@ -88,15 +99,16 @@ CI (`.github/workflows/ci.yml`) на каждый PR и push в main: typecheck,
 
 ## Владение файлами (D-052, D-060)
 - Задача правит только свой модуль-папку, свой контент и свои тесты — по колонке «Модуль» в ROADMAP.
-- Сборочные файлы (`game.ts`, `state.ts`, `lifecycle.ts`, `invariants.ts`, `effects.ts`, `condition-keys.ts`, `modifiers.ts`, `helpers.ts`, `content/schema.ts`, `content/load.ts`, `content/types.ts`) в волнах не правятся. Модуль подключается через уже заведённые в них точки: заполняет свою пустую часть состояния, хук, фазу, ключи эффектов и условий, инварианты, перекрёстную проверку.
+- Сборочные файлы (`game.ts`, `state.ts`, `hooks.ts`, `lifecycle.ts`, `refs.ts`, `invariants.ts`, `effects.ts`, `condition-keys.ts`, `modifiers.ts`, `helpers.ts`, `content/schema.ts`, `content/load.ts`, `content/types.ts`) в волнах не правятся. Модуль подключается через уже заведённые в них точки: заполняет свою пустую часть состояния, хук, фазу, ключи эффектов и условий, инварианты, перекрёстную проверку.
 - Не хватает точки подключения — остановись и опиши проблему в своём PR. Сборочные файлы правит ведущая сессия этапа с architect отдельным PR `[<этап>.1a] …` (в этапе 3 — `[3.1a] …`).
 - Модули импортируют из `state.ts` только типы (`import type`); иначе — цикл импортов. Это проверяет `tests/architecture.test.ts`.
 - Файл, который отдаёт сборочному файлу схемы, хуки или начальную часть состояния, не импортирует этот сборочный файл ни прямо, ни через другие файлы: получится цикл импортов. Поэтому эффекты модуля — в отдельном `<модуль>/effects.ts` (не импортирует `effects.ts`), а код, который зовёт `createCharacter`/`kill` или `applyEffects`, — в отдельном файле модуля, как `health/phases.ts`. Циклы ловит тест архитектуры.
+- `createCharacter` — из `hooks.ts`. Файлы хуков смены главы (`SUCCESSION_HOOKS`: `family/phases.ts`, `house/phases.ts`, `relations/relations.ts`, `stories/phases.ts`, `heirloom/phases.ts`) и `succession/phases.ts` не импортируют `lifecycle.ts`: его `kill` зовёт их сам. Хук брака (`MARRIAGE_HOOKS` в `hooks.ts`, его зовёт брак из `family/`) — в файле, который не импортирует ни `lifecycle.ts`, ни `events/`, ни `effects.ts` (`house/house.ts`), D-320.
 - У модулей следующих задач уже заведены пустые точки: часть состояния и персонажа, хуки создания, смерти и новой партии, фаза, ключи эффектов и условий с реестром ссылок на роли, верхний ключ контента со схемой и перекрёстной проверкой, инварианты, контракты с простейшей реализацией (D-172). Задача заполняет их в своей папке.
 - Код, который запускает событие (`startEvent`) из другого модуля, — тоже в `<модуль>/phases.ts` (рассказчик, истории, предыстория): `<модуль>/effects.ts` не импортирует `events/`.
 
 ## Контент (content/)
-- Любой `*.yaml` в `content/` — объект с верхними ключами модулей (`SINGLE_KEYS`, `OPTIONAL_KEYS`, `LIST_KEYS` в `content/schema.ts`): одиночные `settings`, `names`, `health` — ровно по одному разу; `time` и `narrator` (темп событий, D-170) — тоже обязательны (формально в `OPTIONAL_KEYS`, но их требуют перекрёстные проверки `checkTime`, `checkNarrator`); необязательные `population`, `opinions`, `chronicle`, `grammar`, `backstory` — не больше одного раза; списки `actions`, `events`, `traits` складываются. Файлы сливаются в алфавитном порядке пути.
+- Любой `*.yaml` в `content/` — объект с верхними ключами модулей (`SINGLE_KEYS`, `OPTIONAL_KEYS`, `LIST_KEYS` в `content/schema.ts`): одиночные `settings`, `names`, `health` — ровно по одному разу; `time` и `narrator` (темп событий, D-170) — тоже обязательны (формально в `OPTIONAL_KEYS`, но их требуют перекрёстные проверки `checkTime`, `checkNarrator`); необязательные `population`, `opinions`, `chronicle`, `grammar`, `backstory` и ключи этапа 4 `family`, `succession`, `house`, `heirlooms`, `eras` (пока пустые схемы, D-310) — не больше одного раза; списки `actions`, `events`, `traits` складываются. Файлы сливаются в алфавитном порядке пути.
 - Схема ключа лежит в модуле (`actions/content.ts` и т. п.). Новое поле: схема модуля → перекрёстная проверка модуля → плохой пример в `tests/fixtures/bad/`. Первая строка плохого примера — ожидаемая ошибка: `# expect-error: <путь> /<регулярка>/`; тест находит файлы сам.
 - id в `lower_snake_case`. Тексты на английском, плейсхолдеры `{name}`, `{age}` и местоимения того же персонажа `{he} {him} {his} {He} {His}` (список — `character/text.ts`, D-055). Пол задан у каждого персонажа: тексты читаются для обоих полов.
 - После правки контента: `npm run validate` и прогон.

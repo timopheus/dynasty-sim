@@ -1,0 +1,2 @@
+# expect-error: family /Unrecognized key/
+family: { x: 1 }

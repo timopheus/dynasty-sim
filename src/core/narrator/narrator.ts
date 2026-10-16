@@ -1,5 +1,5 @@
 import { isInt } from '../helpers';
-import type { Invariant } from '../state';
+import type { Invariant, RefsFn } from '../state';
 
 /** Counters of the pace for the metrics (3.7): what the narrator started, by the length of the action. */
 export interface NarratorStats {
@@ -51,6 +51,9 @@ export function initNarratorState(): NarratorState {
 }
 
 const isPastDay = (value: unknown, today: number): boolean => isInt(value) && value <= today;
+
+/** The head whose life `lifeFired` describes (D-312). */
+export const narratorRefs: RefsFn = ({ state }) => (state.lifeHero === null ? [] : [state.lifeHero]);
 
 export const narratorInvariants: Invariant = ({ state }) => {
   const problems: string[] = [];
