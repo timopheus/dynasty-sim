@@ -1,14 +1,11 @@
 import { log } from '../chronicle/log';
-import { ANNUAL_DEATH_DENOMINATOR, annualDeathChance } from '../health/mortality';
+import { ANNUAL_DEATH_DENOMINATOR, annualDeathChance, mortalityRow } from '../health/mortality';
 import { getPlayer } from '../helpers';
 import { createCharacter, kill } from '../lifecycle';
 import { chancePer, int, pick, weightedPick } from '../rng';
 import type { Character, Ctx, DayPhase, GameState } from '../state';
 import { ageYears, toYmd } from '../time/calendar';
 import { occupationsForAge, type MoveDef, type PopulationContent } from './content';
-
-/** Cause of death id for people far away: the yearly roll is by age only (D-112). */
-export const FAR_DEATH_CAUSE = 'natural';
 
 function isFarAlive(state: GameState, c: Character, inCircle: ReadonlySet<string>): boolean {
   return c.deathDay === null && c.id !== state.playerId && !inCircle.has(c.id);
@@ -86,7 +83,7 @@ function yearlyTick(ctx: Ctx, population: PopulationContent): void {
       continue;
     }
     if (chancePer(state.rng, annualDeathChance(age), ANNUAL_DEATH_DENOMINATOR)) {
-      kill(ctx, c, FAR_DEATH_CAUSE);
+      kill(ctx, c, mortalityRow(ctx.content, age).cause);
       continue;
     }
     if (chancePer(state.rng, population.far.occupationChangePer10k, 10000)) {
@@ -101,13 +98,8 @@ function yearlyTick(ctx: Ctx, population: PopulationContent): void {
   }
 }
 
-function isNewYearDay(day: number): boolean {
-  const { month, day: d } = toYmd(day);
-  return month === 1 && d === 1;
-}
-
 /**
- * Circle upkeep (D-110): the yearly tick of people far away on 1 January, the move when the hero
+ * Circle upkeep (D-110): the yearly tick of people far away (first world phase of a new year), the move when the hero
  * completes a moving action, and a refill to the lower bound. Never stops the day.
  */
 export const worldPhase: DayPhase = {
@@ -116,11 +108,20 @@ export const worldPhase: DayPhase = {
     const { state, content } = ctx;
     const population = content.population;
     if (!population) return false;
-    if (isNewYearDay(state.day)) yearlyTick(ctx, population);
+    // By year, not by the date: a stop earlier in the day (the hero's death) must not skip the tick.
+    const year = toYmd(state.day).year;
+    if (state.lastTickYear === null) state.lastTickYear = year;
+    else if (year > state.lastTickYear) {
+      state.lastTickYear = year;
+      yearlyTick(ctx, population);
+    }
     const active = state.activeAction;
-    if (active && state.day >= active.endDay && !state.interruptRequest) {
+    if (active && state.day >= active.endDay && !state.interruptRequest && state.lastMoveEndDay !== active.endDay) {
       const move = population.moves.find((m) => m.action === active.actionId);
-      if (move) applyMove(ctx, population, move);
+      if (move) {
+        state.lastMoveEndDay = active.endDay;
+        applyMove(ctx, population, move);
+      }
     }
     refillCircle(ctx, population);
     return false;

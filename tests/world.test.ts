@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { botCommand } from '../src/core/bot';
+import { mortalityRow } from '../src/core/health/mortality';
 import { createCharacter, kill } from '../src/core/lifecycle';
 import { apply, DAY_PHASES, newGame } from '../src/core/game';
 import { checkInvariants } from '../src/core/invariants';
@@ -73,7 +74,7 @@ describe('the circle', () => {
     const victim = circleOf(state)[0] as Character;
     const before = state.circle.length;
     // The death hook runs inside kill; the invariants must hold right after it.
-    kill(ctxOf(state), victim, 'natural');
+    kill(ctxOf(state), victim, 'illness');
     expect(state.circle).not.toContain(victim.id);
     expect(state.circle.length).toBe(before - 1);
     expect(checkInvariants(state, content)).toEqual([]);
@@ -131,6 +132,25 @@ describe('moves', () => {
     expect(checkInvariants(state, quiet)).toEqual([]);
   });
 
+  it('are not applied to an interrupted action, nor twice for one action', () => {
+    const quiet = { ...content, settings: { ...content.settings, eventChancePer10k: 0 } };
+    const state = newGame(12, quiet);
+    apply(state, quiet, { type: 'start', actionId: 'rest' });
+    apply(state, quiet, { type: 'start', actionId: 'wait' });
+    expect(state.chronicle.filter((e) => e.kind === 'move')).toHaveLength(1);
+    const after = [...state.circle];
+    // Pretend the action is still active on its end day: the same move must not run again.
+    state.activeAction = { actionId: 'wait', endDay: state.lastMoveEndDay as number };
+    worldPhase.run(ctxOf(state));
+    expect(state.circle).toEqual(after);
+
+    state.activeAction = { actionId: 'wait', endDay: state.day };
+    state.interruptRequest = { template: null };
+    worldPhase.run(ctxOf(state));
+    expect(state.circle).toEqual(after);
+    expect(state.chronicle.filter((e) => e.kind === 'move')).toHaveLength(1);
+  });
+
   it('leave the circle alone for other actions', () => {
     const state = newGame(11, content);
     apply(state, content, { type: 'start', actionId: 'rest' });
@@ -156,17 +176,18 @@ describe('the yearly tick of people far away', () => {
       crowd.push(c);
     }
     state.day = fromYmd(START_YEAR + 3, 1, 1);
+    state.lastTickYear = START_YEAR + 2;
     return { state, crowd };
   }
 
-  it('kills the old by annualDeathChance with cause natural, and leaves the young mostly alone', () => {
+  it('kills the old by annualDeathChance with the cause of the mortality table, and leaves the young mostly alone', () => {
     const old = withCrowd(95, 300);
     worldPhase.run(ctxOf(old.state));
     const dead = old.crowd.filter((c) => c.deathDay !== null);
     // 40% a year at 90+: 120 of 300 expected, sd about 8.
     expect(dead.length).toBeGreaterThan(80);
     expect(dead.length).toBeLessThan(160);
-    expect(dead.every((c) => c.deathCause === 'natural' && c.deathDay === old.state.day)).toBe(true);
+    expect(dead.every((c) => c.deathCause === mortalityRow(content, 95).cause && c.deathDay === old.state.day)).toBe(true);
     expect(old.state.circle.some((id) => dead.some((c) => c.id === id))).toBe(false);
 
     const young = withCrowd(20, 300);
@@ -175,9 +196,19 @@ describe('the yearly tick of people far away', () => {
     expect(young.crowd.filter((c) => c.deathDay !== null).length).toBeLessThan(15);
   });
 
-  it('runs only on 1 January', () => {
+  it('runs once in the first world phase of a new year, whatever the date', () => {
+    const a = withCrowd(95, 100);
+    a.state.day += 40; // the phase of 1 January was lost to an earlier stop
+    worldPhase.run(ctxOf(a.state));
+    expect(a.crowd.some((c) => c.deathDay !== null)).toBe(true);
+    const rng = JSON.stringify(a.state.rng);
+    worldPhase.run(ctxOf(a.state));
+    expect(JSON.stringify(a.state.rng)).toBe(rng);
+  });
+
+  it('does nothing within the year of the last tick', () => {
     const { state, crowd } = withCrowd(95, 100);
-    state.day -= 1;
+    state.lastTickYear = START_YEAR + 3;
     const rng = JSON.stringify(state.rng);
     const circle = [...state.circle];
     worldPhase.run(ctxOf(state));
@@ -198,23 +229,20 @@ describe('the yearly tick of people far away', () => {
   });
 
   it('lets circle members drift away, and they stay alive', () => {
-    const state = newGame(31, content);
-    apply(state, content, { type: 'start', actionId: 'rest' });
+    const all = { ...content, population: { ...pop, driftPer10k: 10000 } };
+    const state = newGame(31, all);
+    apply(state, all, { type: 'start', actionId: 'rest' });
     const members = [...state.circle];
-    state.day = fromYmd(START_YEAR + 3, 1, 1);
-    const ctx = ctxOf(state);
-    // Fill to the cap with extra people so the drift chance (10%) has something to act on.
-    while (state.circle.length < pop.circle.max) {
-      const c = createCharacter(ctx, { surname: 'Near', age: { min: 25, max: 25 } });
-      c.occupation = 'guard';
-      state.circle.push(c.id);
-    }
-    const all = [...state.circle];
-    worldPhase.run(ctx);
     expect(members.length).toBeGreaterThan(0);
-    const drifted = all.filter((id) => !state.circle.includes(id));
-    for (const id of drifted) expect((state.characters.find((c) => c.id === id) as Character).deathDay).toBeNull();
-    expect(checkInvariants(state, content)).toEqual([]);
+    state.day = fromYmd(START_YEAR + 3, 1, 1);
+    state.lastTickYear = START_YEAR + 2;
+    worldPhase.run({ state, content: all });
+    // Everyone drifted; the phase then refilled the circle with other people.
+    for (const id of members) {
+      expect(state.circle).not.toContain(id);
+      expect((state.characters.find((c) => c.id === id) as Character).deathDay).toBeNull();
+    }
+    expect(checkInvariants(state, all)).toEqual([]);
   });
 });
 

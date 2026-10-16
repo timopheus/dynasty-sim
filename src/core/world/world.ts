@@ -9,6 +9,10 @@ import type { Character, CreateHook, DayPhase, DeathHook, GameState, Invariant }
 export interface WorldState {
   /** Ids of the people of the circle in the order they joined; never the hero, never the dead. */
   circle: string[];
+  /** Year of the last yearly tick of people far away; null before the first world phase (D-111). */
+  lastTickYear: number | null;
+  /** End day of the last action whose move was applied, so a move happens once (D-110). */
+  lastMoveEndDay: number | null;
 }
 
 /** World part of a character. */
@@ -18,7 +22,7 @@ export interface WorldCharacter {
 }
 
 export function initWorldState(): WorldState {
-  return { circle: [] };
+  return { circle: [], lastTickYear: null, lastMoveEndDay: null };
 }
 
 /**
