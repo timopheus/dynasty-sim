@@ -30,6 +30,8 @@ opinions:
     - { id: nursed_me, name: Nursed me, value: 30, kind: benefit, decay: { kind: fade, days: 1825 } }
     - { id: no_spine, name: Showed no spine, value: -20, kind: harm, decay: { kind: fade, days: 1460 } }
     - { id: stood_by_me, name: Stood by me when it counted, value: 40, kind: benefit, decay: { kind: fade, days: 1825 } }
+    # Added by 4.13: the one whom a courtship or an engagement was dropped on.
+    - { id: jilted, name: Left me waiting, value: -25, kind: harm, decay: { kind: fade, days: 1095 } }
     # Added by 4.6: the heir by law whom a will passed over (D-314); disputes over the inheritance are events (4.15).
     - { id: passed_over, name: Passed over in the will, value: -40, kind: harm, decay: { kind: never } }
 

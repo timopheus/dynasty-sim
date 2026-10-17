@@ -1,0 +1,44 @@
+# Events of people of the world (who: npc, 4.13): courtships and weddings around the hero. They change no one but the
+# person and the other in the role (D-174).
+events:
+  - id: npc_marries
+    who: npc
+    weight: 5
+    cooldown_days: 365
+    when: { age_min: 16, married: false }
+    roles:
+      other:
+        pick: circle
+        where: { can_marry: protagonist }
+    text: "{name} has kept company with {other} for a season; the families are talking."
+    options:
+      - text: Marry
+        ai: { base: 8, traits: { ambitious: 2, content: 3, trusting: 2 } }
+        effects: { marry: other }
+        result: "{name} married {other}."
+        mood: joy
+      - text: Wait another year
+        ai: { base: 6, traits: { suspicious: 3, ambitious: 2, craven: 2 } }
+        result: "{name} put off marrying {other}."
+
+  - id: npc_jilted
+    who: npc
+    weight: 3
+    cooldown_days: 500
+    when: { age_min: 16, married: false }
+    roles:
+      other:
+        pick: circle
+        where: { can_marry: protagonist }
+    text: "{name} has been promised to {other}, and a better offer has come."
+    options:
+      - text: Keep faith and marry {other}
+        ai: { base: 8, traits: { honest: 8, content: 3, ambitious: -3 } }
+        effects: { marry: other }
+        result: "{name} kept faith and married {other}."
+        mood: joy
+      - text: Break the engagement
+        ai: { base: 3, traits: { ambitious: 8, deceitful: 6, greedy: 4, honest: -6 } }
+        on: { other: { opinion: [{ toward: protagonist, reason: jilted }] } }
+        result: "{name} broke an engagement with {other} for a better offer."
+        mood: shame

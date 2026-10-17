@@ -26,7 +26,7 @@ events:
       - text: Ask for the hand yourself
         check: { stat: diplomacy, difficulty: 6, bonus: [{ when: { fame_min: 1 }, add: 1 }] }
         success:
-          effects: { marry: match }
+          effects: { marry: match, schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }] }
           result: "{name} won the hand of {match}."
           mood: joy
         failure:
@@ -34,7 +34,7 @@ events:
           mood: shame
       - text: Win the family over with a gift of 30 crowns
         when: { money_min: 30 }
-        effects: { money: -30, marry: match }
+        effects: { money: -30, marry: match, schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }] }
         on: { match: { opinion: [{ toward: hero, reason: gift }] } }
         result: "{name} won over the family of {match} with a handsome gift."
         mood: joy
@@ -89,6 +89,7 @@ events:
       - text: Make the offer
         check: { stat: diplomacy, difficulty: 7, bonus: [{ when: { fame_min: 1 }, add: 2 }] }
         success:
+          effects: { schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }] }
           on: { suitor: { marry: target } }
           result: "{name} sought <sought>, and the offer was accepted."
           mark: true
