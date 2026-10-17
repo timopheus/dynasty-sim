@@ -11,7 +11,7 @@ import { eventsOnDeath } from './events/events';
 import { familyOnDeath } from './family/family';
 import { familyOnSuccession } from './family/phases';
 import { healthOnDeath } from './health/health';
-import { heirloomOnSuccession } from './heirloom/phases';
+import { heirloomOnDeath, heirloomOnSuccession } from './heirloom/phases';
 import { houseOnDeath } from './house/house';
 import { houseOnSuccession } from './house/phases';
 import { relationsOnDeath, relationsOnSuccession } from './relations/relations';
@@ -35,6 +35,7 @@ const DEATH_HOOKS: readonly DeathHook[] = [
   storiesOnDeath,
   familyOnDeath,
   houseOnDeath,
+  heirloomOnDeath,
   successionOnDeath,
 ];
 

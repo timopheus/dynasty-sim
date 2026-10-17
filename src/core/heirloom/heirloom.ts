@@ -60,8 +60,8 @@ export function livingHeirlooms(state: GameState): Heirloom[] {
 }
 
 /**
- * Who holds a thing now. A thing whose owner died without the head's change (a gift to a kinsman who died) is the
- * hero's until the next change of head settles it; there is no death hook for heirlooms (D-381).
+ * Who holds a thing now. The death hook gives the thing of a dead owner back to the head (D-426); a dead owner is
+ * still read as the hero, for saves made before that hook (D-381).
  */
 export function holderOf(state: GameState, h: Heirloom): string | null {
   if (h.owner === null) return null;
