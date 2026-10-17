@@ -1,0 +1,9 @@
+# expect-error: events[0].when.years /min is above max/
+events:
+  - id: bad_one
+    weight: 1
+    when: { years: { min: 1750, max: 1740 } }
+    text: "{name} waits."
+    options:
+      - text: Wait
+        result: "{name} waited."
