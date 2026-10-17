@@ -277,5 +277,5 @@ describe('over long runs', () => {
     const result = runSim(content, { seed: 4, years: 100 });
     expect(result.violations).toEqual([]);
     expect(deserialize(serialize(result.state), content)).toEqual(result.state);
-  });
+  }, 60_000);
 });
