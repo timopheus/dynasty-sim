@@ -26,6 +26,11 @@ const ReasonSchema = z.strictObject({
   value: Int.min(-100).max(100),
   kind: ReasonKind,
   decay: DecaySchema,
+  /**
+   * 4.8: when the head dies, whoever held this reason against them holds the reason `inherits_as` against the heir
+   * (a weaker "enemy of my father", a debt of honour). Must go the same way as this reason.
+   */
+  inherits_as: Id.optional(),
 });
 
 /** Trait of the person who holds the opinion changes how it remembers (D-035). */
@@ -43,6 +48,20 @@ const BackgroundRuleSchema = z.strictObject({
   holder: Id,
   target: Id,
   value: Int.min(-100).max(100),
+});
+
+/** Renown of the target's house adds to the background of those outside it (4.8, D-035): the last step whose `from` is <= the renown. */
+const RenownStepSchema = z.strictObject({
+  from: Int,
+  value: Int.min(-100).max(100),
+});
+
+/** What passes to the heir with the head (4.8, GDD §8.6). */
+const InheritanceSchema = z.strictObject({
+  /** Kind of relation (a rival) that passes to the heir, if the enemy still holds an inheritable reason against the dead. */
+  feudRelation: Id,
+  /** Chronicle line "Heir to the feud": `{name}` is the heir, `{other}` the enemy, `{deceased}` the dead head. */
+  feudText: Text,
 });
 
 const WordSchema = z.strictObject({
@@ -102,11 +121,15 @@ export const OpinionsContentSchema = z.strictObject({
     /** Limit of the background taken together, in both directions. */
     max: Int.min(0).max(100),
     rules: z.array(BackgroundRuleSchema),
+    /** Renown of the house of the target as a constant part for people not of that house (4.8); steps rise strictly. */
+    renown: z.array(RenownStepSchema).default([]),
   }),
   /** Opinion in words, from the lowest value up; the first word starts at -100. */
   words: z.array(WordSchema).min(1),
   relations: z.array(RelationKindSchema),
   acquaintance: AcquaintanceSchema,
+  /** Without it nothing passes to the heir except the reasons with `inherits_as`. */
+  inheritance: InheritanceSchema.optional(),
   texts: ConditionTextsSchema,
 });
 
@@ -179,6 +202,25 @@ export const checkRelations: CrossCheck = (sources) => {
       if (pairs.has(key)) err(`traitEffects[${i}]`, `duplicate effect of trait "${e.trait}" on ${e.kind}`);
       pairs.add(key);
     });
+    item.reasons.forEach((r, i) => {
+      if (r.inherits_as === undefined) return;
+      const to = item.reasons.find((o) => o.id === r.inherits_as);
+      if (!to) err(`reasons[${i}].inherits_as`, `unknown reason "${r.inherits_as}"`);
+      else if (to.id === r.id) err(`reasons[${i}].inherits_as`, 'a reason cannot pass as itself');
+      else if (Math.sign(to.value) !== Math.sign(r.value)) err(`reasons[${i}].inherits_as`, `reason "${to.id}" goes the other way than "${r.id}"`);
+      else if (to.inherits_as !== undefined) err(`reasons[${i}].inherits_as`, `reason "${to.id}" itself passes on: a feud goes one generation`);
+    });
+    item.background.renown.forEach((s, i) => {
+      const prev = item.background.renown[i - 1];
+      if (prev && s.from <= prev.from) err(`background.renown[${i}].from`, 'steps must rise strictly');
+    });
+    if (item.inheritance) {
+      const kind = item.relations.find((k) => k.id === item.inheritance!.feudRelation);
+      if (!kind) err('inheritance.feudRelation', `unknown relation kind "${item.inheritance.feudRelation}"`);
+      else if (!kind.symmetric) err('inheritance.feudRelation', `relation kind "${kind.id}" must be symmetric: the feud has no patron`);
+      const problem = checkReason(item.inheritance.feudText, [...PLACEHOLDERS, 'other', 'deceased']);
+      if (problem) err('inheritance.feudText', problem);
+    }
     if (item.words[0]?.from !== -100) err('words[0].from', 'the first word must start at -100');
     item.words.forEach((w, i) => {
       const prev = item.words[i - 1];

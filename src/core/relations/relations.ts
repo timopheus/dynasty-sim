@@ -3,6 +3,7 @@ import type { RngState } from '../rng';
 import type { CreateHook, DayPhase, DeathHook, Invariant, RefsFn, SuccessionHook } from '../state';
 import { characterById } from '../world/world';
 import { acquaintanceWeek } from './acquaintance';
+import { inheritEnmity, inheritKnowledge } from './inheritance';
 import { endRelationsOf } from './links';
 import type { Acquaintance, OpinionReason, Relation, Secret } from './types';
 
@@ -30,10 +31,13 @@ export const createRelations: CreateHook = () => {};
 /** Death closes every active relation of the dead with the reason `death` (GDD 8.7). */
 export const relationsOnDeath: DeathHook = (ctx, c) => {
   endRelationsOf(ctx, c.id, 'death');
+  if (c.id === ctx.state.playerId) inheritKnowledge(ctx, c);
 };
 
-/** 4.8: enmity, knowledge of people and feuds pass to the heir (GDD §3, §8.6). */
-export const relationsOnSuccession: SuccessionHook = () => {};
+/** 4.8: enmity, debts and the feud pass to the heir (GDD §3, §8.6); the knowledge of people already did at the death. */
+export const relationsOnSuccession: SuccessionHook = (ctx, deceased, heir) => {
+  inheritEnmity(ctx, deceased, heir);
+};
 
 /**
  * People the relations part of the hot data refers to (D-312): both sides of a relation, an opinion reason or a
