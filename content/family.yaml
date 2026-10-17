@@ -3,7 +3,7 @@
 family:
   # Ceiling of living people (D-313): while there are this many, couples of the circle have no new children;
   # the hero's house (the hero and the hero's descendants) always has.
-  livingMax: 500
+  livingMax: 380
 
   # Yearly chance of a married woman near the hero to conceive, by her new age; rolled on her birthday.
   conception:
