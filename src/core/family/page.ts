@@ -40,7 +40,10 @@ export const familySection: PersonSection = (ctx, c, level) => {
       const label = m.end === null ? (spouse.sex === 'male' ? 'Husband' : 'Wife') : spouse.sex === 'male' ? 'Late husband' : 'Late wife';
       lines.push({ label, parts: ref(spouse) });
     }
-    const children = allCharacters(state).filter((x) => x.father === c.id || x.mother === c.id);
+    // Eldest first: the order must not depend on which people the archive holds (allCharacters puts chunks first).
+    const children = allCharacters(state)
+      .filter((x) => x.father === c.id || x.mother === c.id)
+      .sort((x, y) => x.birthDay - y.birthDay || (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
     if (children.length > 0) lines.push({ label: 'Children', parts: list(children) });
   }
   for (const o of proposalOptions(ctx, c.id)) {
