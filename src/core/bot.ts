@@ -11,7 +11,7 @@ import type { Command } from './game';
 import { proposalOptions } from './family/proposals';
 import { chancePer, pick, type RngState } from './rng';
 import type { Ctx, GameState } from './state';
-import { willGuardians, willHeirs } from './succession/law';
+import { willGuardians, willHeirs, willItems, willReceivers } from './succession/law';
 import { willReasons } from './succession/phases';
 
 export { BOT_CHARACTERS, isBotCharacter, type BotCharacter };
@@ -48,7 +48,13 @@ function houseCommand(ctx: Ctx, rng: RngState): Command | null {
     if (heirs.length > 0 && chancePer(rng, WILL_PER_100, 100)) {
       const heir = pick(rng, [null, ...heirs.map((c) => c.id)]);
       const guardian = pick(rng, [null, ...willGuardians(ctx, hero).map((c) => c.id)]);
-      return { type: 'will', heir, guardian, items: [] };
+      // each thing to someone near or, when null is drawn, to the heir (D-427); no draw without things
+      const receivers = willReceivers(state, hero).map((c) => c.id);
+      const items = receivers.length === 0 ? [] : willItems(state, hero).flatMap((h) => {
+        const to = pick(rng, [null, ...receivers]);
+        return to === null ? [] : [{ item: h.id, to }];
+      });
+      return { type: 'will', heir, guardian, items };
     }
   }
   const options = [...state.household, ...state.circle].flatMap((id) => proposalOptions(ctx, id));

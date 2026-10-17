@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { conditionReport, type When } from '../src/core/condition-keys';
 import { entryText } from '../src/core/chronicle/log';
 import { applyEffects, type Effects } from '../src/core/effects';
-import { newGame } from '../src/core/game';
+import { apply, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { heirloomById, heldBy, livingHeirlooms } from '../src/core/heirloom/heirloom';
 import { checkInvariants } from '../src/core/invariants';
@@ -10,7 +10,9 @@ import { createCharacter, kill } from '../src/core/lifecycle';
 import { entityPage } from '../src/core/pages/entity';
 import { opinionValue } from '../src/core/relations/opinions';
 import { archivePhase } from '../src/core/archive/phases';
+import { archiveProblems } from '../src/core/archive/archive';
 import { isNear } from '../src/core/world/world';
+import { willForm } from '../src/ui/will';
 import { deserialize, serialize } from '../src/core/save/save';
 import type { Content } from '../src/core/content/schema';
 import type { Character, Ctx, GameState } from '../src/core/state';
@@ -228,7 +230,7 @@ describe('the change of head', () => {
     expect(heirloomById(state, id)!.owner).toBe(son.id);
   });
 
-  it('a thing given to a kinsman stays with them; when they die it goes to the hero at the next change', () => {
+  it('a thing given to a kinsman stays with them at the change of head; when they die it goes back to the head at once (D-426)', () => {
     const { state, ctx, hero } = setup();
     hero.sex = 'male';
     const son = person(ctx, 'male', 25, { father: hero.id });
@@ -238,9 +240,30 @@ describe('the change of head', () => {
     kill(ctx, hero, 'test');
     expect(heirloomById(state, id)!.owner).toBe(uncle.id);
     kill(ctx, uncle, 'test');
+    expect(heirloomById(state, id)!.owner).toBe(son.id);
     expect(heldBy(state, getPlayer(state)).map((h) => h.id)).toEqual([id]);
+    expect(state.chronicle.at(-1)?.subject).toBe(son.id);
     kill(ctx, son, 'test');
     expect(checkInvariants(state, content)).toEqual([]);
+  });
+
+  it('the will screen lists the things and the receivers; the command checks both (D-427)', () => {
+    const { state, ctx, hero } = setup();
+    hero.money = 10_000;
+    const son = person(ctx, 'male', 25, { father: hero.id });
+    const stranger = person(ctx, 'male', 40);
+    if (!state.household.includes(son.id)) state.household.push(son.id);
+    state.circle = state.circle.filter((id) => id !== stranger.id);
+    state.household = state.household.filter((id) => id !== stranger.id);
+    const id = make(ctx, hero);
+    const form = willForm(state, content)!;
+    expect(form.items).toEqual([{ id, label: 'Dawn', to: null }]);
+    expect(form.receivers.map((c) => c.id)).toContain(son.id);
+    expect(form.receivers.map((c) => c.id)).not.toContain(stranger.id);
+    expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [{ item: 'i999', to: son.id }] })).toThrow(/not a thing/);
+    expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [{ item: id, to: stranger.id }] })).toThrow(/cannot receive/);
+    apply(state, content, { type: 'will', heir: null, guardian: null, items: [{ item: id, to: son.id }] });
+    expect((state.willDraft ?? state.will)?.items).toEqual([{ item: id, to: son.id }]);
   });
 
   it('the owners are kept hot while the thing is held, and the state saves and loads', () => {
@@ -252,7 +275,7 @@ describe('the change of head', () => {
 });
 
 describe('the archive', () => {
-  it('keeps the dead owner of a held thing hot; the owner of a sold one may go, and the page still reads', () => {
+  it('a dead owner leaves for the archive: the thing went back to the head; links to things in old lines check (D-425)', () => {
     const { state, ctx, hero } = setup();
     const uncle = person(ctx, 'male', 50);
     const old = person(ctx, 'male', 60);
@@ -263,17 +286,19 @@ describe('the archive', () => {
     applyEffects(ctx, old, effects({ heirloom_sell: { money: 1 } }), { hero: old.id, protagonist: old.id });
     kill(ctx, uncle, 'test');
     kill(ctx, old, 'test');
-    // Old chronicle lines that link to a thing (or a house) break the check of an archive chunk, which takes every link
-    // for a person (archive/check.ts, outside 4.9: see STATUS); so the chronicle is emptied here.
-    state.chronicle = [];
+    expect(heirloomById(state, kept)!.owner).toBe(hero.id);
+    expect(state.chronicle.some((e) => e.parts.some((p) => typeof p !== 'string' && p.id === kept))).toBe(true);
     state.day += 365 * 20;
     state.archiveYear = null;
     archivePhase.run(ctx);
-    expect(state.characters.some((c) => c.id === uncle.id)).toBe(true);
+    expect(state.archive.length).toBe(1);
+    expect(state.characters.some((c) => c.id === uncle.id)).toBe(false);
     expect(state.characters.some((c) => c.id === old.id)).toBe(false);
     expect(heirloomById(state, sold)!.owners.map((o) => o.id)).toContain(old.id);
-    expect(heirloomById(state, kept)!.owner).toBe(uncle.id);
+    expect(heirloomById(state, kept)!.owners.map((o) => o.id)).toEqual([hero.id, uncle.id, hero.id]);
     expect(entityPage(ctx, sold)?.type).toBe('entity');
+    expect(entityPage(ctx, kept)?.type).toBe('entity');
+    expect(archiveProblems(state, content)).toEqual([]);
     expect(checkInvariants(state, content)).toEqual([]);
   });
 });
