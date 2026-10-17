@@ -106,8 +106,15 @@ describe('turns (D-246, D-317)', () => {
     expect(turns).toHaveLength(1);
     expect(turns[0]?.entry).toBe(e);
     expect(turns[0]?.causes.map((c) => c.kind)).toEqual(['trait', 'relation']);
+    // A later choice takes over what happens after it; the first keeps nothing.
+    const later = mark(state, 30);
+    state.chronicle.pop();
+    const at = state.chronicle.indexOf(e) + 1;
+    state.chronicle.splice(at, 0, later);
+    expect(findTurns(state, readings(state, [[0, 0, 0], [0, 0, 0], [0, 0, 0]])).map((t) => t.entry.day)).toEqual([30]);
+    state.chronicle.splice(at, 1);
     state.relations[0]!.start = 10 + DAY + 1;
-    state.chronicle.splice(1, 1);
+    state.chronicle.splice(at, 1);
     expect(findTurns(state, readings(state, [[0, 0, 0], [0, 0, 0], [0, 0, 0]]))).toEqual([]);
   });
 
@@ -146,6 +153,8 @@ describe('the summary of a run with the archive (4.3, 4.14)', () => {
     expect(s.heads.length).toBe(computeMetrics(state, real).heads.count);
     expect(s.years).toBe(120);
     expect(s.heads[0]?.from).toBe(0);
+    expect(s.generations).toBeGreaterThan(0);
+    expect(s.generations).toBeLessThanOrEqual(s.heads.length);
     expect(s.heads.filter((h) => h.to === null).length).toBeLessThanOrEqual(1);
     for (const h of s.heads.filter((x) => x.to !== null)) {
       expect(h.ageAtDeath).toBeGreaterThan(0);

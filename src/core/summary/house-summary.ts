@@ -50,6 +50,8 @@ export interface HouseSummary {
   ended: boolean;
   /** Full years from the start of the game. */
   years: number;
+  /** Generations: the longest line of heads, each descending from the one before (a brother after a brother is the same generation). */
+  generations: number;
   heads: SummaryHead[];
   /** Renown and status of the house at the start and at the end. */
   start: { renown: number; status: string | null };
@@ -86,6 +88,30 @@ function extremes(readings: readonly Snapshot[], at: 2 | 4): { peak: Extreme; lo
   }
   if (!peak || !low) return null;
   return { peak: { day: peak[0], head: peak[1], value: peak[at] as number }, low: { day: low[0], head: low[1], value: low[at] as number } };
+}
+
+function generationsOf(state: GameState, heads: readonly SummaryHead[]): number {
+  const ids = new Set(heads.map((h) => h.id));
+  const depth = new Map<string, number>();
+  let best = 0;
+  for (const h of heads) {
+    let up = 0;
+    const seen = new Set<string>();
+    const walk = (id: string): void => {
+      const c = anyCharacter(state, id);
+      if (!c || seen.has(id)) return;
+      seen.add(id);
+      for (const p of [c.father, c.mother]) {
+        if (!p) continue;
+        if (ids.has(p) && depth.has(p)) up = Math.max(up, depth.get(p) as number);
+        else walk(p);
+      }
+    };
+    walk(h.id);
+    depth.set(h.id, up + 1);
+    best = Math.max(best, up + 1);
+  }
+  return best;
 }
 
 /**
@@ -129,8 +155,8 @@ export function houseSummary(state: GameState, content: Content): HouseSummary {
     else if (e.kind === 'house_end') milestones.push({ day: e.day, kind: 'end', text: plain(e.parts) });
   }
   for (const h of state.heirlooms) {
-    milestones.push({ day: h.made, kind: 'heirloom_gained', text: `The ${h.name} came to the house.` });
-    if (h.ended !== null) milestones.push({ day: h.ended, kind: 'heirloom_lost', text: `The ${h.name} was ${h.status}.` });
+    milestones.push({ day: h.made, kind: 'heirloom_gained', text: h.origin });
+    if (h.ended !== null) milestones.push({ day: h.ended, kind: 'heirloom_lost', text: `${h.name} was ${h.status}.` });
   }
   milestones.sort((a, b) => a.day - b.day);
 
@@ -141,6 +167,7 @@ export function houseSummary(state: GameState, content: Content): HouseSummary {
     ended: state.status === 'ended',
     years: Math.floor(state.day / 365),
     heads,
+    generations: generationsOf(state, heads),
     start: { renown: first?.[4] ?? 0, status: first?.[5] ?? null },
     end: { renown: final?.[4] ?? 0, status: final?.[5] ?? null },
     money: extremes(readings, 2),
@@ -183,7 +210,7 @@ export function summaryMarkdown(state: GameState, content: Content): string {
   const lines: string[] = [
     `# Summary of the House of ${s.house}`,
     '',
-    `Seed ${state.seed} · ${formatDate(s.startDay)} – ${formatDate(s.endDay)} · ${s.years} years, ${s.heads.length} heads${s.ended ? ' · the house has ended' : ''}`,
+    `Seed ${state.seed} · ${formatDate(s.startDay)} – ${formatDate(s.endDay)} · ${s.years} years, ${s.generations} generations, ${s.heads.length} heads${s.ended ? ' · the house has ended' : ''}`,
     '',
     `Renown: ${s.start.renown} → ${s.end.renown}. Status: ${statusName(content, s.start.status)} → ${statusName(content, s.end.status)}.`,
     '',

@@ -59,6 +59,9 @@ export function findTurns(state: GameState, readings: readonly Snapshot[] = stat
   const chronicle = allChronicle(state);
   const relations = allRelations(state);
   const numbered = new Set<number>();
+  // A trait, a tie or a status belongs to the nearest ▸ choice before it, not to every choice of the year before.
+  const marks = chronicle.filter((m) => m.mark);
+  const ownerOf = (subject: string, day: number): ChronicleEntry | undefined => marks.filter((m) => m.subject === subject && m.day <= day).at(-1);
   const turns: Turn[] = [];
   for (const e of chronicle) {
     if (!e.mark) continue;
@@ -92,6 +95,7 @@ export function findTurns(state: GameState, readings: readonly Snapshot[] = stat
       if (x.day < e.day) continue;
       if (x.day > end) break;
       if (x.subject !== e.subject || x === e) continue;
+      if ((x.kind === 'trait_change' || x.kind === 'house_status') && ownerOf(e.subject, x.day) !== e) continue;
       if (x.kind === 'trait_change') {
         causes.push({ kind: 'trait', text: x.parts.map((p) => (typeof p === 'string' ? p : p.name)).join('') });
         score += WEIGHT.trait;
@@ -105,6 +109,7 @@ export function findTurns(state: GameState, readings: readonly Snapshot[] = stat
     }
     for (const r of relations) {
       if (r.a !== e.subject && r.b !== e.subject) continue;
+      if (ownerOf(e.subject, r.start) !== e && (r.end === null || ownerOf(e.subject, r.end) !== e)) continue;
       if (r.start >= e.day && r.start <= end) {
         causes.push({ kind: 'relation', relation: r.kind, other: r.a === e.subject ? r.b : r.a, started: true });
         score += WEIGHT.relation;
