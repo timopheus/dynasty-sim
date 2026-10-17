@@ -15,6 +15,7 @@ import { compare, computeMetrics, summarize, type RunMetrics, type Summary } fro
 import { isValidSeed, MAX_SEED } from '../src/core/rng';
 import { BOT_CHARACTERS, isBotCharacter } from '../src/core/bots/characters';
 import { runSim } from '../src/core/sim';
+import { summaryMarkdown } from '../src/core/summary/house-summary';
 import { getPlayer } from '../src/core/helpers';
 import { ageYears, formatDate } from '../src/core/time/calendar';
 import { readContentFiles } from './content-files';
@@ -107,6 +108,13 @@ function journalPath(chroniclePath: string): string {
   return join(dir, name);
 }
 
+/** The summary of the house too: chronicle-seed1-300y.md → summary-seed1-300y.md (D-317). */
+function summaryPath(chroniclePath: string): string {
+  const file = basename(chroniclePath);
+  const name = file.startsWith('chronicle') ? `summary${file.slice('chronicle'.length)}` : file.replace(/\.md$/, '') + '-summary.md';
+  return join(dirname(chroniclePath), name);
+}
+
 const loaded = loadContent(readContentFiles());
 if (!loaded.ok) {
   for (const e of loaded.errors) console.error(`  ${e.file}: ${e.path}: ${e.message}`);
@@ -139,6 +147,8 @@ for (let i = 0; i < runs; i++) {
   writeFileSync(out, chronicleMarkdown(state));
   const journalOut = journalPath(out);
   writeFileSync(journalOut, journalMarkdown(state));
+  const summaryOut = summaryPath(out);
+  writeFileSync(summaryOut, summaryMarkdown(state, content));
 
   const head = getPlayer(state);
   say(`Simulated ${years} years, seed ${runSeed}: ${formatDate(0)} → ${formatDate(state.day)} in ${elapsedMs} ms`);
@@ -149,7 +159,7 @@ for (let i = 0; i < runs; i++) {
     `Current head: ${fullName(head)}, age ${ageYears(head.birthDay, state.day)}, ` +
       `health: ${conditionsText(content, head) || 'healthy'}, money ${head.money}`,
   );
-  say(`Chronicle: ${out}, journal: ${journalOut}`);
+  say(`Chronicle: ${out}, journal: ${journalOut}, summary: ${summaryOut}`);
   if (violations.length > 0) {
     violationCount += violations.length;
     console.error(`\nInvariant violations (seed ${runSeed}): ${violations.length}`);
