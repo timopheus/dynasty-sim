@@ -165,7 +165,7 @@ describe('quality checklist (docs/portrait-checklist.md)', () => {
       const mouth = Math.min(...rowsOf(g, 'mouth'));
       const chin = Math.max(...rowsOf(g, 'head'));
       const t = (mouth - nose) / (chin - nose);
-      expect(t, `${spec.sex} ${spec.age}`).toBeGreaterThan(0.1);
+      expect(t, `${spec.sex} ${spec.age}`).toBeGreaterThan(0.2);
       expect(t, `${spec.sex} ${spec.age}`).toBeLessThan(0.45);
     }
   });
