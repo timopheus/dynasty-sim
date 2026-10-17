@@ -15,7 +15,34 @@ import { storyResolved, type Followup, type OpenStory } from './stories';
  * 4.8: open stories and follow-ups of the dead head pass to the heir when their roles can be filled (the main
  * participant becomes the new hero); until then they close with the death (storiesOnDeath). Never imports lifecycle.ts.
  */
-export const storiesOnSuccession: SuccessionHook = () => {};
+export const storiesOnSuccession: SuccessionHook = (ctx, deceased, heir) => {
+  const { state } = ctx;
+  // The heir's own open stories stay; the dead head's of the same id close quietly.
+  const heirHas = new Set(state.openStories.filter((s) => s.owner === heir.id).map((s) => s.id));
+  state.followups = state.followups.flatMap((f) => {
+    if (f.protagonist !== deceased.id) return [f];
+    // Already carried out (the narrator started it, `handOverFollowups` has not cut it yet): it must not run again for the heir.
+    if (f.offered !== null && (state.lastFired[f.eventId] ?? -1) >= f.offered) return [];
+    const event = findEvent(ctx, f.eventId);
+    if (!event || !handsOver(ctx, f.given, deceased, heir) || !canFillRoles(ctx, event.roles, startScope(ctx, heir, f.given))) return [];
+    return [{ ...f, protagonist: heir.id, offered: null }];
+  });
+  state.openStories = state.openStories.flatMap((s) => {
+    if (s.owner !== deceased.id) return [s];
+    if (heirHas.has(s.id) || !handsOver(ctx, s.given, deceased, heir)) return [];
+    const ending = [...s.fallback, ...ctx.content.events.filter((e) => e.story === s.id).map((e) => e.id)];
+    const fits = ending.some((id) => {
+      const event = findEvent(ctx, id);
+      return event !== null && canFillRoles(ctx, event.roles, startScope(ctx, heir, s.given));
+    });
+    return fits ? [{ ...s, owner: heir.id }] : [];
+  });
+};
+
+/** The people handed over still take part with the heir as the main participant: alive, and neither the dead head nor the heir. */
+function handsOver(ctx: Ctx, given: Scope, deceased: Character, heir: Character): boolean {
+  return Object.values(given).every((id) => id !== deceased.id && id !== heir.id && findCharacter(ctx.state, id)?.deathDay === null);
+}
 
 /** Journal lines of a cancelled follow-up (D-242). Kept in code: stories have no content key of their own. */
 export const CANCELLED_WITH = "{name}'s business with {other} came to nothing.";

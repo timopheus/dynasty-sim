@@ -80,11 +80,16 @@ describe('follow-ups', () => {
     expect(checkInvariants(ctx.state, ctx.content)).toEqual([]);
   });
 
-  it('death of the main participant cancels the follow-up', () => {
+  it('death of the hero hands the follow-up to the heir (4.8); of another main participant, it cancels it', () => {
     const { ctx, hero } = game();
     answer(ctx, 'challenge');
     kill(ctx, hero, 'fever');
-    expect(ctx.state.followups).toEqual([]);
+    expect(ctx.state.followups).toMatchObject([{ eventId: 'duel', protagonist: getPlayer(ctx.state).id }]);
+    expect(getPlayer(ctx.state).id).not.toBe(hero.id);
+    const { ctx: c2, people } = game();
+    c2.state.followups.push({ eventId: 'duel', protagonist: people[0]!.id, given: { rival: people[1]!.id }, dueDay: 9, offered: null });
+    kill(c2, people[0]!, 'fever');
+    expect(c2.state.followups).toEqual([]);
   });
 
   it('goes to the role named protagonist', () => {
@@ -213,11 +218,16 @@ describe('stories', () => {
     expect(ctx.state.lastFired).not.toHaveProperty('feud_forgotten');
   });
 
-  it('the hero dies: the hero’s stories close', () => {
+  it('the hero dies: the hero’s stories go to the heir (4.8); the person of the story dead, they close', () => {
     const { ctx, hero } = game();
     answer(ctx, 'accusation');
     kill(ctx, hero, 'fever');
-    expect(ctx.state.openStories).toEqual([]);
+    expect(ctx.state.openStories).toMatchObject([{ id: 'feud', owner: getPlayer(ctx.state).id }]);
+    const dead = game(1);
+    answer(dead.ctx, 'accusation');
+    kill(dead.ctx, dead.people[0]!, 'fever');
+    kill(dead.ctx, dead.hero, 'fever');
+    expect(dead.ctx.state.openStories).toEqual([]);
   });
 });
 
