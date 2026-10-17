@@ -20,7 +20,7 @@ function heldEducation(content: Content, c: Character): TraitDef | null {
 }
 
 /**
- * Gives a trait and removes the opposite one (D-032). A trait already held is
+ * Gives a trait and removes the opposite one (D-032), the other levels of its line and the lines against it (D-329). A trait already held is
  * ignored, and so is a second education: there is one for life.
  * Returns the trait if the character changed, else null.
  */
@@ -30,6 +30,14 @@ export function grantTrait(content: Content, c: Character, id: string): TraitDef
   if (hasTrait(c, id)) return null;
   if (def.category === 'education' && heldEducation(content, c)) return null;
   if (def.opposite) c.traits = c.traits.filter((t) => t !== def.opposite);
+  // A line holds one level, and a line `against` another drops it (4.20, D-329).
+  const line = def.line;
+  if (line) {
+    c.traits = c.traits.filter((t) => {
+      const other = findTrait(content, t)?.line;
+      return !other || (other.id !== line.id && other.id !== line.against && other.against !== line.id);
+    });
+  }
   c.traits.push(id);
   return def;
 }

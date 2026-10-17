@@ -1,6 +1,6 @@
 # A physician reads the blood of someone near the hero (D-329, 4.20): a latent health trait (secret to everyone else)
-# is named in a line of the chronicle, so the player knows it when choosing whom to wed or raise. The hero's own
-# secret traits are on the hero's own page already. Events of the hero; the choice only costs the fee.
+# is named in a line of the chronicle by the paid option, so the player knows it when choosing whom to wed or raise.
+# The hero's own secret traits are on the hero's own page already. The text only hints; naming costs the fee.
 events:
   - id: physician_finds_frailty_in_child
     weight: 3
@@ -12,12 +12,13 @@ events:
         where: { occupation: [physician] }
       child:
         { pick: kin, kind: child, where: { traits_any: [sickly] } }
-    text: "{physician} examines {child} and frowns. \"A weak chest, like others of your line. {child.He} will need care.\""
+    text: "{physician} looks {child} over for a long while. \"I could tell you more about {child.his} blood, if you wish.\""
     options:
-      - text: "Pay for the physician's advice"
+      - text: "Pay for the physician's word"
         effects: { money: -5 }
         on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
-        result: "{physician} told {name} that {child} had inherited a sickly frame."
+        chronicle: true
+        result: "{name} paid {physician}, who said that {child} had inherited a sickly frame."
       - text: Let it lie
         result: "{name} let {physician}'s remark about {child} pass."
 
@@ -31,12 +32,13 @@ events:
         where: { occupation: [physician] }
       child:
         { pick: kin, kind: child, where: { traits_any: [long_lived] } }
-    text: "{physician} looks over {child} and nods. \"Strong blood. {child.He} will outlive many.\""
+    text: "{physician} looks {child} over and nods. \"I could tell you more about {child.his} blood, if you wish.\""
     options:
-      - text: "Pay the physician"
+      - text: "Pay for the physician's word"
         effects: { money: -5 }
         on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
-        result: "{physician} told {name} that {child} had a long life in the blood."
+        chronicle: true
+        result: "{name} paid {physician}, who said that {child} had a long life in the blood."
       - text: Let it lie
         result: "{name} let {physician}'s remark about {child} pass."
 
@@ -50,12 +52,13 @@ events:
         where: { occupation: [physician] }
       match:
         { pick: circle, where: { traits_any: [sickly], can_marry: hero } }
-    text: "{physician} speaks quietly of {match}, whom you have been considering. \"A sickly frame, I fear. Such things pass to children.\""
+    text: "{physician} speaks of {match}, should you ever think of marriage. \"I know something of {match.his} blood.\""
     options:
       - text: "Pay for the physician's word"
         effects: { money: -5 }
         on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
-        result: "{physician} warned {name} that {match} had a sickly frame that could pass to children."
+        chronicle: true
+        result: "{name} paid {physician}, who warned that {match} had a sickly frame that could pass to children."
       - text: Let it lie
         result: "{name} let {physician}'s remark about {match} pass."
 
@@ -69,12 +72,13 @@ events:
         where: { occupation: [physician] }
       match:
         { pick: circle, where: { traits_any: [long_lived], can_marry: hero } }
-    text: "{physician} speaks of {match}, whom you have been considering. \"Strong blood. {match.He} will live long, and so may {match.his} children.\""
+    text: "{physician} speaks of {match}, should you ever think of marriage. \"I know something of {match.his} blood.\""
     options:
       - text: "Pay for the physician's word"
         effects: { money: -5 }
         on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
-        result: "{physician} told {name} that {match} had a long life in the blood."
+        chronicle: true
+        result: "{name} paid {physician}, who said that {match} had a long life in the blood."
       - text: Let it lie
         result: "{name} let {physician}'s remark about {match} pass."
 

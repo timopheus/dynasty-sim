@@ -10,7 +10,7 @@ import { placeholderValues } from '../src/core/character/text';
 import { renderText } from '../src/core/text/text';
 import { entryText } from '../src/core/chronicle/log';
 import { inheritBodyTraits } from '../src/core/character/generate';
-import { checkTraitHolding, scaleByTraits } from '../src/core/character/holding';
+import { checkTraitHolding, grantTrait, scaleByTraits } from '../src/core/character/holding';
 import { dailyDeathChance } from '../src/core/health/mortality';
 import { seedRng } from '../src/core/rng';
 import { fixtureContent } from './fixtures/content';
@@ -306,6 +306,15 @@ describe('inherited traits (D-329)', () => {
     expect(count(kids, 'quick')).toBe(0);
     expect(checkTraitHolding(content, { ...hero, traits: ['quick', 'clever'] })).toEqual([`${hero.id} holds two levels of line wit`, `${hero.id} holds two levels of line wit`]);
     expect(checkTraitHolding(content, { ...hero, traits: ['hardy', 'ailing'] }).length).toBe(2);
+  });
+
+  it('granting a trait drops the other levels of its line and the lines against it', () => {
+    const { content, hero } = setup();
+    hero.traits = ['quick', 'hardy'];
+    grantTrait(content, hero, 'clever');
+    grantTrait(content, hero, 'ailing');
+    expect(hero.traits.sort()).toEqual(['ailing', 'clever']);
+    expect(checkTraitHolding(content, hero)).toEqual([]);
   });
 
   it('health traits scale the death chance and the conception chance with whole numbers', () => {

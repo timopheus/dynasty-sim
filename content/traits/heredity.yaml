@@ -49,7 +49,7 @@ traits:
     heritage: { one: 2000, both: 5000 }
 
   - id: frail
-    name: Frail
+    name: Delicate
     category: body
     opposite: robust
     stats: { prowess: -1 }

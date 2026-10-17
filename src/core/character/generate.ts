@@ -91,7 +91,7 @@ export function inheritBodyTraits(ctx: Ctx, child: Character, father: Character,
     const up = both && levelOf(a) === levelOf(b) ? at(levelOf(hi) + 1) : null;
     if (up && hi.heritage.up > 0 && chancePer(r, hi.heritage.up, OUT_OF)) {
       roll(up, OUT_OF);
-      continue;
+      if (child.traits.includes(up.id)) continue;
     }
     const before = child.traits.length;
     roll(hi, both ? hi.heritage.both : hi.heritage.one);
