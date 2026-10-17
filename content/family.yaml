@@ -7,12 +7,12 @@ family:
 
   # Yearly chance of a married woman near the hero to conceive, by her new age; rolled on her birthday.
   conception:
-    - { below: 20, per10k: 3600 }
-    - { below: 25, per10k: 4800 }
-    - { below: 30, per10k: 4500 }
-    - { below: 35, per10k: 3800 }
-    - { below: 40, per10k: 2600 }
-    - { below: 46, per10k: 1200 }
+    - { below: 20, per10k: 4600 }
+    - { below: 25, per10k: 6000 }
+    - { below: 30, per10k: 5600 }
+    - { below: 35, per10k: 4800 }
+    - { below: 40, per10k: 3400 }
+    - { below: 46, per10k: 1600 }
     - { per10k: 0 }
   pregnancyDays: { min: 260, max: 285 }
   childbirthDeathPer10k: 120

@@ -4,8 +4,8 @@
 events:
   # Courtship story: the hero begins to court someone of the circle; the proposal comes in a season or the courtship lapses.
   - id: courtship_begins
-    weight: 40
-    cooldown_days: 300
+    weight: 24
+    cooldown_days: 400
     when: { age_min: 16, married: false }
     roles:
       match:
@@ -210,7 +210,6 @@ events:
         effects: { money: -60, fame: 1 }
         on: { spouse: { opinion: [{ toward: hero, reason: gift }] } }
         result: "{name} gave a grand wedding feast for {spouse}, and the whole county talked of it."
-        chronicle: true
         mood: triumph
       - text: A modest supper with friends, 15 crowns
         when: { money_min: 15 }

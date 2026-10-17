@@ -43,7 +43,6 @@ events:
           effects: { money: -15 }
           on: { mother: { opinion: [{ toward: hero, reason: nursed_me }] } }
           result: "{name} paid for a physician{physician?, {physician},} who brought {mother} through the childbed fever."
-          chronicle: true
           mood: joy
         failure:
           effects: { money: -15 }
@@ -56,7 +55,6 @@ events:
         success:
           on: { mother: { opinion: [{ toward: hero, reason: nursed_me }] } }
           result: "{name} sat up nights with {mother} until the fever broke."
-          chronicle: true
           mood: joy
         failure:
           on: { mother: { disease: fever } }
@@ -104,7 +102,6 @@ events:
         success:
           on: { child: { opinion: [{ toward: hero, reason: nursed_me }] } }
           result: "{name} tended {child} through a fever until it broke."
-          chronicle: true
           mood: joy
         failure:
           on: { child: { disease: fever } }
@@ -324,9 +321,8 @@ events:
   # Notice (D-363): the will no longer says all it should. The narrator brings it under `will_stale`.
   - id: will_out_of_date
     weight: 8
-    cooldown_days: 365
+    cooldown_days: 1000
     when: { will_stale: true }
     text: "Your notary writes: since the will was drawn, a child has been born or a named heir has died, and the paper no longer says what you meant it to."
     mood: neutral
-    chronicle: true
     result: "{name} was reminded that the will no longer said all it should."
