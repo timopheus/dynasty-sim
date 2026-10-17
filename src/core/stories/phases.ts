@@ -21,6 +21,8 @@ export const storiesOnSuccession: SuccessionHook = (ctx, deceased, heir) => {
   const heirHas = new Set(state.openStories.filter((s) => s.owner === heir.id).map((s) => s.id));
   state.followups = state.followups.flatMap((f) => {
     if (f.protagonist !== deceased.id) return [f];
+    // Already carried out (the narrator started it, `handOverFollowups` has not cut it yet): it must not run again for the heir.
+    if (f.offered !== null && (state.lastFired[f.eventId] ?? -1) >= f.offered) return [];
     const event = findEvent(ctx, f.eventId);
     if (!event || !handsOver(ctx, f.given, deceased, heir) || !canFillRoles(ctx, event.roles, startScope(ctx, heir, f.given))) return [];
     return [{ ...f, protagonist: heir.id, offered: null }];

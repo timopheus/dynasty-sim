@@ -6,8 +6,8 @@ opinions:
     - { id: gift, name: Gift, value: 20, kind: benefit, decay: { kind: fade, days: 100 } }
     - { id: debt, name: Debt, value: 30, kind: benefit, decay: { kind: held, until: repaid }, inherits_as: father_debt }
     - { id: rescue, name: Rescue, value: 90, kind: benefit, decay: { kind: never } }
-    - { id: father_enemy, name: Enemy of my father, value: -25, kind: harm, decay: { kind: never } }
-    - { id: father_debt, name: Owed my father, value: 10, kind: benefit, decay: { kind: held, until: repaid } }
+    - { id: father_enemy, name: Son of my enemy, value: -25, kind: harm, decay: { kind: never } }
+    - { id: father_debt, name: His father owed me, value: 10, kind: benefit, decay: { kind: held, until: repaid } }
     - { id: passed_over, name: Passed over, value: -40, kind: harm, decay: { kind: never } }
   traitEffects:
     - { trait: vengeful, kind: harm, fade: 0 }

@@ -1,0 +1,15 @@
+# expect-error: opinions.inheritance.feudRelation /unknown relation kind "nope"/
+opinions:
+  reasons:
+    - { id: slight, name: Slight, value: -10, kind: harm, decay: { kind: never } }
+    - { id: grudge, name: Grudge, value: -5, kind: harm, decay: { kind: never } }
+    - { id: thanks, name: Thanks, value: 5, kind: benefit, decay: { kind: never } }
+  traitEffects: []
+  background: { max: 10, rules: [] }
+  words: [{ from: -100, text: low }]
+  relations:
+    - { id: friend, name: Friend, symmetric: true, opinion: { a: 10, b: 10 }, acquaintance: close, starts: "{name} {other}", ends: "{name} {other}" }
+    - { id: patron, name: Patron, symmetric: false, opinion: { a: 10, b: 20 }, acquaintance: close, starts: "{name} {other}", ends: "{name} {other}", startsAsProtege: "{name} {other}", endsAsProtege: "{name} {other}" }
+  inheritance: { feudRelation: nope, feudText: "{name}" }
+  acquaintance: { meetPer100: 10, closeAfterDays: 10, closePer100: 10 }
+  texts: { opinionMin: "a {word} {name}", opinionMax: "a {word} {name}", relation: "a {kind} {name}", relationNone: "a {kind} {name}", acquaintedKnown: "a {name}", acquaintedClose: "a {name}" }

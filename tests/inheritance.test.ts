@@ -12,6 +12,7 @@ import { addOpinionReason, opinionCauses, opinionValue } from '../src/core/relat
 import { startRelation } from '../src/core/relations/links';
 import { introduce } from '../src/core/relations/acquaintance';
 import { deserialize, serialize } from '../src/core/save/save';
+import { heirOf } from '../src/core/succession/law';
 import { runSim } from '../src/core/sim';
 import type { Character, Ctx, GameState } from '../src/core/state';
 import { storiesPhase } from '../src/core/stories/phases';
@@ -164,6 +165,16 @@ describe('knowledge of people (GDD §8.6)', () => {
     }
   });
 
+  it('guard: the heir the knowledge is copied for is the heir who takes over', () => {
+    const { ctx, hero, son } = withSon();
+    const close = circleMember(ctx);
+    introduce(ctx, close.id, 'close');
+    const expected = heirOf(ctx.state, hero.id)!.heir;
+    kill(ctx, hero, 'fever');
+    expect(getPlayer(ctx.state).id).toBe(expected.id);
+    expect(ctx.state.acquaintances.some((a) => a.holder === son.id && a.other === close.id)).toBe(true);
+  });
+
   it('a placeholder heir who is kin to no one knows nobody', () => {
     const { ctx, hero } = setup();
     const t = { ...content, succession: { ...content.succession!, temporaryHeir: true } };
@@ -239,6 +250,17 @@ describe('stories and follow-ups pass to the heir', () => {
     kill(ctx, hero, 'fever');
     expect(state.followups).toMatchObject([{ eventId: 'duel', protagonist: son.id, given: { rival }, offered: null }]);
     expect(checkInvariants(state, content)).toEqual([]);
+  });
+
+  it('a follow-up already carried out is not run again for the heir', () => {
+    const { ctx, state, hero } = withSon();
+    circleMember(ctx);
+    expect(fireEvent(ctx, findEvent(content, 'challenge'), hero, {})).toBe('waiting');
+    apply(state, content, { type: 'choose', option: 0 });
+    state.followups[0]!.offered = state.day;
+    state.lastFired.duel = state.day;
+    kill(ctx, hero, 'fever');
+    expect(state.followups).toEqual([]);
   });
 
   it('closes quietly when the person of the story is gone', () => {

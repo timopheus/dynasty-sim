@@ -6,9 +6,9 @@ opinions:
   reasons:
     - { id: insulted_in_public, name: Insulted in public, value: -60, kind: harm, decay: { kind: never }, inherits_as: father_enemy }
     - { id: killed_kin, name: Killed kin, value: -90, kind: harm, decay: { kind: never }, inherits_as: father_killer }
-    - { id: father_enemy, name: Enemy of my father, value: -30, kind: harm, decay: { kind: never } }
-    - { id: father_killer, name: Killed my father, value: -55, kind: harm, decay: { kind: never } }
-    - { id: owed_my_father, name: Owed my father, value: 10, kind: benefit, decay: { kind: held, until: debt_repaid } }
+    - { id: father_enemy, name: Son of my enemy, value: -30, kind: harm, decay: { kind: never } }
+    - { id: father_killer, name: His father killed my kin, value: -55, kind: harm, decay: { kind: never } }
+    - { id: owed_my_father, name: His father owed me, value: 10, kind: benefit, decay: { kind: held, until: debt_repaid } }
     - { id: wronged, name: Did me wrong, value: -35, kind: harm, decay: { kind: fade, days: 1460 }, inherits_as: father_enemy }
     - { id: slighted, name: Slighted me, value: -15, kind: harm, decay: { kind: fade, days: 365 } }
     - { id: gift, name: Gave a gift, value: 20, kind: benefit, decay: { kind: fade, days: 365 } }
