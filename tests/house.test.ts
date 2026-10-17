@@ -15,7 +15,7 @@ import { deserialize, serialize } from '../src/core/save/save';
 import type { Character, Ctx, GameState } from '../src/core/state';
 import { toYmd } from '../src/core/time/calendar';
 import { readContentFiles } from '../tools/content-files';
-import { BASE_FILES, loadOrThrow, realContent } from './fixtures/content';
+import { BASE_FILES, loadOrThrow, realContent, realContentWithHeirs } from './fixtures/content';
 
 const content = loadOrThrow([...BASE_FILES, ...readContentFiles('tests/fixtures/population'), ...readContentFiles('tests/fixtures/house')]);
 
@@ -324,7 +324,7 @@ describe('the real game', () => {
   });
 
   it('forty heads in a row keep the house consistent', () => {
-    const real = realContent();
+    const real = realContentWithHeirs();
     const state = newGame(1, real);
     for (let i = 0; i < 40 && state.status !== 'ended'; i++) {
       state.day += 365;
