@@ -82,5 +82,5 @@ console.log(`Replayed ${journal.commands.length} commands, seed ${journal.seed}:
 console.log(`Chronicle: ${out}, journal: ${journalOut}`);
 const violations = checkInvariants(state, content);
 console.log(violations.length === 0 ? 'Invariant violations: none' : `Invariant violations: ${violations.join('; ')}`);
-for (const [name, n] of Object.entries(flatten(computeMetrics(state)))) console.log(`${name.padEnd(38)}${String(n).padStart(12)}`);
+for (const [name, n] of Object.entries(flatten(computeMetrics(state, content)))) console.log(`${name.padEnd(38)}${String(n).padStart(12)}`);
 if (violations.length > 0) process.exit(1);

@@ -1,0 +1,6 @@
+# expect-error: eras.list[0].to /only the last era/
+eras:
+  list:
+    - { id: one, name: One, from: 1700 }
+    - { id: two, name: Two, from: 1710 }
+  reasons: { years_min: "From {year}", years_max: "Until {year}", era: "Only in {eras}" }

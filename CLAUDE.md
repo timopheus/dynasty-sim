@@ -46,7 +46,7 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   succession/      смена главы (4.6): закон и выбор в завещании — lawOrder, heirOf, willHeirs, willGuardians, willItems, willReceivers (law.ts); chooseHeir, succeed, endHouse, команда will, фаза succession, хук смерти (phases.ts)
   house/           род (4.7): роды, поле house, хук брака (house.ts), раздел и страница рода (page.ts)
   heirloom/        родовая вещь (4.9): вещи, владельцы (heirloom.ts), имя вещи своим потоком (name.ts), хуки смерти и смены главы (phases.ts), страница вещи (page.ts)
-  era/             эпоха (4.11): eraOf(ctx, day)
+  era/             эпоха (4.11): eraOf(ctx, day), eraAt(content, day) для метрик (era.ts), условия years и era (conditions.ts)
   looks/           портрет (4.10, D-302): гены лица (genes.ts) и faceSpec (face.ts) — данные без картинки; читают страницы и интерфейс, правила симуляции не импортируют
   summary/         итог рода (4.14): годовая фаза (phases.ts), пока — живых людей max
   save/            горячая часть и куски (hotSave, chunkSave, readSaveParts), serialize/readSave, версия формата (2.8, D-336); версия контента (content-version.ts), журнал команд и replay (journal.ts, D-338)
@@ -116,7 +116,7 @@ CI (`.github/workflows/ci.yml`) на каждый PR и push в main: работ
 - Код, который запускает событие (`startEvent`) из другого модуля, — тоже в `<модуль>/phases.ts` (рассказчик, истории, предыстория): `<модуль>/effects.ts` не импортирует `events/`.
 
 ## Контент (content/)
-- Любой `*.yaml` в `content/` — объект с верхними ключами модулей (`SINGLE_KEYS`, `OPTIONAL_KEYS`, `LIST_KEYS` в `content/schema.ts`): одиночные `settings`, `names`, `health` — ровно по одному разу; `time` и `narrator` (темп событий, D-170) — тоже обязательны (формально в `OPTIONAL_KEYS`, но их требуют перекрёстные проверки `checkTime`, `checkNarrator`); необязательные `population`, `opinions`, `chronicle`, `grammar`, `backstory` и ключи этапа 4 `family`, `succession`, `house`, `heirlooms`, `eras` (у `eras` пока пустая схема — 4.11, D-310) — не больше одного раза; списки `actions`, `events`, `traits` складываются. Файлы сливаются в алфавитном порядке пути.
+- Любой `*.yaml` в `content/` — объект с верхними ключами модулей (`SINGLE_KEYS`, `OPTIONAL_KEYS`, `LIST_KEYS` в `content/schema.ts`): одиночные `settings`, `names`, `health` — ровно по одному разу; `time` и `narrator` (темп событий, D-170) — тоже обязательны (формально в `OPTIONAL_KEYS`, но их требуют перекрёстные проверки `checkTime`, `checkNarrator`); необязательные `population`, `opinions`, `chronicle`, `grammar`, `backstory` и ключи этапа 4 `family`, `succession`, `house`, `heirlooms`, `eras` (D-310) — не больше одного раза; списки `actions`, `events`, `traits` складываются. Файлы сливаются в алфавитном порядке пути.
 - Схема ключа лежит в модуле (`actions/content.ts` и т. п.). Новое поле: схема модуля → перекрёстная проверка модуля → плохой пример в `tests/fixtures/bad/`. Первая строка плохого примера — ожидаемая ошибка: `# expect-error: <путь> /<регулярка>/`; тест находит файлы сам.
 - id в `lower_snake_case`. Тексты на английском, плейсхолдеры `{name}`, `{age}` и местоимения того же персонажа `{he} {him} {his} {He} {His}` (список — `character/text.ts`, D-055). Пол задан у каждого персонажа: тексты читаются для обоих полов.
 - После правки контента: `npm run validate` и прогон.
