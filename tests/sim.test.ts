@@ -24,5 +24,5 @@ describe('headless simulation', () => {
       expect(violations, `seed ${seed}`).toEqual([]);
       expect(state.day).toBeGreaterThanOrEqual(18262); // 1 January 1750
     }
-  }, 60_000); // with the hero's circle (2.5) and invariants after every command this takes ~15 s
+  }, 120_000); // ~15 s before families (2.5), ~55 s with living families (4.5) under parallel workers
 });

@@ -2,7 +2,7 @@ import type { Effects } from '../effects';
 
 /**
  * Effects that change the hero (D-174): the block `on.hero`, `relation … with: hero`, `hero` in `secret.known_by`,
- * `reveal.to` and the roles of `schedule` and `story`, and `introduce` — nested `later` included. The hero's feelings
+ * `reveal.to` and the roles of `schedule` and `story`, `introduce` and `marry: hero` (4.5) — nested `later` included. The hero's feelings
  * (`opinion`, `opinion_end` toward the hero) are not among them: they change the person of the world, not the hero.
  * A pure walk over the keys; it must not import effects.ts values (import cycle with the schema).
  */
@@ -28,6 +28,7 @@ export function heroEffectProblems(effects: Effects): string[] {
   const reveal = e.reveal as Loose | undefined;
   if (reveal && Array.isArray(reveal.to) && reveal.to.some(isHero)) out.push('the hero in reveal.to');
   if (e.introduce !== undefined) out.push('introduce');
+  if (isHero(e.marry)) out.push('marry: hero');
   if (asList(e.schedule).some((s) => storyRoles(s).some(isHero))) out.push('the hero in schedule.roles');
   const story = e.story as Loose | undefined;
   if (story && storyRoles(story).some(isHero)) out.push('the hero in story.roles');
@@ -55,6 +56,7 @@ export function withoutHeroEffects(effects: Effects): Effects {
     else delete e.reveal;
   }
   delete e.introduce;
+  if (isHero(e.marry)) delete e.marry;
   if (Array.isArray(e.schedule)) {
     const kept = asList(e.schedule).filter((s) => !storyRoles(s).some(isHero));
     if (kept.length > 0) e.schedule = kept;
