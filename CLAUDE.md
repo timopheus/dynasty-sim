@@ -53,12 +53,12 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   metrics/         computeMetrics(state) — метрики прогона (2.7), сводка и сравнение
   pages/           personPage — страница человека с учётом видимости, разделы модулей PERSON_SECTIONS (2.10); entityPage — страница сущности по id (entity.ts, D-311)
   text/            шаблоны: части текста и ссылки (text.ts), тексты событий с ролями (render.ts), их проверка (check.ts), грамматика (grammar.ts, 3.4)
-src/ui/            браузерный интерфейс: main.ts, hero.ts (экран героя), page.ts (страницы людей), will.ts (экран завещания), address.ts (адреса #/<вид>/<id>, старый #/person/<id> работает), storage.ts (автосохранение в IndexedDB: горячая часть, куски, журнал, D-339), style.css
+src/ui/            браузерный интерфейс: main.ts, hero.ts (экран героя), page.ts (страницы людей), will.ts (экран завещания), portrait/ (портрет героя из FaceSpec: draw.ts, временный, D-304; пробный силуэт silhouette.ts), address.ts (адреса #/<вид>/<id>, старый #/person/<id> работает), storage.ts (автосохранение в IndexedDB: горячая часть, куски, журнал, D-339), style.css
 content/           игровой контент в YAML, тексты на английском
 map/               исходники карты из Azgaar (region.map/json/svg, D-025); как править — docs/map-guide.md
 tools/             validate.ts, sim.ts, content-files.ts (чтение content/ с диска)
 tests/             vitest; fixtures/ — тестовый контент и плохие примеры
-docs/              GDD, ROADMAP, DECISIONS, STATUS, CHANGELOG (по-русски)
+docs/              GDD, ROADMAP, DECISIONS, STATUS, CHANGELOG (по-русски); portrait-checklist.md — чек-лист качества портрета (D-304)
 .claude/           rules/ (правила работы), agents/, skills/
 ```
 
