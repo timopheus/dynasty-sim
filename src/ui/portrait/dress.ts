@@ -1,405 +1,390 @@
 import type { Part } from '../../core/looks';
-import { headHalf, type Geometry } from './geometry';
-import { clamp, gauss, inEllipse, lambert, rotate, segDist, smooth, type Sample } from './shape';
+import type { Anatomy } from './anatomy';
+import { mirror, turn, type Point, type Raster } from './raster';
 
 /**
- * Clothes, hats and marks (4.12, D-305): eighteenth-century dress of Europe and the Levant. A man wears a shirt, a
- * coat and a neckcloth; a woman a bodice with a kerchief or a lace edge. Shoulders follow sex and age.
+ * Clothes, headwear and marks (4.12, D-305), in flat planes: eighteenth-century dress of Europe and the Levant.
+ * A hat is drawn to the size of a real hat and may run past the frame.
  */
 
-/** Height of the shoulder line at x: down from the neck, round over the shoulder. */
-function shoulderLine(g: Geometry, x: number): number {
-  const a = Math.abs(x - g.cx);
-  const start = g.neckHalf + 0.5;
-  let y = g.shoulders + Math.max(0, a - start) * g.slope + 0.6 * smooth(0, start, a);
-  const edge = g.shoulderHalf - 4;
-  if (a > edge) y += ((a - edge) / 4) ** 2 * 4.5;
-  return y;
-}
+const FACE = new Set(['head', 'eyes', 'brows', 'nose', 'mouth', 'mole', 'wrinkles', 'illness', 'beard', 'scars']);
 
-export function body(g: Geometry, c: Sample, x: number, y: number): void {
-  const a = Math.abs(x - g.cx);
-  if (a > g.shoulderHalf + Math.max(0, y - g.shoulders) * 0.12 || y < shoulderLine(g, x)) return;
-  const spec = g.spec;
-  const dx = (x - g.cx) / g.shoulderHalf;
-  const lit = lambert(clamp(dx * 0.9, -1, 1), clamp((g.shoulders + 4 - y) / 10, -0.6, 0.6));
-  const folds = 0.05 * smooth(0.5, 1, Math.cos((x - g.cx) * 0.5 + y * 0.15));
-  const cloth = (base: number) => base - 0.12 + 0.3 * lit - folds;
-  const st = g.shoulders;
-  if (g.female) {
-    const dress = [0.62, 0.36, 0.3, 0.22][spec.attire] ?? 0.36;
-    c.put(1, cloth(dress), 'attire');
-    // the neckline: skin of the chest above a curved or square edge
-    const neckline = st + (spec.attire >= 2 ? 6.5 : 4.5) + 0.06 * a * a * (spec.attire >= 2 ? 0.25 : 0.5);
-    const open = a < (spec.attire >= 2 ? 9 : 7);
-    if (open && y < neckline) c.put(1, 0.14 + 0.66 * lambert(clamp(dx * 1.6, -1, 1), -0.2) - 0.18 * smooth(st + 2, st, y) * 0, 'neck');
-    if (spec.attire === 0) {
-      // a shawl over the shoulders, its ends knotted on the chest
-      const shawl = a > 6 && y < st + 6 + (a - 6) * 0.35;
-      const knot = inEllipse(x, y, g.cx, st + 9, 2, 1.6);
-      if (shawl || knot) c.put(1, cloth(0.42) + 0.04 * Math.cos(x * 1.1 + y), 'attire');
-    } else if (spec.attire === 1) {
-      // a white kerchief crossing on the breast
-      const kerchief = (a > 5.5 && y < st + 4 + (a - 5) * 0.25) || (y >= neckline - 1 && y < st + 11 - a * 0.35 && a < 8);
-      if (kerchief) c.put(1, cloth(0.86), 'attire');
+export function body(r: Raster, a: Anatomy): void {
+  const { cx, shoulders: y0, female } = a;
+  const sh = a.shoulderHalf;
+  const fall = female ? 11 : a.child ? 9 : 8;
+  const outline: Point[] = [[cx - sh, y0 + fall], [cx - sh + 6, y0 + fall * 0.45], [cx - 14, y0 + 0.5], [cx - 6, y0 - 1.5], [cx + 6, y0 - 1.5], [cx + 14, y0 + 0.5], [cx + sh - 6, y0 + fall * 0.45], [cx + sh, y0 + fall], [cx + sh, 81], [cx - sh, 81]];
+  const lit: Point[] = [[cx - sh, y0 + fall], [cx - sh + 6, y0 + fall * 0.45], [cx - 14, y0 + 0.5], [cx - 6, y0 - 1.5], [cx - 4, 81], [cx - sh, 81]];
+  const edge: Point[] = [[cx - sh, y0 + fall], [cx - sh + 6, y0 + fall * 0.45], [cx - 14, y0 + 0.5], [cx - 12, y0 + 2.5], [cx - sh + 7, y0 + fall * 0.45 + 2.5], [cx - sh + 1, y0 + fall + 3]];
+  const attire = a.spec.attire;
+  if (female) {
+    const dress = [7, 4, 3, 2][attire] ?? 4;
+    r.poly(outline, dress, 'attire');
+    r.poly(lit, dress + 1, 'attire');
+    r.poly(edge, dress + 2, 'attire');
+    // the neckline: skin of the chest, lower on a finer dress
+    const deep = attire >= 2 ? 7 : 5;
+    const neck: Point[] = [[cx - 9, y0 - 1], [cx + 9, y0 - 1], [cx + 7, y0 + deep], [cx - 7, y0 + deep]];
+    r.poly(neck, 6, 'neck');
+    r.poly([[cx - 9, y0 - 1], [cx - 1, y0 - 1], [cx - 1, y0 + deep], [cx - 7, y0 + deep]], 8, 'neck');
+    if (attire === 0) {
+      // a shawl over the shoulders, its ends crossed on the chest
+      r.poly([[cx - sh + 2, y0 + fall], [cx - 12, y0 + 1], [cx - 7, y0 + 1], [cx + 3, y0 + 12], [cx - 2, y0 + 16]], 5, 'attire');
+      r.poly([[cx + sh - 2, y0 + fall], [cx + 12, y0 + 1], [cx + 7, y0 + 1], [cx - 3, y0 + 12], [cx + 2, y0 + 16]], 3, 'attire');
+    } else if (attire === 1) {
+      // a white kerchief over the shoulders, crossing on the breast
+      r.poly([[cx - 16, y0 + 2], [cx - 9, y0 - 1], [cx - 7, y0 + deep], [cx + 2, y0 + deep + 6], [cx - 4, y0 + deep + 7], [cx - 15, y0 + 6]], 10, 'attire');
+      r.poly([[cx + 16, y0 + 2], [cx + 9, y0 - 1], [cx + 7, y0 + deep], [cx - 2, y0 + deep + 6], [cx + 4, y0 + deep + 7], [cx + 15, y0 + 6]], 8, 'attire');
     } else {
-      // lace on the edge of the neckline
-      if (open && Math.abs(y - neckline) < 0.9) c.put(1, 0.84 + 0.08 * Math.cos(x * 2.4), 'attire');
-      if (spec.attire >= 3) {
+      // lace along the edge of the neckline
+      for (let x = cx - 7; x <= cx + 7; x++) r.set(x, y0 + deep, x % 2 === 0 ? 10 : 9, 'attire');
+      r.line(cx - 9, y0 - 1, cx - 7, y0 + deep, 9, 'attire');
+      r.line(cx + 9, y0 - 1, cx + 7, y0 + deep, 8, 'attire');
+      if (attire >= 3) {
         // a string of pearls
-        for (let i = -4; i <= 4; i++) {
-          const px = g.cx + i * 1.5;
-          const py = st + 2 + 0.12 * i * i;
-          if (Math.hypot(x - px, y - py) < 0.7) c.put(1, Math.hypot(x - px + 0.25, y - py + 0.25) < 0.3 ? 1 : 0.76, 'attire');
-        }
+        for (let i = -3; i <= 3; i++) r.set(cx + i * 2, y0 + 1 + Math.round(Math.abs(i) * 0.35 * Math.abs(i) / 2), 10, 'attire');
       }
     }
     return;
   }
-  // a man: the shirt at the throat, a coat over it
-  if (spec.attire === 0) {
-    c.put(1, cloth(0.72), 'attire');
-    const v = 4.2 - (y - st) * 0.55;
-    if (a < v && y < st + 7) c.put(1, 0.16 + 0.62 * lambert(clamp(dx * 2, -1, 1), -0.1), 'neck');
-    if (Math.abs(a - v) < 0.5 && y < st + 7.5) c.put(1, 0.4, 'attire');
-    // a rough waistcoat, open
-    if (a > 5 && a < 11 && y > st + 3) c.put(1, cloth(0.38), 'attire');
+  if (attire === 0) {
+    // a linen shirt, open at the throat
+    r.poly(outline, 7, 'attire');
+    r.poly(lit, 8, 'attire');
+    r.poly(edge, 9, 'attire');
+    r.poly([[cx - 4, y0 - 1.5], [cx + 4, y0 - 1.5], [cx, y0 + 7]], 6, 'neck');
+    r.poly([[cx - 4, y0 - 1.5], [cx, y0 - 1.5], [cx, y0 + 7]], 8, 'neck');
+    r.line(cx - 5, y0 - 1, cx - 1, y0 + 8, 5, 'attire');
+    r.line(cx + 5, y0 - 1, cx + 1, y0 + 8, 4, 'attire');
+    r.line(cx - 12, y0 + 6, cx - 9, y0 + 16, 6, 'attire');
     return;
   }
-  const coat = [0.7, 0.4, 0.3, 0.22][spec.attire] ?? 0.4;
-  c.put(1, cloth(coat), 'attire');
-  // the waistcoat in the opening of the coat
-  const opening = 2.2 + (y - st) * 0.22;
-  if (a < opening && y > st + 2) {
-    c.put(1, cloth(spec.attire >= 2 ? 0.58 : 0.5), 'attire');
-    if (Math.abs(x - g.cx) < 0.6 && ((y - st) % 2.5) < 0.9) c.put(1, spec.attire >= 2 ? 0.88 : 0.3, 'attire');
+  const coat = [7, 4, 3, 2][attire] ?? 4;
+  r.poly(outline, coat - 1, 'attire');
+  r.poly(lit, coat, 'attire');
+  r.poly(edge, coat + 2, 'attire');
+  // the waistcoat in the opening of the coat, the neckcloth at the throat
+  r.poly([[cx - 6, y0 - 1.5], [cx + 6, y0 - 1.5], [cx + 7, 81], [cx - 7, 81]], attire >= 2 ? 6 : 5, 'attire');
+  r.poly([[cx - 6, y0 - 1.5], [cx, y0 - 1.5], [cx, 81], [cx - 7, 81]], attire >= 2 ? 7 : 6, 'attire');
+  for (let y = y0 + 8; y < 80; y += 3) r.set(cx, y, attire >= 2 ? 10 : 3, 'attire');
+  r.poly([[cx - 6, y0 - 1.5], [cx + 6, y0 - 1.5], [cx + 3, y0 + 8], [cx, y0 + 10], [cx - 3, y0 + 8]], 8, 'attire');
+  r.poly([[cx - 6, y0 - 1.5], [cx, y0 - 1.5], [cx, y0 + 10], [cx - 3, y0 + 8]], 10, 'attire');
+  if (attire >= 2) {
+    // lapels turned back, their edge braided on the grandest coat
+    for (const side of [-1, 1]) {
+      const lapel: Point[] = [[cx + side * 6, y0 - 1.5], [cx + side * 11, y0 + 1], [cx + side * 9, y0 + 12], [cx + side * 7, 81]];
+      r.poly([...lapel, [cx + side * 6.5, 81], [cx + side * 6, y0 + 4]], side < 0 ? coat + 3 : coat + 1, 'attire');
+      r.line(cx + side * 11, y0 + 1, cx + side * 9, y0 + 12, attire >= 3 ? 10 : coat - 1, 'attire');
+    }
   }
-  // the edge of the coat: braided on the grandest
-  if (Math.abs(a - opening) < 0.55 && y > st + 2) c.put(1, spec.attire >= 3 ? 0.84 : 0.16, 'attire');
-  if (spec.attire >= 2 && a > opening && a < opening + 2.2 && y > st + 2 && y < st + 9) c.put(1, cloth(coat + 0.1), 'attire');
-  // the neckcloth wound round the throat, and the lace falling from it on the grandest
-  if (y > st - 2.5 && y < st + 2 && a < g.neckHalf + 0.6) c.put(1, 0.78 + 0.12 * lambert(clamp(dx * 3, -1, 1), 0) - 0.08 * smooth(0.5, 1, Math.cos(y * 2.4)), 'attire');
-  if (spec.attire >= 3 && y >= st + 1.5 && y < st + 10 && a < 2.4 - (y - st) * 0.05) c.put(1, 0.9 - 0.15 * smooth(0.4, 1, Math.cos(y * 1.6 + a * 1.2)), 'attire');
+  if (attire >= 3) {
+    // a lace cravat falling over the waistcoat
+    r.poly([[cx - 3, y0 + 7], [cx + 3, y0 + 7], [cx + 2.5, y0 + 15], [cx, y0 + 16.5], [cx - 2.5, y0 + 15]], 10, 'attire');
+    for (const y of [y0 + 9, y0 + 12, y0 + 15]) r.line(cx - 2, y, cx + 2, y, 8, 'attire');
+  }
 }
 
-/** A hat sits on the skull; its shadow falls on the brow. Kinds of headwear from the variant and the shift (D-305). */
+/** Kinds of headwear: the variant and the shift of the head accessory choose one of nine (D-305). */
 const MEN = ['tricorn', 'tricorn_cocked', 'tricorn_laced', 'felt_hat', 'wool_cap', 'turban', 'keffiyeh', 'fur_cap', 'wig'] as const;
 const WOMEN = ['mob_cap', 'lappet_cap', 'hood', 'straw_hat', 'straw_hat_tilted', 'hijab', 'headscarf', 'turban', 'tricorn'] as const;
 export type Headwear = (typeof MEN)[number] | (typeof WOMEN)[number];
 
-export function headwearKind(g: Geometry, a: Part): Headwear {
-  const i = a.variant * 3 + (a.dx + 1);
-  return ((g.female ? WOMEN : MEN)[i] ?? (g.female ? 'mob_cap' : 'tricorn')) as Headwear;
+export function headwearKind(a: Anatomy, h: Part): Headwear {
+  return ((a.female ? WOMEN : MEN)[h.variant * 3 + (h.dx + 1)] ?? (a.female ? 'mob_cap' : 'tricorn')) as Headwear;
 }
 
-/** Felt and cloth lit from the upper left. */
-function felt(base: number, x: number, y: number, cx: number, cy: number, rx: number, ry: number): number {
-  return base + 0.28 * lambert(clamp((x - cx) / rx, -1, 1) * 0.9, clamp((y - cy) / ry, -1, 1) * 0.9) - 0.1;
-}
+const notFace = (o: string) => !FACE.has(o);
 
-/** Darkens the brow under a brim. */
-function brimShadow(c: Sample, y: number, edge: number, depth = 0.22): void {
-  if (y > edge && y < edge + 2.6 && (c.owner === 'head' || c.owner === 'hair' || c.owner === 'brows' || c.owner === 'eyes')) c.tone -= depth * (1 - (y - edge) / 2.6);
-}
-
-function tricorn(g: Geometry, c: Sample, x0: number, y0: number, kind: Headwear, seat: number): void {
-  const tilt = kind === 'tricorn_cocked' ? 0.16 : 0;
-  const scale = g.female ? 0.85 : 1;
-  const [x, y] = tilt ? rotate(x0, y0, g.cx, g.hairline, tilt) : [x0, y0];
-  const cx = g.cx + (tilt ? 1.2 : 0);
-  const base = g.hairline + 1.6 + seat;
-  const half = (g.rx + 6.8) * scale;
-  const ad = Math.abs(x - cx);
-  if (ad > half) return;
-  const r = ad / half;
-  // the front corner hangs over the brow; the side corners rise level with the crown
-  const point = base + 3;
-  const corner = g.top - 2 + seat;
-  const edge = point - (point - corner) * r ** 0.45;
-  const skull = headHalf(g, base);
-  // the wings stay thick to their blunt ends
-  const lower = ad <= skull ? base + 0.6 * (ad / skull) ** 2 : base + 0.6 - ((ad - skull) / (half - skull)) ** 1.6 * (base + 0.6 - corner - 2.6);
-  const crownTop = g.top - 7 + seat;
-  const crown = ad < g.rx * 1.05 && y > crownTop + 3 * (ad / (g.rx * 1.05)) ** 2 && y < edge + 0.5;
-  const panel = y >= edge && y <= Math.max(lower, edge);
-  const tip = y >= base && y <= point && ad < (point - y) * 0.9 + 0.3;
-  if (!crown && !panel && !tip) {
-    brimShadow(c, y, lower);
-    return;
+function tricorn(r: Raster, a: Anatomy, kind: Headwear, seat: number): void {
+  const k = (a.hw / 16) * (a.female ? 0.85 : 1);
+  const dy = a.top - 9 + seat + (a.female ? 1 : 0);
+  const angle = kind === 'tricorn_cocked' ? (a.spec.hair?.dx ?? 0) >= 0 ? 0.14 : -0.14 : 0;
+  const at = (pts: Point[]): Point[] => {
+    const placed = pts.map(([x, y]): Point => [a.cx + (x - 32) * k, y + dy]);
+    return angle ? turn(placed, a.cx, a.top + 8, angle) : placed;
+  };
+  // the crown behind, two cocked-up panels meeting at the point over the brow, a binding on their edge
+  r.poly(at([[7, 6.5], [16, 3.5], [24, 2], [32, 1.5], [40, 2], [48, 3.5], [57, 6.5], [32, 20]]), 2, 'headwear');
+  r.poly(at([[16, 4.5], [24, 3], [30, 2.6], [26, 6], [18, 7]]), 3, 'headwear');
+  const panel: Point[] = [[7, 6.5], [12, 7], [20, 9.5], [27, 13.5], [32, 18.5], [32, 21.5], [27, 20], [20, 19], [14, 16.5], [8.5, 11.5]];
+  r.poly(at(panel), 4, 'headwear');
+  r.poly(at(mirror(panel, 32)), 1, 'headwear');
+  const binding = kind === 'tricorn_laced' ? [10, 8] : [7, 4];
+  const left = at([[8, 6.6], [31.5, 18.8]]);
+  const right = at([[56, 6.6], [32.5, 18.8]]);
+  r.line(left[0]![0], left[0]![1], left[1]![0], left[1]![1], binding[0]!, 'headwear');
+  r.line(right[0]![0], right[0]![1], right[1]![0], right[1]![1], binding[1]!, 'headwear');
+  if (kind === 'tricorn_laced') {
+    const [c] = at([[18, 12]]);
+    r.ellipse(c![0], c![1], 2, 2, 10, 'headwear');
+    r.set(Math.floor(c![0]), Math.floor(c![1]), 2, 'headwear');
   }
-  if (crown && !panel && !tip) {
-    c.put(1, felt(0.16, x, y, cx, crownTop + 3, g.rx, 4), 'headwear');
-    return;
-  }
-  // two front panels of the cocked-up brim: the lit one and the one turned from the light; a binding on the edge
-  const lit = x < cx ? 0.3 : 0.16;
-  const binding = y - edge < 0.75;
-  const lace = kind === 'tricorn_laced';
-  c.put(1, binding ? (lace ? 0.86 : 0.36) : lit + 0.05 * Math.cos(r * 9), 'headwear');
-  if (lace && inEllipse(x, y, cx - half * 0.55, edge + 2, 1.3, 1.3)) c.put(1, Math.hypot(x - (cx - half * 0.55), y - edge - 2) < 0.6 ? 0.2 : 0.8, 'headwear');
+  // the brim's shadow on the brow
+  r.shadow(at([[12, 17], [32, 22], [52, 17], [52, 21], [32, 25], [12, 21]]), -2, (o) => FACE.has(o) || o === 'hair');
 }
 
-function headwearShape(g: Geometry, c: Sample, x: number, y: number, a: Part): void {
-  const kind = headwearKind(g, a);
-  const seat = a.dy * 0.8;
-  const cx = g.cx;
-  const ad = Math.abs(x - cx);
-  const base = g.hairline + 1.2 + seat;
+function headwearShape(r: Raster, a: Anatomy, h: Part): void {
+  const kind = headwearKind(a, h);
+  const seat = h.dy;
+  const { cx, hw, top, hairline, browY, earY, chin, shoulders } = a;
+  const k = hw / 16;
+  const base = hairline + 1 + seat;
   switch (kind) {
     case 'tricorn':
     case 'tricorn_cocked':
     case 'tricorn_laced':
-      tricorn(g, c, x, y, kind, seat);
+      tricorn(r, a, kind, seat);
       return;
     case 'felt_hat': {
-      // a round crown and a wide brim seen a little from below
-      const crown = ad < g.rx * 1.02 && y > g.top - 7.5 + seat + 1.5 * (ad / g.rx) ** 4 && y < base;
-      const brim = inEllipse(x, y, cx, base, g.rx + 10, 2.3);
-      if (crown) c.put(1, y > base - 2.2 ? 0.34 : felt(0.18, x, y, cx, g.top, g.rx, 5), 'headwear');
-      else if (brim) c.put(1, y > base ? 0.1 + 0.08 * lambert((x - cx) / (g.rx + 10), 0) : felt(0.22, x, y, cx, base, g.rx + 10, 2), 'headwear');
-      else brimShadow(c, y, base + 2.3, 0.3);
+      // a round crown with a band, a wide brim seen a little from below
+      r.ellipse(cx, base - 0.5, 26 * k, 2.8, 2, 'headwear');
+      r.ellipse(cx - 6, base - 1.2, 14 * k, 1.2, 3, 'headwear');
+      for (let x = Math.floor(cx - 24 * k); x <= cx + 24 * k; x++) r.set(x, Math.round(base + 1.6), 1, 'headwear');
+      // a low flat-topped crown, as the round hats of the century were
+      const crown: Point[] = [[cx - 12 * k, base - 1], [cx - 12.5 * k, top - 1], [cx - 11 * k, top - 3], [cx + 11 * k, top - 3], [cx + 12.5 * k, top - 1], [cx + 12 * k, base - 1]];
+      r.poly(crown, 2, 'headwear');
+      r.poly([[cx - 12 * k, base - 1], [cx - 12.5 * k, top - 1], [cx - 11 * k, top - 3], [cx - 4, top - 3], [cx - 6, base - 1]], 3, 'headwear');
+      r.poly([[cx - 12 * k, base - 4], [cx + 12 * k, base - 4], [cx + 12 * k, base - 1.5], [cx - 12 * k, base - 1.5]], 1, 'headwear');
+      r.shadow([[cx - 16, base + 1.5], [cx + 16, base + 1.5], [cx + 15, base + 5], [cx - 15, base + 5]], -2, (o) => FACE.has(o) || o === 'hair');
       return;
     }
     case 'wool_cap': {
       // a soft knitted cap, its top falling to one side, a rolled band
-      const lean = (y < g.top + 2 ? (g.top + 2 - y) * 0.5 : 0);
-      const inside = inEllipse(x - lean, y, cx, base - 1, g.rx + 2.2, g.ry * 0.78) && y < base + 0.6;
-      if (!inside) {
-        brimShadow(c, y, base + 0.6, 0.15);
-        return;
-      }
-      const band = y > base - 2.4;
-      c.put(1, felt(band ? 0.36 : 0.3, x, y, cx, base - 4, g.rx, 6) + 0.04 * Math.cos(x * (band ? 3 : 2.2)), 'headwear');
+      const shape: Point[] = [[cx - hw - 1.5, base], [cx - hw - 1, top + 1], [cx - 7, top - 5], [cx + 5, top - 6], [cx + 14 * k, top - 3.5], [cx + hw + 2.5, top + 2], [cx + hw + 1.5, base]];
+      r.poly(shape, 4, 'headwear');
+      r.poly([[cx - hw - 1.5, base], [cx - hw - 1, top + 1], [cx - 7, top - 5], [cx - 2, top - 5.5], [cx - hw + 3, base]], 5, 'headwear');
+      r.poly([[cx - hw - 1.6, base - 3.5], [cx + hw + 1.6, base - 3.5], [cx + hw + 1.6, base + 0.5], [cx - hw - 1.6, base + 0.5]], 3, 'headwear');
+      for (let x = Math.ceil(cx - hw); x < cx + hw; x += 3) r.line(x, top + 1, x, base - 4, 3, 'headwear');
+      r.line(cx - hw - 1, Math.round(base - 3.5), cx + hw + 1, Math.round(base - 3.5), 5, 'headwear');
       return;
     }
     case 'turban': {
-      // cloth wound round the head: a full rounded mass with folds running across it
-      const inside = inEllipse(x, y, cx, g.top + 1 + seat, g.rx + 5, g.ry * 0.72) && y < base + 0.5 - 1.2 * (1 - (ad / g.rx) ** 2);
-      if (!inside) {
-        brimShadow(c, y, base + 0.5, 0.15);
-        return;
+      // cloth wound round the head: a full rounded mass with its folds running across it
+      const s = a.female ? 0.85 : 1;
+      const dome: Point[] = [[cx - (hw + 4) * s, base + 1], [cx - (hw + 4.5) * s, top + 1], [cx - 9 * s, top - 7 * s], [cx + 9 * s, top - 7 * s], [cx + (hw + 4.5) * s, top + 1], [cx + (hw + 4) * s, base + 1], [cx, base + 2.5]];
+      r.poly(dome, 8, 'headwear');
+      r.poly([[cx - (hw + 4) * s, base + 1], [cx - (hw + 4.5) * s, top + 1], [cx - 9 * s, top - 7 * s], [cx - 3, top - 7 * s], [cx - hw * 0.6, base + 2]], 9, 'headwear');
+      r.poly([[cx + hw * 0.5, top - 4], [cx + 9 * s, top - 7 * s], [cx + (hw + 4.5) * s, top + 1], [cx + (hw + 4) * s, base + 1], [cx + hw * 0.6, base + 2]], 6, 'headwear');
+      for (let i = 0; i < 5; i++) {
+        const y = base - 1 - i * 3;
+        r.line(cx - (hw + 3) * s, y + 1, cx + (hw + 3) * s, y - 3, (x, yy) => (r.ownerAt(x, yy) === 'headwear' ? (x < cx ? 7 : 5) : null), 'headwear');
       }
-      const wind = 0.07 * Math.cos((x - cx) * 0.7 + (y - g.top) * 1.5 + (x > cx ? 1.2 : 0));
-      c.put(1, felt(0.68, x, y, cx, g.top, g.rx + 5, g.ry * 0.7) + wind, 'headwear');
-      if (g.spec.attire >= 3 && inEllipse(x, y, cx, base - 2.5, 1.2, 1.5)) c.put(1, 0.95, 'jewel');
+      if (a.spec.attire >= 3) r.ellipse(cx, base - 3, 1.5, 1.8, 10, 'jewel');
       return;
     }
-    case 'keffiyeh': {
-      // a cloth over the head falling to the shoulders, held by a dark double cord
-      const face = inEllipse(x, y, cx, g.cy + 2.6, g.rx - 1, g.ry - 1.2) && y > base - 0.6;
-      const head = inEllipse(x, y, cx, g.cy - 0.5, g.rx + 3, g.ry + 2.4);
-      const falls = y > g.cy && y < g.shoulders + 10 && ad > g.rx - 2 - (y - g.cy) * 0.1 && ad < g.rx + 3 + (y - g.cy) * 0.35;
-      if ((!head && !falls) || face) return;
-      const cord = Math.abs(y - (g.top + 3.4 + seat + 1.2 * (ad / g.rx) ** 2)) < 0.7 || Math.abs(y - (g.top + 5.2 + seat + 1.2 * (ad / g.rx) ** 2)) < 0.6;
-      if (cord && head && ad < g.rx + 2.6) {
-        c.put(1, 0.08 + 0.1 * lambert((x - cx) / g.rx, -0.5), 'headwear');
-        return;
+    case 'keffiyeh':
+    case 'hood':
+    case 'hijab': {
+      // cloth over the head falling to the shoulders, open round the face
+      const tone = kind === 'keffiyeh' ? 9 : kind === 'hood' ? 4 : 5;
+      const reach = kind === 'hijab' ? shoulders + 10 : kind === 'hood' ? shoulders + 8 : shoulders + 10;
+      const w = hw + (kind === 'hood' ? 4.5 : 3.5);
+      const cloth: Point[] = [[cx - w - 1, chin], [cx - w, top + 4], [cx - 10, top - 3.5], [cx + 10, top - 3.5], [cx + w, top + 4], [cx + w + 1, chin], [cx + w + 6, reach], [cx - w - 6, reach]];
+      const openTop = kind === 'hijab' ? browY - 3 : hairline + 1;
+      const openSide = kind === 'hijab' ? hw - 2.5 : hw - 1;
+      const face = (o: string, x: number, y: number) => {
+        if (y < openTop) return true;
+        if (kind === 'hijab' && y > chin - 1) return true;
+        return !(FACE.has(o) || o === 'neck' || o === 'ears' || o === 'attire') || Math.abs(x + 0.5 - cx) > openSide + (y > chin ? 4 : 0);
+      };
+      r.poly(cloth, tone, 'headwear', face);
+      r.poly([[cx - w - 1, chin], [cx - w, top + 4], [cx - 10, top - 3.5], [cx - 4, top - 3.5], [cx - w + 3, chin], [cx - w - 2, reach]], tone + 1, 'headwear', (o, x, y) => o === 'headwear' && face(o, x, y));
+      r.poly([[cx + w - 3, top + 6], [cx + w, top + 4], [cx + w + 1, chin], [cx + w + 6, reach], [cx + w + 1, reach]], tone - 2, 'headwear', (o) => o === 'headwear');
+      if (kind === 'keffiyeh') {
+        // the agal: a dark double cord round the crown
+        for (const y of [top + 2, top + 4]) r.line(cx - hw - 2, y + 1, cx + hw + 2, y + 1, (x) => (x < cx ? 2 : 1), 'headwear');
       }
-      const fold = 0.06 * smooth(0.6, 1, Math.cos((x - cx) * (y > g.cy ? 1.3 : 0.9)));
-      c.put(1, felt(0.76, x, y, cx, g.cy, g.rx + 4, g.ry + 4) - fold, 'headwear');
+      if (kind === 'hijab') {
+        // the cloth closes under the chin
+        r.poly([[cx - hw + 1, chin - 4], [cx + hw - 1, chin - 4], [cx + hw + 2, chin + 6], [cx - hw - 2, chin + 6]], tone, 'headwear', (o) => !FACE.has(o) || o === 'beard');
+        r.poly([[cx - hw + 1, chin - 4], [cx, chin - 4], [cx, chin + 6], [cx - hw - 2, chin + 6]], tone + 1, 'headwear', (o) => o === 'headwear');
+      }
       return;
     }
     case 'fur_cap': {
-      const half = g.rx + 2.6;
-      const inside = ad < half && y > g.top - 8 + seat + (ad > half - 2 ? (ad - half + 2) * 1.2 : 0) && y < base + 0.5;
-      if (!inside) {
-        brimShadow(c, y, base + 0.5);
-        return;
+      const cap: Point[] = [[cx - hw - 2, base], [cx - hw - 2, top - 3], [cx - hw, top - 6.5], [cx + hw, top - 6.5], [cx + hw + 2, top - 3], [cx + hw + 2, base]];
+      r.poly(cap, 4, 'headwear');
+      r.poly([[cx - hw - 2, base], [cx - hw - 2, top - 3], [cx - hw, top - 6.5], [cx - 4, top - 6.5], [cx - 6, base]], 6, 'headwear');
+      // tufts of fur
+      for (let i = 0; i < 26; i++) {
+        const x = cx - hw - 1 + ((i * 7) % (2 * hw + 2));
+        const y = top - 5 + ((i * 5) % (base - top + 3));
+        r.line(x, y, x + 1, y + 1, x < cx - 3 ? 8 : 2, 'headwear');
       }
-      const tufts = 0.09 * Math.cos(x * 2.1 + Math.sin(y * 1.6) * 2) * Math.cos(y * 2);
-      c.put(1, felt(0.34, x, y, cx, g.top - 2, half, 5) + tufts, 'headwear');
       return;
     }
     case 'wig': {
-      // a powdered wig: full over the crown and down the temples, rolled curls over the ears
-      const skullAt = headHalf(g, y, 2.2);
-      const crown = ad < skullAt && y < g.hairline - 0.5 + 1.5 * (ad / g.rx) ** 2;
-      const sides = ad < skullAt && ad > headHalf(g, y) - 2.2 && y < g.earY - 3.5;
-      let roll = -1;
-      for (const ry of [g.earY - 2.4, g.earY + 0.6]) {
-        const skull = headHalf(g, ry);
-        if (Math.abs(y - ry) < 1.4 && ad > skull - 1.8 && ad < skull + 2.6 - Math.abs(y - ry) * 0.6) roll = ry;
-      }
-      if (roll >= 0) {
-        // each curl a lit cylinder: light on top, a dark seam beneath
-        const v = (y - roll) / 1.4;
-        c.put(1, 0.9 - 0.32 * smooth(-0.4, 1, v) + 0.06 * (x < cx ? 1 : -1), 'headwear');
-      } else if (crown || sides) {
-        c.put(1, felt(0.86, x, y, cx, g.top, g.rx + 2, g.ry * 0.7) + 0.05 * Math.cos(Math.atan2(y - g.top, x - cx) * 40), 'headwear');
+      // a powdered wig: smooth over the crown with a high forehead, two rolled curls over each ear
+      const crown: Point[] = [[cx - hw - 2.5, earY - 4], [cx - hw - 2, top + 3], [cx - 9, top - 2.5], [cx + 9, top - 2.5], [cx + hw + 2, top + 3], [cx + hw + 2.5, earY - 4], [cx + hw - 1, hairline + 1], [cx + 5, hairline - 1.5], [cx - 5, hairline - 1.5], [cx - hw + 1, hairline + 1]];
+      r.poly(crown, 9, 'headwear');
+      r.poly([[cx - hw - 2.5, earY - 4], [cx - hw - 2, top + 3], [cx - 9, top - 2.5], [cx - 3, top - 2.5], [cx - hw + 1, hairline + 1]], 10, 'headwear');
+      r.poly([[cx + hw - 2, top + 5], [cx + hw + 2, top + 3], [cx + hw + 2.5, earY - 4], [cx + hw - 1, hairline + 1]], 7, 'headwear');
+      for (const side of [-1, 1]) {
+        for (const y of [earY - 2.5, earY + 1]) {
+          const x = cx + side * (hw + 0.5);
+          r.ellipse(x, y, 3.4, 1.7, side < 0 ? 9 : 7, 'headwear');
+          r.line(x - 3, y + 1.4, x + 3, y + 1.4, side < 0 ? 6 : 4, 'headwear');
+          r.line(x - 2, y - 1.2, x + 1, y - 1.2, side < 0 ? 10 : 8, 'headwear');
+        }
       }
       return;
     }
     case 'mob_cap': {
-      // a puffed linen cap with a frill along the brow and a ribbon round it
-      const frill = g.hairline + 1 + seat + 0.5 * Math.cos(x * 2);
-      const inside = inEllipse(x, y, cx, g.top + 2 + seat, g.rx + 4, g.ry * 0.78) && y < frill;
-      if (!inside) {
-        brimShadow(c, y, frill, 0.1);
-        return;
-      }
-      const ribbon = Math.abs(y - (g.hairline - 2 + seat)) < 0.7;
-      c.put(1, ribbon ? 0.3 : felt(0.84, x, y, cx, g.top, g.rx + 2, 6) + 0.05 * Math.cos(x * 1.4 + y * 0.8), 'headwear');
+      // a puffed linen cap, a ribbon round it and a frill along the brow
+      const cap: Point[] = [[cx - hw - 4, base + 1], [cx - hw - 3.5, top - 1], [cx - 7, top - 6], [cx + 7, top - 6], [cx + hw + 3.5, top - 1], [cx + hw + 4, base + 1]];
+      r.poly(cap, 9, 'headwear');
+      r.poly([[cx - hw - 4, base + 1], [cx - hw - 3.5, top - 1], [cx - 7, top - 6], [cx - 1, top - 6], [cx - 5, base]], 10, 'headwear');
+      r.poly([[cx + hw - 1, top + 1], [cx + hw + 3.5, top - 1], [cx + hw + 4, base + 1], [cx + hw - 1, base + 1]], 7, 'headwear');
+      r.line(cx - hw - 3.5, base - 2, cx + hw + 3.5, base - 2, 3, 'headwear');
+      for (let x = Math.ceil(cx - hw - 3.5); x < cx + hw + 3.5; x++) r.set(x, base + 1 + (x % 2), x < cx ? 10 : 8, 'headwear');
       return;
     }
     case 'lappet_cap': {
       // a small lace cap on the crown and lace strips hanging beside the face
-      const cap = inEllipse(x, y, cx, g.top + 1 + seat, g.rx * 0.8, 3.8);
-      const strip = y > g.top + 2 && y < g.earY + 5 && Math.abs(ad - (headHalf(g, y) + 0.6)) < 1.2;
-      if (cap || strip) c.put(1, felt(0.84, x, y, cx, g.top, g.rx, g.ry), 'headwear');
-      return;
-    }
-    case 'hood': {
-      const outer = inEllipse(x, y, cx, g.cy - 0.5, g.rx + 4, g.ry + 3.6) || (y > g.cy && y < g.shoulders + 6 && ad < g.rx + 4 + (y - g.cy) * 0.3);
-      const face = inEllipse(x, y, cx, g.cy + 2.4, g.rx - 0.6, g.ry - 1) && y > g.hairline - 1.6;
-      if (!outer || face) return;
-      const rim = 0.2 * smooth(g.rx - 0.6, g.rx + 1.2, Math.hypot(x - cx, (y - g.cy - 2.4) * (g.rx / g.ry)));
-      c.put(1, felt(0.5, x, y, cx, g.cy, g.rx + 4, g.ry + 4) - 0.06 * smooth(0.5, 1, Math.cos(Math.atan2(y - g.cy, x - cx) * 8)) - (0.2 - rim), 'headwear');
+      r.ellipse(cx, top + 2, 9 * k, 4.2, 10, 'headwear');
+      r.ellipse(cx + 3, top + 3, 5 * k, 2.5, 8, 'headwear');
+      for (const side of [-1, 1]) {
+        const x = cx + side * (hw + 1);
+        r.poly([[x - 1.5, top + 4], [x + 1.5, top + 4], [x + 1.5, earY + 7], [x - 1.5, earY + 7]], side < 0 ? 10 : 8, 'headwear');
+        for (let y = Math.ceil(top + 5); y < earY + 7; y += 2) r.set(Math.round(x + side * 1.5), y, side < 0 ? 8 : 6, 'headwear');
+      }
       return;
     }
     case 'straw_hat':
     case 'straw_hat_tilted': {
-      const tilt = kind === 'straw_hat_tilted' ? -0.14 : 0;
-      const [rx, ry] = tilt ? rotate(x, y, cx, base, tilt) : [x, y];
-      const rad = Math.abs(rx - cx);
-      const crown = rad < g.rx * 0.9 && ry > g.top - 4.5 + seat && ry < base;
-      const brim = inEllipse(rx, ry, cx, base, g.rx + 12, 2.6);
-      if (crown) c.put(1, Math.abs(ry - (base - 1.6)) < 0.9 ? 0.25 : felt(0.66, rx, ry, cx, g.top, g.rx, 4), 'headwear');
-      else if (brim) c.put(1, ry > base ? 0.36 : felt(0.72, rx, ry, cx, base, g.rx + 8, 2) + 0.04 * Math.cos(Math.atan2(ry - base, rx - cx) * 30), 'headwear');
-      else brimShadow(c, ry, base + 2.3, 0.28);
-      return;
-    }
-    case 'hijab': {
-      // cloth close round the face, over the brow, down the neck to the breast
-      const outer = inEllipse(x, y, cx, g.cy, g.rx + 2.6, g.ry + 2.4) || (y > g.cy && y < g.shoulders + 9 && ad < g.rx + 2.2 + (y - g.cy) * 0.55);
-      const face = inEllipse(x, y, cx, g.cy + 2.8, g.rx - 1.4, g.ry - 1.6) && y > g.hairline + 0.4;
-      if (!outer || face) return;
-      c.put(1, felt(0.46, x, y, cx, g.cy, g.rx + 3, g.ry + 4) - 0.05 * smooth(0.6, 1, Math.cos(Math.atan2(y - g.cy, x - cx) * 7)), 'headwear');
+      const angle = kind === 'straw_hat_tilted' ? -0.14 : 0;
+      const t2 = (pts: Point[]): Point[] => (angle ? turn(pts, cx, base, angle) : pts);
+      const brim: Point[] = [];
+      for (let i = 0; i < 24; i++) {
+        const u = (i / 24) * Math.PI * 2;
+        brim.push([cx + Math.cos(u) * 27 * k, base + Math.sin(u) * 3]);
+      }
+      r.poly(t2(brim), 9, 'headwear');
+      r.poly(t2(brim.filter(([, y]) => y >= base).concat([[cx - 27 * k, base]])), 6, 'headwear');
+      r.poly(t2([[cx - 10 * k, base - 0.5], [cx - 10 * k, top - 3], [cx + 10 * k, top - 3], [cx + 10 * k, base - 0.5]]), 8, 'headwear');
+      r.poly(t2([[cx - 10 * k, base - 0.5], [cx - 10 * k, top - 3], [cx - 3, top - 3], [cx - 4, base - 0.5]]), 9, 'headwear');
+      r.poly(t2([[cx - 10 * k, base - 3.5], [cx + 10 * k, base - 3.5], [cx + 10 * k, base - 1], [cx - 10 * k, base - 1]]), 3, 'headwear');
+      r.shadow(t2([[cx - 17, base + 3], [cx + 17, base + 3], [cx + 16, base + 6], [cx - 16, base + 6]]), -2, (o) => FACE.has(o) || o === 'hair');
       return;
     }
     case 'headscarf': {
-      // a kerchief over the hair, knotted at the nape: the face and the neck stay open
-      const inside = inEllipse(x, y, cx, g.cy - 2, g.rx + 2.3, g.ry + 1.5) && y < g.hairline + 0.8 + 3 * smooth(g.rx - 4, g.rx, ad);
-      const knot = inEllipse(x, y, cx + g.rx + 1.5, g.earY + 2, 1.6, 1.3);
-      if (inside || knot) c.put(1, felt(0.58, x, y, cx, g.top, g.rx + 2, g.ry) + 0.05 * Math.cos((x - cx) * 0.6 + y * 0.9), 'headwear');
+      // a kerchief over the hair, knotted at the nape
+      const scarf: Point[] = [[cx - hw - 2.5, earY + 1], [cx - hw - 2, top + 2], [cx - 8, top - 3], [cx + 8, top - 3], [cx + hw + 2, top + 2], [cx + hw + 2.5, earY + 1], [cx + hw - 1, hairline + 4], [cx + 4, hairline + 0.5], [cx - 4, hairline + 0.5], [cx - hw + 1, hairline + 4]];
+      r.poly(scarf, 6, 'headwear');
+      r.poly([[cx - hw - 2.5, earY + 1], [cx - hw - 2, top + 2], [cx - 8, top - 3], [cx - 2, top - 3], [cx - hw + 1, hairline + 4]], 7, 'headwear');
+      r.ellipse(cx + hw + 2, earY + 3, 2, 1.6, 4, 'headwear');
+      r.poly([[cx + hw + 1, earY + 4], [cx + hw + 4, earY + 9], [cx + hw + 2, earY + 9]], 4, 'headwear');
+      for (let i = 0; i < 4; i++) r.line(cx - hw + i * 8, top + 1 + i, cx - hw + 4 + i * 8, hairline - 1, 5, 'headwear');
       return;
     }
   }
 }
 
-export function headwear(g: Geometry, c: Sample, x: number, y: number): void {
-  const a = g.spec.accessories.find((p) => p.slot === 'head');
-  if (a) headwearShape(g, c, x, y, a);
+export function headwear(r: Raster, a: Anatomy): void {
+  const h = a.spec.accessories.find((p) => p.slot === 'head');
+  if (h) headwearShape(r, a, h);
 }
 
-export function jewel(g: Geometry, c: Sample, x: number, y: number): void {
-  const a = g.spec.accessories.find((p) => p.slot === 'ear');
-  if (!a) return;
-  if (g.female) {
+export function jewel(r: Raster, a: Anatomy): void {
+  const j = a.spec.accessories.find((p) => p.slot === 'ear');
+  if (!j) return;
+  if (a.female) {
     for (const side of [-1, 1]) {
-      const jx = g.cx + side * (headHalf(g, g.earY) + g.ear.out * 0.3);
-      const jy = g.earY + g.ear.h / 2 + 0.2;
-      if (a.variant === 0) {
-        // a pearl drop
-        if (Math.hypot(x - jx, y - jy - 1.8) < 0.95) c.put(1, Math.hypot(x - jx + 0.35, y - jy - 1.5) < 0.4 ? 1 : 0.66, 'jewel');
-        else if (Math.abs(x - jx) < 0.25 && y > jy - 0.4 && y < jy + 1) c.put(1, 0.3, 'jewel');
-      } else if (a.variant === 1) {
-        if (Math.hypot(x - jx, y - jy) < 0.7) c.put(1, 0.94, 'jewel');
-      } else if (Math.abs(Math.hypot(x - jx, y - jy - 1.3) - 1.2) < 0.32) {
-        c.put(1, 0.84, 'jewel');
-      }
+      const x = Math.round(a.cx + side * (a.hw + 1.5)) - (side < 0 ? 1 : 0);
+      const y = Math.round(a.earY + 5);
+      if (j.variant === 0) r.sprite(['2', 'a', '9'], x, y, 'jewel');
+      else if (j.variant === 1) r.sprite(['a'], x, y, 'jewel');
+      else r.sprite(['.9.', '9.9', '.9.'], x - 1, y, 'jewel');
     }
     return;
   }
   // a man wears his jewel as a pin or an order on the coat
-  const jx = g.cx - 9 + a.dx;
-  const jy = g.shoulders + 7 + a.dy;
-  const r = Math.hypot(x - jx, y - jy);
-  if (a.variant === 0 && r < 1.6) c.put(1, r < 0.7 ? 0.35 : 0.88, 'jewel');
-  if (a.variant === 1 && r < Math.abs(Math.cos(Math.atan2(y - jy, x - jx) * 4)) * 1.1 + 0.8) c.put(1, r < 0.6 ? 1 : 0.8, 'jewel');
-  if (a.variant === 2 && Math.abs(x - jx) < 0.7 && y > jy - 2.2 && y < jy + 2.2) c.put(1, Math.abs(y - jy) < 0.5 ? 1 : 0.74, 'jewel');
+  const x = a.cx - 11 + j.dx;
+  const y = a.shoulders + 8 + j.dy;
+  const sprite = [['.a.', 'a2a', '.a.'], ['a.a', '.a.', 'a.a'], ['a', '9', '9']][j.variant] ?? ['a'];
+  r.sprite(sprite, x, y, 'jewel');
 }
 
-/** A scar: a pale raised seam with dark edges and stitch marks, in each person's own place (D-301). */
-export function scars(g: Geometry, c: Sample, x: number, y: number): void {
-  if (c.owner === 'background' || c.owner === 'attire' || c.owner === 'headwear') return;
-  g.spec.scars.forEach((s, n) => {
+/** A scar: a pale seam with stitch marks across it, in each person's own place (D-301). */
+export function scars(r: Raster, a: Anatomy): void {
+  a.spec.scars.forEach((s, n) => {
     const m = n === 1 ? -1 : 1;
-    const ox = g.cx + s.dx * 1.4;
+    const ox = a.cx + s.dx * 1.4;
     const oy = s.dy * 1.2;
     let seg: [number, number, number, number];
     switch (s.variant) {
       case 1:
-        // down through the brow and the eye
-        seg = [ox + m * (g.eyeSep + 0.6), g.browY - 3 + oy, ox + m * (g.eyeSep + 1.8), g.eyeY + 4.5 + oy];
+        seg = [ox + m * (a.eyeOff + 1), a.browY - 3 + oy, ox + m * (a.eyeOff + 2.5), a.eyeY + 5 + oy];
         break;
       case 2:
-        // across the lips to the chin
-        seg = [ox + m * 0.8, g.mouthY - 3.5 + oy, ox + m * 3, g.chin - 1.5 + oy];
+        seg = [ox + m * 1, a.mouthY - 4 + oy, ox + m * 3.5, a.chin - 1.5 + oy];
         break;
       case 3:
-        // across the forehead
-        seg = [ox - m * g.rx * 0.45, g.browY - 5.5 + oy, ox + m * g.rx * 0.25, g.browY - 1.8 + oy];
+        seg = [ox - m * a.hw * 0.45, a.browY - 6 + oy, ox + m * a.hw * 0.25, a.browY - 2 + oy];
         break;
       default:
-        // a slash across the cheek
-        seg = [ox - m * g.rx * 0.74, g.eyeY + 1.6 + oy, ox - m * g.rx * 0.28, g.eyeY + g.ry * 0.42 + oy];
+        seg = [ox - m * a.hw * 0.75, a.eyeY + 2 + oy, ox - m * a.hw * 0.3, a.eyeY + 9 + oy];
     }
-    const { d, t } = segDist(x, y, ...seg);
-    if (d > 1.6) return;
-    const len = Math.hypot(seg[2] - seg[0], seg[3] - seg[1]);
-    const stitch = Math.abs(((t * len) % 2.4) - 1.2) < 0.3 && d < 1.5 && t > 0.06 && t < 0.94;
-    if (stitch) c.put(1, 0.2, 'scars');
-    else if (d < 0.45) c.put(1, Math.max(c.tone + 0.2, 0.74), 'scars');
-    else if (d < 1) c.put(1, c.tone - 0.16, 'scars');
+    const [x0, y0, x1, y1] = seg;
+    const steep = Math.abs(y1 - y0) > Math.abs(x1 - x0);
+    r.line(x0, y0, x1, y1, (x, y, i) => {
+      // stitches across the seam every third pixel
+      if (i % 3 === 1) {
+        if (steep) {
+          r.set(x - 1, y, 2, 'scars');
+          r.set(x + 1, y, 2, 'scars');
+        } else {
+          r.set(x, y - 1, 2, 'scars');
+          r.set(x, y + 1, 2, 'scars');
+        }
+      }
+      return r.ownerAt(x, y) === 'beard' || r.ownerAt(x, y) === 'hair' ? 7 : x < a.cx ? 11 : 8;
+    }, 'scars');
   });
 }
 
-export function bandages(g: Geometry, c: Sample, x: number, y: number): void {
-  for (const b of g.spec.bandages) {
-    const cloth = (fold: number) => 0.86 - 0.1 * smooth(0.55, 1, Math.cos(fold)) + 0.08 * lambert(clamp((x - g.cx) / g.rx, -1, 1), 0);
+export function bandages(r: Raster, a: Anatomy): void {
+  const { cx, hw, browY, eyeY, chin, top } = a;
+  for (const b of a.spec.bandages) {
     switch (b.variant) {
       case 1: {
         // a plaster on the cheek: two crossed strips
-        const px = g.cx + g.rx * 0.45 + b.dx;
-        const py = g.eyeY + 4.5 + b.dy;
-        const s1 = segDist(x, y, px - 2.6, py - 2, px + 2.6, py + 2);
-        const s2 = segDist(x, y, px - 2.6, py + 2, px + 2.6, py - 2);
-        const d = Math.min(s1.d, s2.d);
-        if (d < 1.1) c.put(1, d > 0.8 ? 0.42 : cloth(s1.t * 8), 'bandages');
+        const x = cx + hw * 0.45 + b.dx;
+        const y = eyeY + 5 + b.dy;
+        r.poly([[x - 3, y - 2.5], [x - 2, y - 3.2], [x + 3, y + 2.5], [x + 2, y + 3.2]], 9, 'bandages');
+        r.poly([[x - 3, y + 2.5], [x - 2, y + 3.2], [x + 3, y - 2.5], [x + 2, y - 3.2]], 8, 'bandages');
         break;
       }
       case 2: {
         // cloth tied under the jaw and over the head
-        for (const side of [-1, 1]) {
-          const bx = g.cx + side * (headHalf(g, y) - 1.2);
-          if (Math.abs(x - bx) < 1.8 && y > g.top + 4 && y < g.chin - 1) c.put(1, Math.abs(x - bx) > 1.4 ? 0.45 : cloth(y * 0.9), 'bandages');
-        }
-        if (y > g.chin - 1.2 && y < g.chin + 2 && Math.abs(x - g.cx) < g.rx * g.head.chin + 3) c.put(1, y > g.chin + 1.5 ? 0.45 : cloth(x * 0.8), 'bandages');
-        if (inEllipse(x, y, g.cx - 1.4, g.top - 0.4, 1.5, 1.3) || inEllipse(x, y, g.cx + 1.4, g.top - 0.4, 1.5, 1.3)) c.put(1, cloth(x), 'bandages');
+        for (const side of [-1, 1]) r.poly([[cx + side * (hw - 3), top + 3], [cx + side * (hw + 0.5), top + 3], [cx + side * (hw - 2), chin - 2], [cx + side * (hw - 5), chin - 2]], side < 0 ? 10 : 8, 'bandages');
+        r.poly([[cx - hw + 3, chin - 3], [cx + hw - 3, chin - 3], [cx + 5, chin + 2.5], [cx - 5, chin + 2.5]], 9, 'bandages');
+        r.ellipse(cx - 1.5, top + 0.5, 1.8, 1.4, 10, 'bandages');
+        r.ellipse(cx + 1.5, top + 0.5, 1.8, 1.4, 8, 'bandages');
         break;
       }
       default: {
         // a band round the head with a knot over one ear
-        const y0 = g.browY - 5.6 + b.dy;
-        if (y > y0 && y < y0 + 3.4 && Math.abs(x - g.cx) <= headHalf(g, y, 0.6)) c.put(1, y < y0 + 0.45 || y > y0 + 2.95 ? 0.44 : cloth((x + y * 1.5) * 0.7), 'bandages');
-        const kx = g.cx + g.rx + 0.6;
-        if (inEllipse(x, y, kx, y0 + 1, 1.6, 1.3) || segDist(x, y, kx, y0 + 2, kx + 1.6, y0 + 5.5).d < 0.7) c.put(1, cloth(y * 1.3) - 0.05, 'bandages');
+        const y = browY - 6.5 + b.dy;
+        r.poly([[cx - hw - 1, y], [cx + hw + 1, y], [cx + hw + 1, y + 3.5], [cx - hw - 1, y + 3.5]], 10, 'bandages', (o) => o !== 'background' && o !== 'attire');
+        r.poly([[cx, y], [cx + hw + 1, y], [cx + hw + 1, y + 3.5], [cx, y + 3.5]], 8, 'bandages', (o) => o === 'bandages');
+        r.line(cx - hw, Math.round(y + 3), cx + hw, Math.round(y + 3), (x) => (x < cx ? 8 : 6), 'bandages');
+        r.ellipse(cx + hw + 1.5, y + 1.5, 1.8, 1.5, 8, 'bandages');
+        r.poly([[cx + hw + 1, y + 2], [cx + hw + 4, y + 7], [cx + hw + 2.5, y + 7.5]], 7, 'bandages');
       }
     }
   }
 }
 
-export function eyepatch(g: Geometry, c: Sample, x: number, y: number): void {
-  const side = g.spec.eyepatch === 'left' ? -1 : g.spec.eyepatch === 'right' ? 1 : 0;
+export function eyepatch(r: Raster, a: Anatomy): void {
+  const side = a.spec.eyepatch === 'left' ? -1 : a.spec.eyepatch === 'right' ? 1 : 0;
   if (!side) return;
-  const px = g.cx + side * g.eyeSep;
-  const py = g.eyeY - 0.2;
-  if (inEllipse(x, y, px, py, g.eye.w + 1.1, g.eye.h + 1.9)) {
-    c.put(1, 0.1 + 0.16 * gauss(x, y, px - 1, py - 1, 1.4, 1.1), 'eyepatch');
-    return;
-  }
+  const x = a.cx + side * a.eyeOff;
+  const y = a.eyeY;
   // the strap: to the near temple and across the forehead to the far side
-  const near = segDist(x, y, px + side * g.eye.w, py - 0.6, g.cx + side * (headHalf(g, py) + 0.3), py - 1.4);
-  const far = segDist(x, y, px - side * (g.eye.w - 0.4), py - 1.6, g.cx - side * (g.rx - 0.8), g.top + 5);
-  if (Math.min(near.d, far.d) < 0.42) c.put(1, 0.14, 'eyepatch');
+  r.line(x + side * 3, y - 1, a.cx + side * (a.hw + 1), y - 3, 1, 'eyepatch');
+  r.line(x - side * 3, y - 2, a.cx - side * (a.hw - 1), a.top + 7, 1, 'eyepatch');
+  r.ellipse(x, y - 0.5, 4.2, 3.3, 1, 'eyepatch');
+  r.set(Math.round(x) - 2, Math.round(y) - 2, 3, 'eyepatch');
+  r.set(Math.round(x) - 1, Math.round(y) - 2, 2, 'eyepatch');
 }

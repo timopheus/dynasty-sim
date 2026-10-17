@@ -3,8 +3,9 @@ import { newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { createCharacter } from '../src/core/hooks';
 import { faceSpec, VARIANTS, type FaceSpec, type Part } from '../src/core/looks';
-import { INK, PAPER, PORTRAIT_HEIGHT, PORTRAIT_WIDTH, SHADES, gridRgba, pixelsOf, portraitGrid, portraitText, type Grid } from '../src/ui/portrait';
+import { INK, PAPER, headwearKind, PORTRAIT_HEIGHT, PORTRAIT_WIDTH, SHADES, gridRgba, pixelsOf, portraitGrid, portraitText, type Grid } from '../src/ui/portrait';
 import { BASE_FILES, loadOrThrow } from './fixtures/content';
+import { anatomy as anatomyOf } from '../src/ui/portrait/anatomy';
 
 const p = (variant = 0, dx = 0, dy = 0): Part => ({ variant, dx, dy });
 
@@ -54,7 +55,7 @@ describe('portrait grid (4.12, D-300)', () => {
     for (const part of ['hair', 'brows', 'eyes', 'mouth', 'attire', 'head', 'ears', 'neck']) expect(pixelsOf(g, part).length, part).toBeGreaterThan(0);
     expect(top('hair')).toBeLessThan(top('brows'));
     expect(bottom('brows')).toBeLessThan(bottom('eyes'));
-    // the nose is drawn by the light on the relief, between the eyes and the mouth
+    // the nose lies between the eyes and the mouth
     expect(bottom('eyes') + 4).toBeLessThan(top('mouth'));
     expect(bottom('mouth')).toBeLessThan(top('attire'));
     // eyes on both sides of the middle, mirrored
@@ -127,6 +128,29 @@ describe('portrait grid (4.12, D-300)', () => {
   it('a child is smaller than a grown man', () => {
     const count = (g: Grid) => pixelsOf(g, 'head').length;
     expect(count(portraitGrid(base({ stage: 'child', age: 8 })))).toBeLessThan(count(portraitGrid(base())));
+  });
+});
+
+describe('headwear (D-305)', () => {
+  it('nine kinds for each sex, each drawn differently, and a hat covers the crown of the head', () => {
+    for (const sex of ['male', 'female'] as const) {
+      const kinds = new Set<string>();
+      const looks = new Set<string>();
+      for (let variant = 0; variant < 3; variant++) {
+        for (const dx of [-1, 0, 1]) {
+          const hat = { slot: 'head' as const, variant, dx, dy: 0 };
+          const spec = base({ sex, beard: null, accessories: [hat] });
+          const g = portraitGrid(spec);
+          kinds.add(headwearKind(anatomyOf(spec), hat));
+          looks.add(key(g));
+          const hatPixels = pixelsOf(g, 'headwear');
+          const headTop = Math.min(...rowsOf(portraitGrid(base({ sex, beard: null, hair: null })), 'head'));
+          expect(Math.min(...hatPixels.map((i) => Math.floor(i / PORTRAIT_WIDTH)))).toBeLessThanOrEqual(headTop);
+        }
+      }
+      expect(kinds.size).toBe(9);
+      expect(looks.size).toBe(9);
+    }
   });
 });
 
