@@ -1,5 +1,6 @@
 import { childrenOf, marriagesOf, parentsOf, siblingsOf } from '../family/kin';
 import { findCharacter } from '../helpers';
+import { heldBy, type Heirloom } from '../heirloom/heirloom';
 import { opinionValue } from '../relations/opinions';
 import type { Character, Ctx, GameState } from '../state';
 import { ageYears } from '../time/calendar';
@@ -119,6 +120,20 @@ export function willGuardians(ctx: Ctx, head: Character): Character[] {
   return [...state.household, ...state.circle].flatMap((id) => {
     const c = findCharacter(state, id);
     return canGuard(ctx, c, head, null) ? [c as Character] : [];
+  });
+}
+
+/** Heirlooms the head may leave by will (D-427): the things they hold now. */
+export function willItems(state: GameState, head: Character): Heirloom[] {
+  return heldBy(state, head);
+}
+
+/** Who may receive a thing by will (D-427): the living of the head's house and circle, without the head. */
+export function willReceivers(state: GameState, head: Character): Character[] {
+  const ids = new Set([...state.household, ...state.circle]);
+  return [...ids].flatMap((id) => {
+    const c = findCharacter(state, id);
+    return c && alive(c) && c.id !== head.id ? [c] : [];
   });
 }
 

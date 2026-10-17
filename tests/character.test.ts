@@ -9,6 +9,10 @@ import { ageModifiers, fameWord, stats, statWord } from '../src/core/character/s
 import { placeholderValues } from '../src/core/character/text';
 import { renderText } from '../src/core/text/text';
 import { entryText } from '../src/core/chronicle/log';
+import { inheritBodyTraits } from '../src/core/character/generate';
+import { checkTraitHolding, grantTrait, scaleByTraits } from '../src/core/character/holding';
+import { dailyDeathChance } from '../src/core/health/mortality';
+import { seedRng } from '../src/core/rng';
 import { fixtureContent } from './fixtures/content';
 
 function setup(seed = 1) {
@@ -242,5 +246,89 @@ describe('effects stats and fame (3.5)', () => {
     expect(EffectsSchema.safeParse({ fame: 0 }).success).toBe(false);
     expect(EffectsSchema.safeParse({ stats: {} }).success).toBe(false);
     expect(EffectsSchema.safeParse({ stats: { martial: 1 } }).success).toBe(true);
+  });
+});
+
+describe('inherited traits (D-329)', () => {
+  /** `n` children of the two parents, rolled on a stream of their own: the world stream stays untouched. */
+  function children(parentTraits: [string[], string[]], n: number, stream = 77) {
+    const { content, state, hero } = setup();
+    const own = { state: { ...state, rng: seedRng(5, stream) }, content };
+    const parent = (traits: string[]) => ({ ...hero, traits });
+    const out: string[][] = [];
+    for (let i = 0; i < n; i++) {
+      const child = { ...hero, traits: [] as string[] };
+      inheritBodyTraits(own, child, parent(parentTraits[0]), parent(parentTraits[1]));
+      out.push(child.traits);
+    }
+    return { out, content };
+  }
+  const count = (kids: string[][], id: string) => kids.filter((t) => t.includes(id)).length;
+
+  it('two clever parents have a clever child more often than one, and one more often than none', () => {
+    const both = count(children([['clever'], ['clever']], 1000).out, 'clever');
+    const one = count(children([['clever'], []], 1000).out, 'clever');
+    const none = count(children([[], []], 1000).out, 'clever');
+    expect(both).toBeGreaterThan(one);
+    expect(one).toBeGreaterThan(none);
+    expect(none).toBe(0);
+  });
+
+  it('a child never rises more than one level above the higher parent', () => {
+    const level = (id: string) => ({ quick: 1, clever: 2, brilliant: 3 })[id] ?? 0;
+    const top = (t: string[]) => Math.max(0, ...t.map(level));
+    for (const parents of [[['quick'], []], [['quick'], ['quick']], [['clever'], ['quick']], [[], []]] as [string[], string[]][]) {
+      const cap = Math.max(top(parents[0]), top(parents[1])) + 1;
+      const { out } = children(parents, 1000);
+      expect(Math.max(...out.map(top))).toBeLessThanOrEqual(cap);
+      for (const t of out) expect(t.filter((id) => level(id) > 0).length).toBeLessThanOrEqual(1);
+    }
+    // the step up does happen
+    expect(count(children([['quick'], ['quick']], 1000).out, 'clever')).toBeGreaterThan(0);
+  });
+
+  it('never gives a trait together with its opposite', () => {
+    const { out } = children([['robust'], ['frail']], 500);
+    expect(out.some((t) => t.includes('robust'))).toBe(true);
+    expect(out.some((t) => t.includes('frail'))).toBe(true);
+    for (const t of out) expect(t.includes('robust') && t.includes('frail')).toBe(false);
+  });
+
+  it('never mixes opposed lines, and takes the highest level of a parent line', () => {
+    const { out } = children([['hardy'], ['ailing']], 1000);
+    expect(count(out, 'hardy')).toBeGreaterThan(0);
+    expect(count(out, 'ailing')).toBeGreaterThan(0);
+    for (const t of out) expect(t.includes('hardy') && t.includes('ailing')).toBe(false);
+    const { content, hero } = setup();
+    const kids = children([['quick', 'brilliant'], []], 1000).out;
+    expect(count(kids, 'brilliant')).toBeGreaterThan(0);
+    expect(count(kids, 'clever')).toBeGreaterThan(0); // the fall back one level below the top
+    expect(count(kids, 'quick')).toBe(0);
+    expect(checkTraitHolding(content, { ...hero, traits: ['quick', 'clever'] })).toEqual([`${hero.id} holds two levels of line wit`, `${hero.id} holds two levels of line wit`]);
+    expect(checkTraitHolding(content, { ...hero, traits: ['hardy', 'ailing'] }).length).toBe(2);
+  });
+
+  it('granting a trait drops the other levels of its line and the lines against it', () => {
+    const { content, hero } = setup();
+    hero.traits = ['quick', 'hardy'];
+    grantTrait(content, hero, 'clever');
+    grantTrait(content, hero, 'ailing');
+    expect(hero.traits.sort()).toEqual(['ailing', 'clever']);
+    expect(checkTraitHolding(content, hero)).toEqual([]);
+  });
+
+  it('health traits scale the death chance and the conception chance with whole numbers', () => {
+    const { ctx, hero, content } = setup();
+    hero.traits = [];
+    expect(dailyDeathChance(ctx, hero)).toBe(1000);
+    hero.traits = ['robust'];
+    expect(dailyDeathChance(ctx, hero)).toBe(500);
+    hero.traits = ['frail'];
+    expect(dailyDeathChance(ctx, hero)).toBe(2000);
+    const spouse = { ...hero, traits: ['robust'] };
+    hero.traits = [];
+    expect(scaleByTraits(content, 1000, [hero, spouse], 'conceptionPct')).toBe(1500);
+    hero.traits = ['robust'];
+    expect(scaleByTraits(content, 1000, [hero, spouse], 'conceptionPct')).toBe(2250);
   });
 });

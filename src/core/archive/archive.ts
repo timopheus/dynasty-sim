@@ -70,7 +70,7 @@ export function archiveProblems(state: GameState, content: Content): string[] {
     const last = chunk.chronicle.at(-1);
     if (chunk.chronicle.length > 0 && (chunk.chronicle[0] as ChronicleEntry).day < lastEntry) problems.push(`archive chunk ${i}: chronicle goes back in time`);
     if (last) lastEntry = last.day;
-    problems.push(...chunkProblems(chunk, i, content, (id) => ids.has(id)));
+    problems.push(...chunkProblems(state, chunk, i, content, (id) => ids.has(id)));
   });
   const firstHot = state.chronicle[0];
   if (firstHot && firstHot.day < lastEntry) problems.push('the hot chronicle starts before the archived one ends');

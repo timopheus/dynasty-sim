@@ -1,0 +1,3 @@
+# expect-error: traits[0].heritage.both /must not be lower/
+traits:
+  - { id: tt_a, name: A, category: body, visibility: normal, heritage: { one: 3000, both: 1000 } }

@@ -1,0 +1,5 @@
+# expect-error: eras.reasons.era /unknown placeholder {names}/
+eras:
+  list:
+    - { id: one, name: One, from: 1700 }
+  reasons: { years_min: "From {year}", years_max: "Until {year}", era: "Only in {names}" }

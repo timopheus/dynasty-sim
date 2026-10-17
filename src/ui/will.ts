@@ -3,7 +3,7 @@ import type { Content } from '../core/content/schema';
 import type { Command } from '../core/game';
 import { getPlayer } from '../core/helpers';
 import type { Character, GameState } from '../core/state';
-import { heirOf, willGuardians, willHeirs } from '../core/succession/law';
+import { heirOf, willGuardians, willHeirs, willItems, willReceivers } from '../core/succession/law';
 import { willReasons } from '../core/succession/phases';
 import { ageYears } from '../core/time/calendar';
 
@@ -38,6 +38,10 @@ export interface WillForm {
   heirs: PersonChoice[];
   /** Grown-ups near the hero who may be named guardian of an heir under age. */
   guardians: PersonChoice[];
+  /** Heirlooms the hero holds, with the receiver the current will names (null: the heir takes it), D-427. */
+  items: { id: string; label: string; to: string | null }[];
+  /** The living of the house and circle who may be left a thing. */
+  receivers: PersonChoice[];
   /** Without kin the house ends (D-315); false while the placeholder heir stands in (`temporaryHeir`). */
   endsWithoutKin: boolean;
   /** The terms of the current will, to start the form from. */
@@ -58,12 +62,22 @@ export function willForm(state: GameState, content: Content): WillForm | null {
     cost: pace.willCost,
     heirs: willHeirs(state, hero.id).map(choice),
     guardians: willGuardians(ctx, hero).map(choice),
+    items: willItems(state, hero).map((h) => ({ id: h.id, label: h.name, to: will?.items.find((i) => i.item === h.id)?.to ?? null })),
+    receivers: willReceivers(state, hero).map(choice),
     endsWithoutKin: !pace.temporaryHeir,
     current: will ? { heir: will.heir, guardian: will.guardian, stale: will.stale } : null,
   };
 }
 
-/** The `will` command from the values of the form; an empty value leaves the term to the law. */
-export function willCommandOf(heir: string, guardian: string): Command {
-  return { type: 'will', heir: heir === '' ? null : heir, guardian: guardian === '' ? null : guardian, items: [] };
+/**
+ * The `will` command from the values of the form; an empty value leaves the term to the law. `items` maps a thing to its
+ * receiver; an empty receiver leaves the thing to the heir (D-427).
+ */
+export function willCommandOf(heir: string, guardian: string, items: readonly { item: string; to: string }[] = []): Command {
+  return {
+    type: 'will',
+    heir: heir === '' ? null : heir,
+    guardian: guardian === '' ? null : guardian,
+    items: items.filter((i) => i.to !== '').map((i) => ({ item: i.item, to: i.to })),
+  };
 }

@@ -132,7 +132,7 @@ for (let i = 0; i < runs; i++) {
   }
   const elapsedMs = Math.round(performance.now() - started);
   const { state, steps, violations } = result;
-  const metrics = computeMetrics(state);
+  const metrics = computeMetrics(state, content);
   report.runs.push({ seed: runSeed, elapsedMs, violations: violations.length, metrics });
 
   mkdirSync(dirname(out), { recursive: true });
