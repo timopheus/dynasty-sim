@@ -12,10 +12,10 @@ events:
         where: { occupation: [physician] }
     text: "{physician} listens to your chest for a long while. \"A weak chest runs in some families,\" the physician says. \"Yours, I think.\""
     options:
-      - text: Ask what to do
+      - text: Hear the physician out
         effects: { money: -5 }
         on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
-        result: "{physician} told {name} that {he} had inherited a sickly frame, and what to avoid."
+        result: "{physician} told {name} that {he} had inherited a sickly frame."
       - text: Wave it away
         result: "{name} would not hear that {he} had inherited a sickly frame from {his} line."
 

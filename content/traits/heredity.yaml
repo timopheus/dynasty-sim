@@ -35,7 +35,7 @@ traits:
     visibility: normal
     weight: 2
     mortalityPct: 85
-    line: { id: hardiness, level: 1 }
+    line: { id: hardiness, level: 1, against: frailty }
     heritage: { one: 2500, both: 5500, up: 600 }
 
   - id: long_lived
@@ -44,7 +44,7 @@ traits:
     opposite: sickly
     visibility: secret
     mortalityPct: 60
-    line: { id: hardiness, level: 2 }
+    line: { id: hardiness, level: 2, against: frailty }
     heritage: { one: 2000, both: 5000 }
 
   - id: frail
@@ -55,7 +55,7 @@ traits:
     visibility: normal
     weight: 2
     mortalityPct: 130
-    line: { id: frailty, level: 1 }
+    line: { id: frailty, level: 1, against: hardiness }
     heritage: { one: 2500, both: 5500, up: 600 }
 
   - id: sickly
@@ -66,5 +66,5 @@ traits:
     visibility: secret
     mortalityPct: 170
     conceptionPct: 70
-    line: { id: frailty, level: 2 }
+    line: { id: frailty, level: 2, against: hardiness }
     heritage: { one: 2000, both: 5000 }

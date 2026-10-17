@@ -110,3 +110,15 @@ traits:
     visibility: normal
     mortalityPct: 200
     heritage: { one: 3000, both: 6000 }
+  - id: hardy
+    name: Hardy
+    category: body
+    visibility: normal
+    line: { id: hardiness, level: 1, against: ailment }
+    heritage: { one: 5000, both: 7000 }
+  - id: ailing
+    name: Ailing
+    category: body
+    visibility: normal
+    line: { id: ailment, level: 1, against: hardiness }
+    heritage: { one: 5000, both: 7000 }

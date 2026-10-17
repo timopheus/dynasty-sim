@@ -10,7 +10,7 @@ import { placeholderValues } from '../src/core/character/text';
 import { renderText } from '../src/core/text/text';
 import { entryText } from '../src/core/chronicle/log';
 import { inheritBodyTraits } from '../src/core/character/generate';
-import { scaleByTraits } from '../src/core/character/holding';
+import { checkTraitHolding, scaleByTraits } from '../src/core/character/holding';
 import { dailyDeathChance } from '../src/core/health/mortality';
 import { seedRng } from '../src/core/rng';
 import { fixtureContent } from './fixtures/content';
@@ -288,11 +288,24 @@ describe('inherited traits (D-329)', () => {
   });
 
   it('never gives a trait together with its opposite', () => {
-    const { out, content } = children([['robust'], ['frail']], 500);
+    const { out } = children([['robust'], ['frail']], 500);
     expect(out.some((t) => t.includes('robust'))).toBe(true);
     expect(out.some((t) => t.includes('frail'))).toBe(true);
     for (const t of out) expect(t.includes('robust') && t.includes('frail')).toBe(false);
-    expect(content.traits.length).toBeGreaterThan(0);
+  });
+
+  it('never mixes opposed lines, and takes the highest level of a parent line', () => {
+    const { out } = children([['hardy'], ['ailing']], 1000);
+    expect(count(out, 'hardy')).toBeGreaterThan(0);
+    expect(count(out, 'ailing')).toBeGreaterThan(0);
+    for (const t of out) expect(t.includes('hardy') && t.includes('ailing')).toBe(false);
+    const { content, hero } = setup();
+    const kids = children([['quick', 'brilliant'], []], 1000).out;
+    expect(count(kids, 'brilliant')).toBeGreaterThan(0);
+    expect(count(kids, 'clever')).toBeGreaterThan(0); // the fall back one level below the top
+    expect(count(kids, 'quick')).toBe(0);
+    expect(checkTraitHolding(content, { ...hero, traits: ['quick', 'clever'] })).toEqual([`${hero.id} holds two levels of line wit`, `${hero.id} holds two levels of line wit`]);
+    expect(checkTraitHolding(content, { ...hero, traits: ['hardy', 'ailing'] }).length).toBe(2);
   });
 
   it('health traits scale the death chance and the conception chance with whole numbers', () => {

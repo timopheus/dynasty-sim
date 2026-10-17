@@ -75,8 +75,11 @@ export const TraitSchema = z.strictObject({
    * of the line when both parents hold this level. A trait without `heritage` is not inherited.
    */
   heritage: z.strictObject({ one: Int.min(0).max(10000), both: Int.min(0).max(10000), up: Int.min(0).max(10000).default(0) }).optional(),
-  /** Body traits only: a multi-level line (wit, health); the child's level is at most the higher parent's level + 1. */
-  line: z.strictObject({ id: Id, level: Int.min(1).max(5) }).optional(),
+  /**
+   * Body traits only: a multi-level line (wit, health); the child's level is at most the higher parent's level + 1.
+   * `against`: a line that cannot be held together with this one (robust against frail), like `opposite` for lines.
+   */
+  line: z.strictObject({ id: Id, level: Int.min(1).max(5), against: Id.optional() }).optional(),
   /** Body traits only: percent of the usual death chance of the simulated, 100 = unchanged; traits multiply (D-329). */
   mortalityPct: Int.min(0).max(1000).optional(),
   /** Body traits only: percent of the usual yearly conception chance of a couple; the traits of both spouses multiply. */
@@ -180,6 +183,10 @@ export const checkCharacter: CrossCheck = ({ names, traits, actions, events, gra
   const lines = new Map<string, { file: string; index: number; item: TraitDef }[]>();
   for (const entry of traits) if (entry.item.line) lines.set(entry.item.line.id, [...(lines.get(entry.item.line.id) ?? []), entry]);
   for (const [lineId, members] of lines) {
+    for (const { file, index, item } of members) {
+      const against = item.line?.against;
+      if (against && !lines.has(against)) errors.push({ file, path: `traits[${index}].line.against`, message: `unknown line "${against}"` });
+    }
     const levels = members.map((m) => m.item.line?.level ?? 0).sort((a, b) => a - b);
     const first = members[0];
     if (first && levels.some((level, i) => level !== i + 1)) {

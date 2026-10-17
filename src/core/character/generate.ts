@@ -59,8 +59,13 @@ export function inheritBodyTraits(ctx: Ctx, child: Character, father: Character,
   const held = (p: Character) => p.traits.flatMap((id) => traits.find((d) => d.id === id && d.category === 'body' && d.heritage) ?? []);
   const fromFather = held(father);
   const fromMother = held(mother);
+  const clashes = (def: TraitDef): boolean =>
+    child.traits.some((id) => {
+      const line = traits.find((d) => d.id === id)?.line;
+      return line !== undefined && def.line !== undefined && (line.against === def.line.id || line.id === def.line.against);
+    });
   const roll = (def: TraitDef, p: number): void => {
-    if (hasTrait(child, def.id) || (def.opposite && hasTrait(child, def.opposite))) return;
+    if (hasTrait(child, def.id) || (def.opposite && hasTrait(child, def.opposite)) || clashes(def)) return;
     if (chancePer(r, p, OUT_OF)) grantTrait(ctx.content, child, def.id);
   };
   const done = new Set<string>();
@@ -75,7 +80,7 @@ export function inheritBodyTraits(ctx: Ctx, child: Character, father: Character,
       continue;
     }
     const lineId = def.line.id;
-    const of = (list: TraitDef[]) => list.find((d) => d.line?.id === lineId) ?? null;
+    const of = (list: TraitDef[]) => list.filter((d) => d.line?.id === lineId).reduce<TraitDef | null>((top, d) => ((d.line?.level ?? 0) > (top?.line?.level ?? 0) ? d : top), null);
     const a = of(fromFather);
     const b = of(fromMother);
     const levelOf = (d: TraitDef | null) => d?.line?.level ?? 0;

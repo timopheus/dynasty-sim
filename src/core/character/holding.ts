@@ -50,6 +50,11 @@ export function checkTraitHolding(content: Content, c: Character): string[] {
     if (def.opposite && c.traits.includes(def.opposite)) problems.push(`${c.id} holds ${id} and its opposite ${def.opposite}`);
     if (def.category === 'education') educations += 1;
   }
+  const lines = c.traits.flatMap((id) => findTrait(content, id)?.line ?? []);
+  for (const line of lines) {
+    if (lines.filter((l) => l.id === line.id).length > 1) problems.push(`${c.id} holds two levels of line ${line.id}`);
+    if (line.against && lines.some((l) => l.id === line.against)) problems.push(`${c.id} holds lines ${line.id} and ${line.against} together`);
+  }
   if (educations > 1) problems.push(`${c.id} has ${educations} educations`);
   return problems;
 }
