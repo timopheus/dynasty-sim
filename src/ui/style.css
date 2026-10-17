@@ -325,8 +325,9 @@ button.link {
 
 .portrait canvas {
   display: block;
-  width: 128px;
-  height: 160px;
+  /* a whole multiple of 96×120, so every pixel stays square and sharp */
+  width: 192px;
+  height: 240px;
   image-rendering: pixelated;
 }
 
@@ -342,7 +343,7 @@ button.link {
   }
 
   .portrait canvas {
-    width: 80px;
-    height: 100px;
+    width: 96px;
+    height: 120px;
   }
 }

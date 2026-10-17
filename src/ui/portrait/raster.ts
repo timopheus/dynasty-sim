@@ -1,77 +1,105 @@
 import { SHADES } from './grid';
 
 /**
- * Drawing in flat shades, as a pixel artist does (4.12, D-305): polygons filled with one shade each, small hand-drawn
- * sprites, single-pixel lines. A pixel is inside a shape when its middle is. No blending and no dithering.
+ * Drawing in flat shades, as a pixel artist does (4.12, D-305): shapes filled with one shade each, single-pixel lines,
+ * a few hand-placed pixels. A pixel is inside a shape when its middle is. No blending and no dithering.
+ *
+ * Shapes are given in design units: a 64×80 frame. The picture is `SCALE` times larger, so the same drawing gains
+ * detail while lines stay one pixel thin.
  */
 
 export type Point = [number, number];
 
-export const WIDTH = 64;
-export const HEIGHT = 80;
+export const SCALE = 1.5;
+export const DESIGN_WIDTH = 64;
+export const DESIGN_HEIGHT = 80;
+export const WIDTH = DESIGN_WIDTH * SCALE;
+export const HEIGHT = DESIGN_HEIGHT * SCALE;
+
+/** A test on the pixel being painted: the detail already there and the middle of the pixel in design units. */
+export type Where = (owner: string, x: number, y: number) => boolean;
+
+const clampShade = (s: number) => Math.max(0, Math.min(SHADES - 1, Math.round(s)));
 
 export class Raster {
   readonly shades = new Array<number>(WIDTH * HEIGHT).fill(0);
   readonly owner = new Array<string>(WIDTH * HEIGHT).fill('background');
 
-  set(x: number, y: number, shade: number, part: string): void {
-    const xi = Math.floor(x);
-    const yi = Math.floor(y);
-    if (xi < 0 || yi < 0 || xi >= WIDTH || yi >= HEIGHT) return;
-    const i = yi * WIDTH + xi;
-    this.shades[i] = Math.max(0, Math.min(SHADES - 1, Math.round(shade)));
+  /** One pixel, by pixel coordinates. */
+  setPx(px: number, py: number, shade: number, part: string): void {
+    if (px < 0 || py < 0 || px >= WIDTH || py >= HEIGHT) return;
+    const i = py * WIDTH + px;
+    this.shades[i] = clampShade(shade);
     this.owner[i] = part;
   }
 
-  get(x: number, y: number): number {
-    if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT) return 0;
-    return this.shades[y * WIDTH + x]!;
+  ownerPx(px: number, py: number): string {
+    if (px < 0 || py < 0 || px >= WIDTH || py >= HEIGHT) return 'background';
+    return this.owner[py * WIDTH + px]!;
+  }
+
+  shadePx(px: number, py: number): number {
+    if (px < 0 || py < 0 || px >= WIDTH || py >= HEIGHT) return 0;
+    return this.shades[py * WIDTH + px]!;
+  }
+
+  /** The pixel under a design point. */
+  set(x: number, y: number, shade: number, part: string): void {
+    this.setPx(Math.floor(x * SCALE), Math.floor(y * SCALE), shade, part);
   }
 
   ownerAt(x: number, y: number): string {
-    if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT) return 'background';
-    return this.owner[y * WIDTH + x]!;
+    return this.ownerPx(Math.floor(x * SCALE), Math.floor(y * SCALE));
   }
 
-  /** Fills every pixel whose middle lies inside the polygon; `where` can restrict it (by the detail already there). */
-  poly(points: Point[], shade: number, part: string, where?: (owner: string, x: number, y: number) => boolean): void {
+  /** Visits every pixel whose middle lies inside a test, within design bounds. */
+  private each(x0: number, y0: number, x1: number, y1: number, test: (x: number, y: number) => boolean, paint: (i: number, px: number, py: number, x: number, y: number) => void): void {
+    const py0 = Math.max(0, Math.floor(y0 * SCALE));
+    const py1 = Math.min(HEIGHT - 1, Math.ceil(y1 * SCALE));
+    const px0 = Math.max(0, Math.floor(x0 * SCALE));
+    const px1 = Math.min(WIDTH - 1, Math.ceil(x1 * SCALE));
+    for (let py = py0; py <= py1; py++) {
+      const y = (py + 0.5) / SCALE;
+      for (let px = px0; px <= px1; px++) {
+        const x = (px + 0.5) / SCALE;
+        if (test(x, y)) paint(py * WIDTH + px, px, py, x, y);
+      }
+    }
+  }
+
+  /** Fills a polygon; `where` can restrict it, for example to pixels of the head. */
+  poly(points: Point[], shade: number, part: string, where?: Where): void {
+    const xs = points.map((p) => p[0]);
     const ys = points.map((p) => p[1]);
-    const y0 = Math.max(0, Math.floor(Math.min(...ys)));
-    const y1 = Math.min(HEIGHT - 1, Math.ceil(Math.max(...ys)));
-    for (let y = y0; y <= y1; y++) {
-      for (let x = 0; x < WIDTH; x++) {
-        if (inside(points, x + 0.5, y + 0.5) && (!where || where(this.owner[y * WIDTH + x]!, x, y))) this.set(x, y, shade, part);
-      }
-    }
+    this.each(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys), (x, y) => inside(points, x, y), (i, px, py, x, y) => {
+      if (!where || where(this.owner[i]!, x, y)) this.setPx(px, py, shade, part);
+    });
   }
 
-  ellipse(cx: number, cy: number, rx: number, ry: number, shade: number, part: string, where?: (owner: string, x: number, y: number) => boolean): void {
-    for (let y = Math.max(0, Math.floor(cy - ry)); y <= Math.min(HEIGHT - 1, Math.ceil(cy + ry)); y++) {
-      for (let x = Math.max(0, Math.floor(cx - rx)); x <= Math.min(WIDTH - 1, Math.ceil(cx + rx)); x++) {
-        const dx = (x + 0.5 - cx) / rx;
-        const dy = (y + 0.5 - cy) / ry;
-        if (dx * dx + dy * dy <= 1 && (!where || where(this.owner[y * WIDTH + x]!, x, y))) this.set(x, y, shade, part);
-      }
-    }
+  ellipse(cx: number, cy: number, rx: number, ry: number, shade: number, part: string, where?: Where): void {
+    this.each(cx - rx, cy - ry, cx + rx, cy + ry, (x, y) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1, (i, px, py, x, y) => {
+      if (!where || where(this.owner[i]!, x, y)) this.setPx(px, py, shade, part);
+    });
   }
 
-  /** Darkens (or lightens) what is already drawn inside a polygon, keeping its owner: a cast shadow. */
+  /** Darkens (or lightens) what is already inside a polygon, keeping its owner: a cast shadow. */
   shadow(points: Point[], delta: number, where: (owner: string) => boolean): void {
+    const xs = points.map((p) => p[0]);
     const ys = points.map((p) => p[1]);
-    for (let y = Math.max(0, Math.floor(Math.min(...ys))); y <= Math.min(HEIGHT - 1, Math.ceil(Math.max(...ys))); y++) {
-      for (let x = 0; x < WIDTH; x++) {
-        const i = y * WIDTH + x;
-        if (inside(points, x + 0.5, y + 0.5) && where(this.owner[i]!)) this.shades[i] = Math.max(0, Math.min(SHADES - 1, this.shades[i]! + delta));
-      }
-    }
+    this.each(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys), (x, y) => inside(points, x, y), (i) => {
+      if (where(this.owner[i]!)) this.shades[i] = clampShade(this.shades[i]! + delta);
+    });
   }
 
-  /** A one-pixel line (Bresenham) between two points. */
-  line(x0: number, y0: number, x1: number, y1: number, shade: number | ((x: number, y: number, i: number) => number | null), part: string): void {
-    let x = Math.round(x0);
-    let y = Math.round(y0);
-    const xe = Math.round(x1);
-    const ye = Math.round(y1);
+  /**
+   * A one-pixel line through design points (Bresenham in pixels). A function shade gets the pixel and its index along
+   * the line and may return null to skip it.
+   */
+  line(x0: number, y0: number, x1: number, y1: number, shade: number | ((px: number, py: number, i: number) => number | null), part: string): void {
+    let x = Math.floor(x0 * SCALE);
+    let y = Math.floor(y0 * SCALE);
+    const xe = Math.floor(x1 * SCALE);
+    const ye = Math.floor(y1 * SCALE);
     const dx = Math.abs(xe - x);
     const dy = -Math.abs(ye - y);
     const sx = x < xe ? 1 : -1;
@@ -79,7 +107,7 @@ export class Raster {
     let err = dx + dy;
     for (let i = 0; ; i++) {
       const s = typeof shade === 'number' ? shade : shade(x, y, i);
-      if (s !== null) this.set(x, y, s, part);
+      if (s !== null) this.setPx(x, y, s, part);
       if (x === xe && y === ye) return;
       const e2 = 2 * err;
       if (e2 >= dy) {
@@ -93,16 +121,22 @@ export class Raster {
     }
   }
 
+  /** A polyline through design points. */
+  path(points: Point[], shade: number | ((px: number, py: number, i: number) => number | null), part: string): void {
+    for (let k = 1; k < points.length; k++) this.line(points[k - 1]![0], points[k - 1]![1], points[k]![0], points[k]![1], shade, part);
+  }
+
   /**
-   * A hand-drawn sprite: rows of shade digits `0`–`9`, `a` (10), `b` (11); `.` or a space leaves the pixel. With
-   * `mirror` the rows are read right to left (the same part on the other side of the face).
+   * Hand-placed pixels: rows of shade digits `0`–`9`, `a` (10), `b` (11); `.` leaves the pixel. Placed at the pixel
+   * under a design point, drawn at pixel size.
    */
   sprite(rows: readonly string[], x: number, y: number, part: string, mirror = false): void {
+    const px = Math.floor(x * SCALE);
+    const py = Math.floor(y * SCALE);
     rows.forEach((row, dy) => {
       for (let i = 0; i < row.length; i++) {
         const ch = row[mirror ? row.length - 1 - i : i]!;
-        if (ch === '.' || ch === ' ') continue;
-        this.set(x + i, y + dy, parseInt(ch, 12), part);
+        if (ch !== '.' && ch !== ' ') this.setPx(px + i, py + dy, parseInt(ch, 12), part);
       }
     });
   }
@@ -128,4 +162,29 @@ export function turn(points: Point[], ox: number, oy: number, angle: number): Po
   const c = Math.cos(angle);
   const s = Math.sin(angle);
   return points.map(([x, y]) => [ox + (x - ox) * c - (y - oy) * s, oy + (x - ox) * s + (y - oy) * c]);
+}
+
+/** A smooth curve through points (Catmull–Rom), as a polyline with `steps` points per span: no corners in an outline. */
+export function smoothPath(points: Point[], steps = 4, closed = false): Point[] {
+  const n = points.length;
+  const at = (i: number) => points[closed ? (i + n) % n : Math.max(0, Math.min(n - 1, i))]!;
+  const out: Point[] = [];
+  const spans = closed ? n : n - 1;
+  for (let i = 0; i < spans; i++) {
+    const [p0, p1, p2, p3] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
+    for (let s = 0; s < steps; s++) {
+      const t = s / steps;
+      const t2 = t * t;
+      const t3 = t2 * t;
+      const c = (a: number, b: number, d: number, e: number) => 0.5 * (2 * b + (-a + d) * t + (2 * a - 5 * b + 4 * d - e) * t2 + (-a + 3 * b - 3 * d + e) * t3);
+      out.push([c(p0[0], p1[0], p2[0], p3[0]), c(p0[1], p1[1], p2[1], p3[1])]);
+    }
+  }
+  if (!closed) out.push(points[n - 1]!);
+  return out;
+}
+
+/** A curve moved sideways: each point shifted by `d` along x (a band beside an outline). */
+export function shifted(points: Point[], dx: number, dy = 0): Point[] {
+  return points.map(([x, y]) => [x + dx, y + dy]);
 }

@@ -1,262 +1,271 @@
 import type { Anatomy } from './anatomy';
-import { mirror, type Point, type Raster } from './raster';
+import { mirror, smoothPath, type Point, type Raster } from './raster';
 
 /**
- * The head drawn in planes (4.12, D-305): the light falls from the upper left, so the planes facing it — forehead,
- * the left cheek, the bridge of the nose, the chin — are light, the planes turned from it dark. Each plane is one
- * shade; its corners hang on the anatomy, so the genes reshape the planes instead of swapping pictures.
+ * The head in planes of shade (4.12, D-305). Light falls from the upper left. The edge between light and shadow
+ * follows the form — round the forehead, over the cheekbone, down the jaw — and never runs straight down the middle.
+ * The features are built from each person's measures, not stamped from one picture.
  */
 
-const onHead = (o: string) => o === 'head';
+const SKIN = new Set(['head', 'wrinkles']);
+const onSkin = (o: string) => SKIN.has(o);
 
-/** The outline of the right half of the head, from the crown down to the chin. */
-function outline(a: Anatomy): Point[] {
-  const { cx, top, hw, cheek, jaw, chinW, chin, browY, eyeY, mouthY } = a;
+/** The right half of the head's outline, crown to chin. */
+function rightOutline(a: Anatomy): Point[] {
+  const { cx, top, hw, cheek, jaw, chinW, chin, browY, cheekY, mouthY } = a;
   return [
     [cx, top],
-    [cx + hw * 0.38, top + 0.5],
-    [cx + hw * 0.7, top + 3],
-    [cx + hw * 0.9, top + 7],
-    [cx + hw, top + 13],
-    [cx + hw + 0.3, browY - 0.5],
-    [cx + hw - 0.4, eyeY - 1],
-    [cx + cheek, eyeY + 3],
-    [cx + cheek - 0.6, eyeY + 8],
-    [cx + (cheek + jaw) / 2 + 0.6, mouthY - 2],
-    [cx + jaw, mouthY + 2.5],
-    [cx + (jaw + chinW) / 2 + 0.4, chin - 2.6],
-    [cx + chinW, chin - 0.6],
+    [cx + hw * 0.45, top + 0.6],
+    [cx + hw * 0.78, top + 3.5],
+    [cx + hw * 0.95, top + 8],
+    [cx + hw, browY - 6],
+    [cx + hw * 0.97, browY],
+    [cx + cheek, cheekY],
+    [cx + (cheek + jaw) / 2 + 0.4, mouthY - 2.5],
+    [cx + jaw, mouthY + 2],
+    [cx + (jaw + chinW) / 2, a.chin - 2.8],
+    [cx + chinW, chin - 0.7],
     [cx, chin],
   ];
 }
 
 export function headShape(a: Anatomy): Point[] {
-  const right = outline(a);
-  return [...right, ...mirror(right, a.cx).reverse()];
+  const right = rightOutline(a);
+  return smoothPath([...mirror(right, a.cx).reverse().slice(0, -1), ...right.slice(0, -1)], 5, true);
+}
+
+/** Pixels' current shade, darkened by `delta`: for creases drawn into whatever skin is there. */
+function crease(r: Raster, delta: number) {
+  return (px: number, py: number): number | null => (onSkin(r.ownerPx(px, py)) ? r.shadePx(px, py) + delta : null);
 }
 
 export function ears(r: Raster, a: Anatomy): void {
   const v = a.spec.ears.variant;
-  const sy = [1, 1.2, 1.05][v] ?? 1;
-  const sx = ([1, 1.1, 1.45][v] ?? 1) * (a.spec.ears.dx < 0 ? 0.85 : 1);
-  const y = a.earY;
-  const x = a.cx + a.hw - 0.6;
-  const place = (pts: Point[]): Point[] => pts.map(([dx, dy]) => [x + dx * sx, y + dy * sy]);
-  const ear = place([[0, -5], [2, -6], [3.5, -3], [3, 3], [1, 6], [-0.5, 5]]);
-  const bowl = place([[0.5, -3], [2, -3], [1.6, 2], [0.5, 2]]);
-  r.poly(ear, 5, 'ears');
-  r.poly(bowl, 3, 'ears');
-  r.poly(mirror(ear, a.cx), 8, 'ears');
-  r.poly(mirror(bowl, a.cx), 6, 'ears');
+  const h = ([5.8, 7, 6.2][v] ?? 6) * (a.child ? 0.9 : 1);
+  const out = ([1.7, 1.9, 2.6][v] ?? 1.8) * (a.spec.ears.dx < 0 ? 0.85 : 1);
+  for (const side of [-1, 1]) {
+    const x = a.cx + side * (a.hw * 0.96);
+    const y = a.earY;
+    const ear = smoothPath([[x, y - h / 2], [x + side * out * 0.8, y - h / 2 - 0.4], [x + side * out, y - h * 0.15], [x + side * out * 0.8, y + h * 0.3], [x + side * out * 0.2, y + h / 2], [x - side * 0.6, y + h * 0.35]], 4, true);
+    const lit = side < 0;
+    r.poly(ear, lit ? 8 : 5, 'ears');
+    r.poly(smoothPath([[x + side * 0.3, y - h * 0.3], [x + side * out * 0.6, y - h * 0.3], [x + side * out * 0.5, y + h * 0.15], [x + side * 0.3, y + h * 0.1]], 3, true), lit ? 5 : 3, 'ears');
+    r.path(smoothPath([[x + side * out * 0.4, y - h / 2], [x + side * out * 0.95, y - h * 0.15], [x + side * out * 0.7, y + h * 0.3]], 3), lit ? 9 : 6, 'ears');
+  }
 }
 
 export function neck(r: Raster, a: Anatomy): void {
   const { cx, chin, neckHalf: n, shoulders } = a;
-  const t = chin - 7;
-  r.poly([[cx - n, t], [cx + n, t], [cx + n + 1, shoulders + 3], [cx, shoulders + 5], [cx - n - 1, shoulders + 3]], 6, 'neck');
-  r.poly([[cx - n, t], [cx - 1, t], [cx - 1, shoulders + 4], [cx - n - 1, shoulders + 3]], 8, 'neck');
-  // the jaw casts a band of shadow down the neck
-  r.poly([[cx - n, chin - 4], [cx + n, chin - 4], [cx + n, chin + 0.6], [cx - n, chin - 0.4]], 3, 'neck', (o) => o === 'neck');
-  if (!a.female && !a.child) r.set(cx - 1, chin + 2, 8, 'neck');
+  const t = chin - 6;
+  const shape: Point[] = [[cx - n, t], [cx + n, t], [cx + n * 1.05, shoulders - 1], [cx + n * 1.5, shoulders + 1.5], [cx - n * 1.5, shoulders + 1.5], [cx - n * 1.05, shoulders - 1]];
+  r.poly(shape, 7, 'neck');
+  // a lit cylinder: the left catches the light, the right turns into shadow
+  r.poly([[cx - n - 1, t], [cx - n * 0.2, t], [cx - n * 0.1, shoulders + 1.5], [cx - n * 1.6, shoulders + 1.5]], 8, 'neck', (o) => o === 'neck');
+  r.poly([[cx + n * 0.4, t], [cx + n + 1, t], [cx + n * 1.6, shoulders + 1.5], [cx + n * 0.5, shoulders + 1.5]], 4, 'neck', (o) => o === 'neck');
+  // the jaw throws its shadow on the neck, following the jaw's own curve
+  const jawLine = rightOutline(a).filter(([, y]) => y >= a.mouthY);
+  const curve = smoothPath([...mirror(jawLine, cx).reverse().slice(0, -1), ...jawLine], 3);
+  r.poly([...curve, ...curve.map(([x, y]): Point => [x, y + 3.2]).reverse()], 4, 'neck', (o) => o === 'neck');
+  r.poly([...curve.filter(([x]) => x > cx), ...curve.filter(([x]) => x > cx).map(([x, y]): Point => [x, y + 3.2]).reverse()], 3, 'neck', (o) => o === 'neck');
+  if (!a.female && !a.child) {
+    r.ellipse(cx - 0.6, chin + 3.6, 1, 1.3, 8, 'neck', (o) => o === 'neck');
+    if (a.old || a.gaunt) for (const side of [-1, 1]) r.line(cx + side * n * 0.8, chin + 1, cx + side * 1.6, shoulders, crease(r, -1), 'neck');
+  }
 }
 
 export function skull(r: Raster, a: Anatomy): void {
-  const { cx, top, hw, cheek, jaw, chinW, chin, browY, eyeY, noseBottom, mouthY } = a;
+  const { cx, top, hw, cheek, jaw, chinW, chin, browY, eyeY, cheekY, noseBottom: nb, mouthY } = a;
   const soft = a.female || a.child;
-  const gaunt = a.old || a.spec.illness > 1 || a.spec.dead;
-  r.poly(headShape(a), 7, 'head');
-  // the half toward the light
-  r.poly([[cx - hw - 1, top + 11], [cx - hw + 1.5, top + 5], [cx - 10, top + 1], [cx, top], [cx + 1, browY + 1.5], [cx, chin], [cx - 6, chin - 2.6], [cx - 11, mouthY + 2.5], [cx - 14, mouthY - 2], [cx - hw, eyeY + 5]], 9, 'head', onHead);
-  // the forehead facing the light
-  r.poly([[cx - 8, top + 3], [cx + 6, top + 3], [cx + 9, top + 9], [cx + 8.5, browY - 2.5], [cx, browY - 1.5], [cx - 9.5, browY - 2.5], [cx - 10.5, top + 9]], 10, 'head', onHead);
-  r.poly([[cx, top + 3], [cx + 6, top + 3], [cx + 9, top + 9], [cx + 8.5, browY - 2.5], [cx, browY - 1.5]], 9, 'head', onHead);
-  // the side turning from the light, and its darkest strip
-  r.poly([[cx + 12, top + 5], [cx + hw + 1, top + 11], [cx + hw + 1, browY], [cx + hw + 1, eyeY - 1], [cx + cheek + 1, eyeY + 3], [cx + cheek + 1, eyeY + 8], [cx + (cheek + jaw) / 2 + 1, mouthY - 2], [cx + jaw + 1, mouthY + 2.5], [cx + jaw - 1.6, mouthY - 2], [cx + cheek - 4.5, eyeY + 5], [cx + 12, browY - 1]], 5, 'head', onHead);
-  r.poly([[cx + hw - 1.5, top + 13], [cx + hw + 1, browY], [cx + hw + 1, eyeY - 1], [cx + cheek + 1, eyeY + 3], [cx + cheek + 1, eyeY + 8], [cx + (cheek + jaw) / 2 + 1, mouthY - 2], [cx + cheek - 3, eyeY + 5], [cx + hw - 2, browY + 3]], 4, 'head', onHead);
-  // brow ridge
-  r.poly([[cx - 12, browY - 1.5], [cx - 1, browY - 1.5], [cx - 1, browY + 1], [cx - 12, browY + 1.5]], 10, 'head', onHead);
-  r.poly([[cx + 1, browY - 1.5], [cx + 12, browY - 1.5], [cx + 12, browY + 1.5], [cx + 1, browY + 1]], 8, 'head', onHead);
-  // eye sockets
-  r.poly([[cx - 11.5, browY + 1.5], [cx - 1.5, browY + 1], [cx - 1.5, eyeY + 3], [cx - 10, eyeY + 3]], 7, 'head', onHead);
-  r.poly([[cx + 1.5, browY + 1], [cx + 11.5, browY + 1.5], [cx + 10, eyeY + 3], [cx + 1.5, eyeY + 3]], 5, 'head', onHead);
-  // cheeks facing front
-  r.poly([[cx - 14, eyeY + 3], [cx - 2, eyeY + 3], [cx - 3, eyeY + 10], [cx - 12, eyeY + 11]], 10, 'head', onHead);
-  r.poly([[cx + 2, eyeY + 3], [cx + 12.5, eyeY + 3], [cx + 11, eyeY + 11], [cx + 3, eyeY + 10]], 7, 'head', onHead);
-  // the hollows under the cheekbones: faint on women and children, deep on the old, the ill and the dead
-  r.poly([[cx - 13, eyeY + 11], [cx - 6, eyeY + 10], [cx - 5, mouthY + 2], [cx - 10, mouthY + 2]], gaunt ? 7 : soft ? 9 : 8, 'head', onHead);
-  r.poly([[cx + 6, eyeY + 10], [cx + 12.5, eyeY + 11], [cx + 10, mouthY + 2], [cx + 5, mouthY + 2]], gaunt ? 3 : soft ? 6 : 4, 'head', onHead);
-  // the muzzle round the mouth and the chin
-  r.poly([[cx - 6, noseBottom], [cx, noseBottom - 0.5], [cx, chin - 3.6], [cx - 5, chin - 4.6]], 9, 'head', onHead);
-  r.poly([[cx, noseBottom - 0.5], [cx + 6, noseBottom], [cx + 5, chin - 4.6], [cx, chin - 3.6]], 6, 'head', onHead);
-  r.poly([[cx - 4, chin - 4.6], [cx, chin - 5], [cx, chin + 1], [cx - 3, chin]], 10, 'head', onHead);
-  r.poly([[cx, chin - 5], [cx + 4, chin - 4.6], [cx + 3, chin], [cx, chin + 1]], 7, 'head', onHead);
-  // the underside of the jaw
-  r.poly([[cx + 5, chin - 4.6], [cx + jaw + 1, mouthY + 2.5], [cx + (jaw + chinW) / 2 + 1, chin - 2.6], [cx + 3, chin + 1]], soft ? 4 : 3, 'head', onHead);
+  const shape = headShape(a);
+  r.poly(shape, 8, 'head');
+  // the front facing the light, bounded on the left by the rim of the head turning away
+  const rim: Point[] = [[cx - hw * 0.5, top + 1.5], [cx - hw * 0.85, top + 7], [cx - hw + 1.7, browY - 3], [cx - hw + 1.5, browY + 1], [cx - cheek + 1.8, cheekY + 0.5], [cx - jaw + 1.6, mouthY + 1.5], [cx - chinW - 0.4, chin - 1.4]];
+  const front: Point[] = [[cx + hw * 0.22, top + 1], [cx + hw * 0.3, browY - 3], [cx + 2, browY + 1.5], [cx + hw * 0.22, cheekY + 1], [cx + hw * 0.12, mouthY], [cx + chinW * 0.3, chin - 1.2]];
+  r.poly([...smoothPath(rim, 4), ...smoothPath(front, 4).reverse()], 9, 'head', onSkin);
+  // the shadow side: its edge (the terminator) runs round the forehead, over the cheekbone and down the jaw
+  const terminator: Point[] = [[cx + hw * 0.4, top - 1], [cx + hw * 0.52, top + 5], [cx + hw * 0.57, browY - 4], [cx + hw * 0.62, browY], [cx + hw * 0.56, cheekY - 1], [cx + hw * 0.46, cheekY + 3], [cx + hw * 0.4, mouthY - 1], [cx + jaw * 0.46, mouthY + 3], [cx + chinW * 0.7, chin - 1.4], [cx + chinW * 0.5, chin + 1]];
+  const t = smoothPath(terminator, 4);
+  r.poly([...t.map(([x, y]): Point => [x - 1.5, y]), ...t.slice().reverse()], soft ? 7 : 6, 'head', onSkin);
+  r.poly([...t, [cx + hw + 4, chin + 1], [cx + hw + 4, top - 1]], soft ? 5 : 4, 'head', onSkin);
+  // highlights: the forehead, the crest of the lit cheekbone, the chin
+  r.ellipse(cx - hw * 0.2, (top + browY) / 2 + 1, hw * 0.3, (browY - top) * 0.17, 10, 'head', onSkin);
+  r.poly(smoothPath([[cx - hw * 0.74, cheekY - 0.2], [cx - hw * 0.42, cheekY - 1.1], [cx - hw * 0.3, cheekY - 0.2], [cx - hw * 0.6, cheekY + 1.1]], 3, true), 10, 'head', onSkin);
+  r.ellipse(cx - 0.8, chin - 2.4, chinW * 0.5, 1.2, 10, 'head', onSkin);
+  for (const side of [-1, 1]) {
+    const lit = side < 0;
+    const ex = cx + side * a.eyeOff;
+    const ew = a.eye.w;
+    // the socket under the brow, deepest beside the nose
+    const socket = smoothPath([[ex + side * (ew + 1.4), browY + 0.6], [ex + side * ew * 0.3, browY + 0.4], [cx + side * 1.3, browY + 1.6], [cx + side * 1.5, eyeY + 0.4], [ex - side * ew * 0.6, eyeY - a.eye.h - 0.5], [ex + side * ew * 0.6, eyeY - a.eye.h - 0.3], [ex + side * (ew + 0.9), eyeY - 0.2]], 3, true);
+    r.poly(socket, lit ? 7 : 4, 'head', onSkin);
+    r.poly([[cx + side * 1.2, browY + 1.8], [cx + side * 2.8, eyeY - 0.8], [cx + side * 1.6, eyeY + 1]], lit ? 6 : 3, 'head', onSkin);
+    // the plane under the cheekbone, running down toward the corner of the mouth
+    const deep = a.gaunt ? 2 : 0;
+    const under: Point[] = [[cx + side * cheek * 0.95, cheekY + 1.2], [cx + side * (a.mouth.w + 2.4), mouthY - 1], [cx + side * (a.mouth.w + 2), mouthY + 1], [cx + side * jaw * 0.97, mouthY + 0.6]];
+    if (deep > 0 || !lit) r.poly(smoothPath(under, 3, true), lit ? 8 - deep : (soft ? 5 : 4) - deep, 'head', onSkin);
+    // the fold from the wing of the nose past the corner of the mouth
+    if (!a.child) r.path(smoothPath([[cx + side * (a.nose.w + 0.9), nb - 0.8], [cx + side * (a.mouth.w + 1.4), mouthY - 0.6], [cx + side * (a.mouth.w + 1.6), mouthY + 1.4]], 3), crease(r, a.old ? -3 : -1), 'head');
+  }
+  // the dent under the lower lip, the chin's cleft on a square jaw
+  r.ellipse(cx + 0.4, mouthY + a.mouth.low + 1.7, a.mouth.w * 0.45, 0.55, 7, 'head', onSkin);
+  if (!soft && a.spec.head.variant === 2) r.line(cx, chin - 2.6, cx, chin - 1.2, crease(r, -2), 'head');
+  // the underside of the jaw turns away from the light
+  const jawLine = rightOutline(a).filter(([, y]) => y >= mouthY + 1);
+  const lower = smoothPath([...mirror(jawLine, cx).reverse().slice(0, -1), ...jawLine], 3);
+  r.poly([...lower, ...lower.map(([x, y]): Point => [x, y - 1.3]).reverse()], 5, 'head', onSkin);
+  r.poly([...lower.filter(([x]) => x > cx + 1), ...lower.filter(([x]) => x > cx + 1).map(([x, y]): Point => [x, y - 1.6]).reverse()], 3, 'head', onSkin);
 }
 
 export function nose(r: Raster, a: Anatomy): void {
   const { cx, browY, noseBottom: nb, nose: n } = a;
   const w = n.w;
-  // the bridge in light, its shaded side (bulging on a hooked nose), the faint lit side
-  r.poly([[cx - 1.5, browY + 1.5], [cx + 0.5, browY + 1.5], [cx + 0.6, nb - 3], [cx - 1.6, nb - 3]], 10, 'head');
-  const mid = (browY + nb) / 2;
-  r.poly([[cx + 0.5, browY + 1.5], [cx + 2, browY + 2.5], [cx + 2 + n.hook, mid], [cx + w, nb - 2.5], [cx + 0.6, nb - 3]], 5, 'head');
-  r.poly([[cx - 1.5, browY + 2], [cx - 2.5, browY + 3], [cx - w + 0.5, nb - 3], [cx - 1.6, nb - 3]], 8, 'head');
-  // the tip and the wings
-  r.poly([[cx - 2.5, nb - 4], [cx + 1.5, nb - 4], [cx + w * 0.9 + 0.4, nb - 1.5], [cx + 1, nb], [cx - 1.5, nb], [cx - w * 0.9 - 0.4, nb - 1.5]], 10, 'head');
-  r.poly([[cx + 1, nb - 3.5], [cx + w + 0.4, nb - 2], [cx + w + 0.3, nb - 0.5], [cx + 1, nb]], 6, 'head');
-  // the base of the nose in shadow, and the nostrils
-  r.poly([[cx - w - 0.8, nb - 0.5], [cx + w + 0.8, nb - 0.5], [cx + w, nb + 1], [cx - w, nb + 1]], 4, 'head');
-  const left = Math.floor(cx - w * 0.85);
-  const right = Math.floor(cx + w * 0.55);
-  const y = Math.floor(nb - 1);
-  r.set(left, y, 2, 'nose');
-  r.set(left + 1, y, 3, 'nose');
-  r.set(right, y, 2, 'nose');
-  r.set(right + 1, y, 1, 'nose');
-  if (n.up) {
-    r.set(left + 1, y - 1, 4, 'nose');
-    r.set(right, y - 1, 3, 'nose');
-  }
+  const root = browY + 1.8;
+  const mid = (root + nb) / 2;
+  // the bridge in light; the side in shade, bulging on a hooked nose; its shadow cast on the cheek
+  r.poly(smoothPath([[cx - 0.9, root], [cx + 0.1, root], [cx + 0.3 + n.hook * 0.4, mid], [cx + 0.2, nb - 2.4], [cx - 1, nb - 2.4], [cx - 1.1, mid]], 3, true), 10, 'head');
+  r.poly(smoothPath([[cx + 0.4, root + 0.4], [cx + 1.4 + n.hook * 0.6, mid], [cx + w * 0.95, nb - 1.6], [cx + 0.6, nb - 2.2]], 3, true), 5, 'head');
+  r.poly([[cx + w * 0.9, nb - 3.5], [cx + w + 2.6, nb - 0.6], [cx + w + 0.8, nb + 0.4]], 4, 'head', onSkin);
+  r.poly(smoothPath([[cx - 1, root + 1], [cx - w * 0.8, nb - 2], [cx - 1, nb - 2.4]], 3, true), 8, 'head');
+  // the ball of the tip with a spark of light, the wings, the shadow under it, the nostrils
+  r.ellipse(cx - 0.2, nb - 1.5 - n.up * 0.4, w * 0.55, 1.35, 9, 'head');
+  r.set(cx - 0.8, nb - 2.2 - n.up * 0.4, 11, 'nose');
+  r.ellipse(cx - w * 0.72, nb - 0.9, 1.1, 0.95, 8, 'head');
+  r.ellipse(cx + w * 0.72, nb - 0.9, 1.1, 0.95, 5, 'head');
+  r.poly(smoothPath([[cx - w * 0.9, nb - 0.3], [cx, nb + 0.2], [cx + w * 0.9, nb - 0.3], [cx + w * 0.6, nb + 0.9], [cx - w * 0.6, nb + 0.9]], 3, true), 4, 'head', onSkin);
+  r.ellipse(cx - w * 0.38, nb - 0.35 - n.up * 0.3, 0.6, 0.38 + n.up * 0.2, 2, 'nose');
+  r.ellipse(cx + w * 0.38, nb - 0.35 - n.up * 0.3, 0.6, 0.38 + n.up * 0.2, 1, 'nose');
 }
 
-/** Darker shades of the shaded side: the right eye is drawn as the left mirrored, in shade. */
-const SHADE_SIDE: Record<string, string> = { b: '9', a: '8', '9': '7', '8': '6', '7': '5', '6': '4', '5': '4', '4': '3', '3': '2' };
-const shaded = (rows: readonly string[]) => rows.map((row) => [...row].map((ch) => SHADE_SIDE[ch] ?? ch).join(''));
-
-/** The left eye (on the lit side) by variant and mood; the outer corner is on the left. */
-function eyeRows(a: Anatomy): string[] {
-  const crease = ['.655555.', '6111111.', '.655555.', '.444444.', '........'][a.spec.eyes.variant] ?? '.655555.';
-  const ball = ['.3a201a6', '.3a201a6', '.3a201a6', '.3a201a6', '.392019.'][a.spec.eyes.variant] ?? '.3a201a6';
-  const lower = '..67778.';
-  switch (a.mood.eyes) {
-    case 'closed':
-      return [crease, '........', '.2111112', '..6777..'];
-    case 'wince':
-      return ['.111111.', '..1111..', '.2111112', '..6666..'];
-    case 'narrow':
-      return [crease, '........', '.1111111', ball.replace(/a/g, '8'), '..6777..'];
-    case 'down':
-      return [crease, '........', '.1111111', '.3a221a6'.replace('22', '20'), lower];
-    default:
-      if (a.spec.eyes.variant === 2) return [crease, '.1111111', '.3a221a6', ball, lower];
-      return [crease, '.1111111', ball, lower];
-  }
+/** The eye opening at u (−1 inner corner … 1 outer corner): top and bottom edges. */
+function lids(a: Anatomy, u: number): { up: number; low: number } {
+  const { eye, mood } = a;
+  const droop = eye.droop * Math.max(0, u) * 0.7;
+  const k = Math.max(0, 1 - u * u);
+  const open = mood.open * (1 - eye.lid * 0.2) * (a.spec.illness > 1 ? 0.8 : 1);
+  return {
+    up: a.eyeY + droop - eye.h * open * k ** 0.6 * (1 - 0.15 * u),
+    low: a.eyeY + droop + eye.h * 0.55 * k ** 0.8 - mood.lower * eye.h * 0.4 * k,
+  };
 }
 
 export function eyes(r: Raster, a: Anatomy): void {
-  const rows = eyeRows(a);
-  const y = Math.round(a.eyeY) - 2;
-  const lx = Math.round(a.cx - a.eyeOff) - 4;
-  const rx = Math.round(a.cx + a.eyeOff) - 4;
-  const ill = a.spec.illness;
-  if (a.spec.eyepatch !== 'left') {
-    r.sprite(rows, lx, y, 'eyes');
-    if (a.female && a.mood.eyes !== 'closed') r.set(lx, y + 1, 1, 'eyes');
-    if (a.mood.tears) r.sprite(['b', 'a', 'b'], lx + 5, y + rows.length, 'eyes');
-    if (ill > 0) r.sprite(['.6666.'], lx + 1, y + rows.length, 'illness');
-  }
-  if (a.spec.eyepatch !== 'right') {
-    r.sprite(shaded(rows), rx, y, 'eyes', true);
-    if (a.female && a.mood.eyes !== 'closed') r.set(rx + 7, y + 1, 1, 'eyes');
-    if (ill > 0) r.sprite(['.3333.'], rx + 1, y + rows.length, 'illness');
+  const { eye, mood } = a;
+  for (const side of [-1, 1]) {
+    if ((side < 0 && a.spec.eyepatch === 'left') || (side > 0 && a.spec.eyepatch === 'right')) continue;
+    const lit = side < 0;
+    const ex = a.cx + side * a.eyeOff;
+    const at = (u: number) => ex + side * u * eye.w;
+    const us = Array.from({ length: 13 }, (_, i) => -1 + i / 6);
+    const upper: Point[] = us.map((u) => [at(u), lids(a, u).up]);
+    const lower: Point[] = us.map((u) => [at(u), lids(a, u).low]);
+    if (mood.open <= 0.05) {
+      // closed: the lid and its lashes curve down
+      r.path(us.map((u): Point => [at(u), a.eyeY + eye.h * 0.3 * (1 - u * u)]), 2, 'eyes');
+      continue;
+    }
+    // the white, the iris and pupil, a spark of light; the lid shades the top of the eye
+    r.poly([...upper, ...lower.slice().reverse()], lit ? 9 : 6, 'eyes');
+    const ix = ex + side * 0.1;
+    const iy = a.eyeY + mood.gaze * eye.h * 0.5 + 0.15;
+    const inEye = (o: string) => o === 'eyes';
+    r.ellipse(ix, iy, eye.iris, eye.iris, lit ? 3 : 2, 'eyes', inEye);
+    r.ellipse(ix, iy, eye.iris * 0.5, eye.iris * 0.5, 0, 'eyes', inEye);
+    r.path(upper.map(([x, y]): Point => [x, y + 0.6]).slice(2, -2), (px, py) => (r.ownerPx(px, py) === 'eyes' ? Math.max(0, r.shadePx(px, py) - 2) : null), 'eyes');
+    r.set(ix - 0.5, iy - 0.6, 11, 'eyes');
+    // the lash line, heavier toward the outer corner; the fold of the lid above it; a faint lower lid
+    r.path(upper, 1, 'eyes');
+    r.path(upper.filter((_, i) => us[i]! > 0.2).map(([x, y]): Point => [x, y - 0.6]), 1, 'eyes');
+    if (a.female) r.line(at(1), lids(a, 1).up, at(1.35), lids(a, 1).up - 0.9, 1, 'eyes');
+    r.path(us.filter((u) => u > -0.7 && u < 0.9).map((u): Point => [at(u), lids(a, u).up - 1.3 - eye.lid * 0.2]), crease(r, -2), 'head');
+    r.path(us.filter((u) => u > -0.6 && u < 0.8).map((u): Point => [at(u), lids(a, u).low + 0.5]), crease(r, -1), 'head');
+    if (a.spec.illness > 0 || a.old) r.path(us.filter((u) => u > -0.5 && u < 0.7).map((u): Point => [at(u), lids(a, u).low + 1.6]), crease(r, a.spec.illness > 0 ? -2 : -1), 'head');
+    if (mood.tears && lit) r.line(at(-0.4), lids(a, -0.4).low + 0.6, at(-0.45), lids(a, -0.4).low + 3.5, 11, 'eyes');
   }
 }
 
-const BROWS = [
-  ['.11111...', '1.....111'],
-  ['..1111...', '.1....11.', '1.......1'],
-  ['.1111111.', '111111111'],
-  ['....11111', '11111....'],
-];
-
-export function brows(r: Raster, a: Anatomy, tone: number): void {
-  const base = BROWS[a.spec.brows.variant] ?? BROWS[0]!;
-  const lift = a.mood.brows + (a.spec.expression === 'neutral' && a.spec.temper < 0 ? 1 : 0);
-  const thin = a.female && base.length === 2 && a.spec.brows.variant === 2 ? [base[0]!] : base;
-  const y = Math.round(a.browY) - 1;
-  const lx = Math.round(a.cx - a.eyeOff) - 5 + (a.spec.brows.dx < 0 ? 1 : 0);
-  const rx = Math.round(a.cx + a.eyeOff) - 4 - (a.spec.brows.dx < 0 ? 1 : 0);
-  thin.forEach((row, dy) => {
-    for (let i = 0; i < row.length; i++) {
-      if (row[i] !== '1') continue;
-      // the inner end (toward the nose) drops with anger and rises with grief
-      const shift = i >= 6 ? Math.sign(lift) * (lift !== 0 ? 1 : 0) : 0;
-      r.set(lx + i, y + dy + shift, tone, 'brows');
-      r.set(rx + (row.length - 1 - i), y + dy + shift, tone, 'brows');
+export function brows(r: Raster, a: Anatomy, litTone: number, shadeTone: number): void {
+  const b = a.brow;
+  const lift = a.mood.brows + (a.spec.expression === 'neutral' && a.spec.temper < 0 ? 0.6 : 0);
+  const th0 = b.th * (a.female ? 0.7 : 1) + (a.female || a.child ? 0 : 0.2);
+  for (const side of [-1, 1]) {
+    const ex = a.cx + side * a.eyeOff;
+    const x0 = a.cx + side * 1.5;
+    const x1 = ex + side * (a.eye.w + 1.4) * b.len + side * a.spec.brows.dx * 0.3;
+    const top: Point[] = [];
+    const bottom: Point[] = [];
+    for (let i = 0; i <= 10; i++) {
+      const t = i / 10;
+      const x = x0 + (x1 - x0) * t;
+      const y = a.browY - b.arch * (1 - ((t - 0.55) / 0.55) ** 2) + b.slope * Math.max(0, t - 0.6) * 2 + lift * 0.9 * (1 - t) ** 2;
+      const th = th0 * (1 - 0.6 * t ** 1.5);
+      top.push([x, y - th / 2]);
+      bottom.push([x, y + th / 2]);
     }
-  });
+    r.poly([...top, ...bottom.reverse()], side < 0 ? litTone : shadeTone, 'brows');
+  }
 }
 
 export function mouth(r: Raster, a: Anatomy): void {
   const { cx, mood, female } = a;
-  const w = Math.round(a.mouth.w);
-  const y = Math.round(a.mouthY);
-  const x0 = cx - w;
-  const x1 = cx + w - 1;
-  const lip = (x: number) => (x < cx ? (female ? 5 : 6) : female ? 4 : 5);
-  const lower = (x: number) => (x < cx - 1 ? (female ? 7 : 10) : x < cx + 1 ? (female ? 7 : 9) : female ? 6 : 8);
-  if (mood.teeth) {
-    // lips drawn back over the teeth
-    for (let x = x0 + 1; x <= x1 - 1; x++) {
-      r.set(x, y - 1, lip(x), 'mouth');
-      r.set(x, y, 1, 'mouth');
-      r.set(x, y + 1, x === x0 + 1 || x === x1 - 1 ? 2 : 10, 'mouth');
-      r.set(x, y + 2, 1, 'mouth');
-      r.set(x, y + 3, lower(x) - 1, 'mouth');
-    }
-    r.set(x0, y + (mood.curve < 0 ? 2 : 1), 3, 'mouth');
-    r.set(x1, y + (mood.curve < 0 ? 2 : 1), 3, 'mouth');
-    return;
+  const m = a.mouth;
+  const w = m.w * (mood.pressed ? 0.92 : 1);
+  const ss = Array.from({ length: 13 }, (_, i) => -1 + i / 6);
+  const line = (s: number) => a.mouthY - mood.curve * s * s * 1.2 - mood.smirk * Math.max(0, s) ** 2 * 1.4;
+  const open = mood.teeth ? 1.1 : mood.slack ? 0.5 : 0;
+  const up = m.up * (mood.pressed ? 0.35 : 1);
+  const low = m.low * (mood.pressed ? 0.35 : 1);
+  const x = (s: number) => cx + s * w;
+  // the upper lip faces down and is in shade; a bow in the middle
+  const bow = (s: number) => 0.3 * Math.exp(-((s * 5) ** 2)) - 0.15 * Math.exp(-(((Math.abs(s) - 0.3) * 6) ** 2));
+  const upper: Point[] = ss.map((s) => [x(s), line(s) - up * Math.max(0, 1 - s * s) ** 0.5 + bow(s)]);
+  r.poly([...upper, ...ss.slice().reverse().map((s): Point => [x(s), line(s)])], female ? 4 : 6, 'mouth');
+  r.poly([...upper.filter(([px]) => px > cx), ...ss.filter((s) => s > 0).reverse().map((s): Point => [x(s), line(s)])], female ? 3 : 4, 'mouth');
+  // the lower lip catches the light
+  const lowS = ss.filter((s) => Math.abs(s) < 0.95);
+  const lowerLip: Point[] = [...lowS.map((s): Point => [x(s), line(s) + open]), ...lowS.slice().reverse().map((s): Point => [x(s), line(s) + open + low * Math.max(0, 1 - s * s) ** 0.6])];
+  r.poly(lowerLip, female ? 6 : 8, 'mouth');
+  r.poly([...lowS.filter((s) => s > 0.1).map((s): Point => [x(s), line(s) + open]), ...lowS.filter((s) => s > 0.1).reverse().map((s): Point => [x(s), line(s) + open + low * Math.max(0, 1 - s * s) ** 0.6])], female ? 5 : 6, 'mouth');
+  r.path(lowS.filter((s) => s < -0.1 && s > -0.7).map((s): Point => [x(s), line(s) + open + low * 0.45]), female ? 7 : 9, 'mouth');
+  if (open > 0) {
+    // lips apart: the dark of the mouth, teeth along the top when they show
+    r.poly([...ss.slice(1, -1).map((s): Point => [x(s * 0.92), line(s) - 0.1]), ...ss.slice(1, -1).reverse().map((s): Point => [x(s * 0.92), line(s) + open])], 1, 'mouth');
+    if (mood.teeth) r.poly([...ss.slice(2, -2).map((s): Point => [x(s * 0.85), line(s) + 0.05]), ...ss.slice(2, -2).reverse().map((s): Point => [x(s * 0.85), line(s) + open * 0.5])], 10, 'mouth');
   }
-  if (mood.slack) {
-    for (let x = x0 + 1; x <= x1 - 1; x++) r.set(x, y, 2, 'mouth');
-    for (let x = x0 + 2; x <= x1 - 2; x++) r.set(x, y + 1, 1, 'mouth');
-    return;
-  }
-  // the upper lip in shade, the line between the lips, the lit lower lip and the shadow beneath it
-  if (!mood.pressed) for (let x = x0 + 1; x <= x1 - 1; x++) r.set(x, y - 1, x === x0 + 1 || x === x1 - 1 ? 7 : lip(x), 'mouth');
-  for (let x = x0 + 1; x <= x1 - 1; x++) r.set(x, y, x === x0 + 1 || x === x1 - 1 ? 2 : 1, 'mouth');
-  // the corners: up in a smile, down in grief, one up in a grin
-  const leftY = y - (mood.curve > 0 ? 1 : 0) + (mood.curve < 0 ? 1 : 0);
-  const rightY = y - (mood.curve > 0 || mood.smirk > 0 ? 1 : 0) + (mood.curve < 0 ? 1 : 0);
-  r.set(x0, leftY, 3, 'mouth');
-  r.set(x1, rightY, 3, 'mouth');
-  if (mood.smirk > 0) r.set(x1 - 1, y - 1, 2, 'mouth');
-  if (mood.pressed) return;
-  for (let x = x0 + 2; x <= x1 - 2; x++) r.set(x, y + 1, lower(x), 'mouth');
-  if (a.mouth.full || female) for (let x = x0 + 3; x <= x1 - 3; x++) r.set(x, y + 2, lower(x) - 1, 'mouth');
-  const under = y + (a.mouth.full || female ? 3 : 2);
-  for (let x = x0 + 3; x <= x1 - 3; x++) r.set(x, under, x < cx ? 7 : 5, 'head');
+  // the line between the lips and the corners
+  r.path(ss.map((s): Point => [x(s), line(s)]), 2, 'mouth');
+  for (const s of [-1, 1]) r.line(x(s), line(s), x(s * 1.08), line(s) + (mood.curve < 0 ? 0.5 : -0.2), 3, 'mouth');
 }
 
 export function mole(r: Raster, a: Anatomy): void {
-  if (a.spec.beauty < 0) r.set(Math.round(a.cx + 6.5), Math.round(a.noseBottom + 0.5), 2, 'mole');
+  if (a.spec.beauty < 0) r.ellipse(a.cx + a.hw * 0.42, a.noseBottom + 0.8, 0.5, 0.5, 2, 'mole');
 }
 
-/** Lines of age: the forehead, under the eyes, crow's feet, the folds from the nose past the mouth. */
+/** Lines of age, drawn as creases into the skin, soft and broken, never one bar across the brow. */
 export function wrinkles(r: Raster, a: Anatomy): void {
   const w = a.spec.wrinkles;
   if (!w) return;
-  const { cx, browY, eyeY, noseBottom, mouthY } = a;
-  const line = (y: number, x0: number, x1: number) => {
-    for (let x = Math.round(x0); x <= Math.round(x1); x++) {
-      if (w.variant === 1 && Math.abs(x - cx) < 2) continue;
-      const bend = w.variant === 2 ? (Math.abs(x - cx) > 4 ? -1 : 0) : 0;
-      if (r.ownerAt(x, y + bend) === 'head') r.set(x, y + bend, x < cx ? 6 : 4, 'wrinkles');
+  const { cx, browY, eyeY, mouthY, chin } = a;
+  const depth = w.level >= 3 ? -2 : -1;
+  const lines = w.level >= 3 ? 3 : w.level >= 2 ? 2 : 1;
+  for (let i = 0; i < lines; i++) {
+    const y = browY - 3.6 - i * 2 + w.dy * 0.4;
+    for (const side of [-1, 1]) {
+      // two short arcs, one each side of the middle, apart above the nose
+      const inner = cx + side * (1.4 + (w.variant === 1 ? 1 : 0));
+      const outer = cx + side * (7 - i + w.dx * 0.6);
+      const bend = w.variant === 2 ? -0.6 : 0.4;
+      r.path(smoothPath([[inner, y + 0.2], [(inner + outer) / 2, y - bend], [outer, y + 0.4]], 3), crease(r, depth), 'wrinkles');
     }
-  };
-  line(Math.round(browY - 6 + w.dy * 0.5), cx - 7 + w.dx, cx + 5 + w.dx);
+  }
   if (w.level >= 2) {
-    line(Math.round(browY - 3.5), cx - 5, cx + 4);
-    r.sprite(['667.'], Math.round(cx - a.eyeOff) - 3, Math.round(eyeY) + 2, 'wrinkles');
-    r.sprite(['.445'], Math.round(cx + a.eyeOff), Math.round(eyeY) + 2, 'wrinkles');
-    r.set(Math.round(cx - a.eyeOff) - 5, Math.round(eyeY), 6, 'wrinkles');
-    r.set(Math.round(cx + a.eyeOff) + 4, Math.round(eyeY), 3, 'wrinkles');
+    for (const side of [-1, 1]) {
+      const ox = cx + side * (a.eyeOff + a.eye.w + 0.6);
+      for (const k of [-0.8, 0.6]) r.line(ox, eyeY + k * 0.6, ox + side * 1.8, eyeY + k * 1.6, crease(r, depth), 'wrinkles');
+    }
   }
   if (w.level >= 3) {
-    r.line(cx - a.nose.w - 2, noseBottom, cx - a.mouth.w - 2, mouthY + 1, 6, 'wrinkles');
-    r.line(cx + a.nose.w + 2, noseBottom, cx + a.mouth.w + 2, mouthY + 1, 3, 'wrinkles');
+    // jowls and the lines of the neck
+    for (const side of [-1, 1]) r.path(smoothPath([[cx + side * (a.mouth.w + 2), mouthY + 1.6], [cx + side * (a.mouth.w + 2.6), mouthY + 4], [cx + side * (a.chinW + 2), chin - 1]], 3), crease(r, -1), 'wrinkles');
   }
 }
 

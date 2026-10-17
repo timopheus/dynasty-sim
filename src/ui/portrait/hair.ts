@@ -1,6 +1,6 @@
 import type { Anatomy } from './anatomy';
 import { headShape } from './head';
-import { mirror, type Point, type Raster } from './raster';
+import { mirror, smoothPath, type Point, type Raster } from './raster';
 
 /**
  * Hair and beards in flat masses (4.12, D-305): a main shade, a lit side and a sheen; grey turns the masses light.
@@ -65,18 +65,48 @@ export function backHair(r: Raster, a: Anatomy): void {
   const t = hairTones(a);
   const { cx, hw, browY, chin, shoulders } = a;
   if (long(a)) {
-    const fall = (a.female ? shoulders + 8 : chin + 4) + hair.dx * 2;
-    const out = hw + (a.female ? 3.5 : 2.5);
-    const mass: Point[] = [[cx - out, browY - 2], [cx - out - 0.5, chin], [cx - out + 1, fall], [cx - hw + 4, fall - 1], [cx + hw - 4, fall - 1], [cx + out - 1, fall], [cx + out + 0.5, chin], [cx + out, browY - 2]];
-    r.poly(mass, t.main, 'hair');
-    r.poly([[cx - out, browY - 2], [cx - out - 0.5, chin], [cx - out + 1, fall], [cx - out + 3.5, fall - 1], [cx - out + 3, browY]], t.lit, 'hair');
-    r.poly([[cx + out - 2.5, browY], [cx + out - 1.5, fall - 1], [cx + out - 1, fall], [cx + out + 0.5, chin], [cx + out, browY - 2]], t.deep, 'hair');
+    // the mass of the hair behind the head and shoulders
+    const { fall, out } = lockSize(a);
+    r.poly(smoothPath([[cx - out + 0.5, browY - 4], [cx - out - 0.6, chin - 4], [cx - out, fall - 3], [cx + out, fall - 3], [cx + out + 0.6, chin - 4], [cx + out - 0.5, browY - 4]], 4, true), t.deep, 'hair');
   } else if (hair.variant === 4 && !a.female && !a.child) {
     // a queue tied with a dark ribbon, its bow seen beside the neck
     const bx = cx + hw * 0.55;
     const by = chin + 1;
     r.poly([[bx - 4, by - 2], [bx, by], [bx - 4, by + 2]], 1, 'hair');
     r.poly([[bx + 4, by - 2], [bx, by], [bx + 4, by + 2]], 2, 'hair');
+  }
+}
+
+function lockSize(a: Anatomy): { fall: number; out: number } {
+  const dx = a.spec.hair?.dx ?? 0;
+  return { fall: (a.female ? a.shoulders + 8 : a.chin + 4) + dx * 2, out: a.hw + (a.female ? 3.2 : 2.4) };
+}
+
+/** Every beard has a moustache; it lies over the upper lip, so it is drawn after the mouth. */
+export function moustache(r: Raster, a: Anatomy): void {
+  if (!a.spec.beard) return;
+  const t = hairTones(a);
+  const { cx, noseBottom: nb, mouthY: my } = a;
+  const mw = a.mouth.w;
+  const shape = smoothPath([[cx - mw - 1, my + 0.3], [cx - mw + 0.4, my - 1.5], [cx - 1.6, nb + 1.3], [cx, nb + 1.8], [cx + 1.6, nb + 1.3], [cx + mw - 0.4, my - 1.5], [cx + mw + 1, my + 0.3], [cx + mw - 1, my - 0.4], [cx, my - 0.5], [cx - mw + 1, my - 0.4]], 3, true);
+  r.poly(shape, t.main, 'beard');
+  r.poly([...shape.filter(([x]) => x < cx - 0.5), [cx - 0.5, nb + 1.8]], t.lit, 'beard', (o) => o === 'beard');
+  r.line(cx, nb + 1.8, cx, my - 0.6, t.deep, 'beard');
+}
+
+/** Long hair falls in two locks over the shoulders, narrowing to their ends, strands of light running down them. */
+export function hairLocks(r: Raster, a: Anatomy): void {
+  if (!a.spec.hair || !long(a)) return;
+  const t = hairTones(a);
+  const { cx, browY, chin, neckHalf: n, shoulders } = a;
+  const { fall, out } = lockSize(a);
+  for (const side of [-1, 1]) {
+    const lock: Point[] = [[cx + side * (out - 2.5), browY], [cx + side * (out - 0.5), browY - 4], [cx + side * (out + 0.6), chin - 4], [cx + side * (out + 0.2), fall - 4], [cx + side * (out - 2.2), fall], [cx + side * (n + 3.5), shoulders + 2], [cx + side * (n + 1.2), chin - 1]];
+    r.poly(smoothPath(lock, 4, true), side < 0 ? t.main + 1 : t.main, 'hair');
+    for (let k = 0; k < 3; k++) {
+      const x = cx + side * (out - 0.8 - k * 1.4);
+      r.path(smoothPath([[x, browY + 2 + k * 2], [x + side * 0.4, chin - 2], [x - side * (1 + k * 0.6), fall - 2 - k]], 3), side < 0 ? t.lit + 1 : Math.max(0, t.main - 1), 'hair');
+    }
   }
 }
 
@@ -132,38 +162,46 @@ export function beard(r: Raster, a: Anatomy): void {
   const mw = a.mouth.w;
   const k = a.hw / 16;
   const length = 2.5 + (b.dx + 1) * 1.5;
-  const moustache: Point[] = [[cx - mw - 1.2, my + 0.6], [cx - mw, my - 1.2], [cx - 2, nb + 1.2], [cx, nb + 1.6], [cx + 2, nb + 1.2], [cx + mw, my - 1.2], [cx + mw + 1.2, my + 0.6], [cx + mw - 0.5, my], [cx, my - 0.6], [cx - mw + 0.5, my]];
   const lit = (o: string) => o === 'beard';
   switch (b.variant) {
     case 1: {
       // a pointed beard on the chin and a moustache
-      r.poly(moustache, t.main, 'beard');
-      r.poly([[cx - 3.5, my + 2.4], [cx + 3.5, my + 2.4], [cx + 2, chin + length * 0.8], [cx, chin + length], [cx - 2, chin + length * 0.8]], t.main, 'beard');
-      r.poly([[cx - 3.5, my + 2.4], [cx, my + 2.4], [cx, chin + length], [cx - 2, chin + length * 0.8]], t.lit, 'beard', lit);
+      // a tuft on the chin, narrowing to a point
+      const low = my + a.mouth.low + 1.1;
+      const tuft = smoothPath([[cx - 2.6, low], [cx + 2.6, low], [cx + 1.8, chin + length * 0.4], [cx, chin + length * 0.7], [cx - 1.8, chin + length * 0.4]], 3, true);
+      r.poly(tuft, t.main, 'beard');
+      r.poly([...tuft.filter(([x]) => x < cx), [cx, low]], t.lit, 'beard', lit);
       break;
     }
     case 2: {
       // a moustache, its ends drawn down past the corners of the mouth
-      r.poly([...moustache.slice(0, 7), [cx + mw + 1.8, my + 2.5], [cx + mw + 0.6, my + 2.5], [cx + mw - 0.5, my], [cx, my - 0.6], [cx - mw + 0.5, my], [cx - mw - 0.6, my + 2.5], [cx - mw - 1.8, my + 2.5]], t.main, 'beard');
-      r.poly([[cx - mw - 1.2, my + 0.6], [cx - mw, my - 1.2], [cx - 2, nb + 1.2], [cx, nb + 1.6], [cx, my - 0.6], [cx - mw + 0.5, my]], t.lit, 'beard', lit);
+      // only the ends drawn down past the corners of the mouth here; the moustache itself lies over the lip
+      for (const side of [-1, 1]) r.poly(smoothPath([[cx + side * (mw - 0.2), my - 0.8], [cx + side * (mw + 1.4), my - 0.2], [cx + side * (mw + 1.6), my + 2.6], [cx + side * (mw + 0.6), my + 2.2]], 3, true), side < 0 ? t.lit : t.main, 'beard');
       break;
     }
     case 3: {
-      // a short beard along the jaw and over the chin, with a moustache
-      const shape = headShape(a).filter(([, y]) => y > a.earY);
-      r.poly([...shape, [cx - jaw + 2, my + 1], [cx, my + 2.5], [cx + jaw - 2, my + 1]], t.main, 'beard');
-      r.poly(moustache, t.main, 'beard');
-      r.poly([[cx - a.cheek - 1, a.earY], [cx - jaw + 2, my + 1], [cx - 2, chin + 1], [cx - a.cheek + 1.5, a.earY]], t.lit, 'beard', lit);
+      // a short beard: a strap along the jaw from the ears, over the chin, with a moustache
+      const c = a.cheek;
+      const outer: Point[] = [[cx + c * 0.99, a.earY], [cx + (c + jaw) / 2 + 0.6, my - 2.5], [cx + jaw + 0.6, my + 2], [cx + (jaw + a.chinW) / 2 + 0.5, chin - 2.6], [cx + a.chinW + 0.6, chin - 0.2], [cx, chin + 1.3]];
+      const inner: Point[] = [[cx + c - 2.4, a.earY + 0.6], [cx + (c + jaw) / 2 - 2, my - 2], [cx + jaw - 2.6, my + 1.4], [cx + mw + 0.6, my + 2.4], [cx, my + a.mouth.low + 1.7]];
+      const strap = [...mirror(outer, cx), ...outer.slice(0, -1).reverse(), ...inner, ...mirror(inner, cx).slice(0, -1).reverse()];
+      r.poly(strap, t.main, 'beard');
+      r.poly([...mirror(outer, cx), ...mirror(inner, cx).reverse()], t.lit, 'beard', lit);
       break;
     }
     default: {
-      // a full beard from the cheeks to below the chin
-      const full: Point[] = [[cx - 13 * k, nb - 1], [cx - 8 * k, my - 1], [cx - 4, my - 1.5], [cx, my - 0.8], [cx + 4, my - 1.5], [cx + 8 * k, my - 1], [cx + 13 * k, nb - 1], [cx + a.cheek - 0.4, nb + 1], [cx + jaw + 0.6, my + 2.5], [cx + 6.5 * k, chin - 0.6], [cx + 3, chin + length], [cx, chin + length + 0.6], [cx - 3, chin + length], [cx - 6.5 * k, chin - 0.6], [cx - jaw - 0.6, my + 2.5], [cx - a.cheek + 0.4, nb + 1]];
+      // a full beard: it grows from below the cheekbones, round the mouth and over the chin; the cheeks stay bare
+      const c = a.cheek;
+      const full = smoothPath([
+        [cx - c * 0.97, a.cheekY + 2.2], [cx - c * 0.72, a.cheekY + 3.8], [cx - mw - 1.6, my - 1.6], [cx - 2, nb + 1.1], [cx, nb + 1.5],
+        [cx + 2, nb + 1.1], [cx + mw + 1.6, my - 1.6], [cx + c * 0.72, a.cheekY + 3.8], [cx + c * 0.97, a.cheekY + 2.2],
+        [cx + jaw + 0.7, my + 2.5], [cx + a.chinW + 2, chin], [cx + 3, chin + length], [cx, chin + length + 0.6], [cx - 3, chin + length],
+        [cx - a.chinW - 2, chin], [cx - jaw - 0.7, my + 2.5],
+      ], 3, true);
       r.poly(full, t.main, 'beard');
-      r.poly([[cx - 13 * k, nb - 1], [cx - 8 * k, my - 1], [cx - 4, my - 1.5], [cx - 3, chin + 1], [cx - 3, chin + length], [cx - 6.5 * k, chin - 0.6], [cx - jaw - 0.6, my + 2.5], [cx - a.cheek + 0.4, nb + 1]], t.lit, 'beard', lit);
-      r.poly(moustache, t.deep, 'beard');
+      r.poly([...full.filter(([x]) => x < cx - 2.5), [cx - 2.5, chin + length]], t.lit, 'beard', lit);
       // strands: a few lines of light down the beard
-      for (const dx of [-6, -2, 3]) r.line(cx + dx * k, my + 3, cx + dx * k * 0.8, chin + length - 1, dx < 0 ? t.lit + 1 : t.main + 1, 'beard');
+      for (const dx of [-6, -2.5, 2.5]) r.line(cx + dx * k, my + 3, cx + dx * k * 0.8, chin + length - 1, dx < 0 ? t.lit + 1 : t.main + 1, 'beard');
     }
   }
 }

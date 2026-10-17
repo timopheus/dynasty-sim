@@ -131,6 +131,83 @@ describe('portrait grid (4.12, D-300)', () => {
   });
 });
 
+describe('quality checklist (docs/portrait-checklist.md)', () => {
+  const W = PORTRAIT_WIDTH;
+  const samples: FaceSpec[] = [
+    base(),
+    base({ sex: 'female', hair: p(1), expression: 'joy', attire: 2 }),
+    base({ age: 66, stage: 'old', grey: 3, beard: p(0), wrinkles: { ...p(0), level: 3 }, accessories: [{ slot: 'head', ...p(0) }], attire: 3 }),
+    base({ stage: 'child', age: 8, hair: p(2), attire: 0 }),
+    base({ sex: 'female', grey: 2, hair: p(3), wrinkles: { ...p(1), level: 2 }, accessories: [{ slot: 'head', ...p(1, 1) }] }),
+    base({ head: p(3), eyes: p(4), nose: p(1), mouth: p(1), beard: p(3), scars: [p(0), p(2)], expression: 'anger' }),
+  ];
+
+  it('no lone pixels in skin, hair, clothes and hats', () => {
+    const surfaces = new Set(['head', 'hair', 'attire', 'headwear', 'neck', 'beard']);
+    for (const spec of samples) {
+      const g = portraitGrid(spec);
+      for (let y = 1; y < g.height - 1; y++) {
+        for (let x = 1; x < W - 1; x++) {
+          const i = y * W + x;
+          if (!surfaces.has(g.owner[i]!)) continue;
+          const near = [i - 1, i + 1, i - W, i + W];
+          const lone = near.every((j) => g.shades[j] === g.shades[near[0]!] && g.owner[j] === g.owner[near[0]!]) && g.shades[i] !== g.shades[near[0]!] && g.owner[near[0]!] === g.owner[i];
+          expect(lone, `${spec.sex} ${spec.age} at ${x},${y}`).toBe(false);
+        }
+      }
+    }
+  });
+
+  it('the mouth sits about a third of the way from the nose to the chin', () => {
+    for (const spec of samples.filter((s) => !s.beard)) {
+      const g = portraitGrid(spec);
+      const nose = Math.max(...rowsOf(g, 'nose'));
+      const mouth = Math.min(...rowsOf(g, 'mouth'));
+      const chin = Math.max(...rowsOf(g, 'head'));
+      const t = (mouth - nose) / (chin - nose);
+      expect(t, `${spec.sex} ${spec.age}`).toBeGreaterThan(0.1);
+      expect(t, `${spec.sex} ${spec.age}`).toBeLessThan(0.45);
+    }
+  });
+
+  it('eyes and brows are level on both sides of the middle line', () => {
+    for (const spec of samples.filter((s) => !s.eyepatch)) {
+      const g = portraitGrid(spec);
+      for (const part of ['eyes', 'brows']) {
+        const left = pixelsOf(g, part).filter((i) => i % W < W / 2).map((i) => Math.floor(i / W));
+        const right = pixelsOf(g, part).filter((i) => i % W >= W / 2).map((i) => Math.floor(i / W));
+        const mid = (rows: number[]) => rows.reduce((a, b) => a + b, 0) / rows.length;
+        expect(Math.abs(mid(left) - mid(right)), `${part} ${spec.sex} ${spec.age}`).toBeLessThan(1.5);
+      }
+    }
+  });
+
+  it('the face is set off from hair, hats and neck by a dark edge', () => {
+    for (const spec of samples) {
+      const g = portraitGrid(spec);
+      for (let i = W; i < g.shades.length - W; i++) {
+        if (g.owner[i] !== 'head') continue;
+        const touches = [i - 1, i + 1, i - W, i + W].some((j) => ['hair', 'headwear', 'neck'].includes(g.owner[j]!));
+        if (touches) expect(g.shades[i]).toBeLessThanOrEqual(5);
+      }
+    }
+  });
+
+  it('a hat covers the crown and is wider than the head', () => {
+    const W2 = (g: Grid, part: string) => {
+      const cols = pixelsOf(g, part).map((i) => i % W);
+      return Math.max(...cols) - Math.min(...cols);
+    };
+    for (const variant of [0, 1]) {
+      for (const dx of [-1, 0, 1]) {
+        const g = portraitGrid(base({ beard: null, accessories: [{ slot: 'head', variant, dx, dy: 0 }] }));
+        if (variant === 1 && dx === 0) continue; // the wool cap fits the head
+        expect(W2(g, 'headwear')).toBeGreaterThan(W2(portraitGrid(base({ hair: null })), 'head'));
+      }
+    }
+  });
+});
+
 describe('headwear (D-305)', () => {
   it('nine kinds for each sex, each drawn differently, and a hat covers the crown of the head', () => {
     for (const sex of ['male', 'female'] as const) {
@@ -156,6 +233,24 @@ describe('headwear (D-305)', () => {
 
 describe('portraits of real people (D-301)', () => {
   const content = loadOrThrow(BASE_FILES);
+
+  it('different people look different: at least 15% of the face pixels differ between any two', () => {
+    const state = newGame(9, content);
+    const ctx = { state, content };
+    const faces = Array.from({ length: 20 }, () => {
+      const c = createCharacter(ctx, { surname: 'Test', age: { min: 30, max: 30 } });
+      return portraitGrid(faceSpec(ctx, c, 'neutral'));
+    });
+    for (let i = 0; i < faces.length; i++) {
+      for (let j = i + 1; j < faces.length; j++) {
+        const a = faces[i]!;
+        const b = faces[j]!;
+        const face = a.owner.map((o, k) => (o === 'head' || b.owner[k] === 'head' ? k : -1)).filter((k) => k >= 0);
+        const differ = face.filter((k) => a.shades[k] !== b.shades[k] || a.owner[k] !== b.owner[k]).length;
+        expect(differ / face.length).toBeGreaterThan(0.15);
+      }
+    }
+  }, 30000);
 
   it('scarred people do not all wear the same scar; one person keeps his face', () => {
     const state = newGame(3, content);
