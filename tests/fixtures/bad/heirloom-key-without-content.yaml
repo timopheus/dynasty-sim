@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].effects.heirloom_lose /needs the top-level key "heirlooms"/
+events:
+  - id: lose_without_content
+    weight: 1
+    text: "{name} walks."
+    options:
+      - text: Walk
+        result: "{name} lost it."
+        effects: { heirloom_lose: {} }

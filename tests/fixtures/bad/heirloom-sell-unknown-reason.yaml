@@ -1,0 +1,14 @@
+# expect-error: events[0].options[0].effects.heirloom_sell.reason /unknown opinion reason/
+heirlooms:
+  max: 2
+  kinds: [{ id: sword, name: Sword }]
+  texts: { created: "{name} found {heirloom}.", given: "{name} gave {heirloom} to {to}.", sold: "{name} sold {heirloom}.", lost: "{name} lost {heirloom}.", inherited: "{name} inherited {heirloom}.", bequeathed: "{name} was left {heirloom}." }
+  reasons: { has: "Needs a {kind}.", count_min: "Needs {n}." }
+events:
+  - id: e
+    weight: 1
+    text: "{name} acts."
+    options:
+      - text: Act
+        result: "{name} acted."
+        effects: { heirloom_sell: { money: 5, reason: nothing_like_it } }

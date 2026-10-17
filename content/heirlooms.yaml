@@ -1,0 +1,16 @@
+heirlooms:
+  max: 3
+  kinds:
+    - { id: sword, name: Sword }
+    - { id: ring, name: Ring }
+    - { id: bill, name: Bill of exchange }
+  texts:
+    created: "{name} came into {heirloom}, a family {kind}."
+    given: "{name} gave {heirloom}, the family {kind}, to {to}."
+    sold: "{name} sold {heirloom}, the family {kind}."
+    lost: "{name} lost {heirloom}, the family {kind}, for good."
+    inherited: "{name} inherited {heirloom}, the family {kind}, from {deceased}."
+    bequeathed: "{name} was left {heirloom}, the family {kind}, by {deceased}."
+  reasons:
+    has: "Needs a family {kind}."
+    count_min: "Needs {n} family heirlooms."
