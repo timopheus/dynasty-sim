@@ -3,7 +3,7 @@
 events:
   - id: npc_marries
     who: npc
-    weight: 5
+    weight: 10
     cooldown_days: 365
     when: { age_min: 16, married: false }
     roles:

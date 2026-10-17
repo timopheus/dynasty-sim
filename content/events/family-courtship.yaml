@@ -4,13 +4,13 @@
 events:
   # Courtship story: the hero begins to court someone of the circle; the proposal comes in a season or the courtship lapses.
   - id: courtship_begins
-    weight: 6
-    cooldown_days: 500
+    weight: 40
+    cooldown_days: 300
     when: { age_min: 16, married: false }
     roles:
       match:
         pick: circle
-        where: { can_marry: hero }
+        where: { can_marry: hero, age_min: 16, age_max: 34 }
         prefer:
           - { when: { opinion: { toward: hero, min: 10 } }, factor: 3 }
     text: "Your path keeps crossing that of {match}, {match.age}. {match.He} laughs easily, and you find you are looking for {match.him} in every crowd."
@@ -44,7 +44,7 @@ events:
     options:
       - text: Ask for the hand of {match}
         when: { can_marry: match }
-        check: { stat: diplomacy, difficulty: 5, bonus: [{ when: { fame_min: 1 }, add: 1 }] }
+        check: { stat: diplomacy, difficulty: 3, bonus: [{ when: { fame_min: 1 }, add: 1 }] }
         success:
           effects: { marry: match, schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }] }
           result: "{name} won the hand of {match} after a season of courtship."
@@ -78,11 +78,11 @@ events:
 
   # A match by calculation: a family with money and no name, or a name and no money.
   - id: arranged_match
-    weight: 4
-    cooldown_days: 730
+    weight: 14
+    cooldown_days: 500
     when: { age_min: 16, married: false }
     roles:
-      match: { pick: circle, where: { can_marry: hero } }
+      match: { pick: circle, where: { can_marry: hero, age_min: 16, age_max: 34 } }
     text: "The family of {match}, {match.age}, sends a go-between with sober terms: a dowry of 80 crowns, and your name in the market in return. There is no talk of love."
     mood: neutral
     options:
@@ -119,7 +119,7 @@ events:
     cooldown_days: 900
     when: { age_min: 16, married: false }
     roles:
-      match: { pick: circle, where: { can_marry: hero, house_status_min: noble } }
+      match: { pick: circle, where: { can_marry: hero, house_status_min: noble, age_min: 16, age_max: 34 } }
     text: "{match}, {match.age}, is of a house far above yours. The family would not look at a hero of no name, yet you have been seen, and talked of."
     mood: threat
     options:
@@ -165,12 +165,12 @@ events:
 
   # A match offered for a grown child by a house of the circle; a parent of the groom speaks for them when one is near.
   - id: suit_for_your_child
-    weight: 4
-    cooldown_days: 500
+    weight: 8
+    cooldown_days: 365
     when: { children_min: 1 }
     roles:
       child: { pick: kin, kind: child, where: { age_min: 16, married: false } }
-      groom: { pick: circle, where: { can_marry: child } }
+      groom: { pick: circle, where: { can_marry: child, age_max: 34 } }
       parent: { pick: circle, optional: true, where: { kin: { kind: parent, with: groom } } }
     text: "A match is offered for {child}{parent?, through {parent},}: {groom}, {groom.age}. It is a decent house, and {child} has been looking at the door."
     mood: neutral

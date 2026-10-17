@@ -27,8 +27,8 @@ events:
   # Heavy: the mother after a birth. The mother may die; the choice is who to trust (D-164: the hero is not at risk).
   - id: childbed_fever
     severity: heavy
-    weight: 2
-    cooldown_days: 1000
+    weight: 1
+    cooldown_days: 1500
     roles:
       child: { pick: kin, kind: child, where: { age_max: 0 } }
       mother: { pick: kin, kind: spouse, where: { sex: female, kin: { kind: parent, with: child } } }
@@ -64,7 +64,7 @@ events:
           chronicle: true
           mood: pain
       - text: Leave it to the midwife and to God
-        check: { stat: prowess, of: mother, difficulty: 6 }
+        check: { stat: prowess, of: mother, difficulty: 3 }
         success:
           result: "{name} left {mother} to the midwife and to God, and the fever broke on the fifth night."
           chronicle: true
@@ -77,8 +77,8 @@ events:
 
   - id: child_falls_ill
     severity: heavy
-    weight: 2
-    cooldown_days: 1000
+    weight: 1
+    cooldown_days: 1500
     when: { children_min: 1 }
     roles:
       child: { pick: kin, kind: child, where: { age_max: 12 } }
@@ -112,7 +112,7 @@ events:
           chronicle: true
           mood: pain
       - text: Leave the child to the will of God
-        check: { stat: prowess, of: child, difficulty: 4 }
+        check: { stat: prowess, of: child, difficulty: 1 }
         success:
           result: "{name} left {child} to God, and the fever passed."
           mood: joy
@@ -299,11 +299,11 @@ events:
         result: "{name} sent {child} to kin for a season."
 
   - id: second_match
-    weight: 5
-    cooldown_days: 700
+    weight: 16
+    cooldown_days: 365
     when: { age_min: 18, married: false, children_min: 1 }
     roles:
-      match: { pick: circle, where: { can_marry: hero } }
+      match: { pick: circle, where: { can_marry: hero, age_min: 16, age_max: 40 } }
     text: "A friend says the house needs a steady hand and the children a second parent, and names {match}, {match.age}, who is both free and fond of children."
     mood: neutral
     options:

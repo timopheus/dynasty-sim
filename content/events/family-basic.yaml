@@ -17,7 +17,7 @@ events:
     roles:
       match:
         pick: circle
-        where: { can_marry: hero }
+        where: { can_marry: hero, age_min: 16, age_max: 34 }
         prefer:
           - { when: { opinion: { toward: hero, min: 10 } }, factor: 3 }
     text: "A go-between brings word of {match}, {match.age}, who is said to be of a mind to marry, and whose family would hear an offer."
@@ -47,7 +47,7 @@ events:
     cooldown_days: 730
     when: { married: false }
     roles:
-      match: { pick: circle, where: { can_marry: hero } }
+      match: { pick: circle, where: { can_marry: hero, age_min: 16, age_max: 34 } }
     text: "At a crowded fair you keep meeting the eyes of {match}. {match.He} does not look away."
     mood: joy
     options:
