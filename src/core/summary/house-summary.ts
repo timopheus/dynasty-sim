@@ -150,7 +150,7 @@ export function houseSummary(state: GameState, content: Content): HouseSummary {
   };
 }
 
-function causeText(content: Content, c: TurnCause): string {
+function causeText(state: GameState, content: Content, c: TurnCause): string {
   switch (c.kind) {
     case 'money':
       return `money ${c.from} → ${c.to}`;
@@ -163,8 +163,13 @@ function causeText(content: Content, c: TurnCause): string {
     case 'trait':
       return `trait: ${c.text}`;
     case 'relation':
-      return `${c.started ? 'new' : 'ended'} tie (${c.relation})`;
+      return `${c.started ? 'new' : 'ended'} ${c.relation} tie with ${nameOfPerson(state, c.other)}`;
   }
+}
+
+function nameOfPerson(state: GameState, id: string): string {
+  const c = anyCharacter(state, id);
+  return c ? fullName(c) : id;
 }
 
 function year(day: number): number {
@@ -187,7 +192,7 @@ export function summaryMarkdown(state: GameState, content: Content): string {
   ];
   for (const h of s.heads) {
     const born = h.to === null ? 'alive' : `died at ${h.ageAtDeath}, ${h.cause ?? 'unknown cause'}`;
-    lines.push(`- **${h.name}**${h.nickname ? ` ${h.nickname}` : ''} — ${formatDate(h.from)}, ${h.years} years in the seat, ${born}`);
+    lines.push(`- **${h.name}**${h.nickname ? ` ${h.nickname}` : ''} — ${formatDate(h.from)}, ${h.years} ${h.years === 1 ? 'year' : 'years'} in the seat, ${born}`);
   }
   lines.push('', '## Peak and low', '');
   if (s.money) {
@@ -199,7 +204,7 @@ export function summaryMarkdown(state: GameState, content: Content): string {
   lines.push('', '## Turns', '');
   if (s.turns.length === 0) lines.push('No choice turned the fortune of the house.');
   for (const t of s.turns) {
-    lines.push(`- **${formatDate(t.entry.day)}** — ${plain(t.entry.parts)} ▸ — ${t.causes.map((c) => causeText(content, c)).join('; ')}`);
+    lines.push(`- **${formatDate(t.entry.day)}** — ${plain(t.entry.parts)} ▸ — ${t.causes.map((c) => causeText(state, content, c)).join('; ')}`);
   }
   lines.push('', '## Milestones', '');
   if (s.milestones.length === 0) lines.push('None.');

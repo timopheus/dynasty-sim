@@ -11,7 +11,7 @@ export type TurnCause =
   | { kind: 'renown'; from: number; to: number }
   | { kind: 'status'; from: string | null; to: string | null }
   | { kind: 'trait'; text: string }
-  | { kind: 'relation'; relation: string; started: boolean };
+  | { kind: 'relation'; relation: string; other: string; started: boolean };
 
 /** A choice that turned the fortune of the house (D-246). */
 export interface Turn {
@@ -24,7 +24,7 @@ export interface Turn {
   score: number;
 }
 
-const WEIGHT = { trait: 3, relation: 3, status: 5, fame: 4, renown: 2 } as const;
+const WEIGHT = { trait: 3, relation: 1, status: 5, fame: 4, renown: 2 } as const;
 
 /** The money shift that counts: a share of what they had, but of at least `turnMoneyMin` as the base. */
 function moneyShift(from: number, to: number): number {
@@ -106,10 +106,10 @@ export function findTurns(state: GameState, readings: readonly Snapshot[] = stat
     for (const r of relations) {
       if (r.a !== e.subject && r.b !== e.subject) continue;
       if (r.start >= e.day && r.start <= end) {
-        causes.push({ kind: 'relation', relation: r.kind, started: true });
+        causes.push({ kind: 'relation', relation: r.kind, other: r.a === e.subject ? r.b : r.a, started: true });
         score += WEIGHT.relation;
       } else if (r.end !== null && r.end >= e.day && r.end <= end && r.endReason !== 'death') {
-        causes.push({ kind: 'relation', relation: r.kind, started: false });
+        causes.push({ kind: 'relation', relation: r.kind, other: r.a === e.subject ? r.b : r.a, started: false });
         score += WEIGHT.relation;
       }
     }

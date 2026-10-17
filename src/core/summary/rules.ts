@@ -9,7 +9,7 @@ export const SUMMARY_RULES = {
   /** A shift of the head's money counts when it is at least this percent of what they had (never less than of `turnMoneyMin`)… */
   turnMoneyPercent: 50,
   /** …or when it is at least this much. */
-  turnMoneyMin: 100,
+  turnMoneyMin: 500,
   /** A shift of the head's fame step counts from this many steps. */
   turnFameSteps: 1,
   /** A shift of the house's renown counts from this much. */
