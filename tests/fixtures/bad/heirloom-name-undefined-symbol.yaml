@@ -1,0 +1,14 @@
+# expect-error: events[0].options[0].effects.heirloom_create.name /undefined grammar symbol/
+heirlooms:
+  max: 2
+  kinds: [{ id: sword, name: Sword }]
+  texts: { created: "{name} found {heirloom}.", given: "{name} gave {heirloom} to {to}.", sold: "{name} sold {heirloom}.", lost: "{name} lost {heirloom}.", inherited: "{name} inherited {heirloom}.", bequeathed: "{name} was left {heirloom}." }
+  reasons: { has: "Needs a {kind}.", count_min: "Needs {n}." }
+events:
+  - id: name_it
+    weight: 1
+    text: "{name} digs."
+    options:
+      - text: Dig
+        result: "{name} found a blade."
+        effects: { heirloom_create: { kind: sword, name: "<nothing> blade" } }

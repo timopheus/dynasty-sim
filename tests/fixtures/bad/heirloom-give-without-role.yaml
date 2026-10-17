@@ -1,0 +1,14 @@
+# expect-error: events[0].options[0].effects.heirloom_give.to /Required|expected string/
+heirlooms:
+  max: 2
+  kinds: [{ id: sword, name: Sword }]
+  texts: { created: "{name} found {heirloom}.", given: "{name} gave {heirloom} to {to}.", sold: "{name} sold {heirloom}.", lost: "{name} lost {heirloom}.", inherited: "{name} inherited {heirloom}.", bequeathed: "{name} was left {heirloom}." }
+  reasons: { has: "Needs a {kind}.", count_min: "Needs {n}." }
+events:
+  - id: give_nothing
+    weight: 1
+    text: "{name} has a sword."
+    options:
+      - text: Give it
+        result: "{name} gave it away."
+        effects: { heirloom_give: { kind: sword } }
