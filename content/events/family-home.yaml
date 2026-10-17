@@ -18,7 +18,7 @@ events:
         result: "{name} had {child} christened with a feast{godfather?, with {godfather} as godfather,}."
         mood: joy
       - text: Ask a friend to stand godfather
-        on: { godfather: { opinion: [{ toward: hero, reason: favour }], relation: [{ start: friend, with: hero }] } }
+        on: { godfather: { opinion: [{ toward: hero, reason: favour }] } }
         result: "{name} had {child} christened{godfather?, with {godfather} as godfather,} in a plain service."
         mood: joy
       - text: A plain service at the font
@@ -310,7 +310,6 @@ events:
         success:
           effects: { marry: match, schedule: [{ event: wedding_feast, after_days: { min: 20, max: 60 } }] }
           result: "{name} married again, to {match}, for the sake of the house and the children."
-          mark: true
           mood: joy
         failure:
           result: "{name} called on {match} and was told, kindly, that it was too soon."
