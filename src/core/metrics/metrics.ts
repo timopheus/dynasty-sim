@@ -6,6 +6,8 @@
  */
 import { allCharacters, allChronicle, anyCharacter } from '../archive/archive';
 import { saveParts, SAVE_VERSION } from '../save/save';
+import type { Content } from '../content/schema';
+import { eraAt } from '../era/era';
 import type { GameState } from '../state';
 import { ageYears, toYmd } from '../time/calendar';
 
@@ -33,10 +35,21 @@ export interface HeadsMetrics {
   marksPerLife: Dist;
 }
 
+/** Heads who died in one era (4.11, D-387): by the era of the day of death. */
+export interface EraMetrics {
+  id: string;
+  heads: number;
+  ageAtDeath: Dist;
+  /** Events about one head per year of rule (at least one year), for heads who have died. */
+  eventsPerYear: Dist;
+}
+
 export interface RunMetrics {
   /** Days simulated. */
   days: number;
   heads: HeadsMetrics;
+  /** Heads who died, by the era of their death, in the order of the eras; empty while the content has no eras. */
+  eras: EraMetrics[];
   /** Number of deaths by cause id, over everyone, sorted by id. */
   deathCauses: { cause: string; count: number }[];
   /** Chronicle entries of kind "action" and "event", any level (D-045). */
@@ -120,17 +133,21 @@ function headStarts(state: GameState): { id: string; startDay: number }[] {
   return heads;
 }
 
-export function computeMetrics(state: GameState): RunMetrics {
+export function computeMetrics(state: GameState, content?: Content): RunMetrics {
   const chronicle = allChronicle(state);
   const characters = allCharacters(state);
   const linesBySubject = new Map<string, { chronicle: number; journal: number }>();
   const marksBySubject = new Map<string, number>();
+  const eventsBySubject = new Map<string, number>();
   let actions = 0;
   let events = 0;
   let chronicleLevel = 0;
   for (const e of chronicle) {
     if (e.kind === 'action') actions += 1;
-    if (e.kind === 'event') events += 1;
+    if (e.kind === 'event') {
+      events += 1;
+      eventsBySubject.set(e.subject, (eventsBySubject.get(e.subject) ?? 0) + 1);
+    }
     if (e.level === 'chronicle') chronicleLevel += 1;
     const lines = linesBySubject.get(e.subject) ?? { chronicle: 0, journal: 0 };
     lines[e.level] += 1;
@@ -150,6 +167,16 @@ export function computeMetrics(state: GameState): RunMetrics {
     if (c.deathCause !== null) causes.set(c.deathCause, (causes.get(c.deathCause) ?? 0) + 1);
   }
 
+  const eras = (content?.eras?.list ?? []).map((era) => {
+    const here = dead.filter((d) => eraAt(content as Content, d.deathDay)?.id === era.id);
+    return {
+      id: era.id,
+      heads: here.length,
+      ageAtDeath: dist(here.map((d) => ageYears(d.c.birthDay, d.deathDay))),
+      eventsPerYear: dist(here.map((d) => ratio(eventsBySubject.get(d.c.id) ?? 0, Math.max(1, ageYears(d.startDay, d.deathDay))))),
+    };
+  });
+
   const parts = saveParts(state);
   const hotBytes = utf8Bytes(parts.hot);
   const archiveBytes = parts.chunks.reduce((sum, text) => sum + utf8Bytes(text), 0);
@@ -168,6 +195,7 @@ export function computeMetrics(state: GameState): RunMetrics {
       journalLinesPerLife: dist(dead.map((d) => lines(d.c.id).journal)),
       marksPerLife: dist(dead.map((d) => marksBySubject.get(d.c.id) ?? 0)),
     },
+    eras,
     deathCauses: [...causes.entries()]
       .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
       .map(([cause, count]) => ({ cause, count })),

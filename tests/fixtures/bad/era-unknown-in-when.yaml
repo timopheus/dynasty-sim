@@ -1,0 +1,13 @@
+# expect-error: events[0].when.era[0] /unknown era "later"/
+eras:
+  list:
+    - { id: one, name: One, from: 1700 }
+  reasons: { years_min: "From {year}", years_max: "Until {year}", era: "Only in {eras}" }
+events:
+  - id: bad_one
+    weight: 1
+    when: { era: [later] }
+    text: "{name} waits."
+    options:
+      - text: Wait
+        result: "{name} waited."

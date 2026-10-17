@@ -1,0 +1,6 @@
+# expect-error: eras.list[1].from /gap between eras "one" and "two"/
+eras:
+  list:
+    - { id: one, name: One, from: 1700, to: 1750 }
+    - { id: two, name: Two, from: 1760 }
+  reasons: { years_min: "From {year}", years_max: "Until {year}", era: "Only in {eras}" }
