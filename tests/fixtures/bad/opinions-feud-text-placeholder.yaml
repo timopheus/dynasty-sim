@@ -1,4 +1,4 @@
-# expect-error: opinions.inheritance.feudText /./
+# expect-error: opinions.inheritance.feudText /unknown placeholder \{nobody\}/
 opinions:
   reasons:
     - { id: slight, name: Slight, value: -10, kind: harm, decay: { kind: never } }
