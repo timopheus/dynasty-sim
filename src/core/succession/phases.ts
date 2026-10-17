@@ -12,7 +12,7 @@ import type { Character, Ctx, DayPhase, DeathHook } from '../state';
 import { fillTemplate, type TextPart } from '../text/text';
 import { ageYears } from '../time/calendar';
 import { isNear } from '../world/world';
-import { canGuard, heirOf, lawGuardian, lawOrder, widowOf, willGuardians, willHeirs, type HeirBasis } from './law';
+import { canGuard, heirOf, lawGuardian, lawOrder, widowOf, willGuardians, willHeirs, willItems, willReceivers, type HeirBasis } from './law';
 
 /**
  * The change of the head of the house (D-016, D-314, D-315, D-360…D-363). `kill` of lifecycle.ts calls `chooseHeir`
@@ -270,11 +270,13 @@ export function willCommand(ctx: Ctx, order: WillOrder): void {
   if (order.heir !== null && !willHeirs(state, hero.id).some((c) => c.id === order.heir)) throw new Error(`${order.heir} is not of the kin who may inherit`);
   if (order.guardian !== null && !willGuardians(ctx, hero).some((c) => c.id === order.guardian)) throw new Error(`${order.guardian} cannot be named guardian`);
   const seen = new Set<string>();
+  const items = willItems(state, hero);
+  const receivers = willReceivers(state, hero);
   for (const { item, to } of order.items) {
     if (seen.has(item)) throw new Error(`Item ${item} is left twice`);
     seen.add(item);
-    const c = findCharacter(state, to);
-    if (!c || c.deathDay !== null || c.id === hero.id) throw new Error(`${to} cannot receive ${item}`);
+    if (!items.some((h) => h.id === item)) throw new Error(`${item} is not a thing the hero holds`);
+    if (!receivers.some((c) => c.id === to)) throw new Error(`${to} cannot receive ${item}`);
   }
   const action = content.actions.find((a) => a.id === pace.willAction);
   if (!action) throw new Error(`Unknown action "${pace.willAction}"`);

@@ -1,0 +1,9 @@
+# Eras (4.11, D-239). Schema: src/core/era/content.ts. An era is a range of calendar years without gaps; the last one
+# goes on after its end. The events of an era (4.15) bind to it by `when: { era: [id] }`.
+eras:
+  list:
+    - { id: age_of_reason, name: The Age of Reason, from: 1700, to: 1790 }
+  reasons:
+    years_min: "Not before the year {year}"
+    years_max: "Not after the year {year}"
+    era: "Only in {eras}"

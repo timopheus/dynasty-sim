@@ -1,0 +1,84 @@
+# A physician reads the blood of someone near the hero (D-329, 4.20): a latent health trait (secret to everyone else)
+# is named in a line of the chronicle by the paid option, so the player knows it when choosing whom to wed or raise.
+# The hero's own secret traits are on the hero's own page already. The text only hints; naming costs the fee.
+events:
+  - id: physician_finds_frailty_in_child
+    weight: 3
+    cooldown_days: 1095
+    mood: pain
+    roles:
+      physician:
+        pick: circle
+        where: { occupation: [physician] }
+      child:
+        { pick: kin, kind: child, where: { traits_any: [sickly] } }
+    text: "{physician} looks {child} over for a long while. \"I could tell you more about {child.his} blood, if you wish.\""
+    options:
+      - text: "Pay for the physician's word"
+        effects: { money: -5 }
+        on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
+        chronicle: true
+        result: "{name} paid {physician}, who said that {child} had inherited a sickly frame."
+      - text: Let it lie
+        result: "{name} let {physician}'s remark about {child} pass."
+
+  - id: physician_finds_vigour_in_child
+    weight: 3
+    cooldown_days: 1095
+    mood: joy
+    roles:
+      physician:
+        pick: circle
+        where: { occupation: [physician] }
+      child:
+        { pick: kin, kind: child, where: { traits_any: [long_lived] } }
+    text: "{physician} looks {child} over and nods. \"I could tell you more about {child.his} blood, if you wish.\""
+    options:
+      - text: "Pay for the physician's word"
+        effects: { money: -5 }
+        on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
+        chronicle: true
+        result: "{name} paid {physician}, who said that {child} had a long life in the blood."
+      - text: Let it lie
+        result: "{name} let {physician}'s remark about {child} pass."
+
+  - id: physician_finds_frailty_in_match
+    weight: 3
+    cooldown_days: 1095
+    mood: pain
+    roles:
+      physician:
+        pick: circle
+        where: { occupation: [physician] }
+      match:
+        { pick: circle, where: { traits_any: [sickly], can_marry: hero } }
+    text: "{physician} speaks of {match}, should you ever think of marriage. \"I know something of {match.his} blood.\""
+    options:
+      - text: "Pay for the physician's word"
+        effects: { money: -5 }
+        on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
+        chronicle: true
+        result: "{name} paid {physician}, who warned that {match} had a sickly frame that could pass to children."
+      - text: Let it lie
+        result: "{name} let {physician}'s remark about {match} pass."
+
+  - id: physician_finds_vigour_in_match
+    weight: 3
+    cooldown_days: 1095
+    mood: joy
+    roles:
+      physician:
+        pick: circle
+        where: { occupation: [physician] }
+      match:
+        { pick: circle, where: { traits_any: [long_lived], can_marry: hero } }
+    text: "{physician} speaks of {match}, should you ever think of marriage. \"I know something of {match.his} blood.\""
+    options:
+      - text: "Pay for the physician's word"
+        effects: { money: -5 }
+        on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
+        chronicle: true
+        result: "{name} paid {physician}, who said that {match} had a long life in the blood."
+      - text: Let it lie
+        result: "{name} let {physician}'s remark about {match} pass."
+

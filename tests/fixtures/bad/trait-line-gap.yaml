@@ -1,0 +1,4 @@
+# expect-error: traits[0].line /levels 1\.\.2 once each/
+traits:
+  - { id: tt_a, name: A, category: body, visibility: normal, line: { id: tt_line, level: 1 }, heritage: { one: 100, both: 200 } }
+  - { id: tt_b, name: B, category: body, visibility: normal, line: { id: tt_line, level: 3 }, heritage: { one: 100, both: 200 } }
