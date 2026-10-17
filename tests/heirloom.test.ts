@@ -10,6 +10,7 @@ import { createCharacter, kill } from '../src/core/lifecycle';
 import { entityPage } from '../src/core/pages/entity';
 import { opinionValue } from '../src/core/relations/opinions';
 import { archivePhase } from '../src/core/archive/phases';
+import { isNear } from '../src/core/world/world';
 import { deserialize, serialize } from '../src/core/save/save';
 import type { Content } from '../src/core/content/schema';
 import type { Character, Ctx, GameState } from '../src/core/state';
@@ -146,6 +147,7 @@ describe('give, sell, lose', () => {
     const { state, ctx, hero } = setup();
     const far = person(ctx, 'male', 40);
     far.house = hero.house;
+    expect(isNear(state, far.id)).toBe(false);
     make(ctx, hero);
     applyEffects(ctx, hero, effects({ heirloom_sell: { money: 10, reason: 'insult' } }), { hero: hero.id, protagonist: hero.id });
     expect(state.opinionReasons.filter((r) => r.holder === far.id)).toEqual([]);

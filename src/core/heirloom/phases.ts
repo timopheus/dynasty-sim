@@ -32,7 +32,7 @@ export const heirloomOnSuccession: SuccessionHook = (ctx, deceased, heir) => {
       deceased: { id: deceased.id, name: fullName(deceased) },
     });
     log(ctx, { subject: to, kind: 'heirloom', level: 'chronicle', parts });
-    // the heir by law is slighted by a will that put someone else before them
+    // the new head is slighted by a will that put someone else before them
     if (bequeathed && to.id !== heir.id && cfg.bequestReason !== undefined) addOpinionReason(ctx, heir.id, to.id, cfg.bequestReason);
   }
 };

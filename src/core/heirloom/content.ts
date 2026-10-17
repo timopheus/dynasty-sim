@@ -10,7 +10,7 @@ import { checkEventTemplate } from '../text/check';
  * Optional top-level key `heirlooms` (4.9, D-238, D-380). Lists are arrays and are walked in file order (D-161):
  * - `max`: the most things the house holds at once; a new one is not made over the limit;
  * - `kinds`: the kinds of thing (a sword, a ring, a bill of exchange);
- * - `bequestReason`: optional opinion reason the main heir holds towards the one a will put before them for a thing;
+ * - `bequestReason`: optional opinion reason the new head holds towards the one a will left a thing instead of them;
  * - `texts`: lines of the chronicle (`{heirloom}` the thing, `{kind}` its kind, plus the placeholders of a person):
  *   `created`, `given` (`{to}`), `sold`, `lost`, `inherited` and `bequeathed` (`{deceased}`);
  * - `reasons`: texts of the unmet conditions `has_heirloom` (`{kind}`) and `heirloom_count_min` (`{n}`).
