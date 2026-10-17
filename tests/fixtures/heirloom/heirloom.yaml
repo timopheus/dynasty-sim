@@ -1,0 +1,21 @@
+# Heirlooms for the tests of 4.9; goes on top of tests/fixtures/base, population, succession (with its opinions).
+heirlooms:
+  max: 2
+  kinds:
+    - { id: sword, name: Sword }
+    - { id: ring, name: Ring }
+  bequestReason: passed_over
+  texts:
+    created: "{name} came into {heirloom}, a {kind}."
+    given: "{name} gave {heirloom} to {to}."
+    sold: "{name} sold {heirloom}."
+    lost: "{name} lost {heirloom}."
+    inherited: "{name} inherited {heirloom} from {deceased}."
+    bequeathed: "{name} was left {heirloom} by {deceased}."
+  reasons:
+    has: "Needs a {kind}."
+    count_min: "Needs {n} heirlooms."
+traits:
+  - { id: sellsword, name: Sellsword, category: reputation, visibility: obvious }
+grammar:
+  metal: ["iron", "silver"]
