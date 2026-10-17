@@ -46,6 +46,8 @@ export function flatten(m: RunMetrics): Record<string, number> {
   };
   for (const era of m.eras) {
     flat[`eras.${era.id}.heads`] = era.heads;
+    // An era where no head died has no medians: a 0 would pull down the median over runs.
+    if (era.heads === 0) continue;
     flat[`eras.${era.id}.ageAtDeath.median`] = era.ageAtDeath.median;
     flat[`eras.${era.id}.eventsPerYear.median`] = era.eventsPerYear.median;
   }
@@ -60,7 +62,7 @@ function median(sorted: number[]): number {
 }
 
 /** Names counted only over the runs that have them: the year the house ended means nothing for a house that did not. */
-const ONLY_WHERE_PRESENT: ReadonlySet<string> = new Set(['house.endYear']);
+const ONLY_WHERE_PRESENT = (name: string): boolean => name === 'house.endYear' || /^eras\..+\.(ageAtDeath|eventsPerYear)\.median$/.test(name);
 /** Names whose min, median and max over runs are all the mean, two decimals: a share of runs (D-315). */
 const SHARES: ReadonlySet<string> = new Set(['house.endedShare']);
 
@@ -73,7 +75,7 @@ export function summarize(runs: RunMetrics[]): Record<string, Summary> {
   const names = [...new Set(flats.flatMap((f) => Object.keys(f)))].sort();
   const out: Record<string, Summary> = {};
   for (const name of names) {
-    const values = (ONLY_WHERE_PRESENT.has(name) ? flats.flatMap((f) => (f[name] === undefined ? [] : [f[name]])) : flats.map((f) => f[name] ?? 0)).sort((a, b) => a - b);
+    const values = (ONLY_WHERE_PRESENT(name) ? flats.flatMap((f) => (f[name] === undefined ? [] : [f[name]])) : flats.map((f) => f[name] ?? 0)).sort((a, b) => a - b);
     if (SHARES.has(name)) {
       const share = Math.round((values.reduce((s, v) => s + v, 0) * 100) / values.length) / 100;
       out[name] = { min: share, median: share, max: share };

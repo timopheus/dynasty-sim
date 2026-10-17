@@ -99,7 +99,10 @@ describe('metrics by era', () => {
     expect(m.eras.every((e) => e.heads === e.ageAtDeath.n && e.heads === e.eventsPerYear.n)).toBe(true);
     const flat = flatten(m);
     expect(flat['eras.third.heads']).toBe(m.eras[2]?.heads);
-    expect(flat).toHaveProperty('eras.first.ageAtDeath.median');
+    for (const e of m.eras) {
+      expect(flat).toHaveProperty([`eras.${e.id}.heads`]);
+      expect(`eras.${e.id}.ageAtDeath.median` in flat).toBe(e.heads > 0);
+    }
   });
 
   it('the real content has the first era 1700–1790', () => {

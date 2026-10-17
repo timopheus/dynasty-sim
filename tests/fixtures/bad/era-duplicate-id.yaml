@@ -1,0 +1,6 @@
+# expect-error: eras.list[1].id /duplicate era id "one"/
+eras:
+  list:
+    - { id: one, name: One, from: 1700, to: 1750 }
+    - { id: one, name: Again, from: 1751 }
+  reasons: { years_min: "From {year}", years_max: "Until {year}", era: "Only in {eras}" }

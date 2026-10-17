@@ -1,0 +1,5 @@
+# expect-error: eras.list[0].to /ends before it starts/
+eras:
+  list:
+    - { id: one, name: One, from: 1700, to: 1690 }
+  reasons: { years_min: "From {year}", years_max: "Until {year}", era: "Only in {eras}" }

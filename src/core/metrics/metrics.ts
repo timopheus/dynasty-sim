@@ -138,7 +138,7 @@ export function computeMetrics(state: GameState, content?: Content): RunMetrics 
   const characters = allCharacters(state);
   const linesBySubject = new Map<string, { chronicle: number; journal: number }>();
   const marksBySubject = new Map<string, number>();
-  const eventsBySubject = new Map<string, number>();
+  const eventDaysBySubject = new Map<string, number[]>();
   let actions = 0;
   let events = 0;
   let chronicleLevel = 0;
@@ -146,7 +146,7 @@ export function computeMetrics(state: GameState, content?: Content): RunMetrics 
     if (e.kind === 'action') actions += 1;
     if (e.kind === 'event') {
       events += 1;
-      eventsBySubject.set(e.subject, (eventsBySubject.get(e.subject) ?? 0) + 1);
+      eventDaysBySubject.set(e.subject, [...(eventDaysBySubject.get(e.subject) ?? []), e.day]);
     }
     if (e.level === 'chronicle') chronicleLevel += 1;
     const lines = linesBySubject.get(e.subject) ?? { chronicle: 0, journal: 0 };
@@ -173,7 +173,7 @@ export function computeMetrics(state: GameState, content?: Content): RunMetrics 
       id: era.id,
       heads: here.length,
       ageAtDeath: dist(here.map((d) => ageYears(d.c.birthDay, d.deathDay))),
-      eventsPerYear: dist(here.map((d) => ratio(eventsBySubject.get(d.c.id) ?? 0, Math.max(1, ageYears(d.startDay, d.deathDay))))),
+      eventsPerYear: dist(here.map((d) => ratio((eventDaysBySubject.get(d.c.id) ?? []).filter((day) => day >= d.startDay).length, Math.max(1, ageYears(d.startDay, d.deathDay))))),
     };
   });
 
