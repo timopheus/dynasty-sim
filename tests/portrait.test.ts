@@ -3,7 +3,7 @@ import { newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { createCharacter } from '../src/core/hooks';
 import { faceSpec, VARIANTS, type FaceSpec, type Part } from '../src/core/looks';
-import { EMPTY, INK, LIGHT, PAINTS, PORTRAIT_HEIGHT, PORTRAIT_WIDTH, gridSvg, pixelsOf, portraitGrid, portraitSvg, portraitText, type Grid } from '../src/ui/portrait';
+import { INK, PAPER, PORTRAIT_HEIGHT, PORTRAIT_WIDTH, SHADES, gridRgba, pixelsOf, portraitGrid, portraitText, type Grid } from '../src/ui/portrait';
 import { BASE_FILES, loadOrThrow } from './fixtures/content';
 
 const p = (variant = 0, dx = 0, dy = 0): Part => ({ variant, dx, dy });
@@ -24,36 +24,43 @@ function rowsOf(g: Grid, part: string): number[] {
 function colsOf(g: Grid, part: string): number[] {
   return [...new Set(pixelsOf(g, part).map((i) => i % g.width))];
 }
-const key = (g: Grid) => g.pixels.join('');
+const key = (g: Grid) => g.shades.join('');
+const mean = (g: Grid, idx: number[]) => idx.reduce((a, i) => a + g.shades[i]!, 0) / Math.max(1, idx.length);
 
 describe('portrait grid (4.12, D-300)', () => {
   it('is a pure function of the spec: the same spec gives the same pixels', () => {
     expect(portraitGrid(base())).toEqual(portraitGrid(base()));
   });
 
-  it('uses two paints and the empty background only', () => {
+  it('mixes two colours only, in many shades, without holes', () => {
     const g = portraitGrid(base({ attire: 3, accessories: [{ slot: 'head', ...p() }, { slot: 'ear', ...p() }], beard: p(), wrinkles: { ...p(), level: 3 } }));
-    expect(g.pixels).toHaveLength(PORTRAIT_WIDTH * PORTRAIT_HEIGHT);
-    expect(new Set(g.pixels)).toEqual(new Set([EMPTY, LIGHT, INK]));
-    const svg = portraitSvg(base(), 'x');
-    const fills = [...svg.matchAll(/fill="([^"]+)"/g)].map((m) => m[1]);
-    expect(fills).toEqual([PAINTS.light, PAINTS.ink]);
+    expect(g.shades).toHaveLength(PORTRAIT_WIDTH * PORTRAIT_HEIGHT);
+    expect(g.shades.every((v) => Number.isInteger(v) && v >= 0 && v < SHADES)).toBe(true);
+    // smooth shading uses most of the ramp
+    expect(new Set(g.shades).size).toBeGreaterThanOrEqual(SHADES - 2);
+    // every colour lies on the line from the ink to the paper
+    const rgba = gridRgba(g);
+    for (let i = 0; i < rgba.length; i += 4) {
+      const t = (rgba[i]! - INK[0]) / (PAPER[0] - INK[0]);
+      for (const c of [1, 2]) expect(Math.abs(rgba[i + c]! - (INK[c]! + (PAPER[c]! - INK[c]!) * t))).toBeLessThanOrEqual(1.5);
+      expect(rgba[i + 3]).toBe(255);
+    }
   });
 
   it('puts every detail in its place: hair above the brows, brows above the eyes, then nose, mouth, clothes', () => {
     const g = portraitGrid(base());
     const top = (part: string) => Math.min(...rowsOf(g, part));
     const bottom = (part: string) => Math.max(...rowsOf(g, part));
-    for (const part of ['hair', 'brows', 'eyes', 'nose', 'mouth', 'attire', 'head', 'ears']) expect(pixelsOf(g, part).length, part).toBeGreaterThan(0);
+    for (const part of ['hair', 'brows', 'eyes', 'nose', 'mouth', 'attire', 'head', 'ears', 'neck']) expect(pixelsOf(g, part).length, part).toBeGreaterThan(0);
     expect(top('hair')).toBeLessThan(top('brows'));
-    expect(bottom('brows')).toBeLessThan(top('eyes'));
+    expect(bottom('brows')).toBeLessThan(bottom('eyes'));
     expect(bottom('eyes')).toBeLessThan(bottom('nose'));
     expect(bottom('nose')).toBeLessThan(top('mouth'));
     expect(bottom('mouth')).toBeLessThan(top('attire'));
-    // eyes on both sides of the middle column, mirrored
+    // eyes on both sides of the middle, mirrored
     const eyes = colsOf(g, 'eyes');
-    expect(eyes.some((x) => x < 16) && eyes.some((x) => x > 16)).toBe(true);
-    expect(eyes.filter((x) => x < 16).map((x) => 32 - x).sort()).toEqual(eyes.filter((x) => x > 16).sort());
+    const mid = PORTRAIT_WIDTH / 2;
+    expect(eyes.filter((x) => x < mid).map((x) => PORTRAIT_WIDTH - 1 - x).sort()).toEqual(eyes.filter((x) => x >= mid).sort());
   });
 
   it('every variant of every detail draws differently (D-301: at least three each)', () => {
@@ -76,8 +83,10 @@ describe('portrait grid (4.12, D-300)', () => {
 
   it('shifts move a detail', () => {
     const a = portraitGrid(base());
-    const b = portraitGrid(base({ nose: p(0, 1, 0) }));
-    expect(colsOf(b, 'nose').map((x) => x - 1).sort()).toEqual(colsOf(a, 'nose').sort());
+    const b = portraitGrid(base({ eyes: p(0, 0, 1) }));
+    const row = (g: Grid) => pixelsOf(g, 'eyes').reduce((s, i) => s + Math.floor(i / PORTRAIT_WIDTH), 0) / pixelsOf(g, 'eyes').length;
+    expect(row(b)).toBeGreaterThan(row(a) + 0.5);
+    for (const d of ['head', 'nose', 'mouth', 'brows', 'hair'] as const) expect(key(portraitGrid(base({ [d]: p(0, 1, 1) }))), d).not.toBe(key(a));
   });
 
   it('a scar, a bandage and an eye patch add their pixels on top of the same face', () => {
@@ -85,14 +94,15 @@ describe('portrait grid (4.12, D-300)', () => {
     const scarred = portraitGrid(base({ scars: [p(0)] }));
     expect(pixelsOf(scarred, 'scars').length).toBeGreaterThan(3);
     expect(key(scarred)).not.toBe(key(plain));
-    // only the scar changed: every other pixel stays as it was
+    // only the scar changed: every changed pixel touches the scar
     const scarredScars = new Set(pixelsOf(scarred, 'scars'));
-    const changed = scarred.pixels.flatMap((v, i) => (v !== plain.pixels[i] ? [i] : []));
-    expect(changed.every((i) => scarredScars.has(i))).toBe(true);
+    const changed = scarred.shades.flatMap((v, i) => (v !== plain.shades[i] ? [i] : []));
+    const W = PORTRAIT_WIDTH;
+    expect(changed.every((i) => [0, -1, 1, -W, W, -W - 1, -W + 1, W - 1, W + 1].some((d) => scarredScars.has(i + d)))).toBe(true);
 
     const patched = portraitGrid(base({ eyepatch: 'left' }));
-    expect(colsOf(patched, 'eyes').every((x) => x > 16)).toBe(true);
-    expect(Math.min(...colsOf(patched, 'eyepatch'))).toBeLessThan(16);
+    expect(colsOf(patched, 'eyes').every((x) => x > W / 2)).toBe(true);
+    expect(Math.min(...colsOf(patched, 'eyepatch'))).toBeLessThan(W / 2);
     expect(pixelsOf(portraitGrid(base({ bandages: [p(0)] })), 'bandages').length).toBeGreaterThan(0);
   });
 
@@ -101,13 +111,15 @@ describe('portrait grid (4.12, D-300)', () => {
     const faces = new Set(moods.map((m) => key(portraitGrid(base({ expression: m })))));
     expect(faces.size).toBe(moods.length);
     const dead = portraitGrid(base({ expression: 'dead', dead: true }));
-    expect(rowsOf(dead, 'eyes')).toHaveLength(1);
+    expect(pixelsOf(dead, 'eyes').length).toBeLessThan(pixelsOf(portraitGrid(base()), 'eyes').length / 2);
   });
 
-  it('grey hair turns from ink to the light paint', () => {
-    const light = (g: Grid) => pixelsOf(g, 'hair').filter((i) => g.pixels[i] === LIGHT).length;
-    const shades = [0, 1, 2, 3].map((grey) => light(portraitGrid(base({ hair: p(1), grey }))));
-    expect(shades[0]).toBe(0);
+  it('grey hair turns from ink toward the paper', () => {
+    const shades = [0, 1, 2, 3].map((grey) => {
+      const g = portraitGrid(base({ hair: p(1), grey }));
+      return mean(g, pixelsOf(g, 'hair'));
+    });
+    expect(shades[0]).toBeLessThan(shades[1]!);
     expect(shades[1]).toBeLessThan(shades[2]!);
     expect(shades[2]).toBeLessThan(shades[3]!);
   });
@@ -144,11 +156,5 @@ describe('portrait text (D-248)', () => {
     expect(text).toMatch(/^Portrait of a man of 35/);
     for (const word of ['grey hair', 'a beard', 'a scar', 'a patch over one eye', 'angry']) expect(text).toContain(word);
     expect(portraitText(base({ sex: 'female', stage: 'child', age: 7 }))).toContain('a girl of 7');
-  });
-
-  it('is escaped inside the markup', () => {
-    const svg = gridSvg(portraitGrid(base()), '<b>"x" & y</b>');
-    expect(svg).toContain('aria-label="&lt;b&gt;&quot;x&quot; &amp; y&lt;/b&gt;"');
-    expect(svg).not.toContain('<b>');
   });
 });

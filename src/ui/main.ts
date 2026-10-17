@@ -13,7 +13,7 @@ import { entityPage } from '../core/pages/entity';
 import { eventView } from '../core/events/view';
 import { DEFAULT_MOOD } from '../core/events/content';
 import { faceSpec } from '../core/looks';
-import { portraitSvg, portraitText } from './portrait';
+import { portraitCanvas } from './portrait/canvas';
 import { heroView } from './hero';
 import { heirLine, willCommandOf, willForm, type PersonChoice, type WillForm } from './will';
 import { entityIdFromHash, personHref } from './address';
@@ -205,15 +205,13 @@ function heirParagraph(session: Session): HTMLElement {
 }
 
 /**
- * The hero's face (4.12, D-300): the mood of the event on screen, a calm face otherwise. The picture is markup built
- * by a pure function from numbers of `FaceSpec`; its text is the label a screen reader speaks (D-248).
+ * The hero's face (4.12, D-300): the mood of the event on screen, a calm face otherwise; its text is the label a
+ * screen reader speaks (D-248).
  */
 function portraitFigure(session: Session): HTMLElement {
   const ctx = { state: session.state, content: session.content };
   const spec = faceSpec(ctx, getPlayer(session.state), eventView(ctx)?.mood ?? DEFAULT_MOOD);
-  const figure = el('figure', { className: 'portrait' });
-  figure.innerHTML = portraitSvg(spec, portraitText(spec), 4);
-  return figure;
+  return el('figure', { className: 'portrait' }, portraitCanvas(spec));
 }
 
 function render(session: Session): void {
