@@ -122,8 +122,12 @@ export const storiesRefs: RefsFn = ({ state }) => [
   ...state.openStories.flatMap((s) => [s.owner, ...Object.values(s.given)]),
 ];
 
-/** Death of the main participant cancels their follow-ups and stories (D-044); the hero's stories close with them. */
+/**
+ * Death of the main participant cancels their follow-ups and stories (D-044). The hero's are kept for the heir (4.8,
+ * `storiesOnSuccession` hands them over or closes them); if the house ends, they stay with the dead hero.
+ */
 export const storiesOnDeath: DeathHook = ({ state }, c) => {
+  if (c.id === state.playerId) return;
   state.followups = state.followups.filter((f) => f.protagonist !== c.id);
   state.openStories = state.openStories.filter((s) => s.owner !== c.id);
 };
@@ -139,7 +143,7 @@ export const storiesInvariants: Invariant = ({ state, content }) => {
     if (!known(f.eventId)) problems.push(`${at}: unknown event`);
     const p = findCharacter(state, f.protagonist);
     if (!p) problems.push(`${at}: unknown main participant`);
-    else if (p.deathDay !== null) problems.push(`${at}: the main participant is dead`);
+    else if (p.deathDay !== null && state.status !== 'ended') problems.push(`${at}: the main participant is dead`);
     if (!isInt(f.dueDay)) problems.push(`${at}: due day ${f.dueDay} is not an integer`);
     if (f.offered !== null && (!isInt(f.offered) || f.offered > state.day || f.offered < f.dueDay)) problems.push(`${at}: offered on day ${f.offered}`);
     people(at, f.given);
@@ -152,7 +156,7 @@ export const storiesInvariants: Invariant = ({ state, content }) => {
     seen.add(key);
     const owner = findCharacter(state, s.owner);
     if (!owner) problems.push(`${at}: unknown owner`);
-    else if (owner.deathDay !== null) problems.push(`${at}: the owner is dead`);
+    else if (owner.deathDay !== null && state.status !== 'ended') problems.push(`${at}: the owner is dead`);
     if (!isInt(s.openedDay) || !isInt(s.deadline) || s.deadline <= s.openedDay) problems.push(`${at}: days ${s.openedDay}..${s.deadline}`);
     for (const id of s.fallback) if (!known(id)) problems.push(`${at}: unknown fallback event ${id}`);
     people(at, s.given);

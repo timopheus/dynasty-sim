@@ -4,26 +4,28 @@ opinions:
   # Causes of an opinion. kind: harm or benefit decides which trait memory applies. decay: fade (days), never, or
   # held (until an event ends it by name).
   reasons:
-    - { id: insulted_in_public, name: Insulted in public, value: -60, kind: harm, decay: { kind: never } }
-    - { id: killed_kin, name: Killed kin, value: -90, kind: harm, decay: { kind: never } }
+    - { id: insulted_in_public, name: Insulted in public, value: -60, kind: harm, decay: { kind: never }, inherits_as: father_enemy }
+    - { id: killed_kin, name: Killed kin, value: -90, kind: harm, decay: { kind: never }, inherits_as: father_killer }
     - { id: father_enemy, name: Enemy of my father, value: -30, kind: harm, decay: { kind: never } }
-    - { id: wronged, name: Did me wrong, value: -35, kind: harm, decay: { kind: fade, days: 1460 } }
+    - { id: father_killer, name: Killed my father, value: -55, kind: harm, decay: { kind: never } }
+    - { id: owed_my_father, name: Owed my father, value: 10, kind: benefit, decay: { kind: held, until: debt_repaid } }
+    - { id: wronged, name: Did me wrong, value: -35, kind: harm, decay: { kind: fade, days: 1460 }, inherits_as: father_enemy }
     - { id: slighted, name: Slighted me, value: -15, kind: harm, decay: { kind: fade, days: 365 } }
     - { id: gift, name: Gave a gift, value: 20, kind: benefit, decay: { kind: fade, days: 365 } }
     - { id: favour, name: Did me a service, value: 35, kind: benefit, decay: { kind: fade, days: 1460 } }
     - { id: saved_life, name: Saved my life, value: 70, kind: benefit, decay: { kind: never } }
-    - { id: owes_me, name: Owes me, value: 15, kind: benefit, decay: { kind: held, until: debt_repaid } }
-    - { id: shamed_me, name: Shamed me, value: -40, kind: harm, decay: { kind: held, until: debt_repaid } }
+    - { id: owes_me, name: Owes me, value: 15, kind: benefit, decay: { kind: held, until: debt_repaid }, inherits_as: owed_my_father }
+    - { id: shamed_me, name: Shamed me, value: -40, kind: harm, decay: { kind: held, until: debt_repaid }, inherits_as: father_enemy }
     # Starting set for the events of stage 3 (D-223); after 3.6 only 3.12 and 3.13 add reasons.
-    - { id: betrayed, name: Betrayed me, value: -70, kind: harm, decay: { kind: never } }
-    - { id: humiliated, name: Humiliated me, value: -50, kind: harm, decay: { kind: fade, days: 1825 } }
+    - { id: betrayed, name: Betrayed me, value: -70, kind: harm, decay: { kind: never }, inherits_as: father_enemy }
+    - { id: humiliated, name: Humiliated me, value: -50, kind: harm, decay: { kind: fade, days: 1825 }, inherits_as: father_enemy }
     - { id: called_coward, name: Called me a coward, value: -35, kind: harm, decay: { kind: fade, days: 1460 } }
     - { id: spared, name: Spared me, value: 45, kind: benefit, decay: { kind: never } }
     - { id: mentor, name: Taught me, value: 40, kind: benefit, decay: { kind: fade, days: 3650 } }
     - { id: childhood_friend, name: Friend since childhood, value: 30, kind: benefit, decay: { kind: never } }
     # Added by 3.12 for the first batch of events with roles (D-280).
     - { id: defeated_me, name: Defeated me, value: -25, kind: harm, decay: { kind: fade, days: 1460 } }
-    - { id: cheated_me, name: Cheated me, value: -45, kind: harm, decay: { kind: fade, days: 1825 } }
+    - { id: cheated_me, name: Cheated me, value: -45, kind: harm, decay: { kind: fade, days: 1825 }, inherits_as: father_enemy }
     - { id: comrade, name: Stood beside me, value: 25, kind: benefit, decay: { kind: fade, days: 1825 } }
     - { id: nursed_me, name: Nursed me, value: 30, kind: benefit, decay: { kind: fade, days: 1825 } }
     - { id: no_spine, name: Showed no spine, value: -20, kind: harm, decay: { kind: fade, days: 1460 } }
@@ -43,6 +45,14 @@ opinions:
   # Constant part from traits of the holder towards traits of the other person; `max` limits their sum.
   background:
     max: 30
+    # 4.8: renown of the target's house for holders outside it; the last step whose `from` is <= the renown.
+    renown:
+      - { from: -1000, value: -8 }
+      - { from: -10, value: -4 }
+      - { from: -2, value: 0 }
+      - { from: 5, value: 4 }
+      - { from: 15, value: 8 }
+      - { from: 30, value: 12 }
     rules:
       - { holder: proud, target: proud, value: -8 }
       - { holder: honest, target: honest, value: 8 }
@@ -115,6 +125,12 @@ opinions:
       ends: "{name} was no longer the guardian of {other}."
       startsAsProtege: "{other} became the guardian of {name}."
       endsAsProtege: "{name} came of age and left the guardianship of {other}."
+
+  # 4.8: what passes to the heir with the head. Reasons with `inherits_as` become the weaker reason against the heir; a rival
+  # of the head who holds such a reason becomes a rival of the heir. {name} the heir, {other} the enemy, {deceased} the head.
+  inheritance:
+    feudRelation: rival
+    feudText: "{name} became heir to the feud between {deceased} and {other}."
 
   # Time near the hero (D-037): the chances are checked once a week against the circle of 2.5.
   acquaintance:

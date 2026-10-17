@@ -1,6 +1,7 @@
 import type { Content } from '../content/schema';
 import { findCharacter } from '../helpers';
 import type { Character, Ctx, GameState } from '../state';
+import { houseOf } from '../house/house';
 import { characterById, isNear } from '../world/world';
 import type { OpinionsContent, ReasonDef, ReasonKindId } from './content';
 import type { OpinionReason } from './types';
@@ -51,9 +52,15 @@ export function reasonValue(opinions: OpinionsContent, record: OpinionReason, ho
   return Math.trunc((value * (total - passed)) / total);
 }
 
-/** Constant part from the traits of both people, limited by `background.max`. */
-export function backgroundValue(opinions: OpinionsContent, holder: Character, target: Character): number {
+/**
+ * Constant part from the traits of both people and, for a holder outside the target's house, the renown of that house
+ * (4.8, D-035, D-316), limited by `background.max`.
+ */
+export function backgroundValue(opinions: OpinionsContent, holder: Character, target: Character, targetRenown: number | null = null): number {
   let sum = 0;
+  if (targetRenown !== null && (holder.house === null || holder.house !== target.house)) {
+    for (const step of opinions.background.renown) if (step.from <= targetRenown) sum = step.value;
+  }
   for (const rule of opinions.background.rules) {
     if (holder.traits.includes(rule.holder) && target.traits.includes(rule.target)) sum += rule.value;
   }
@@ -96,7 +103,7 @@ export function opinionCauses(ctx: Ctx, holderId: string, targetId: string, day 
     const value = reasonValue(opinions, r, holder, day);
     if (value !== 0) causes.push({ id: r.reason, value });
   }
-  const back = backgroundValue(opinions, holder, target);
+  const back = backgroundValue(opinions, holder, target, houseOf(state, target)?.renown ?? null);
   if (back !== 0) causes.push({ id: 'background', value: back });
   const rel = relationValue(state, opinions, holderId, targetId, day);
   if (rel !== 0) causes.push({ id: 'relation', value: rel });
