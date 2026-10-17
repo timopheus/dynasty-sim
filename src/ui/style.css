@@ -313,3 +313,38 @@ button[aria-disabled='true'] {
 button.link {
   text-align: center;
 }
+
+/* The hero's portrait (4.12, D-300): two paints, pixels kept square at any zoom. */
+.portrait {
+  float: right;
+  margin: 0 0 0.75rem 1rem;
+  padding: 4px;
+  border: 2px solid var(--fg);
+  /* a fixed backdrop: the ink must read in the dark theme too */
+  background: #f7f1e1;
+  line-height: 0;
+}
+
+.portrait svg {
+  display: block;
+  width: 128px;
+  height: 160px;
+  image-rendering: pixelated;
+}
+
+.hero::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+@media (max-width: 30rem) {
+  .portrait {
+    margin-left: 0.5rem;
+  }
+
+  .portrait svg {
+    width: 80px;
+    height: 100px;
+  }
+}

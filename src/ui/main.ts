@@ -10,6 +10,10 @@ import type { GameState } from '../core/state';
 import { formatDate } from '../core/time/calendar';
 import { getPlayer } from '../core/helpers';
 import { entityPage } from '../core/pages/entity';
+import { eventView } from '../core/events/view';
+import { DEFAULT_MOOD } from '../core/events/content';
+import { faceSpec } from '../core/looks';
+import { portraitSvg, portraitText } from './portrait';
 import { heroView } from './hero';
 import { heirLine, willCommandOf, willForm, type PersonChoice, type WillForm } from './will';
 import { entityIdFromHash, personHref } from './address';
@@ -200,6 +204,18 @@ function heirParagraph(session: Session): HTMLElement {
   return el('p', {}, 'Heir: ', el('a', { href: personHref(line.id), className: 'person' }, line.name), ` (${line.by}).`);
 }
 
+/**
+ * The hero's face (4.12, D-300): the mood of the event on screen, a calm face otherwise. The picture is markup built
+ * by a pure function from numbers of `FaceSpec`; its text is the label a screen reader speaks (D-248).
+ */
+function portraitFigure(session: Session): HTMLElement {
+  const ctx = { state: session.state, content: session.content };
+  const spec = faceSpec(ctx, getPlayer(session.state), eventView(ctx)?.mood ?? DEFAULT_MOOD);
+  const figure = el('figure', { className: 'portrait' });
+  figure.innerHTML = portraitSvg(spec, portraitText(spec), 4);
+  return figure;
+}
+
 function render(session: Session): void {
   const { state, content } = session;
   const player = getPlayer(state);
@@ -231,6 +247,7 @@ function render(session: Session): void {
       el('button', { className: 'link', type: 'button', onclick: () => newGameWithConfirm(session) }, 'New game'),
       el('button', { className: 'link', type: 'button', onclick: () => downloadJournal(session.journal) }, 'Journal'), numbersButton(session)),
     el('section', { className: 'hero' },
+      portraitFigure(session),
       el('h2', {}, el('a', { href: personHref(player.id), className: 'person' }, hero.name)),
       el('p', {}, `${hero.sex === 'male' ? 'Man' : 'Woman'}, aged ${hero.age}${hero.fame ? `, ${hero.fame}` : ''}. Money ${hero.money}.`),
       el('p', {}, `Health: ${hero.conditions || 'healthy'}.`),
