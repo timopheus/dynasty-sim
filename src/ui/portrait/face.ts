@@ -22,7 +22,8 @@ export function faceHeight(g: Geometry, x: number, y: number): number {
   if (half <= 0) return 0;
   const u = clamp((x - g.cx) / half, -1, 1);
   const t = clamp((y - g.cy) / g.ry, -1, 1);
-  let h = g.rx * 0.9 * Math.sqrt(1 - u * u) * (0.62 + 0.38 * Math.sqrt(1 - t * t));
+  // a broad front plane that turns sharply at the sides: a head, not a ball
+  let h = g.rx * 0.9 * Math.sqrt(Math.max(0, 1 - Math.abs(u) ** 3)) * (0.62 + 0.38 * Math.sqrt(1 - t * t));
   const { cx, eyeY, eyeSep, eye, nose, browY, noseBottom, mouthY, mouth } = g;
   const male = !g.female && !g.child;
   // brow ridge and temples
@@ -78,7 +79,7 @@ export function skin(g: Geometry, c: Sample, h: number, hl: number, hr: number, 
   const diffuse = clamp((-dx * LIGHT_DIR[0] - dy * LIGHT_DIR[1] + LIGHT_DIR[2]) / len);
   // hollows hold shadow
   const cavity = clamp(((hl + hr + hu + hd - 4 * h) / (step * step)) * 0.06, -0.15, 0.25);
-  let t = 0.04 + 0.92 * diffuse - cavity;
+  let t = 0.16 + 0.74 * diffuse - cavity;
   if (g.spec.illness > 0 || g.spec.dead) t = t * 0.82 + 0.16;
   c.put(1, t, 'head');
 }

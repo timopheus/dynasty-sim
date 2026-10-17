@@ -36,25 +36,25 @@ const X = (e: Partial<Expression>): Expression => ({ curve: 0, smirk: 0, open: 0
 
 export const EXPRESSIONS: Record<string, Expression> = {
   neutral: X({}),
-  joy: X({ curve: 1.5, open: 0.7, teeth: true, eyes: 0.8, lowerLid: 0.5, brows: -0.3, cheeks: 1 }),
-  triumph: X({ curve: 0.4, smirk: 1.6, eyes: 0.85, lowerLid: 0.3, brows: 0.4, cheeks: 0.5 }),
+  joy: X({ curve: 0.85, open: 0.3, teeth: true, eyes: 0.85, lowerLid: 0.35, brows: -0.15, cheeks: 0.6 }),
+  triumph: X({ curve: 0.25, smirk: 0.9, eyes: 0.85, lowerLid: 0.25, brows: 0.3, cheeks: 0.3 }),
   threat: X({ curve: -0.2, pressed: true, eyes: 0.65, lowerLid: 0.25, brows: 1.3 }),
-  pain: X({ curve: -1, open: 1.2, teeth: true, eyes: 0.25, lowerLid: 0.5, brows: -1.3, cheeks: 0.6 }),
-  loss: X({ curve: -1.2, eyes: 0.75, gaze: 0.5, brows: -1.5, tears: true }),
-  shame: X({ curve: -0.5, pressed: true, eyes: 0.5, gaze: 1.3, brows: -0.8 }),
-  anger: X({ curve: -0.8, open: 0.9, teeth: true, eyes: 0.7, lowerLid: 0.3, brows: 1.9 }),
+  pain: X({ curve: -0.6, open: 0.7, teeth: true, eyes: 0.35, lowerLid: 0.4, brows: -1, cheeks: 0.4 }),
+  loss: X({ curve: -0.8, eyes: 0.8, gaze: 0.5, brows: -1.2, tears: true }),
+  shame: X({ curve: -0.35, pressed: true, eyes: 0.55, gaze: 1.2, brows: -0.6 }),
+  anger: X({ curve: -0.5, open: 0.5, teeth: true, eyes: 0.75, lowerLid: 0.25, brows: 1.5 }),
   dead: X({ curve: -0.3, open: 0.4, eyes: 0, brows: 0 }),
 };
 
 /**
- * Head shapes below the cheekbones: `p` squares the jaw (2 a soft oval, 4 a square jaw), `q` narrows it toward the
- * chin; `chin` is the chin's width as a part of the head's, `long` extra length.
+ * Head shapes: width of the jaw at its angle and of the chin as parts of the head's width, width of the cheekbones,
+ * extra length. A man's jaw and chin are wider and flatter; a woman's narrower and rounder.
  */
 const HEADS = [
-  { p: 2.3, q: 0.06, chin: 0.34, long: 0 },
-  { p: 2.6, q: 0, chin: 0.42, long: -0.8 },
-  { p: 3.6, q: 0.02, chin: 0.5, long: 0 },
-  { p: 1.9, q: 0.12, chin: 0.3, long: 1.2 },
+  { jaw: 0.82, chin: 0.36, cheek: 1, long: 0 },
+  { jaw: 0.9, chin: 0.44, cheek: 1.03, long: -0.6 },
+  { jaw: 0.94, chin: 0.5, cheek: 1, long: 0 },
+  { jaw: 0.76, chin: 0.32, cheek: 0.98, long: 1.2 },
 ];
 /** Eyes: half width, half height of the opening, droop of the outer corner (+ down), heavy upper lid. */
 const EYES = [
@@ -82,9 +82,9 @@ const NOSES = [
 /** Mouth: half width, fullness of the upper and lower lip, corners at rest (+ down). */
 const MOUTHS = [
   { w: 3.9, up: 0.9, low: 1.2, rest: 0 },
-  { w: 4.5, up: 0.6, low: 0.9, rest: 0.15 },
+  { w: 4.5, up: 0.6, low: 0.9, rest: 0 },
   { w: 3.7, up: 1.2, low: 1.6, rest: 0 },
-  { w: 4.2, up: 0.7, low: 1.0, rest: 0.45 },
+  { w: 4.2, up: 0.7, low: 1.0, rest: 0.2 },
 ];
 /** Ears: height, how far they stand out. */
 const EARS = [
@@ -131,11 +131,11 @@ export function geometry(spec: FaceSpec): Geometry {
   const female = spec.sex === 'female';
   const old = spec.stage === 'old';
   const shape = HEADS[female && spec.head.variant === 2 ? 0 : spec.head.variant] ?? HEADS[0]!;
-  // a woman's jaw is softer, her chin rounder
-  const head = female ? { ...shape, p: Math.min(shape.p, 2.2), q: shape.q + 0.04 } : shape;
+  // a woman's jaw is narrower, her chin smaller and rounder; a child's face is soft
+  const head = female ? { ...shape, jaw: shape.jaw - 0.07, chin: shape.chin - 0.06 } : child ? { ...shape, jaw: 0.86, chin: 0.42 } : shape;
   // a narrow head, taller than wide; a child's is rounder
-  const rx = (child ? 12.6 : female ? 13.4 : 14.6) + spec.headWidth * 0.9;
-  const ry = (child ? 15 : female ? 17.6 : 18.6) + spec.headHeight * 0.9 + head.long;
+  const rx = (child ? 12.4 : female ? 12.5 : 13.5) + spec.headWidth * 0.8;
+  const ry = (child ? 15.4 : female ? 18.4 : 19.6) + spec.headHeight * 0.9 + head.long;
   const cx = 32;
   const cy = (child ? 41 : 35) + spec.head.dy * 0.6;
   const top = cy - ry;
@@ -177,27 +177,46 @@ export function geometry(spec: FaceSpec): Geometry {
     mouth: { ...mouth, w: mouth.w * (child ? 0.82 : female ? 0.92 : 1) + spec.mouth.dx * 0.3 },
     ear: EARS[spec.ears.variant] ?? EARS[0]!,
     earY: (browY + noseBottom) / 2 + 0.5 + spec.ears.dy * 0.4,
-    neckHalf: child ? 4.6 : female ? 4.6 : 6,
+    neckHalf: child ? 4.8 : female ? 5 : 6.8,
     shoulders: chin + (child ? 3 : female ? 4.5 : 3.5),
     shoulderHalf,
     slope: female ? 0.36 : child ? 0.3 : 0.28,
   };
 }
 
-/** Half width of the head at height y (negative outside): a rounded skull, cheekbones, a jaw and a chin. */
+/** Half width of the head at height y (negative outside): crown, temples, cheekbones, cheeks, the angle of the jaw, chin. */
 export function headHalf(g: Geometry, y: number, grow = 0): number {
-  const rx = g.rx + grow;
   const top = g.top - grow;
-  const chin = g.chin + grow * 0.6;
+  const chin = g.chin + grow * 0.5;
   if (y < top || y > chin) return -1;
-  // the skull: an ellipse down to the cheekbones
-  const cheek = g.eyeY + 1.5;
-  if (y <= cheek) {
-    const t = (cheek - y) / (cheek - top);
-    return rx * Math.sqrt(Math.max(0, 1 - t ** 2.2)) * (1 - 0.04 * gauss(0, t, 0, 0.45, 1, 0.2));
+  const h = g.chin - g.top;
+  const { jaw, chin: chinW, cheek } = g.head;
+  const round = g.female || g.child ? 0.45 : 0.75;
+  // the outline through points, each a height and a width as part of the head's half width
+  const points: [number, number][] = [
+    [g.top, 0],
+    [g.top + 0.07 * h, 0.6],
+    [g.top + 0.2 * h, 0.88],
+    [g.browY - 2.5, 0.97],
+    [g.browY + 0.8, 0.95],
+    [g.eyeY + 2, cheek],
+    [g.mouthY - 2.2, (cheek + jaw) / 2 + 0.02],
+    [g.mouthY + 1.5, jaw],
+    [g.chin - 2.4, chinW + 0.14],
+    [g.chin - 0.7, chinW],
+    [g.chin, chinW * round],
+  ];
+  // a grown outline (for hair) is the same shape, scaled
+  const yy = g.top + ((y - top) * h) / (chin - top);
+  let w = 0;
+  for (let i = 1; i < points.length; i++) {
+    const [y1, w1] = points[i]!;
+    if (yy > y1 && i < points.length - 1) continue;
+    const [y0, w0] = points[i - 1]!;
+    const s = y1 > y0 ? Math.min(1, Math.max(0, (yy - y0) / (y1 - y0))) : 1;
+    w = w0 + (w1 - w0) * (1 - Math.cos(Math.PI * s)) / 2;
+    break;
   }
-  // one smooth curve from the cheekbones down the jaw to the chin
-  const u = (y - cheek) / (chin - cheek);
-  const jowls = g.old && !g.female ? 0.5 * gauss(0, u, 0, 0.6, 1, 0.2) : 0;
-  return rx * Math.sqrt(Math.max(0, 1 - u ** g.head.p)) * (1 - g.head.q * u * u) + jowls;
+  const jowls = g.old && !g.female ? 0.05 * gauss(0, y, 0, g.mouthY + 1, 1, 2.5) : 0;
+  return (g.rx + grow) * (w + jowls);
 }

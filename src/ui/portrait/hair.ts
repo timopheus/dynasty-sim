@@ -18,7 +18,7 @@ function hairTone(g: Geometry, x: number, y: number, part: Part | null): number 
   const curly = part?.variant === 2;
   const angle = Math.atan2(y - (g.top - 6), x - g.cx);
   // curls as soft round locks, not a fine pattern
-  const strands = curly ? 0.06 * Math.cos(x * 0.8 + Math.sin(y * 0.7) * 1.5) * Math.cos(y * 0.75) : 0.035 * Math.cos(angle * 48);
+  const strands = curly ? 0.035 * Math.cos(x * 0.8 + Math.sin(y * 0.7) * 1.5) * Math.cos(y * 0.75) : 0.035 * Math.cos(angle * 48);
   const sheen = 0.1 * gauss(x, y, g.cx - g.rx * 0.4, g.top + 2.5, g.rx * 0.35, 1.8);
   return t + 0.22 * lit - 0.08 + strands + sheen;
 }

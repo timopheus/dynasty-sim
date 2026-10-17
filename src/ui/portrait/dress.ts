@@ -107,19 +107,20 @@ function tricorn(g: Geometry, c: Sample, x0: number, y0: number, kind: Headwear,
   const scale = g.female ? 0.85 : 1;
   const [x, y] = tilt ? rotate(x0, y0, g.cx, g.hairline, tilt) : [x0, y0];
   const cx = g.cx + (tilt ? 1.2 : 0);
-  const base = g.hairline - 0.6 + seat;
-  const half = (g.rx + 3.6) * scale;
+  const base = g.hairline + 1.6 + seat;
+  const half = (g.rx + 6.8) * scale;
   const ad = Math.abs(x - cx);
   if (ad > half) return;
   const r = ad / half;
   // the front corner hangs over the brow; the side corners rise level with the crown
-  const point = base + 2.4;
-  const corner = g.top - 2.2 + seat;
+  const point = base + 3;
+  const corner = g.top - 2 + seat;
   const edge = point - (point - corner) * r ** 0.45;
   const skull = headHalf(g, base);
-  const lower = ad <= skull ? base + 0.6 * (ad / skull) ** 2 : base + 0.6 - ((ad - skull) / (half - skull)) ** 0.6 * (base + 0.6 - corner);
-  const crownTop = g.top - 6.2 + seat;
-  const crown = ad < g.rx * 0.95 && y > crownTop + 3 * (ad / (g.rx * 0.95)) ** 2 && y < edge + 0.5;
+  // the wings stay thick to their blunt ends
+  const lower = ad <= skull ? base + 0.6 * (ad / skull) ** 2 : base + 0.6 - ((ad - skull) / (half - skull)) ** 1.6 * (base + 0.6 - corner - 2.6);
+  const crownTop = g.top - 7 + seat;
+  const crown = ad < g.rx * 1.05 && y > crownTop + 3 * (ad / (g.rx * 1.05)) ** 2 && y < edge + 0.5;
   const panel = y >= edge && y <= Math.max(lower, edge);
   const tip = y >= base && y <= point && ad < (point - y) * 0.9 + 0.3;
   if (!crown && !panel && !tip) {
@@ -143,7 +144,7 @@ function headwearShape(g: Geometry, c: Sample, x: number, y: number, a: Part): v
   const seat = a.dy * 0.8;
   const cx = g.cx;
   const ad = Math.abs(x - cx);
-  const base = g.hairline - 0.5 + seat;
+  const base = g.hairline + 1.2 + seat;
   switch (kind) {
     case 'tricorn':
     case 'tricorn_cocked':
@@ -152,17 +153,17 @@ function headwearShape(g: Geometry, c: Sample, x: number, y: number, a: Part): v
       return;
     case 'felt_hat': {
       // a round crown and a wide brim seen a little from below
-      const crown = ad < g.rx * 0.82 && y > g.top - 5.5 + seat + 1.2 * (ad / g.rx) ** 4 && y < base;
-      const brim = inEllipse(x, y, cx, base, g.rx + 6.5, 1.8);
+      const crown = ad < g.rx * 1.02 && y > g.top - 7.5 + seat + 1.5 * (ad / g.rx) ** 4 && y < base;
+      const brim = inEllipse(x, y, cx, base, g.rx + 10, 2.3);
       if (crown) c.put(1, y > base - 2.2 ? 0.34 : felt(0.18, x, y, cx, g.top, g.rx, 5), 'headwear');
-      else if (brim) c.put(1, y > base ? 0.1 + 0.08 * lambert((x - cx) / (g.rx + 6), 0) : felt(0.22, x, y, cx, base, g.rx + 6, 2), 'headwear');
-      else brimShadow(c, y, base + 1.8, 0.3);
+      else if (brim) c.put(1, y > base ? 0.1 + 0.08 * lambert((x - cx) / (g.rx + 10), 0) : felt(0.22, x, y, cx, base, g.rx + 10, 2), 'headwear');
+      else brimShadow(c, y, base + 2.3, 0.3);
       return;
     }
     case 'wool_cap': {
       // a soft knitted cap, its top falling to one side, a rolled band
       const lean = (y < g.top + 2 ? (g.top + 2 - y) * 0.5 : 0);
-      const inside = inEllipse(x - lean, y, cx, base - 1, g.rx + 1.4, g.ry * 0.62) && y < base + 0.6;
+      const inside = inEllipse(x - lean, y, cx, base - 1, g.rx + 2.2, g.ry * 0.78) && y < base + 0.6;
       if (!inside) {
         brimShadow(c, y, base + 0.6, 0.15);
         return;
@@ -173,13 +174,13 @@ function headwearShape(g: Geometry, c: Sample, x: number, y: number, a: Part): v
     }
     case 'turban': {
       // cloth wound round the head: a full rounded mass with folds running across it
-      const inside = inEllipse(x, y, cx, g.top + 1.5 + seat, g.rx + 3.4, g.ry * 0.55) && y < base + 1 - 0.8 * (1 - (ad / g.rx) ** 2);
+      const inside = inEllipse(x, y, cx, g.top + 1 + seat, g.rx + 5, g.ry * 0.72) && y < base + 0.5 - 1.2 * (1 - (ad / g.rx) ** 2);
       if (!inside) {
         brimShadow(c, y, base + 0.5, 0.15);
         return;
       }
       const wind = 0.07 * Math.cos((x - cx) * 0.7 + (y - g.top) * 1.5 + (x > cx ? 1.2 : 0));
-      c.put(1, felt(0.68, x, y, cx, g.top, g.rx + 3, g.ry * 0.5) + wind, 'headwear');
+      c.put(1, felt(0.68, x, y, cx, g.top, g.rx + 5, g.ry * 0.7) + wind, 'headwear');
       if (g.spec.attire >= 3 && inEllipse(x, y, cx, base - 2.5, 1.2, 1.5)) c.put(1, 0.95, 'jewel');
       return;
     }
@@ -199,8 +200,8 @@ function headwearShape(g: Geometry, c: Sample, x: number, y: number, a: Part): v
       return;
     }
     case 'fur_cap': {
-      const half = g.rx + 1.2;
-      const inside = ad < half && y > g.top - 5 + seat + (ad > half - 2 ? (ad - half + 2) * 1.2 : 0) && y < base + 0.5;
+      const half = g.rx + 2.6;
+      const inside = ad < half && y > g.top - 8 + seat + (ad > half - 2 ? (ad - half + 2) * 1.2 : 0) && y < base + 0.5;
       if (!inside) {
         brimShadow(c, y, base + 0.5);
         return;
@@ -230,8 +231,8 @@ function headwearShape(g: Geometry, c: Sample, x: number, y: number, a: Part): v
     }
     case 'mob_cap': {
       // a puffed linen cap with a frill along the brow and a ribbon round it
-      const frill = g.hairline + 0.6 + seat + 0.5 * Math.cos(x * 2);
-      const inside = inEllipse(x, y, cx, g.top + 2 + seat, g.rx + 2.8, g.ry * 0.62) && y < frill;
+      const frill = g.hairline + 1 + seat + 0.5 * Math.cos(x * 2);
+      const inside = inEllipse(x, y, cx, g.top + 2 + seat, g.rx + 4, g.ry * 0.78) && y < frill;
       if (!inside) {
         brimShadow(c, y, frill, 0.1);
         return;
@@ -260,8 +261,8 @@ function headwearShape(g: Geometry, c: Sample, x: number, y: number, a: Part): v
       const tilt = kind === 'straw_hat_tilted' ? -0.14 : 0;
       const [rx, ry] = tilt ? rotate(x, y, cx, base, tilt) : [x, y];
       const rad = Math.abs(rx - cx);
-      const crown = rad < g.rx * 0.66 && ry > g.top - 3.5 + seat && ry < base;
-      const brim = inEllipse(rx, ry, cx, base, g.rx + 8, 2.3);
+      const crown = rad < g.rx * 0.9 && ry > g.top - 4.5 + seat && ry < base;
+      const brim = inEllipse(rx, ry, cx, base, g.rx + 12, 2.6);
       if (crown) c.put(1, Math.abs(ry - (base - 1.6)) < 0.9 ? 0.25 : felt(0.66, rx, ry, cx, g.top, g.rx, 4), 'headwear');
       else if (brim) c.put(1, ry > base ? 0.36 : felt(0.72, rx, ry, cx, base, g.rx + 8, 2) + 0.04 * Math.cos(Math.atan2(ry - base, rx - cx) * 30), 'headwear');
       else brimShadow(c, ry, base + 2.3, 0.28);
