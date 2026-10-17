@@ -69,6 +69,18 @@ export const TraitSchema = z.strictObject({
   education: z.strictObject({ stat: z.enum(EDUCATION_STAT_IDS), level: Int.min(1).max(4) }).optional(),
   /** Character traits only: the chronicle line written when a character gains the trait. */
   gained: Text.optional(),
+  /**
+   * Body traits only (D-329, 4.20): the chance out of 10000 that a child born in the game gets the trait — `one` when
+   * one parent holds it, `both` when both do. A trait of a line (`line`) with `up` > 0 may also pass the next level
+   * of the line when both parents hold this level. A trait without `heritage` is not inherited.
+   */
+  heritage: z.strictObject({ one: Int.min(0).max(10000), both: Int.min(0).max(10000), up: Int.min(0).max(10000).default(0) }).optional(),
+  /** Body traits only: a multi-level line (wit, health); the child's level is at most the higher parent's level + 1. */
+  line: z.strictObject({ id: Id, level: Int.min(1).max(5) }).optional(),
+  /** Body traits only: percent of the usual death chance of the simulated, 100 = unchanged; traits multiply (D-329). */
+  mortalityPct: Int.min(0).max(1000).optional(),
+  /** Body traits only: percent of the usual yearly conception chance of a couple; the traits of both spouses multiply. */
+  conceptionPct: Int.min(0).max(1000).optional(),
 });
 
 export type Names = z.infer<typeof NamesSchema>;
@@ -150,9 +162,33 @@ export const checkCharacter: CrossCheck = ({ names, traits, actions, events, gra
     } else if (item.gained) {
       errors.push({ file, path: `${at}.gained`, message: 'only a character trait has a gained line' });
     }
+    if (item.category !== 'body') {
+      for (const key of ['heritage', 'line', 'mortalityPct', 'conceptionPct'] as const) {
+        if (item[key] !== undefined) errors.push({ file, path: `${at}.${key}`, message: 'only a body trait has this field' });
+      }
+    }
+    if (item.line && !item.heritage) errors.push({ file, path: `${at}.line`, message: 'a trait of a line needs heritage' });
+    if (item.heritage && item.heritage.both < item.heritage.one) {
+      errors.push({ file, path: `${at}.heritage.both`, message: 'the chance from both parents must not be lower than from one' });
+    }
     if (item.gained) {
       const problem = checkTemplate(item.gained);
       if (problem) errors.push({ file, path: `${at}.gained`, message: problem });
+    }
+  }
+  // Lines: levels 1..n without gaps or repeats; `up` needs a next level.
+  const lines = new Map<string, { file: string; index: number; item: TraitDef }[]>();
+  for (const entry of traits) if (entry.item.line) lines.set(entry.item.line.id, [...(lines.get(entry.item.line.id) ?? []), entry]);
+  for (const [lineId, members] of lines) {
+    const levels = members.map((m) => m.item.line?.level ?? 0).sort((a, b) => a - b);
+    const first = members[0];
+    if (first && levels.some((level, i) => level !== i + 1)) {
+      errors.push({ file: first.file, path: `traits[${first.index}].line`, message: `line "${lineId}" must have levels 1..${levels.length} once each` });
+    }
+    for (const { file, index, item } of members) {
+      if ((item.heritage?.up ?? 0) > 0 && !members.some((m) => m.item.line?.level === (item.line?.level ?? 0) + 1)) {
+        errors.push({ file, path: `traits[${index}].heritage.up`, message: `line "${lineId}" has no level above ${item.line?.level}` });
+      }
     }
   }
   for (const { file, index, item } of traits) {

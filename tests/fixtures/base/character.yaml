@@ -76,3 +76,37 @@ traits:
     name: Poisoner
     category: secret
     visibility: secret
+  # Inherited lines (4.20): never generated at random (no weight), so exact tests stay predictable.
+  - id: quick
+    name: Quick
+    category: body
+    visibility: normal
+    line: { id: wit, level: 1 }
+    heritage: { one: 2500, both: 5500, up: 1000 }
+  - id: clever
+    name: Clever
+    category: body
+    visibility: normal
+    line: { id: wit, level: 2 }
+    heritage: { one: 2000, both: 5000, up: 1000 }
+  - id: brilliant
+    name: Brilliant
+    category: body
+    visibility: normal
+    line: { id: wit, level: 3 }
+    heritage: { one: 1500, both: 4000 }
+  - id: robust
+    name: Robust
+    category: body
+    opposite: frail
+    visibility: normal
+    mortalityPct: 50
+    conceptionPct: 150
+    heritage: { one: 3000, both: 6000 }
+  - id: frail
+    name: Frail
+    category: body
+    opposite: robust
+    visibility: normal
+    mortalityPct: 200
+    heritage: { one: 3000, both: 6000 }

@@ -40,13 +40,60 @@ export function generateStatsAndTraits(ctx: Ctx, c: Character): void {
 }
 
 /**
- * A child born in the game (4.5): each stat is the mean of the parents' base stats with a random shift; a body trait
- * of a parent passes with a chance, else the usual chance of one; character traits, skills and education are random
- * as for anyone (upbringing is D-018). The numbers are code, like the stub above.
+ * A child born in the game (4.5): each stat is the mean of the parents' base stats with a random shift; body traits
+ * pass by the chances of the trait itself (D-329, `inheritBodyTraits`), else the usual chance of one; character
+ * traits, skills and education are random as for anyone (upbringing is D-018). The stat numbers are code.
  */
 const STAT_SHIFT = { min: -2, max: 2 };
-/** Chance n out of d that a body trait of one parent passes to the child. */
-const INHERIT_BODY_CHANCE = [1, 3] as const;
+
+const OUT_OF = 10000;
+
+/**
+ * Body traits of the parents (D-329). A trait with `heritage` passes with the chance `one`, or `both` when both parents
+ * hold it. A line (wit, health) passes one level: the higher parent level, or the one below it; when both parents
+ * hold the same level, `up` may lift the child one level above. The child never exceeds the higher level + 1.
+ */
+export function inheritBodyTraits(ctx: Ctx, child: Character, father: Character, mother: Character): void {
+  const r = ctx.state.rng;
+  const { traits } = ctx.content;
+  const held = (p: Character) => p.traits.flatMap((id) => traits.find((d) => d.id === id && d.category === 'body' && d.heritage) ?? []);
+  const fromFather = held(father);
+  const fromMother = held(mother);
+  const roll = (def: TraitDef, p: number): void => {
+    if (hasTrait(child, def.id) || (def.opposite && hasTrait(child, def.opposite))) return;
+    if (chancePer(r, p, OUT_OF)) grantTrait(ctx.content, child, def.id);
+  };
+  const done = new Set<string>();
+  for (const def of [...fromFather, ...fromMother]) {
+    const heritage = def.heritage;
+    if (!heritage) continue;
+    const key = def.line ? `line:${def.line.id}` : def.id;
+    if (done.has(key)) continue;
+    done.add(key);
+    if (!def.line) {
+      roll(def, fromFather.includes(def) && fromMother.includes(def) ? heritage.both : heritage.one);
+      continue;
+    }
+    const lineId = def.line.id;
+    const of = (list: TraitDef[]) => list.find((d) => d.line?.id === lineId) ?? null;
+    const a = of(fromFather);
+    const b = of(fromMother);
+    const levelOf = (d: TraitDef | null) => d?.line?.level ?? 0;
+    const hi = levelOf(a) >= levelOf(b) ? a : b;
+    if (!hi?.heritage) continue;
+    const both = a !== null && b !== null;
+    const at = (level: number) => traits.find((d) => d.line?.id === lineId && d.line.level === level) ?? null;
+    const up = both && levelOf(a) === levelOf(b) ? at(levelOf(hi) + 1) : null;
+    if (up && hi.heritage.up > 0 && chancePer(r, hi.heritage.up, OUT_OF)) {
+      roll(up, OUT_OF);
+      continue;
+    }
+    const before = child.traits.length;
+    roll(hi, both ? hi.heritage.both : hi.heritage.one);
+    const lower = at(levelOf(hi) - 1);
+    if (child.traits.length === before && lower?.heritage) roll(lower, lower.heritage.one);
+  }
+}
 
 export function inheritStatsAndTraits(ctx: Ctx, child: Character, father: Character, mother: Character): void {
   const r = ctx.state.rng;
@@ -59,11 +106,6 @@ export function inheritStatsAndTraits(ctx: Ctx, child: Character, father: Charac
   child.traits = [];
   const n = int(r, CHARACTER_TRAITS.min, CHARACTER_TRAITS.max);
   for (let i = 0; i < n; i++) pickTrait(ctx, child, 'character');
-  const bodyTraits = (p: Character) => p.traits.filter((t) => ctx.content.traits.some((d) => d.id === t && d.category === 'body' && d.weight > 0));
-  for (const trait of [...bodyTraits(father), ...bodyTraits(mother)]) {
-    const def = ctx.content.traits.find((d) => d.id === trait);
-    if (hasTrait(child, trait) || (def?.opposite && hasTrait(child, def.opposite))) continue;
-    if (chancePer(r, ...INHERIT_BODY_CHANCE)) grantTrait(ctx.content, child, trait);
-  }
+  inheritBodyTraits(ctx, child, father, mother);
   if (!child.traits.some((t) => ctx.content.traits.some((d) => d.id === t && d.category === 'body')) && chancePer(r, ...BODY_TRAIT_CHANCE)) pickTrait(ctx, child, 'body');
 }

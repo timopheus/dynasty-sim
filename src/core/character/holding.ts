@@ -53,3 +53,21 @@ export function checkTraitHolding(content: Content, c: Character): string[] {
   if (educations > 1) problems.push(`${c.id} has ${educations} educations`);
   return problems;
 }
+
+/**
+ * `base` scaled by the percent field of the traits of all given characters (D-329): integers only, so the product of
+ * the percents is divided once at the end. A trait without the field leaves the value as it is.
+ */
+export function scaleByTraits(content: Content, base: number, who: readonly Character[], field: 'mortalityPct' | 'conceptionPct'): number {
+  let num = 1;
+  let den = 1;
+  for (const c of who) {
+    for (const id of c.traits) {
+      const pct = findTrait(content, id)?.[field];
+      if (pct === undefined) continue;
+      num *= pct;
+      den *= 100;
+    }
+  }
+  return Math.floor((base * num) / den);
+}

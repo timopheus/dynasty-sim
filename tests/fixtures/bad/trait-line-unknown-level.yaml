@@ -1,0 +1,3 @@
+# expect-error: traits /less than or equal to 5|<=5|too_big/
+traits:
+  - { id: tt_a, name: A, category: body, visibility: normal, line: { id: tt_line, level: 7 }, heritage: { one: 100, both: 200 } }

@@ -1,0 +1,36 @@
+# A physician reads the blood (D-329, 4.20): a latent health trait of the hero is secret to everyone but the hero's
+# own page; a physician of the circle names it. Events of the hero, no choice that matters, a line for the chronicle.
+events:
+  - id: physician_finds_frailty
+    weight: 4
+    cooldown_days: 3650
+    when: { traits_any: [sickly] }
+    mood: pain
+    roles:
+      physician:
+        pick: circle
+        where: { occupation: [physician] }
+    text: "{physician} listens to your chest for a long while. \"A weak chest runs in some families,\" the physician says. \"Yours, I think.\""
+    options:
+      - text: Ask what to do
+        effects: { money: -5 }
+        on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{physician} told {name} that {he} had inherited a sickly frame, and what to avoid."
+      - text: Wave it away
+        result: "{name} would not hear that {he} had inherited a sickly frame from {his} line."
+
+  - id: physician_finds_vigour
+    weight: 4
+    cooldown_days: 3650
+    when: { traits_any: [long_lived] }
+    mood: joy
+    roles:
+      physician:
+        pick: circle
+        where: { occupation: [physician] }
+    text: "{physician} takes your pulse and nods slowly. \"Strong blood. People of your line grow old.\""
+    options:
+      - text: Thank the physician
+        effects: { money: -5 }
+        on: { physician: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{physician} told {name} that {he} had a long life in {his} blood."

@@ -1,3 +1,4 @@
+import { scaleByTraits } from '../character/holding';
 import { inheritStatsAndTraits } from '../character/generate';
 import { findEvent, startEvent } from '../events/events';
 import { findCharacter, getPlayer } from '../helpers';
@@ -64,7 +65,7 @@ function conceive(ctx: Ctx, family: FamilyContent, delivered: ReadonlySet<string
     if (age === ageYears(pair.wife.birthDay, state.day - 1)) continue;
     crowded ??= livingCount(ctx) >= family.livingMax;
     if (crowded && !ofHeroHouse(ctx, pair.wife.id) && !ofHeroHouse(ctx, pair.husband.id)) continue;
-    const perYear = ageRow(family.conception, age);
+    const perYear = scaleByTraits(ctx.content, ageRow(family.conception, age), [pair.wife, pair.husband], 'conceptionPct');
     if (perYear === 0 || !chancePer(state.rng, perYear, 10000)) continue;
     const due = state.day + int(state.rng, family.pregnancyDays.min, family.pregnancyDays.max);
     state.pregnancies.push({ mother: pair.wife.id, father: pair.husband.id, due });

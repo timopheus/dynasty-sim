@@ -7,6 +7,7 @@ traits:
     stats: { prowess: 3 }
     visibility: obvious
     weight: 2
+    heritage: { one: 3300, both: 6000 }
 
   - id: weak
     name: Weak
@@ -15,6 +16,7 @@ traits:
     stats: { prowess: -3 }
     visibility: obvious
     weight: 2
+    heritage: { one: 3300, both: 6000 }
 
   - id: handsome
     name: Handsome
@@ -23,6 +25,7 @@ traits:
     stats: { diplomacy: 2 }
     visibility: obvious
     weight: 2
+    heritage: { one: 3300, both: 6000 }
 
   - id: plain
     name: Plain
@@ -31,3 +34,4 @@ traits:
     stats: { diplomacy: -1 }
     visibility: obvious
     weight: 2
+    heritage: { one: 3300, both: 6000 }
