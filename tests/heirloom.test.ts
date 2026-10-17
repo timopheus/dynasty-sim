@@ -12,7 +12,9 @@ import { opinionValue } from '../src/core/relations/opinions';
 import { archivePhase } from '../src/core/archive/phases';
 import { archiveProblems } from '../src/core/archive/archive';
 import { isNear } from '../src/core/world/world';
-import { willForm } from '../src/ui/will';
+import { willCommandOf, willForm } from '../src/ui/will';
+import { botCommand } from '../src/core/bot';
+import { seedRng } from '../src/core/rng';
 import { deserialize, serialize } from '../src/core/save/save';
 import type { Content } from '../src/core/content/schema';
 import type { Character, Ctx, GameState } from '../src/core/state';
@@ -264,6 +266,24 @@ describe('the change of head', () => {
     expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [{ item: id, to: stranger.id }] })).toThrow(/cannot receive/);
     apply(state, content, { type: 'will', heir: null, guardian: null, items: [{ item: id, to: son.id }] });
     expect((state.willDraft ?? state.will)?.items).toEqual([{ item: id, to: son.id }]);
+  });
+
+  it('the bot leaves things by will with commands the game takes; an empty receiver leaves the thing to the heir', () => {
+    const { state, ctx, hero } = setup();
+    hero.money = 10_000;
+    const son = person(ctx, 'male', 25, { father: hero.id });
+    if (!state.household.includes(son.id)) state.household.push(son.id);
+    const id = make(ctx, hero);
+    let found = null;
+    for (let seed = 1; seed <= 500 && !found; seed++) {
+      const command = botCommand(state, content, seedRng(seed, 11));
+      if (command.type === 'will' && command.items.length > 0) found = command;
+    }
+    expect(found).not.toBeNull();
+    expect(found).toMatchObject({ items: [{ item: id }] });
+    expect(() => apply(state, content, found!)).not.toThrow();
+    expect(willCommandOf('', '', [{ item: id, to: '' }])).toEqual({ type: 'will', heir: null, guardian: null, items: [] });
+    expect(willCommandOf('', '', [{ item: id, to: son.id }])).toMatchObject({ items: [{ item: id, to: son.id }] });
   });
 
   it('the owners are kept hot while the thing is held, and the state saves and loads', () => {
