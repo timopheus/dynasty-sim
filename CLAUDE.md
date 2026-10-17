@@ -48,17 +48,17 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   heirloom/        родовая вещь (4.9): вещи, владельцы (heirloom.ts), имя вещи своим потоком (name.ts), хуки смерти и смены главы (phases.ts), страница вещи (page.ts)
   era/             эпоха (4.11): eraOf(ctx, day), eraAt(content, day) для метрик (era.ts), условия years и era (conditions.ts)
   looks/           портрет (4.10, D-302): гены лица (genes.ts) и faceSpec (face.ts) — данные без картинки; читают страницы и интерфейс, правила симуляции не импортируют
-  summary/         итог рода (4.14): годовая фаза (phases.ts), пока — живых людей max
+  summary/         итог рода (4.14, D-395…D-399): годовая фаза со снимком рода (phases.ts, snapshots в состоянии), пороги (rules.ts), повороты findTurns (turns.ts), houseSummary и summaryMarkdown (house-summary.ts); читает архив, правила его не видят
   save/            горячая часть и куски (hotSave, chunkSave, readSaveParts), serialize/readSave, версия формата (2.8, D-336); версия контента (content-version.ts), журнал команд и replay (journal.ts, D-338)
   metrics/         computeMetrics(state) — метрики прогона (2.7), сводка и сравнение
   pages/           personPage — страница человека с учётом видимости, разделы модулей PERSON_SECTIONS (2.10); entityPage — страница сущности по id (entity.ts, D-311)
   text/            шаблоны: части текста и ссылки (text.ts), тексты событий с ролями (render.ts), их проверка (check.ts), грамматика (grammar.ts, 3.4)
-src/ui/            браузерный интерфейс: main.ts, hero.ts (экран героя), page.ts (страницы людей), will.ts (экран завещания), address.ts (адреса #/<вид>/<id>, старый #/person/<id> работает), storage.ts (автосохранение в IndexedDB: горячая часть, куски, журнал, D-339), style.css
+src/ui/            браузерный интерфейс: main.ts, hero.ts (экран героя), page.ts (страницы людей), will.ts (экран завещания), portrait/ (портрет героя из FaceSpec: draw.ts, временный, D-304; пробный силуэт silhouette.ts), address.ts (адреса #/<вид>/<id>, старый #/person/<id> работает), storage.ts (автосохранение в IndexedDB: горячая часть, куски, журнал, D-339), style.css
 content/           игровой контент в YAML, тексты на английском
 map/               исходники карты из Azgaar (region.map/json/svg, D-025); как править — docs/map-guide.md
 tools/             validate.ts, sim.ts, content-files.ts (чтение content/ с диска)
 tests/             vitest; fixtures/ — тестовый контент и плохие примеры
-docs/              GDD, ROADMAP, DECISIONS, STATUS, CHANGELOG (по-русски)
+docs/              GDD, ROADMAP, DECISIONS, STATUS, CHANGELOG (по-русски); portrait-checklist.md — чек-лист качества портрета (D-304)
 .claude/           rules/ (правила работы), agents/, skills/
 ```
 
@@ -69,7 +69,7 @@ npm run dev                             # игра в браузере; прод
 npm run typecheck                       # tsc для core, ui и tools+tests
 npm test                                # vitest
 npm run validate                        # проверка контента по схеме
-npm run sim -- --years 300 --seed 42    # прогон; хроника в out/chronicle-seed42-300y.md, журнал в out/journal-seed42-300y.md, метрики в конце
+npm run sim -- --years 300 --seed 42    # прогон; хроника в out/chronicle-seed42-300y.md, журнал в out/journal-seed42-300y.md, итог рода в out/summary-seed42-300y.md (D-398), метрики в конце
 npm run sim -- --years 300 --seed 1 --runs 10          # seeds 1..10, метрики: min / медиана / max
 npm run sim -- --years 300 --seed 1 --bot cautious     # бот с характером: random (по умолчанию), cautious, greedy, duelist (D-319, D-345)
 npx tsx tools/bot-report.ts --runs 10                  # отчёт по ботам: 4 характера × seeds 1..10, «мёртвые» варианты, «доминирующий» характер (только отчёт, D-349; в CI — работа `bots`, 5 seeds, PR не валит)

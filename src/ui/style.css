@@ -313,3 +313,37 @@ button[aria-disabled='true'] {
 button.link {
   text-align: center;
 }
+
+/* The hero's portrait (4.12, D-300, D-304): shades of two colours, pixels kept square at any zoom; the picture has its
+   own light background, so it reads in the dark theme too. */
+.portrait {
+  float: right;
+  margin: 0 0 0.75rem 1rem;
+  border: 2px solid var(--fg);
+  line-height: 0;
+}
+
+.portrait canvas {
+  display: block;
+  /* a whole multiple of 96×120, so every pixel stays square and sharp */
+  width: 192px;
+  height: 240px;
+  image-rendering: pixelated;
+}
+
+.hero::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+@media (max-width: 30rem) {
+  .portrait {
+    margin-left: 0.5rem;
+  }
+
+  .portrait canvas {
+    width: 96px;
+    height: 120px;
+  }
+}
