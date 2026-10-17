@@ -37,6 +37,7 @@ events:
   - id: courtship_proposal
     story: courtship
     weight: 8
+    when: { married: false }
     roles:
       match: { pick: given }
     text: "The season has been kind to your suit. {match} has stopped looking away when you come, and the family leaves you alone together. It is time to put the question."
@@ -133,7 +134,7 @@ events:
             marry: match
             house_renown: 2
             schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }]
-          result: "{name} won the hand of {match}, of a house far above {his} own."
+          result: "{name} won the hand of {match}, of a family of standing far above {his} own."
           mood: triumph
         failure:
           effects: { house_renown: -1 }
@@ -149,7 +150,7 @@ events:
             marry: match
             house_renown: 1
             schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }]
-          result: "{name} bought the hand of {match}, of a house above {his} own, with gifts worth 60 crowns."
+          result: "{name} bought the hand of {match}, of a family of standing above {his} own, with gifts worth 60 crowns."
           mood: triumph
         failure:
           effects: { money: -60 }
@@ -209,7 +210,8 @@ events:
       - text: A modest supper with friends, 15 crowns
         when: { money_min: 15 }
         effects: { money: -15 }
-        result: "{name} and {spouse} were wed in the church and supped modestly with friends."
+        on: { spouse: { opinion: [{ toward: hero, reason: gift }] } }
+        result: "{name} wed {spouse} in the church and supped modestly with friends."
         mood: joy
       - text: The priest and two witnesses
-        result: "{name} and {spouse} were wed quietly before a priest and two witnesses."
+        result: "{name} wed {spouse} quietly before a priest and two witnesses."

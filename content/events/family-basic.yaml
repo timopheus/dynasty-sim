@@ -58,7 +58,7 @@ events:
       - text: Court boldly and ask at once
         check: { stat: diplomacy, difficulty: 9 }
         success:
-          effects: { marry: match }
+          effects: { marry: match, schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }] }
           result: "{name} courted {match} in a whirlwind and married within the month."
           mood: joy
         failure:
@@ -89,7 +89,6 @@ events:
       - text: Make the offer
         check: { stat: diplomacy, difficulty: 7, bonus: [{ when: { fame_min: 1 }, add: 2 }] }
         success:
-          effects: { schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }] }
           on: { suitor: { marry: target } }
           result: "{name} sought <sought>, and the offer was accepted."
           mark: true

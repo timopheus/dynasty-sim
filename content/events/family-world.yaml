@@ -42,3 +42,21 @@ events:
         on: { other: { opinion: [{ toward: protagonist, reason: jilted }] } }
         result: "{name} broke an engagement with {other} for a better offer."
         mood: shame
+
+  - id: npc_christening
+    who: npc
+    weight: 5
+    cooldown_days: 365
+    when: { children_min: 1 }
+    roles:
+      child: { pick: kin, kind: child, where: { age_max: 0 } }
+    text: "{name}'s child {child} is a few weeks old, and the priest asks when the christening is to be."
+    options:
+      - text: Hold a christening feast
+        ai: { base: 6, traits: { generous: 6, proud: 4, greedy: -6 } }
+        effects: { money: -15 }
+        result: "{name} held a christening feast for {child}."
+        mood: joy
+      - text: A plain service at the font
+        ai: { base: 8, traits: { greedy: 4, humble: 3, calm: 2 } }
+        result: "{name} had {child} christened at the font without ceremony."

@@ -14,12 +14,12 @@ events:
       - text: A fine christening, 25 crowns
         when: { money_min: 25 }
         effects: { money: -25 }
-        on: { godfather: { opinion: [{ toward: hero, reason: favour }] } }
-        result: "{name} had {child} christened with a feast{godfather?, with {godfather} as godfather,}."
+        on: { godfather: { opinion: [{ toward: hero, reason: favour }, { toward: hero, reason: gift }] } }
+        result: "{name} had {child} christened with a feast{godfather?, with {godfather} standing sponsor,}."
         mood: joy
-      - text: Ask a friend to stand godfather
+      - text: Ask a friend to stand sponsor
         on: { godfather: { opinion: [{ toward: hero, reason: favour }] } }
-        result: "{name} had {child} christened{godfather?, with {godfather} as godfather,} in a plain service."
+        result: "{name} had {child} christened{godfather?, with {godfather} standing sponsor,} in a plain service."
         mood: joy
       - text: A plain service at the font
         result: "{name} had {child} christened at the font without ceremony."
@@ -177,7 +177,7 @@ events:
           mood: joy
         failure:
           result: "{name} talked to {child} for an hour and was no wiser at the end of it."
-      - text: Boys will be boys
+      - text: Children will be children
         on: { child: { stats: { prowess: 1 } } }
         result: "{name} let {child}'s fight pass, and {child} grew bolder for it."
 
@@ -187,7 +187,7 @@ events:
     when: { children_min: 1 }
     roles:
       child: { pick: kin, kind: child, where: { age_min: 12, age_max: 17, married: false } }
-    text: "{child} is growing up and idle. A man must come to a trade, and the road is long; where should {child} be put?"
+    text: "{child} is growing up and idle. A child must come to a trade, and the road is long; where should {child} be put?"
     mood: neutral
     options:
       - text: Send {child} to learn arms, 25 crowns
@@ -291,9 +291,11 @@ events:
         on: { child: { opinion: [{ toward: hero, reason: slighted }] } }
         result: "{name} buried {his} grief in work and left {child} to the maid."
         mood: shame
-      - text: Send {child} to kin for a season
+      - text: Send {child} to kin for a season of schooling, 10 crowns
+        when: { money_min: 10 }
         effects: { money: -10 }
-        result: "{name} sent {child} to kin for a season."
+        on: { child: { stats: { learning: 1 } } }
+        result: "{name} sent {child} to kin for a season of schooling."
 
   - id: second_match
     weight: 16
