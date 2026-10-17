@@ -157,6 +157,16 @@ describe('archive phase (D-312, D-335)', () => {
     chunk.chronicle.push({ ...first, subject: 'c999999' });
     expect(archiveProblems(state, content).join('\n')).toMatch(/unknown character c999999/);
     chunk.chronicle.pop();
+    // A link to a house or an heirloom is checked by its kind in the hot state (D-425).
+    const house = state.houses[0];
+    if (!house) throw new Error('no house');
+    const last = chunk.chronicle.at(-1) as ChronicleEntry;
+    chunk.chronicle.push({ ...last, parts: [{ id: house.id, name: 'House' }] });
+    expect(archiveProblems(state, content)).toEqual([]);
+    chunk.chronicle.pop();
+    chunk.chronicle.push({ ...last, parts: [{ id: 'h999999', name: 'House' }] });
+    expect(archiveProblems(state, content).join('\n')).toMatch(/unknown entity h999999/);
+    chunk.chronicle.pop();
     expect(archiveProblems(state, content)).toEqual([]);
   }, 30_000);
 });
