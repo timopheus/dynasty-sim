@@ -1,6 +1,6 @@
 # Inherited lines of the body (D-329, 4.20): wit and health. `heritage` is the chance out of 10000 that a child gets
 # the trait (`one` parent has it, `both` parents have it, `up` the next level of the line when both parents hold this
-# level). Higher levels are never generated at random (weight 0): they come by blood or by events. The two last health
+# level). The highest levels of wit are never generated at random (weight 0): they come by blood; the secret health traits are rare at random (weight 1). The two last health
 # traits are secret until a physician says so (content/events/heredity.yaml).
 traits:
   - id: quick
@@ -36,13 +36,14 @@ traits:
     weight: 2
     mortalityPct: 85
     line: { id: hardiness, level: 1, against: frailty }
-    heritage: { one: 2500, both: 5500, up: 600 }
+    heritage: { one: 2500, both: 5500, up: 1500 }
 
   - id: long_lived
     name: Long-lived
     category: body
     opposite: sickly
     visibility: secret
+    weight: 1
     mortalityPct: 60
     line: { id: hardiness, level: 2, against: frailty }
     heritage: { one: 2000, both: 5000 }
@@ -56,7 +57,7 @@ traits:
     weight: 2
     mortalityPct: 130
     line: { id: frailty, level: 1, against: hardiness }
-    heritage: { one: 2500, both: 5500, up: 600 }
+    heritage: { one: 2500, both: 5500, up: 1500 }
 
   - id: sickly
     name: Sickly
@@ -64,6 +65,7 @@ traits:
     opposite: long_lived
     stats: { prowess: -2 }
     visibility: secret
+    weight: 1
     mortalityPct: 170
     conceptionPct: 70
     line: { id: frailty, level: 2, against: hardiness }

@@ -5,7 +5,7 @@
 ## 2026-10-17 · 4.20 Наследуемые черты
 - Схема черты (D-420): у врождённых черт `heritage {one, both, up?}`, `line {id, level}`, `mortalityPct`, `conceptionPct`; проверки: диапазон 0…10000, уровни линии без пропусков, `up` с уровнем выше, поля только у `body`.
 - Рождение (D-421): `inheritBodyTraits` вместо заглушки 1/3 (D-353) — шанс у каждой черты свой, больше при обоих родителях; уровень ребёнка не выше старшего родителя + 1.
-- Содержание (D-422, D-423): `content/traits/heredity.yaml` — ум (быстроумный → умный → блестящий), крепость, хилость; поправки смертности (`dailyDeathChance`) и зачатия (`conceive`); `strong`, `weak`, `handsome`, `plain` получили `heritage`; события лекаря `content/events/heredity.yaml`.
+- Содержание (D-422, D-423): `content/traits/heredity.yaml` — ум (быстроумный → умный → блестящий), крепость, хилость; поправки смертности (`dailyDeathChance`) и зачатия (`conceive`); `strong`, `weak`, `handsome`, `plain` получили `heritage`; четыре события лекаря `content/events/heredity.yaml` — склонность ребёнка героя или возможного супруга; `long_lived`/`sickly` редки и при случайной генерации.
 - Тесты в `tests/character.test.ts`, 6 плохих примеров `trait-heritage-*`, `trait-line-*`. `SAVE_VERSION` не менялся.
 
 ## 2026-10-17 · идея I-020
