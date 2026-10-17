@@ -1,5 +1,5 @@
 # Courtship, matches and weddings (4.13, D-313). The paths to a marriage: the courtship story (3.8), a match by calculation,
-# a house above the hero's station, a match offered for a child of the hero. The answer to a proposal made from a page
+# a family of standing above the hero's station, a match offered for a child of the hero. The answer to a proposal made from a page
 # and the action "look for a spouse" are in family-basic.yaml. A marriage of the hero schedules the wedding feast.
 events:
   # Courtship story: the hero begins to court someone of the circle; the proposal comes in a season or the courtship lapses.
@@ -109,14 +109,15 @@ events:
       - text: Decline the terms
         result: "{name} declined a match of calculation with {match}."
 
-  # A house above the hero's station: the door opens only for a name or a full purse.
+  # A family of standing above the hero's station (a merchant, a physician, a clerk; no house of the world has a status of
+  # its own yet): the door opens only for a name or a full purse.
   - id: match_above_station
     weight: 3
     cooldown_days: 900
     when: { age_min: 16, married: false }
     roles:
-      match: { pick: circle, where: { can_marry: hero, house_status_min: noble, age_min: 16, age_max: 34 } }
-    text: "{match}, {match.age}, is of a house far above yours. The family would not look at a hero of no name, yet you have been seen, and talked of."
+      match: { pick: circle, where: { can_marry: hero, occupation: [merchant, physician, clerk], age_min: 16, age_max: 34 } }
+    text: "{match}, {match.age}, is of a family of standing far above yours. The family would not look at a hero of no name, yet you have been seen, and talked of."
     mood: threat
     options:
       - text: Press your suit with all you have
