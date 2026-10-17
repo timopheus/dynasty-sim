@@ -28,7 +28,7 @@ export const archivePhase: DayPhase = {
     if (!chunk) return false;
     const hot = new Set(state.characters.map((c) => c.id));
     const own = new Set(chunk.characters.map((c) => c.id));
-    const problems = chunkProblems(chunk, state.archive.length, ctx.content, (id) => hot.has(id) || own.has(id));
+    const problems = chunkProblems(state, chunk, state.archive.length, ctx.content, (id) => hot.has(id) || own.has(id));
     if (problems.length > 0) throw new Error(`Bad archive chunk: ${problems.slice(0, 5).join('; ')}`);
     state.archive.push(chunk);
     return false;
