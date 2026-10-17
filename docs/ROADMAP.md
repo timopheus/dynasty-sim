@@ -397,7 +397,7 @@
 | 4.7 | Род: сущность рода, статус, слава, прозвище | `src/core/house/`, `content/house.yaml` (новый), `tests/house.test.ts` | 4.1, 4.2 | Sonnet | 2 | ✅ [#63](https://github.com/timopheus/dynasty-sim/pull/63) |
 | 4.8 | Что ещё наследуется: вражда, знание, истории | `src/core/relations/`, `src/core/stories/`, `content/opinions.yaml` (поле `inherits_as` у причин, числа славы в фоне), `tests/inheritance.test.ts` | 4.6, 4.7 | Sonnet | 3 | ⬜ |
 | 4.9 | Родовая вещь | `src/core/heirloom/`, `content/heirlooms.yaml` (новый), `tests/heirloom.test.ts` | 4.2, 4.6 | Sonnet | 3 | ⬜ |
-| 4.10 | Портрет: внешность и гены | `src/core/looks/` (новый), `tests/looks.test.ts` | 4.1 | Sonnet | 3 | ⬜ |
+| 4.10 | Портрет: внешность и гены | `src/core/looks/` (новый), `tests/looks.test.ts` | 4.1 | Sonnet | 3 | ✅ |
 | 4.11 | Дух эпохи: механизм | `src/core/era/`, `src/core/metrics/` (метрики по эпохам), `content/eras.yaml` (новый), `tests/era.test.ts` | 4.1 | Sonnet | 4 | ⬜ |
 | 4.12 | Портрет: прототип лица героя | `src/ui/portrait/` (новый), `src/ui/main.ts` (портрет на экране героя), `src/ui/style.css`, `tests/portrait.test.ts` | 4.10 | Opus | 4 | ⬜ |
 | 4.13 | Контент: сватовство, браки, дети, воспитание, опекун | `content/events/family*.yaml`, `content/actions.yaml`, `content/succession.yaml` (`temporaryHeir: false`), `content/opinions.yaml`, `content/grammar.yaml`, `content/family.yaml` (только числа) | 4.5, 4.6, 4.7 | content-writer (Sonnet) | 4 | ⬜ |
