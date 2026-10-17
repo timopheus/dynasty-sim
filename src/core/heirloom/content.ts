@@ -60,8 +60,8 @@ export const checkHeirlooms: CrossCheck = ({ heirlooms, events, actions, opinion
   const users: { file: string; base: string; item: unknown; roles: string[]; symbols: string[] }[] = [];
   const general = Object.assign({}, ...grammar.map((g) => g.item)) as Record<string, unknown>;
   for (const e of events) {
-    const own = (e.item as { roles?: Record<string, unknown>; grammar?: Record<string, unknown> });
-    users.push({ file: e.file, base: `events[${e.index}]`, item: e.item, roles: Object.keys(own.roles ?? {}), symbols: Object.keys({ ...general, ...own.grammar }) });
+    const own = e.item as { roles?: Record<string, unknown> };
+    users.push({ file: e.file, base: `events[${e.index}]`, item: e.item, roles: Object.keys(own.roles ?? {}), symbols: Object.keys(general) });
   }
   for (const a of actions) users.push({ file: a.file, base: `actions[${a.index}]`, item: a.item, roles: [], symbols: Object.keys(general) });
   for (const { file, base, item, roles, symbols } of users) {

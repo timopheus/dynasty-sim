@@ -76,7 +76,7 @@ export function applyHeirloomEffects(ctx: Ctx, c: Character, effects: HeirloomEf
       log(ctx, { subject: c, kind: 'heirloom', level: 'chronicle', parts: fillTemplate(cfg.texts.sold, values(ctx, c, h)), money: sell.money });
       if (sell.reason !== undefined && c.house !== null) {
         for (const m of state.characters) {
-          if (m.house === c.house && m.id !== c.id && isAlive(m) && (isNear(state, m.id) || isNear(state, c.id))) addOpinionReason(ctx, m.id, c.id, sell.reason);
+          if (m.house === c.house && m.id !== c.id && isAlive(m) && isNear(state, m.id)) addOpinionReason(ctx, m.id, c.id, sell.reason);
         }
       }
       if (sell.trait !== undefined) grantTrait(content, c, sell.trait);

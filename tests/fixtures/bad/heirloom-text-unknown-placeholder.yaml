@@ -1,4 +1,4 @@
-# expect-error: heirlooms.texts.sold /unknown placeholder \{to\}/
+# expect-error: heirlooms.texts.sold /unknown placeholder {to}/
 heirlooms:
   max: 2
   kinds: [{ id: sword, name: Sword }]

@@ -9,6 +9,7 @@ import { checkInvariants } from '../src/core/invariants';
 import { createCharacter, kill } from '../src/core/lifecycle';
 import { entityPage } from '../src/core/pages/entity';
 import { opinionValue } from '../src/core/relations/opinions';
+import { archivePhase } from '../src/core/archive/phases';
 import { deserialize, serialize } from '../src/core/save/save';
 import type { Content } from '../src/core/content/schema';
 import type { Character, Ctx, GameState } from '../src/core/state';
@@ -141,6 +142,15 @@ describe('give, sell, lose', () => {
     expect(checkInvariants(state, content)).toEqual([]);
   });
 
+  it('only the people of the house who are near hold the grudge of a sale', () => {
+    const { state, ctx, hero } = setup();
+    const far = person(ctx, 'male', 40);
+    far.house = hero.house;
+    make(ctx, hero);
+    applyEffects(ctx, hero, effects({ heirloom_sell: { money: 10, reason: 'insult' } }), { hero: hero.id, protagonist: hero.id });
+    expect(state.opinionReasons.filter((r) => r.holder === far.id)).toEqual([]);
+  });
+
   it('selling or losing with nothing held does nothing', () => {
     const { state, ctx, hero } = setup();
     const before = hero.money;
@@ -236,6 +246,33 @@ describe('the change of head', () => {
     make(ctx, hero);
     const copy = deserialize(serialize(state), content);
     expect(copy.heirlooms).toEqual(state.heirlooms);
+  });
+});
+
+describe('the archive', () => {
+  it('keeps the dead owner of a held thing hot; the owner of a sold one may go, and the page still reads', () => {
+    const { state, ctx, hero } = setup();
+    const uncle = person(ctx, 'male', 50);
+    const old = person(ctx, 'male', 60);
+    const kept = make(ctx, hero, 'sword', 'Kept');
+    const sold = make(ctx, hero, 'ring', 'Sold');
+    applyEffects(ctx, hero, effects({ heirloom_give: { to: 'friend', kind: 'sword' } }), { hero: hero.id, protagonist: hero.id, friend: uncle.id });
+    applyEffects(ctx, hero, effects({ heirloom_give: { to: 'friend', kind: 'ring' } }), { hero: hero.id, protagonist: hero.id, friend: old.id });
+    applyEffects(ctx, old, effects({ heirloom_sell: { money: 1 } }), { hero: old.id, protagonist: old.id });
+    kill(ctx, uncle, 'test');
+    kill(ctx, old, 'test');
+    // Old chronicle lines that link to a thing (or a house) break the check of an archive chunk, which takes every link
+    // for a person (archive/check.ts, outside 4.9: see STATUS); so the chronicle is emptied here.
+    state.chronicle = [];
+    state.day += 365 * 20;
+    state.archiveYear = null;
+    archivePhase.run(ctx);
+    expect(state.characters.some((c) => c.id === uncle.id)).toBe(true);
+    expect(state.characters.some((c) => c.id === old.id)).toBe(false);
+    expect(heirloomById(state, sold)!.owners.map((o) => o.id)).toContain(old.id);
+    expect(heirloomById(state, kept)!.owner).toBe(uncle.id);
+    expect(entityPage(ctx, sold)?.type).toBe('entity');
+    expect(checkInvariants(state, content)).toEqual([]);
   });
 });
 
