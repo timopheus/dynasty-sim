@@ -3,16 +3,17 @@ import { newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { createCharacter } from '../src/core/hooks';
 import { kill } from '../src/core/lifecycle';
+import { deserialize, serialize } from '../src/core/save/save';
 import { faceSpec, geneDistance, genesOf, VARIANTS } from '../src/core/looks';
 import { looksStream } from '../src/core/looks/genes';
 import type { Character, Ctx, GameState } from '../src/core/state';
-import { BASE_FILES, loadOrThrow } from './fixtures/content';
+import { BASE_FILES, loadOrThrow, realContent } from './fixtures/content';
 
 const content = loadOrThrow(BASE_FILES);
 
-function setup(seed = 5): { state: GameState; ctx: Ctx; hero: Character } {
-  const state = newGame(seed, content);
-  return { state, ctx: { state, content }, hero: getPlayer(state) };
+function setup(seed = 5, c = content): { state: GameState; ctx: Ctx; hero: Character } {
+  const state = newGame(seed, c);
+  return { state, ctx: { state, content: c }, hero: getPlayer(state) };
 }
 
 function person(ctx: Ctx, age: number, parents: { father?: Character; mother?: Character } = {}): Character {
@@ -56,6 +57,44 @@ describe('genes (D-300, D-301)', () => {
       toStrangers += geneDistance(g, genesOf(state, stranger.id));
     });
     expect(toParents).toBeLessThan(toStrangers * 0.9);
+  });
+
+  it('one known parent is mixed with an unknown one, and both lines are stable', () => {
+    const { ctx, state } = setup();
+    const f = person(ctx, 40);
+    const kid = person(ctx, 8, { father: f });
+    const g = genesOf(state, kid.id);
+    expect(genesOf(state, kid.id)).toEqual(g);
+    expect(g).not.toEqual(genesOf(state, f.id));
+  });
+
+  it('a parent in the archive still passes genes on', () => {
+    const { ctx, state } = setup();
+    const f = person(ctx, 40);
+    const m = person(ctx, 38);
+    const kid = person(ctx, 8, { father: f, mother: m });
+    const hot = genesOf(state, kid.id);
+    const fresh = setup();
+    const f2 = person(fresh.ctx, 40);
+    const m2 = person(fresh.ctx, 38);
+    const kid2 = person(fresh.ctx, 8, { father: f2, mother: m2 });
+    fresh.state.characters = fresh.state.characters.filter((c) => c.id !== f2.id && c.id !== m2.id);
+    fresh.state.archive.push({ characters: [f2, m2] } as unknown as GameState['archive'][number]);
+    expect(genesOf(fresh.state, kid2.id)).toEqual(hot);
+  });
+
+  it('parents given later change the genes once, and a saved game shows the same face', () => {
+    const { ctx, state } = setup();
+    const f = person(ctx, 40);
+    const m = person(ctx, 38);
+    const far = person(ctx, 20);
+    const alone = genesOf(state, far.id);
+    far.father = f.id;
+    far.mother = m.id;
+    const withKin = genesOf(state, far.id);
+    expect(withKin).not.toEqual(alone);
+    const loaded = deserialize(serialize(state), content);
+    expect(faceSpec({ state: loaded, content }, loaded.characters.find((c) => c.id === far.id)!, 'neutral')).toEqual(faceSpec(ctx, far, 'neutral'));
   });
 });
 
@@ -120,6 +159,29 @@ describe('faceSpec', () => {
     expect(marked.accessories.length).toBeGreaterThan(base.accessories.length);
     expect(marked.expression).toBe('joy');
     expect(marked.eyes).toEqual(base.eyes);
+  });
+
+  it('wounds leave scars and bandages, illness shows', () => {
+    const { ctx, state } = setup(5, realContent());
+    const c = person(ctx, 30);
+    const plain = faceSpec(ctx, c, 'neutral');
+    expect(plain.scars).toHaveLength(0);
+    expect(plain.bandages).toHaveLength(0);
+    c.conditions.push({ id: 'light_wound', stage: 'fresh', start: state.day, since: state.day });
+    expect(faceSpec(ctx, c, 'neutral').bandages).toHaveLength(1);
+    c.conditions = [{ id: 'old_wound', stage: 'closed', start: state.day, since: state.day }];
+    expect(faceSpec(ctx, c, 'neutral').scars).toHaveLength(1);
+    c.traits.push('scarred');
+    expect(faceSpec(ctx, c, 'neutral').scars).toHaveLength(2);
+    c.conditions = [{ id: 'fever', stage: 'crisis', start: state.day, since: state.day }];
+    expect(faceSpec(ctx, c, 'neutral').illness).toBe(2);
+  });
+
+  it('a sick child has no wrinkles', () => {
+    const { ctx, state } = setup(5, realContent());
+    const kid = person(ctx, 8);
+    kid.conditions.push({ id: 'fever', stage: 'feverish', start: state.day, since: state.day });
+    expect(faceSpec(ctx, kid, 'neutral')).toMatchObject({ illness: 1, wrinkles: null });
   });
 
   it('does not spend the world stream and does not change the state', () => {

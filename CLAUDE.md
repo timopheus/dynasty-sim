@@ -47,6 +47,7 @@ src/core/          симуляция: без DOM, без Node API, без ин�
   house/           род (4.7): роды, поле house, хук брака (house.ts), раздел и страница рода (page.ts)
   heirloom/        родовая вещь (4.9), страница вещи (page.ts)
   era/             эпоха (4.11): eraOf(ctx, day)
+  looks/           портрет (4.10, D-302): гены лица (genes.ts) и faceSpec (face.ts) — данные без картинки; читают страницы и интерфейс, правила симуляции не импортируют
   summary/         итог рода (4.14): годовая фаза (phases.ts), пока — живых людей max
   save/            горячая часть и куски (hotSave, chunkSave, readSaveParts), serialize/readSave, версия формата (2.8, D-336); версия контента (content-version.ts), журнал команд и replay (journal.ts, D-338)
   metrics/         computeMetrics(state) — метрики прогона (2.7), сводка и сравнение

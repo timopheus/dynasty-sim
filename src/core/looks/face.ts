@@ -140,12 +140,13 @@ export function faceSpec(ctx: Ctx, c: Character, mood: string): FaceSpec {
     : [];
 
   // Hair thins for some men with age and turns grey; the start of the grey is a gene.
-  const bald = stage !== 'child' && stage !== 'young' && male && v(genes, 'hair.bald', 6) === 0 && age >= 40;
+  const bald = male && v(genes, 'hair.bald', 6) === 0 && age >= 40;
   const greyFrom = 40 + v(genes, 'hair.grey', 16);
   const grey = age < greyFrom ? 0 : age < greyFrom + 8 ? 1 : age < greyFrom + 18 ? 2 : 3;
 
   const wrinkleLevel = age >= 60 ? 3 : age >= 45 ? 2 : age >= 32 ? 1 : 0;
-  const wrinkles = wrinkleLevel + (illness > 0 ? 1 : 0) > 0 ? { ...part(genes, 'wrinkles', VARIANTS.wrinkles), level: Math.min(3, wrinkleLevel + (illness > 0 ? 1 : 0)) } : null;
+  const illWrinkle = illness > 0 && stage !== 'child' ? 1 : 0;
+  const wrinkles = wrinkleLevel + illWrinkle > 0 ? { ...part(genes, 'wrinkles', VARIANTS.wrinkles), level: Math.min(3, wrinkleLevel + illWrinkle) } : null;
 
   const house = houseOf(state, c);
   const rank = house ? statusRank(content, house.status) : -1;

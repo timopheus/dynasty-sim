@@ -64,8 +64,9 @@ function mixGenes(r: RngState, a: Genes, b: Genes): Record<GeneId, number> {
 }
 
 /**
- * Caches live outside the state (never saved): per game state object, the genes by id. Kin is set at birth and never
- * changes, so an entry never goes stale; a loaded save is a new object with a new cache.
+ * Caches live outside the state (never saved): per game state object, the genes by id and parents. Kin is usually set at
+ * birth, but a far person may get parents when first met (family/pedigree.ts); the key holds the parents, so the genes
+ * are always a function of (seed, id, father, mother) and a loaded save gives the same face as the game before it.
  */
 const caches = new WeakMap<GameState, Map<string, Genes>>();
 
@@ -78,20 +79,21 @@ const caches = new WeakMap<GameState, Map<string, Genes>>();
 export function genesOf(state: GameState, id: string): Genes {
   let cache = caches.get(state);
   if (!cache) caches.set(state, (cache = new Map()));
-  const known = cache.get(id);
-  if (known) return known;
   const person = anyCharacter(state, id);
-  const r = seedRng(state.seed, looksStream(id));
-  let genes: Record<GeneId, number>;
   const father = person?.father ?? null;
   const mother = person?.mother ?? null;
+  const key = `${id}|${father ?? ''}|${mother ?? ''}`;
+  const known = cache.get(key);
+  if (known) return known;
+  const r = seedRng(state.seed, looksStream(id));
+  let genes: Record<GeneId, number>;
   if (father === null && mother === null) genes = randomGenes(r);
   else {
     const side = (parent: string | null, which: string): Genes =>
       parent !== null ? genesOf(state, parent) : randomGenes(seedRng(state.seed, looksStream(`${id}:${which}`)));
     genes = mixGenes(r, side(father, 'father'), side(mother, 'mother'));
   }
-  cache.set(id, genes);
+  cache.set(key, genes);
   return genes;
 }
 
