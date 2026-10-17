@@ -1,0 +1,3 @@
+# expect-error: traits[0].heritage /only a body trait has this field/
+traits:
+  - { id: tt_a, name: A, category: character, visibility: normal, gained: "{name} changed.", heritage: { one: 100, both: 200 } }

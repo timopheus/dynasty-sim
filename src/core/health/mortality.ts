@@ -1,3 +1,4 @@
+import { scaleByTraits } from '../character/holding';
 import { ageYears } from '../time/calendar';
 import type { Content } from '../content/schema';
 import type { Character, Ctx } from '../state';
@@ -43,10 +44,14 @@ export function mortalityRow(content: Content, age: number): { per100k: number; 
   return row;
 }
 
-/** Numerator of the daily death chance out of DAILY_DEATH_DENOMINATOR: the table row times the stage multipliers. */
+/**
+ * Numerator of the daily death chance out of DAILY_DEATH_DENOMINATOR: the table row times the stage multipliers and
+ * the death percent of the traits (D-329). People far from the hero (`annualDeathChance`) have no traits at hand.
+ */
 export function dailyDeathChance(ctx: Ctx, c: Character): number {
   const row = mortalityRow(ctx.content, ageYears(c.birthDay, ctx.state.day));
-  return Math.min(DAILY_DEATH_DENOMINATOR, row.per100k * conditionMortality(ctx.content, c).multiplier);
+  const base = row.per100k * conditionMortality(ctx.content, c).multiplier;
+  return Math.min(DAILY_DEATH_DENOMINATOR, scaleByTraits(ctx.content, base, [c], 'mortalityPct'));
 }
 
 /** Cause of a death roll that came up: the condition most to blame, else the cause of the table row. */
