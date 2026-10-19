@@ -215,6 +215,8 @@ function render(session: Session): void {
     modal = willWindow(form, (cmd) => { session.willOpen = false; void act(session, cmd); }, close);
     session.dismiss = close;
   }
+  // on a phone the panel and a window do not share the screen: the window wins
+  if (modal && window.matchMedia(NARROW).matches) session.sidebar.open = false;
   if (!screen) session.announcedEvent = '';
   if (!(session.willOpen && form)) session.willOpen = false;
 
@@ -264,6 +266,8 @@ function render(session: Session): void {
   // the menu stays reachable under a pinned window: "New game" must work whatever is pending
   if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar, .avatar')) part.inert = true;
   app?.replaceChildren(game, ...(modal ? [modal] : []));
+  // on a phone the window starts below the header, whatever height its words make it
+  if (modal && window.matchMedia(NARROW).matches) modal.style.paddingTop = `${Math.ceil(header.getBoundingClientRect().bottom) + 8}px`;
   if (DEV) game.setAttribute('data-seed', String(state.seed));
 
   announce(session.queue.splice(0).filter(Boolean).join(' '));

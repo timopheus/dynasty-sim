@@ -168,6 +168,13 @@ test('a phone: one column, no sideways scroll, the panel slides out of the avata
   const bottom = (selector: string) => page.locator(selector).evaluate((n) => n.getBoundingClientRect().bottom);
   expect(await top('.modal-title')).toBeGreaterThanOrEqual(await bottom('.topbar'));
   await expect(page.locator('.modal-title')).toBeInViewport();
+  // a link in the text of the window does not slide the panel over it
+  const link = page.locator('.modal a').first();
+  if ((await link.count()) > 0) {
+    await link.click();
+    await expect(page.locator('.sidebar.open')).toHaveCount(0);
+    await expect(page.locator('.modal-title')).toBeInViewport();
+  }
   await page.screenshot({ path: 'out/e2e/layout-390-window.png' });
   // answer the scenes of the backstory, then look at the centre
   for (let i = 0; i < 30 && (await page.locator('.modal-layer').count()) > 0; i++) await page.locator('.modal-layer .option button.choice').first().click();
