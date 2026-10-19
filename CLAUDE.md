@@ -19,7 +19,7 @@
 npm ci                                   # первым делом в новой сессии
 npm run dev                              # игра в браузере
 npm run check                            # typecheck + test + validate + sim 50 лет
-npm run typecheck | npm test | npm run validate   # по отдельности
+npm run typecheck; npm test; npm run validate      # по отдельности
 npm run sim -- --years 300 --seed 42     # прогон: хроника, журнал, итог рода в out/
 npm run -s sim -- --years 300 --seed 1 --runs 10 [--bot cautious] [--json] > a.json   # -s: без заголовка npm в файле
 npm run -s sim -- --compare a.json b.json
