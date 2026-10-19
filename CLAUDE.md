@@ -27,9 +27,10 @@ npm run gates                            # 300 лет × seeds 1…10, кори�
 npx tsx tools/bot-report.ts --runs 10    # отчёт по ботам
 npm run replay -- journal.json           # партия из журнала команд; --record out/j.json --seed 1 --years 50 — записать бота
 npm run save-bench                       # размер и время записи сохранения
+npm run e2e                              # смоук в браузере: сборка, 3 seed × 50 ходов, скриншоты в out/e2e/ (в песочнице E2E_CHROMIUM_PATH=/opt/pw-browsers/chromium)
 npm run build                            # сборка в dist/ (для артефакта: npx vite build --base ./)
 ```
-CI на каждый PR и push в main: typecheck, test, validate, sim 50 лет, build; работа `gates` — 300 лет × 10 seeds, валят инварианты, горячая часть > 300 КБ и строки хроники на жизнь главы вне 25–50; работа `bots` — отчёт, не валит. Коридор или признак «валит / отчёт» меняется только новым решением в decisions-active (D-203).
+CI на каждый PR и push в main: typecheck, test, validate, sim 50 лет, build; работа `gates` — 300 лет × 10 seeds, валят инварианты, горячая часть > 300 КБ и строки хроники на жизнь главы вне 25–50; работа `e2e` — смоук в браузере, валит (D-435); работа `bots` — отчёт, не валит. Коридор или признак «валит / отчёт» меняется только новым решением в decisions-active (D-203).
 
 ## Правила ядра (src/core)
 - Ядро импортирует только свои модули, `yaml` и `zod`. Запрещены DOM, Node API, `Math.random`, `Date`, `performance` (проверяет `tests/architecture.test.ts`).
