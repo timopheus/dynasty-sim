@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { botCommand } from '../src/core/bot';
-import { apply, newGame } from '../src/core/game';
+import { play as step, newGame } from '../src/core/game';
 import { decodeCompact, encodeCompact } from '../src/core/save/compact';
 import { SAVE_VERSION, deserialize, jsonProblems, readSave, readSaveParts, saveParts, savedContentVersion, serialize } from '../src/core/save/save';
 import { contentVersion } from '../src/core/save/content-version';
@@ -15,14 +15,14 @@ describe('saves', () => {
   it('continues identically after a JSON save and load mid-game', () => {
     const content = fixtureNarrator({ eventChancePer10k: 5000, minDaysBetweenEvents: 2 });
     const original = newGame(99, content);
-    apply(original, content, { type: 'start', actionId: 'rest' });
+    step(original, content, { type: 'start', actionId: 'rest' });
     expect(original.status).toBe('awaiting_choice');
     const loaded = deserialize(serialize(original), content);
     expect(loaded).toEqual(original);
 
     const play = (s: typeof original) => {
       for (let i = 0; i < 50; i++) {
-        apply(s, content, s.status === 'awaiting_choice' ? { type: 'choose', option: 1 } : { type: 'start', actionId: 'rest' });
+        step(s, content, s.status === 'awaiting_choice' ? { type: 'choose', option: 1 } : { type: 'start', actionId: 'rest' });
       }
     };
     play(original);
@@ -57,8 +57,8 @@ describe('saves', () => {
     const botB = seedRng(seed, 1);
     let steps = 0;
     while (straight.day < endDay) {
-      apply(straight, content, botCommand(straight, content, botA));
-      apply(reloaded, content, botCommand(reloaded, content, botB));
+      step(straight, content, botCommand(straight, content, botA));
+      step(reloaded, content, botCommand(reloaded, content, botB));
       reloaded = deserialize(serialize(reloaded), content);
       expect(reloaded).toEqual(straight);
       steps += 1;

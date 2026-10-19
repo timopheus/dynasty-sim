@@ -9,7 +9,7 @@ import type { Ctx } from '../src/core/state';
 import { CHANCE_WORDS, actionRows, eventScreen } from '../src/ui/event';
 import { entryView, headIds } from '../src/ui/entry';
 import { readContentFiles } from '../tools/content-files';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { deserialize, serialize } from '../src/core/save/save';
 import { newJournal } from '../src/core/save/journal';
 import { heroView } from '../src/ui/hero';
@@ -125,11 +125,11 @@ describe('event screen', () => {
     const { ctx, hero } = eventGame();
     fireEvent(ctx, findEvent(eventContent, 'loud_notice'), hero);
     expect(eventScreen(ctx)!.options).toEqual([{ index: 0, label: ['Continue'], grey: false, reason: '', chance: null }]);
-    apply(ctx.state, eventContent, { type: 'choose', option: 0 });
+    play(ctx.state, eventContent, { type: 'choose', option: 0 });
     expect(eventScreen(ctx)).toBeNull();
 
     fireEvent(ctx, findEvent(eventContent, 'two_pages'), hero);
-    apply(ctx.state, eventContent, { type: 'choose', option: 0 });
+    play(ctx.state, eventContent, { type: 'choose', option: 0 });
     const reloaded: Ctx = { state: deserialize(serialize(ctx.state), eventContent), content: eventContent };
     expect(ctx.state.pendingEvent!.page).toBe('talk');
     expect(eventScreen(reloaded)).toEqual(eventScreen(ctx));

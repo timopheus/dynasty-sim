@@ -4,7 +4,7 @@ import { loadContent } from '../core/content/load';
 import type { Content } from '../core/content/schema';
 import { newGame, type Command } from '../core/game';
 import { contentVersion } from '../core/save/content-version';
-import { applyRecorded, newJournal, type Journal } from '../core/save/journal';
+import { newJournal, playRecorded, type Journal } from '../core/save/journal';
 import { isValidSeed } from '../core/rng';
 import type { GameState } from '../core/state';
 import { formatDate } from '../core/time/calendar';
@@ -325,7 +325,7 @@ async function act(session: Session, cmd: Command): Promise<void> {
   try {
     // the archive phase moves old lines out of the hot part: count over the whole chronicle
     const seen = allChronicle(session.state).length;
-    applyRecorded(session.journal, session.state, session.content, cmd);
+    playRecorded(session.journal, session.state, session.content, cmd);
     session.focusAfterRender = true;
     // new chronicle lines go to the live region first, the event page follows in render()
     const lines = allChronicle(session.state).slice(seen).filter((e) => e.level === 'chronicle').map(entryText);

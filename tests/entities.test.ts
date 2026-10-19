@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { chronicleProblems } from '../src/core/chronicle/log';
 import { chronicleMarkdown } from '../src/core/chronicle/markdown';
 import { ENTITY_KINDS, entityExists, kindOf, makeEntityRegistry, wordOf, type EntityKind } from '../src/core/entities/registry';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
 import { entityChronicle, entityPage, type EntityPage, type EntityPages } from '../src/core/pages/entity';
@@ -26,7 +26,7 @@ function samplePages(known: string[]): EntityPages {
 
 function setup() {
   const state = newGame(5, content);
-  apply(state, content, { type: 'start', actionId: 'rest' });
+  play(state, content, { type: 'start', actionId: 'rest' });
   return { state, ctx: { state, content } as Ctx, hero: getPlayer(state) };
 }
 

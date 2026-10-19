@@ -3,7 +3,7 @@ import { narratorContent } from '../src/core/narrator/content';
 import { log } from '../src/core/chronicle/log';
 import { chronicleMarkdown, journalMarkdown } from '../src/core/chronicle/markdown';
 import type { Content } from '../src/core/content/schema';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
 import { createCharacter, kill } from '../src/core/lifecycle';
@@ -32,8 +32,8 @@ function withMoney(actionMoney: number, optionMoney: number, mark = false): Cont
 /** Plays one action with the event it brings; returns the "event" and "action" entries. */
 function playOnce(content: Content) {
   const state = newGame(1, content);
-  apply(state, content, { type: 'start', actionId: 'wait' });
-  apply(state, content, { type: 'choose', option: 0 });
+  play(state, content, { type: 'start', actionId: 'wait' });
+  play(state, content, { type: 'choose', option: 0 });
   return { state, event: state.chronicle.find((e) => e.kind === 'event'), action: state.chronicle.find((e) => e.kind === 'action') };
 }
 
@@ -65,8 +65,8 @@ describe('chronicle selection (D-019, D-130)', () => {
     const content = withMoney(25, 0);
     const state = newGame(1, content);
     getPlayer(state).money = 1000; // 25 crowns is 2.5% of 1000 before the change
-    apply(state, content, { type: 'start', actionId: 'wait' });
-    apply(state, content, { type: 'choose', option: 0 });
+    play(state, content, { type: 'start', actionId: 'wait' });
+    play(state, content, { type: 'choose', option: 0 });
     expect(state.chronicle.find((e) => e.kind === 'action')?.level).toBe('journal');
   });
 
@@ -148,8 +148,8 @@ describe('chronicle selection (D-019, D-130)', () => {
       const content = withMoney(25, 25);
       const state = newGame(7, content);
       for (let i = 0; i < 5; i++) {
-        apply(state, content, { type: 'start', actionId: 'wait' });
-        while (state.status === 'awaiting_choice') apply(state, content, { type: 'choose', option: 0 });
+        play(state, content, { type: 'start', actionId: 'wait' });
+        while (state.status === 'awaiting_choice') play(state, content, { type: 'choose', option: 0 });
       }
       return JSON.stringify(state.chronicle);
     };

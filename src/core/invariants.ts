@@ -34,6 +34,8 @@ const coreInvariants: Invariant = ({ state }) => {
     if (state.activeAction !== null || state.pendingEvent !== null) {
       problems.push('awaiting_action with an active action or pending event');
     }
+  } else if (state.status === 'running') {
+    if (state.activeAction === null || state.pendingEvent !== null) problems.push('running without an active action or with a pending event');
   } else if (state.status === 'awaiting_choice') {
     // No action is fine: the scenes of the backstory come before the first action (D-167).
     if (!state.pendingEvent) problems.push('awaiting_choice without a pending event');

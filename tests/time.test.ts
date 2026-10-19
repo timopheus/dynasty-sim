@@ -4,7 +4,7 @@ import { actionAvailability, availableActions, interruptAction } from '../src/co
 import { botCommand } from '../src/core/bot';
 import { entryText } from '../src/core/chronicle/log';
 import type { Content } from '../src/core/content/schema';
-import { apply, DAY_PHASES, newGame } from '../src/core/game';
+import { play, DAY_PHASES, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
 import { conditionReport, unmetConditions } from '../src/core/condition-keys';
@@ -21,7 +21,7 @@ import { BASE_FILES, loadOrThrow, realContent } from './fixtures/content';
 const content: Content = loadOrThrow([...BASE_FILES, ...readContentFiles('tests/fixtures/time')]);
 
 function start(state: GameState, actionId: string): void {
-  apply(state, content, { type: 'start', actionId });
+  play(state, content, { type: 'start', actionId });
 }
 
 function reasons(state: GameState, id: string): string[] {
@@ -85,7 +85,7 @@ describe('conditions', () => {
     for (let i = 0; i < 200; i += 1) {
       const cmd = botCommand(state, content, rng);
       if (cmd.type === 'start') expect(availableActions({ state, content }).map((a) => a.id)).toContain(cmd.actionId);
-      apply(state, content, cmd);
+      play(state, content, cmd);
       expect(checkInvariants(state, content)).toEqual([]);
     }
   });
@@ -193,10 +193,10 @@ describe('event options', () => {
 
   it('end_action and later in an option take effect after the answer', () => {
     const state = newGame(1, eventContent);
-    apply(state, eventContent, { type: 'start', actionId: 'wait' });
+    play(state, eventContent, { type: 'start', actionId: 'wait' });
     expect(state.status).toBe('awaiting_choice');
     const money = getPlayer(state).money;
-    apply(state, eventContent, { type: 'choose', option: 0 });
+    play(state, eventContent, { type: 'choose', option: 0 });
     expect(state.activeAction).toBeNull();
     expect(state.status).toBe('awaiting_action');
     expect(getPlayer(state).money).toBe(money); // the action's own effects are skipped
@@ -208,8 +208,8 @@ describe('event options', () => {
 
   it('end_action takes a text of its own', () => {
     const state = newGame(1, eventContent);
-    apply(state, eventContent, { type: 'start', actionId: 'wait' });
-    apply(state, eventContent, { type: 'choose', option: 1 });
+    play(state, eventContent, { type: 'start', actionId: 'wait' });
+    play(state, eventContent, { type: 'choose', option: 1 });
     expect(entryText(state.chronicle.at(-1)!)).toBe('Anne Fixture gave up the road.');
     expect(state.activeAction).toBeNull();
   });

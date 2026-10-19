@@ -6,7 +6,7 @@ import { chanceBand, checkChance, rollCheck } from '../src/core/events/checks';
 import { DEFAULT_MOOD, moodOf, type EventDef } from '../src/core/events/content';
 import { eventWeight, findEvent, fireEvent, optionState, startEvent } from '../src/core/events/events';
 import { eventView } from '../src/core/events/view';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
 import { createCharacter } from '../src/core/lifecycle';
@@ -86,8 +86,8 @@ describe('options', () => {
     expect(view.options[1]).toMatchObject({ available: false, reasons: ['Requires 1000 crowns'] });
     expect(view.options[0]).toMatchObject({ available: true, reasons: [], chance: null });
     expect(view.mood).toBe('neutral'); // the scene sets no mood (D-177)
-    expect(() => apply(ctx.state, c, { type: 'choose', option: 1 })).toThrow(/not available/);
-    expect(() => apply(ctx.state, c, { type: 'choose', option: 3 })).toThrow(/not available/);
+    expect(() => play(ctx.state, c, { type: 'choose', option: 1 })).toThrow(/not available/);
+    expect(() => play(ctx.state, c, { type: 'choose', option: 3 })).toThrow(/not available/);
   });
 
   it('lets the bot choose only available options', () => {
@@ -147,7 +147,7 @@ describe('checks (D-042)', () => {
     rival.baseStats.prowess = 30;
     expect(eventView(ctx)!.options[0]!.chance).toEqual({ percent: 50, band: 'even' });
     rival.baseStats.prowess = 0;
-    apply(ctx.state, content, { type: 'choose', option: 0 });
+    play(ctx.state, content, { type: 'choose', option: 0 });
     expect(entryText(lastLine(ctx))).toBe(`${hero.givenName} ${hero.surname} beat ${rival.givenName} ${rival.surname} in a duel.`);
     expect(rival.money).toBe(95);
   });
@@ -192,11 +192,11 @@ describe('pages', () => {
     const { ctx, hero, people } = game([5]);
     const before = ctx.state.chronicle.length;
     fire(ctx, 'two_pages', hero);
-    apply(ctx.state, content, { type: 'choose', option: 0 });
+    play(ctx.state, content, { type: 'choose', option: 0 });
     expect(ctx.state.pendingEvent).toMatchObject({ page: 'talk' });
     expect(ctx.state.chronicle.length).toBe(before);
     expect(eventView(ctx)!.text).toEqual([{ id: people[0]!.id, name: `${people[0]!.givenName} Circle` }, ' talks of old times.']);
-    apply(ctx.state, content, { type: 'choose', option: 0 });
+    play(ctx.state, content, { type: 'choose', option: 0 });
     expect(ctx.state.pendingEvent).toBeNull();
     expect(ctx.state.chronicle.length).toBe(before + 1);
     const name = `${hero.givenName} ${hero.surname}`;
@@ -210,22 +210,22 @@ describe('pages', () => {
   it('shows a page without options with Continue, and ends the event there', () => {
     const { ctx, hero } = game();
     fire(ctx, 'two_pages', hero);
-    apply(ctx.state, content, { type: 'choose', option: 0 });
-    apply(ctx.state, content, { type: 'choose', option: 1 });
+    play(ctx.state, content, { type: 'choose', option: 0 });
+    play(ctx.state, content, { type: 'choose', option: 1 });
     expect(eventView(ctx)!.options).toEqual([{ index: 0, text: null, available: true, reasons: [], chance: null }]);
-    expect(() => apply(ctx.state, content, { type: 'choose', option: 1 })).toThrow();
-    apply(ctx.state, content, { type: 'choose', option: 0 });
+    expect(() => play(ctx.state, content, { type: 'choose', option: 1 })).toThrow();
+    play(ctx.state, content, { type: 'choose', option: 0 });
     expect(entryText(lastLine(ctx))).toMatch(/met .* left early\.$/);
   });
 
   it('continues the same page after a save in the middle of the second page', () => {
     const { ctx, hero } = game();
     fire(ctx, 'two_pages', hero);
-    apply(ctx.state, content, { type: 'choose', option: 0 });
+    play(ctx.state, content, { type: 'choose', option: 0 });
     const loaded = deserialize(serialize(ctx.state), content);
     expect(loaded.pendingEvent).toEqual(ctx.state.pendingEvent);
-    apply(ctx.state, content, { type: 'choose', option: 0 });
-    apply(loaded, content, { type: 'choose', option: 0 });
+    play(ctx.state, content, { type: 'choose', option: 0 });
+    play(loaded, content, { type: 'choose', option: 0 });
     expect(loaded).toEqual(ctx.state);
     expect(checkInvariants(loaded, content)).toEqual([]);
   });
@@ -238,11 +238,11 @@ describe('pages', () => {
     const c = { ...content, events: [...content.events, rel] };
     const cctx = { state: ctx.state, content: c };
     fireEvent(cctx, rel, hero);
-    apply(ctx.state, c, { type: 'choose', option: 0 });
+    play(ctx.state, c, { type: 'choose', option: 0 });
     // The tie's own line follows the line of the event (D-176).
     expect(ctx.state.chronicle.at(-2)).toMatchObject({ kind: 'event', level: 'chronicle', mark: true });
     fireEvent(cctx, base, hero);
-    apply(ctx.state, c, { type: 'choose', option: 1 });
+    play(ctx.state, c, { type: 'choose', option: 1 });
     expect(lastLine(ctx).mark).toBeUndefined();
   });
 });
@@ -254,7 +254,7 @@ describe('notices', () => {
     expect(ctx.state.status).toBe('awaiting_choice');
     expect(eventView(ctx)!.options).toHaveLength(1);
     expect(hero.money).toBe(10);
-    apply(ctx.state, content, { type: 'choose', option: 0 });
+    play(ctx.state, content, { type: 'choose', option: 0 });
     expect(hero.money).toBe(13);
     expect(lastLine(ctx)).toMatchObject({ kind: 'notice', level: 'chronicle' });
   });
@@ -263,7 +263,7 @@ describe('notices', () => {
     for (const [id, stops] of [['loud_notice', true], ['quiet_notice', false]] as const) {
       const c = fixtureNarrator({ eventChancePer10k: 10000, minDaysBetweenEvents: 1 }, { events: [inDeck(findEvent(content, id))] });
       const state = newGame(1, c);
-      apply(state, c, { type: 'start', actionId: 'wait' });
+      play(state, c, { type: 'start', actionId: 'wait' });
       expect(state.status === 'awaiting_choice', id).toBe(stops);
       expect(state.day < 30, id).toBe(stops);
       expect(checkInvariants(state, c)).toEqual([]);
@@ -322,7 +322,7 @@ describe('wave 2 together: roles (3.3), texts (3.4) and the engine (3.2)', () =>
     const { scope } = ctx.state.pendingEvent!;
     const view = eventView(ctx)!;
     const bully = people.find((p) => p.id === scope.bully)!;
-    apply(ctx.state, content, { type: 'choose', option: 0 });
+    play(ctx.state, content, { type: 'choose', option: 0 });
     return { ctx, hero, people, scope, view, bully, line: lastLine(ctx) };
   }
 

@@ -5,7 +5,7 @@ import type { Content } from '../src/core/content/schema';
 import type { EventDef } from '../src/core/events/content';
 import { fireEvent } from '../src/core/events/events';
 import { aiWeight, runNpcEvent } from '../src/core/events/npc';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { createCharacter } from '../src/core/lifecycle';
 import { checkInvariants } from '../src/core/invariants';
@@ -247,7 +247,7 @@ describe('events that do not change the hero (D-174)', () => {
     hero.money = 0;
     const other = people[1] as Character;
     expect(fireEvent(ctx, both, hero)).toBe('waiting');
-    apply(ctx.state, ctx.content, { type: 'choose', option: 0 });
+    play(ctx.state, ctx.content, { type: 'choose', option: 0 });
     expect(hero.money).toBe(55);
     expect(other).toBeDefined();
   });
@@ -278,13 +278,13 @@ describe('side lines follow the line of the event (D-176)', () => {
     hero.traits = [];
     fireEvent(ctx, grow, hero);
     const before = ctx.state.chronicle.length;
-    apply(ctx.state, ctx.content, { type: 'choose', option: 0 });
+    play(ctx.state, ctx.content, { type: 'choose', option: 0 });
     // the first page is over: the side line waits in the event, the chronicle is untouched
     expect(ctx.state.chronicle.length).toBe(before);
     expect(ctx.state.pendingEvent?.after).toHaveLength(1);
     const loaded = deserialize(serialize(ctx.state), ctx.content);
     expect(loaded.pendingEvent?.after).toEqual(ctx.state.pendingEvent?.after);
-    apply(ctx.state, ctx.content, { type: 'choose', option: 0 });
+    play(ctx.state, ctx.content, { type: 'choose', option: 0 });
     const tail = ctx.state.chronicle.slice(before).map((e) => e.kind);
     expect(tail).toEqual(['event', 'trait_change']);
     expect(ctx.state.pendingEvent).toBeNull();

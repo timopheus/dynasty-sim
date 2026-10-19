@@ -4,7 +4,7 @@ import { chronicleMarkdown, journalMarkdown } from '../src/core/chronicle/markdo
 import { eraOf } from '../src/core/era/era';
 import { childrenOf, isAncestor, isCloseKin, parentsOf, siblingsOf, spousesOf } from '../src/core/family/kin';
 import { proposalOptions } from '../src/core/family/proposals';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { createCharacter, kill } from '../src/core/lifecycle';
 import { checkInvariants } from '../src/core/invariants';
@@ -48,21 +48,21 @@ function adult(ctx: Ctx, surname: string, parents: { father?: string; mother?: s
 describe('the end of the house (D-315)', () => {
   it('`end` ends the house; then apply takes no command', () => {
     const { state } = setup();
-    apply(state, content, { type: 'end' });
+    play(state, content, { type: 'end' });
     expect(state.status).toBe('ended');
     expect(checkInvariants(state, content)).toEqual([]);
-    expect(() => apply(state, content, { type: 'start', actionId: 'rest' })).toThrow(/come to an end/);
-    expect(() => apply(state, content, { type: 'choose', option: 0 })).toThrow(/come to an end/);
-    expect(() => apply(state, content, { type: 'end' })).toThrow(/come to an end/);
+    expect(() => play(state, content, { type: 'start', actionId: 'rest' })).toThrow(/come to an end/);
+    expect(() => play(state, content, { type: 'choose', option: 0 })).toThrow(/come to an end/);
+    expect(() => play(state, content, { type: 'end' })).toThrow(/come to an end/);
     expect(serialize(deserialize(serialize(state), content))).toBe(serialize(state));
   });
 
   it('`end` while an event waits drops the event', () => {
     const c2 = fixtureNarrator({ eventChancePer10k: 10000 });
     const state = newGame(1, c2);
-    apply(state, c2, { type: 'start', actionId: 'wait' });
+    play(state, c2, { type: 'start', actionId: 'wait' });
     expect(state.status).toBe('awaiting_choice');
-    apply(state, c2, { type: 'end' });
+    play(state, c2, { type: 'end' });
     expect(state.status).toBe('ended');
     expect(state.pendingEvent).toBeNull();
     expect(state.activeAction).toBeNull();
@@ -133,8 +133,8 @@ describe('succession (D-007 until 4.6)', () => {
   it('`will` is refused until 4.6, `propose` without a match it may offer (4.5); neither changes anything', () => {
     const { state, hero } = setup();
     const before = serialize(state);
-    expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/not in the game yet/);
-    expect(() => apply(state, content, { type: 'propose', suitor: hero.id, target: hero.id })).toThrow(/family section/);
+    expect(() => play(state, content, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/not in the game yet/);
+    expect(() => play(state, content, { type: 'propose', suitor: hero.id, target: hero.id })).toThrow(/family section/);
     expect(serialize(state)).toBe(before);
   });
 });
