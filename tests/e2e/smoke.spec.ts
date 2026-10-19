@@ -53,7 +53,8 @@ for (const seed of SEEDS) {
     expect(end.date, 'game date did not move').not.toBe(start.date);
     expect(end.chronicle, 'chronicle did not grow').not.toBe(start.chronicle);
 
-    await page.reload();
+    // the bare address, without the seed: only a real continue of the autosave can show the same game
+    await page.goto('/');
     await expect(page.locator(DATE).first()).toBeVisible();
     const after = await snapshot(page);
     await shot(page, seed, '4-reload');
