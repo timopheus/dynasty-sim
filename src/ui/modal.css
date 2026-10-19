@@ -75,7 +75,8 @@
 
 @media (max-width: 47.99rem) {
   .modal-layer {
-    padding: 0.5rem 0.5rem 4.5rem;
+    /* below the header, which stays reachable (the menu) */
+    padding: 8rem 0.5rem 4.5rem;
     align-items: stretch;
   }
 }

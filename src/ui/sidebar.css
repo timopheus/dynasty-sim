@@ -86,7 +86,7 @@
     position: fixed;
     inset: 0 2.5rem 0 0;
     width: auto;
-    z-index: 24;
+    z-index: 45;
     padding-bottom: 6rem;
   }
 
@@ -94,10 +94,11 @@
     left: auto;
     right: 0.25rem;
     top: 0.75rem;
+    z-index: 46;
   }
 
-  .sidebar-toggle {
-    top: 3.9rem;
-    left: 0.5rem;
+  /* folded: the avatar opens the panel on a phone */
+  .sidebar:not(.open) ~ .sidebar-toggle {
+    display: none;
   }
 }

@@ -163,6 +163,11 @@ test('a phone: one column, no sideways scroll, the panel slides out of the avata
   await expect(page.locator('.modal.event')).toBeVisible();
   const overflow = () => page.evaluate('document.documentElement.scrollWidth - window.innerWidth') as Promise<number>;
   expect(await overflow(), 'sideways scroll with the window').toBeLessThanOrEqual(0);
+  // the header does not lie over the window: the title is below it, and the menu is still reachable
+  const top = (selector: string) => page.locator(selector).evaluate((n) => n.getBoundingClientRect().top);
+  const bottom = (selector: string) => page.locator(selector).evaluate((n) => n.getBoundingClientRect().bottom);
+  expect(await top('.modal-title')).toBeGreaterThanOrEqual(await bottom('.topbar'));
+  await expect(page.locator('.modal-title')).toBeInViewport();
   await page.screenshot({ path: 'out/e2e/layout-390-window.png' });
   // answer the scenes of the backstory, then look at the centre
   for (let i = 0; i < 30 && (await page.locator('.modal-layer').count()) > 0; i++) await page.locator('.modal-layer .option button.choice').first().click();
@@ -175,5 +180,8 @@ test('a phone: one column, no sideways scroll, the panel slides out of the avata
   await expect(page.locator('.sidebar .tab.active')).toHaveText('Profile');
   expect(await overflow(), 'sideways scroll with the panel').toBeLessThanOrEqual(0);
   await page.screenshot({ path: 'out/e2e/layout-390-panel.png' });
+  // and it can be folded again
+  await page.locator('.sidebar-toggle').click();
+  await expect(page.locator('.sidebar.open')).toHaveCount(0);
   expect(problems).toEqual([]);
 });

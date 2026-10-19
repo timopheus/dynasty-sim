@@ -175,7 +175,7 @@ function newGameMenu(session: Session): void {
     title: 'Start a new game?',
     text: 'The current dynasty will be lost for good.',
     yes: 'Start a new game',
-    onYes: () => { session.question = null; void newGameNow(session); },
+    onYes: () => { if (session.busy) return; session.question = null; void newGameNow(session); },
     onNo: () => { session.question = null; session.focusAfterRender = true; render(session); },
   };
   session.focusAfterRender = true;
@@ -262,7 +262,7 @@ function render(session: Session): void {
     clockPanel(formatDate(state.day)),
     avatarPanel(ctx, () => openProfile(session)));
   // the menu stays reachable under a pinned window: "New game" must work whatever is pending
-  if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar')) part.inert = true;
+  if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar, .avatar')) part.inert = true;
   app?.replaceChildren(game, ...(modal ? [modal] : []));
   if (DEV) game.setAttribute('data-seed', String(state.seed));
 

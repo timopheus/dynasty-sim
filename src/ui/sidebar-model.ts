@@ -10,7 +10,7 @@ import type { PageSection, PersonPage, RelationLine } from '../core/pages/person
 import type { Ctx } from '../core/state';
 import type { TextPart } from '../core/text/text';
 import { toYmd } from '../core/time/calendar';
-import { withNumber } from './access';
+import { opinionLineText, withNumber } from './access';
 import { heirLine } from './will';
 
 /** What a tab of the side panel is made of. Pure data: the panel draws it, tests read it. */
@@ -86,10 +86,7 @@ function personTabs(ctx: Ctx, page: PersonPage): Tab[] {
     if (o.lines.length) {
       profile.push({
         type: 'facts',
-        rows: o.lines.map((l) => ({
-          label: l.value === null ? '' : `${l.value > 0 ? '+' : ''}${l.value}`,
-          parts: [`${l.text}${l.year !== null ? `, ${l.year}` : ''}${l.lasting ? ' (never fades)' : ''}`],
-        })),
+        rows: o.lines.map((l) => ({ label: '', parts: [opinionLineText(l)] })),
       });
     }
   }

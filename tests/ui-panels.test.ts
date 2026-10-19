@@ -140,6 +140,16 @@ describe('outcome of a choice', () => {
     expect(outcomeOf(ctx, before)?.changes).toEqual([]);
   });
 
+  it('does not put a later death on the choice', () => {
+    const { ctx, hero } = eventGame();
+    fireEvent(ctx, findEvent(eventContent, 'loud_notice'), hero);
+    const before = beforeChoice(ctx, false);
+    apply(ctx.state, eventContent, { type: 'choose', option: 0 });
+    ctx.state.day += 3;
+    hero.deathDay = ctx.state.day;
+    expect(outcomeOf(ctx, before)?.died ?? null).toBeNull();
+  });
+
   it('shows a death and the new head instead of a difference of two people', () => {
     const { ctx, hero } = eventGame();
     fireEvent(ctx, findEvent(eventContent, 'loud_notice'), hero);

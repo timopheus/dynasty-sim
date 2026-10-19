@@ -94,12 +94,13 @@ export function outcomeOf(ctx: Ctx, before: BeforeChoice): Outcome | null {
   const own = written.filter((e) => e.level === 'chronicle' || e.subject === before.hero.id);
   const chronicleLines = written.filter((e) => e.level === 'chronicle');
   const old = findCharacter(state, before.hero.id);
-  const dead = old !== null && old.deathDay !== null;
-  if (dead || state.status === 'ended' || state.playerId !== before.hero.id) {
+  // a death is the outcome of the choice only on the day of the choice: later it belongs to the days that ran on
+  const dead = old !== null && old.deathDay === day;
+  if (dead) {
     const heir = state.status === 'ended' || state.playerId === before.hero.id ? null : fullName(getPlayer(state));
     return { lines: own, changes: [], died: { name: old ? fullName(old) : 'The hero', heir } };
   }
-  const changes = state.day === day ? diff(before.hero, heroSnapshot(ctx)) : [];
+  const changes = state.day === day && state.playerId === before.hero.id ? diff(before.hero, heroSnapshot(ctx)) : [];
   if (!before.hadCheck && chronicleLines.length === 0 && changes.length === 0) return null;
   return { lines: own, changes, died: null };
 }
