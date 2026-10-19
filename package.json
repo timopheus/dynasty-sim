@@ -18,9 +18,11 @@
     "gates": "tsx tools/gates.ts",
     "replay": "tsx tools/replay.ts",
     "save-bench": "tsx tools/save-bench.ts",
-    "check": "npm run typecheck && npm test && npm run validate && npm run sim -- --years 50 --seed 1"
+    "check": "npm run typecheck && npm test && npm run validate && npm run sim -- --years 50 --seed 1",
+    "e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "1.56.1",
     "@types/node": "22.20.5",
     "tsx": "4.23.15",
     "typescript": "7.0.2",
