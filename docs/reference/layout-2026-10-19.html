@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Раскладка экрана — эталон</title>
+<!--
+  Эталон раскладки (D-438), схема без дизайна: что где стоит. Подписи по-русски — пояснения для Тима и пишущей сессии,
+  тексты игры по-английски. Скриншот рядом: layout-2026-10-19.png. Вторая версия — с правками Тима 19.10.
+-->
+<style>
+  :root { --ink: #222; --paper: #f4f1ea; --line: #8a8579; --muted: #6b665c; --note: #b0412e; --panel: #e9e4d8; --modal: #fffdf8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.4 Georgia, serif; color: var(--ink); background: var(--paper); }
+  .screen { width: 1440px; height: 900px; position: relative; overflow: hidden; }
+  /* side panel: page viewer */
+  aside { position: absolute; left: 0; top: 0; bottom: 0; width: 340px; border-right: 2px solid var(--line); background: var(--panel); padding: 12px 14px; }
+  .crumbs { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .kind { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  aside h3 { margin: 2px 0 8px; font-size: 19px; }
+  .subtabs { display: flex; gap: 4px; margin-bottom: 10px; }
+  .subtabs span { border: 1px solid var(--line); padding: 2px 8px; font-size: 13px; }
+  .subtabs span.on { background: var(--ink); color: var(--paper); }
+  .rows p { margin: 3px 0; }
+  .rows .k { color: var(--muted); display: inline-block; width: 104px; }
+  .collapse { position: absolute; left: 326px; top: 14px; width: 28px; height: 28px; border: 1px solid var(--line); background: var(--paper); text-align: center; line-height: 26px; z-index: 3; }
+  /* center */
+  main { position: absolute; left: 340px; right: 0; top: 0; bottom: 0; padding: 70px 16px 16px; }
+  .box { border: 2px dashed var(--line); padding: 12px; }
+  .map { height: 300px; display: grid; place-items: center start; padding-left: 60px; color: var(--muted); font-size: 18px; }
+  .where { margin-top: 14px; height: 210px; display: grid; grid-template-columns: 300px 300px; gap: 14px; }
+  .pic { border: 1px solid var(--line); display: grid; place-items: center; color: var(--muted); text-align: center; background: repeating-linear-gradient(45deg, transparent 0 10px, #e2dccd 10px 11px); }
+  .acts ul { margin: 6px 0 0; padding-left: 18px; }
+  /* header: global indicators, pinned top right */
+  header { position: absolute; right: 16px; top: 12px; display: flex; gap: 16px; align-items: center; border: 2px solid var(--ink); background: var(--modal); padding: 6px 12px; z-index: 4; }
+  header .arms { width: 34px; height: 40px; border: 1px dashed var(--line); display: grid; place-items: center; font-size: 10px; color: var(--muted); }
+  header .ind { text-align: center; line-height: 1.15; }
+  header .ind small { display: block; color: var(--muted); font-size: 11px; }
+  header .later { color: #aaa49a; }
+  header .menu { border: 1px solid var(--line); padding: 3px 8px; }
+  /* avatar, bottom left over the panel */
+  .avatar { position: absolute; left: 14px; bottom: 14px; width: 110px; border: 2px solid var(--ink); background: var(--modal); text-align: center; z-index: 4; }
+  .avatar .face { height: 120px; display: grid; place-items: center; color: var(--muted); font-size: 12px; border-bottom: 1px solid var(--line); background: repeating-linear-gradient(-45deg, transparent 0 8px, #e2dccd 8px 9px); }
+  .avatar div:last-child { padding: 3px; font-size: 12px; }
+  /* modal */
+  .modal { position: absolute; right: 24px; top: 80px; width: 450px; background: var(--modal); border: 2px solid var(--ink); box-shadow: 6px 6px 0 rgba(0,0,0,.15); padding: 16px 18px; z-index: 2; }
+  .modal h2 { margin: 0 0 6px; font-size: 18px; }
+  .modal .pin { position: absolute; right: 12px; top: 10px; font-size: 13px; color: var(--muted); }
+  .opt { border: 1px solid var(--line); padding: 7px 10px; margin-top: 8px; }
+  .opt small { display: block; color: var(--muted); }
+  .opt.grey { color: var(--muted); border-style: dashed; }
+  .queue { position: absolute; left: 360px; bottom: 16px; display: flex; gap: 8px; opacity: .55; }
+  .card { border: 1px dashed var(--ink); background: var(--modal); padding: 6px 10px; font-size: 13px; }
+  .player { position: absolute; right: 16px; bottom: 16px; border: 2px solid var(--ink); background: var(--modal); padding: 8px 14px; display: flex; gap: 12px; align-items: center; font-size: 15px; }
+  .player span { border: 1px solid var(--line); padding: 1px 7px; }
+  .player span.on { background: var(--ink); color: var(--paper); }
+  .n { position: absolute; width: 26px; height: 26px; border-radius: 50%; background: var(--note); color: #fff; font: bold 14px/26px Arial, sans-serif; text-align: center; z-index: 9; }
+  .legend { width: 1440px; padding: 16px 24px 24px; font: 15px/1.5 Arial, sans-serif; border-top: 2px solid var(--line); }
+  .legend ol { margin: 6px 0 0; padding-left: 22px; columns: 2; column-gap: 40px; }
+  .legend li { margin-bottom: 6px; break-inside: avoid; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <aside>
+    <div class="crumbs">Isabel Merrick</div>
+    <div class="kind">Person</div>
+    <h3>Isabel Merrick</h3>
+    <div class="subtabs"><span class="on">Profile</span><span>Family</span><span>People</span><span>Chronicle</span></div>
+    <div class="rows">
+      <p><span class="k">Age</span>20 · woman · b. 1680, Ashford</p>
+      <p><span class="k">House</span>Merrick (head)</p>
+      <p><span class="k">Health</span>healthy</p>
+      <p><span class="k">Diplomacy</span>poor (4)</p>
+      <p><span class="k">Martial</span>poor (5)</p>
+      <p><span class="k">Stewardship</span>good (11)</p>
+      <p><span class="k">Intrigue</span>poor (4)</p>
+      <p><span class="k">Learning</span>poor (6)</p>
+      <p><span class="k">Prowess</span>poor (5)</p>
+      <p><span class="k">Education</span>counting-house II</p>
+      <p><span class="k">Traits</span>Diligent, Ambitious</p>
+      <p><span class="k">Heir</span>nobody — the house would end with you</p>
+    </div>
+    <p style="color:var(--muted);margin-top:12px;font-size:13px">Other pages open here the same way, each kind with its own tabs:<br>
+      <b>House</b> — Overview · Heads · Heirlooms · Chronicle<br>
+      <b>Place</b> — Overview · People here · Roads<br>
+      <b>Realm</b>, past <b>event</b> … — later</p>
+  </aside>
+  <div class="collapse">‹</div>
+
+  <main>
+    <div class="box map">World map — later (D-437)</div>
+    <div class="box where">
+      <div class="pic">picture of the place<br>(after the art bible)</div>
+      <div class="acts">
+        <b>On the road from Ashford to Brennick</b> — day 4 of 12. Hills, cold rain.<br>
+        <span style="color:var(--muted)">You can keep going, turn back or rest at the next village.</span>
+        <ul>
+          <li>Keep going (8 days left)</li>
+          <li>Turn back to Ashford</li>
+          <li>Rest at Lowmere (1 day off the road)</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <header>
+    <div class="arms">arms</div>
+    <div class="ind">35 crowns<small>+3 / month</small></div>
+    <div class="ind">Private person<small>fame</small></div>
+    <div class="ind">12<small>house renown</small></div>
+    <div class="ind">Commoners<small>house status</small></div>
+    <div class="ind later">—<small>piety, later</small></div>
+    <div class="menu">Menu ▾</div>
+  </header>
+
+  <div class="modal">
+    <span class="pin">📌 pinned · time stopped</span>
+    <h2>Highwaymen</h2>
+    <p>Men rise from the ditch, cudgels in hand. The one in front wants your purse.</p>
+    <div class="opt">⚔ Fight — likely, 62% <small>If it fails: badly wounded</small></div>
+    <div class="opt">💰 Pay them off <small>Costs 30 crowns</small></div>
+    <div class="opt">🦁 Shame them (Brave) — a toss-up, 50% <small>If it fails: they rob you anyway</small></div>
+    <div class="opt">🏃 Flee <small>Against your nature (Brave) · if it fails: you lose your horse</small></div>
+    <div class="opt grey">🗡 Bribe their leader <small>Needs Intrigue average (8)</small></div>
+  </div>
+
+  <div class="queue">
+    <div class="card">✉ Letter from home <small>· not urgent</small></div>
+    <div class="card">✉ An offer of marriage <small>· 21 days to answer</small></div>
+  </div>
+
+  <div class="avatar"><div class="face">portrait</div><div>Isabel, 20</div></div>
+  <div class="player"><b>12 March 1701</b><span class="on">❚❚</span><span>▶</span><span>▶▶</span><span>▶▶▶</span></div>
+
+  <div class="n" style="left:900px;top:10px">1</div>
+  <div class="n" style="left:300px;top:60px">2</div>
+  <div class="n" style="left:128px;top:745px">3</div>
+  <div class="n" style="left:380px;top:80px">4</div>
+  <div class="n" style="left:672px;top:372px">5</div>
+  <div class="n" style="left:1395px;top:100px">6</div>
+  <div class="n" style="left:955px;top:318px">7</div>
+  <div class="n" style="left:690px;top:842px">8</div>
+  <div class="n" style="left:1045px;top:850px">9</div>
+</div>
+<div class="legend">
+  <b>Эталон раскладки (D-438), вторая версия с правками Тима. Схема, а не дизайн: что где стоит.</b>
+  <ol>
+    <li><b>Шапка</b> — компактная, закреплена справа вверху, как в CK3. Только общие показатели: деньги и баланс за месяц, известность, слава и статус рода, герб (когда будет); позже — благочестие, внимание властей, доверие кредиторов (D-327), показатели собственности. Меню (New game и пр.).</li>
+    <li><b>Боковая панель</b> — просмотрщик страниц. Открытая страница — одна (человек, род, место, держава, событие), у каждого вида свои вкладки; сверху цепочка «назад». Сворачивается кнопкой ‹.</li>
+    <li><b>Аватар</b> героя — всегда на экране, слева внизу. Клик открывает в панели профиль героя, даже если панель закрыта или в ней другая страница.</li>
+    <li><b>Карта мира</b> — место оставлено, сама карта позже (D-437).</li>
+    <li><b>Где я</b> — картинка места (после арт-библии, до неё заглушка) и что происходит: стоим или идём, сколько осталось, куда можно пойти (D-437).</li>
+    <li><b>Окно решения</b> — срочное событие закреплено, часы стоят. Сцены предыстории и выбор имени — тоже в таком окне.</li>
+    <li><b>Вариант</b> — шанс словом и процентом, цена и главный риск, «против характера»; недоступный — серым с причиной (D-433, D-043).</li>
+    <li><b>Несрочные письма</b> со сроком ответа — после среза; молчание тоже ответ.</li>
+    <li><b>Дата и плеер времени</b> — пауза и скорости (D-325).</li>
+  </ol>
+  <p style="color:#6b665c;margin:8px 0 0">Семья и род — разное: «Family» на странице человека — его родня (люди); род — своя страница (статус, слава, герб, главы, родовые вещи, хроника рода). На телефоне — одна колонка: шапка, «где я», окно решения поверх, плеер и аватар внизу; панель выезжает.</p>
+</div>
+</body>
+</html>
