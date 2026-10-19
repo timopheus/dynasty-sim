@@ -46,6 +46,33 @@ jobs:
           path: out/
           if-no-files-found: ignore
 
+  e2e:
+    # Browser smoke test (S.1): the built game is opened and played; a failure fails the PR (D-430).
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - name: Browser smoke test
+        run: npm run e2e
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: out/e2e/
+          if-no-files-found: ignore
+
   gates:
     runs-on: ubuntu-latest
     timeout-minutes: 20
