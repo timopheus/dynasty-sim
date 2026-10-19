@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { chronicleMarkdown } from '../src/core/chronicle/markdown';
 import { runSim } from '../src/core/sim';
-import { realContent } from './fixtures/content';
+import { realContent, realContentWithHeirs } from './fixtures/content';
 
 describe('headless simulation', () => {
   const content = realContent();
@@ -19,8 +19,10 @@ describe('headless simulation', () => {
   }, 30_000);
 
   it('runs 20 seeds for 50 years without invariant violations', () => {
+    // With the scaffolding of D-315: this test is about invariants over decades, not about extinction.
+    const withHeirs = realContentWithHeirs();
     for (let seed = 0; seed < 20; seed++) {
-      const { state, violations } = runSim(content, { seed, years: 50 });
+      const { state, violations } = runSim(withHeirs, { seed, years: 50 });
       expect(violations, `seed ${seed}`).toEqual([]);
       expect(state.day).toBeGreaterThanOrEqual(18262); // 1 January 1750
     }

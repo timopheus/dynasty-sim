@@ -3,9 +3,9 @@
 # sisters and their lines, then parents and their lines. A will (the `will` command, the action `notary`) names another
 # heir of the kin and a guardian. Without any living kin the house comes to an end.
 succession:
-  # Scaffolding until 4.13 (D-315): with no living kin a generated adult of the same surname takes the house (D-007).
-  # 4.13 sets it to false together with the content of matchmaking.
-  temporaryHeir: true
+  # Scaffolding of 4.6 (D-315): with no living kin a generated adult of the same surname takes the house (D-007).
+  # Off since 4.13: without kin the house comes to an end.
+  temporaryHeir: false
   temporaryHeirAge: { min: 16, max: 25 }
   willAction: notary
   willCost: 15

@@ -17,7 +17,7 @@ events:
     roles:
       match:
         pick: circle
-        where: { can_marry: hero }
+        where: { can_marry: hero, age_min: 16, age_max: 34 }
         prefer:
           - { when: { opinion: { toward: hero, min: 10 } }, factor: 3 }
     text: "A go-between brings word of {match}, {match.age}, who is said to be of a mind to marry, and whose family would hear an offer."
@@ -26,7 +26,7 @@ events:
       - text: Ask for the hand yourself
         check: { stat: diplomacy, difficulty: 6, bonus: [{ when: { fame_min: 1 }, add: 1 }] }
         success:
-          effects: { marry: match }
+          effects: { marry: match, schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }] }
           result: "{name} won the hand of {match}."
           mood: joy
         failure:
@@ -34,7 +34,7 @@ events:
           mood: shame
       - text: Win the family over with a gift of 30 crowns
         when: { money_min: 30 }
-        effects: { money: -30, marry: match }
+        effects: { money: -30, marry: match, schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }] }
         on: { match: { opinion: [{ toward: hero, reason: gift }] } }
         result: "{name} won over the family of {match} with a handsome gift."
         mood: joy
@@ -47,7 +47,7 @@ events:
     cooldown_days: 730
     when: { married: false }
     roles:
-      match: { pick: circle, where: { can_marry: hero } }
+      match: { pick: circle, where: { can_marry: hero, age_min: 16, age_max: 34 } }
     text: "At a crowded fair you keep meeting the eyes of {match}. {match.He} does not look away."
     mood: joy
     options:
@@ -58,7 +58,7 @@ events:
       - text: Court boldly and ask at once
         check: { stat: diplomacy, difficulty: 9 }
         success:
-          effects: { marry: match }
+          effects: { marry: match, schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }] }
           result: "{name} courted {match} in a whirlwind and married within the month."
           mood: joy
         failure:

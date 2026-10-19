@@ -3,16 +3,16 @@
 family:
   # Ceiling of living people (D-313): while there are this many, couples of the circle have no new children;
   # the hero's house (the hero and the hero's descendants) always has.
-  livingMax: 500
+  livingMax: 300
 
   # Yearly chance of a married woman near the hero to conceive, by her new age; rolled on her birthday.
   conception:
-    - { below: 20, per10k: 3000 }
-    - { below: 25, per10k: 4000 }
-    - { below: 30, per10k: 3800 }
-    - { below: 35, per10k: 3200 }
-    - { below: 40, per10k: 2200 }
-    - { below: 46, per10k: 1000 }
+    - { below: 20, per10k: 4600 }
+    - { below: 25, per10k: 6000 }
+    - { below: 30, per10k: 5600 }
+    - { below: 35, per10k: 4800 }
+    - { below: 40, per10k: 3400 }
+    - { below: 46, per10k: 1600 }
     - { per10k: 0 }
   pregnancyDays: { min: 260, max: 285 }
   childbirthDeathPer10k: 120
@@ -24,8 +24,8 @@ family:
   pedigree:
     # Chance that a relative of this age is still alive.
     alive:
-      - { below: 16, per10k: 7000 }
-      - { below: 50, per10k: 6000 }
+      - { below: 16, per10k: 9000 }
+      - { below: 50, per10k: 8500 }
       - { below: 60, per10k: 5000 }
       - { below: 70, per10k: 4000 }
       - { below: 80, per10k: 2000 }
@@ -40,9 +40,9 @@ family:
       - { per10k: 6500 }
     parentGap: { min: 20, max: 38 }
     spouseGap: { min: 0, max: 8 }
-    siblings: { min: 0, max: 2 }
+    siblings: { min: 2, max: 4 }
     siblingSpread: 10
-    childrenPer10Years: { min: 1, max: 2 }
+    childrenPer10Years: { min: 1, max: 3 }
 
   texts:
     married: "{name} married {other}."
