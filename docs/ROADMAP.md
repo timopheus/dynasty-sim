@@ -385,7 +385,7 @@
 | S.1 | Браузерный смоук-тест в CI: Playwright открывает сборку, делает ходы, ищет ошибки консоли, сохраняет скриншоты | `tests/e2e/` (новый), `.github/workflows/ci.yml`, `package.json` | ✅ [#83](https://github.com/timopheus/dynasty-sim/pull/83) |
 | S.2 | Видение и целевые истории (интервью Тима) | `docs/VISION.md` | 🟡 обещания и «чего не делаем» готовы (D-432); первый плейтест истории не родил, целевые истории — после сборки недели 2 |
 | S.3 | План среза (architect) | `docs/ROADMAP.md` | 🟡 объём, письма и места — ответы Тима (D-439); ждёт «ок» на план целиком |
-| S.4 | Экран по полочкам и мелкие баги | `src/ui/`, `tests/e2e/` | ⬜ |
+| S.4 | Экран по полочкам и мелкие баги | `src/ui/`, `tests/e2e/` | ✅ [#86](https://github.com/timopheus/dynasty-sim/pull/86) |
 | S.5a | **[ведущая]** Точки подключения: время и экономика | сборочные `game.ts`, `state.ts`, `effects.ts`, `condition-keys.ts`, `content/schema.ts`; `src/core/bot.ts`, `tools/sim.ts`, `save/journal.ts` | ⬜ |
 | S.6 | Живое время: ядро | `src/core/actions/`, `src/core/narrator/`, `content/actions.yaml`, `content/narrator.yaml` | ⬜ |
 | S.7 | Экономика: месячный баланс и цены уровнями | `src/core/economy/` (новый), `content/economy.yaml`, `src/ui/header.ts` | ⬜ |

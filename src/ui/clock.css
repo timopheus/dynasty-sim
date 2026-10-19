@@ -1,0 +1,48 @@
+.clock {
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  margin: 0 1rem 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--fg);
+  background: var(--bg);
+}
+
+.clock .date {
+  font-weight: bold;
+}
+
+.clock-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.clock-button {
+  padding: 0 0.5rem;
+  text-align: center;
+}
+
+.clock-soon {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 47.99rem) {
+  .clock {
+    position: fixed;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    margin: 0;
+    z-index: 10;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .clock-soon {
+    display: none;
+  }
+}

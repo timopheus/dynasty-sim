@@ -1,5 +1,5 @@
 import { partsText, type TextPart } from '../core/text/text';
-import type { ActionRow, OptionRow } from './event';
+import type { ActionRow } from './event';
 
 /**
  * Phone and accessibility rules of the screen as pure functions (D-248, D-262): nothing is reachable by hover only,
@@ -34,30 +34,15 @@ export function shortcutPosition(e: KeyLike): number | null {
   return (Number(e.key) + 9) % 10;
 }
 
-/** Word with its number beside it when the player asked for numbers (D-031, D-035: tap, not hover). */
-export function withNumber(word: string, value: number | null, show: boolean): string {
-  return show && value !== null ? `${word} (${value})` : word;
+/** Word with its number in brackets beside it, always; no number for what the player may not know (D-434, D-037). */
+export function withNumber(word: string, value: number | null): string {
+  return value !== null ? `${word} (${value})` : word;
 }
 
-/** A cause line of an opinion: text, year, "never fades", and the signed number on request. */
-export function opinionLineText(l: { text: string; year: number | null; lasting: boolean; value: number | null }, show: boolean): string {
-  const number = show && l.value !== null ? ` (${l.value > 0 ? '+' : ''}${l.value})` : '';
+/** A cause line of an opinion: text, year, "never fades", and the signed number when it is known (D-434). */
+export function opinionLineText(l: { text: string; year: number | null; lasting: boolean; value: number | null }): string {
+  const number = l.value !== null ? ` (${l.value > 0 ? '+' : ''}${l.value})` : '';
   return `${l.text}${l.year !== null ? `, ${l.year}` : ''}${l.lasting ? ' (never fades)' : ''}${number}`;
-}
-
-export function chanceText(chance: NonNullable<OptionRow['chance']>, show: boolean): string {
-  return show ? `${chance.word}, ${chance.percent}%` : chance.word;
-}
-
-export const NUMBERS_ON = 'Hide numbers';
-export const NUMBERS_OFF = 'Show numbers';
-
-/** The "numbers" switch: a toggle button, its state read by a screen reader (`aria-pressed`). */
-export function numbersToggle(show: boolean): { text: string; attrs: Record<string, string> } {
-  return {
-    text: show ? NUMBERS_ON : NUMBERS_OFF,
-    attrs: { 'aria-pressed': String(show) },
-  };
 }
 
 export interface Control {
@@ -75,7 +60,7 @@ export interface Control {
   key: string | null;
 }
 
-function control(prefix: string, position: number, name: string, note: string, grey: boolean, reason: string): Control {
+export function control(prefix: string, position: number, name: string, note: string, grey: boolean, reason: string): Control {
   const key = shortcutKey(position);
   const reasonId = `${prefix}-${position}-reason`;
   const noteId = `${prefix}-${position}-note`;
@@ -100,11 +85,6 @@ export function plainLabel(label: readonly TextPart[]): string {
   return partsText(label);
 }
 
-/** One event option as a button: key, name, chance word (percent on request), reason when grey. */
-export function optionControl(o: OptionRow, position: number, showNumbers: boolean): Control {
-  return control('option', position, plainLabel(o.label), o.chance ? `(${chanceText(o.chance, showNumbers)})` : '', o.grey, o.reason);
-}
-
 /** One action as a button; its duration is text beside the name, not a hover title. */
 export function actionControl(a: ActionRow, position: number): Control {
   return control('action', position, a.name, a.days, a.grey, a.reason);
@@ -114,17 +94,6 @@ export function actionControl(a: ActionRow, position: number): Control {
 export function pickableAt(rows: readonly { grey: boolean }[], position: number): number | null {
   const row = rows[position];
   return row && !row.grey ? position : null;
-}
-
-/** Text for the live region when a new event page appears: the event, then its options with keys. */
-export function eventAnnouncement(text: readonly TextPart[], controls: readonly Control[]): string {
-  const options = controls.map((c) => `${c.text}${c.note ? ` ${c.note}` : ''}${c.reason ? `. ${c.reason}` : ''}`).join('. ');
-  return `New event. ${partsText(text)} Choices: ${options}.`;
-}
-
-/** Identity of an event page that does not change with the numbers switch: a page is announced once (D-264). */
-export function eventPageKey(text: readonly TextPart[], options: readonly OptionRow[]): string {
-  return eventAnnouncement(text, options.map((o, i) => optionControl(o, i, false)));
 }
 
 /** Text for the live region when new chronicle lines were written. */

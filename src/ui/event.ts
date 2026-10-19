@@ -2,7 +2,8 @@ import { actionAvailability } from '../core/actions/actions';
 import type { ChanceBand } from '../core/events/checks';
 import { eventView } from '../core/events/view';
 import type { Ctx } from '../core/state';
-import type { TextPart } from '../core/text/text';
+import { partsText, type TextPart } from '../core/text/text';
+import { control, plainLabel, type Control } from './access';
 
 /** Words of the chance bands (D-042, D-175): the core gives ids, the screen words them. */
 export const CHANCE_WORDS: Record<ChanceBand, string> = {
@@ -24,7 +25,7 @@ export interface OptionRow {
   grey: boolean;
   /** Why the option is grey, joined; empty when available. */
   reason: string;
-  /** Word of the chance and its percent (shown beside the word on request, hover is only a bonus, D-248); null without a check (D-042). */
+  /** Word of the chance and its percent, always shown together (D-433, D-434); null without a check (D-042). */
   chance: { word: string; percent: number; title: string } | null;
 }
 
@@ -68,4 +69,43 @@ export function actionRows(ctx: Ctx): ActionRow[] {
       grey: unmet.length > 0,
       reason: unmet.join('; '),
     }));
+}
+
+/** Chance as the screen words it: "a toss-up, 50%" (D-433, D-434). */
+export function chanceText(chance: NonNullable<OptionRow['chance']>): string {
+  return `${chance.word}, ${chance.percent}%`;
+}
+
+/**
+ * One option of the event window as a button: key, name, chance with its percent, reason when grey. Everything the
+ * player reads about a variant (price, risk, "against your nature") is built here and in `eventScreen`: S.10 changes
+ * this file only.
+ */
+export function optionControl(o: OptionRow, position: number): Control {
+  return control('option', position, plainLabel(o.label), o.chance ? `(${chanceText(o.chance)})` : '', o.grey, o.reason);
+}
+
+/** Text for the live region when a new event page appears: the event, then its options with keys. */
+export function eventAnnouncement(text: readonly TextPart[], controls: readonly Control[]): string {
+  const options = controls.map((c) => `${c.text}${c.note ? ` ${c.note}` : ''}${c.reason ? `. ${c.reason}` : ''}`).join('. ');
+  return `New event. ${partsText(text)} Choices: ${options}.`;
+}
+
+/** Identity of an event page, so a page is announced once (D-264). */
+export function eventPageKey(text: readonly TextPart[], options: readonly OptionRow[]): string {
+  return eventAnnouncement(text, options.map((o, i) => optionControl(o, i)));
+}
+
+/**
+ * Title of the event window. A scene of the backstory names the age of its stage, "Age 7", and no year: the scenes of
+ * learning shift the birth (`age_years`), so a year would drift from the dates of the lines (S.4). Events have no
+ * title of their own: a notice is "News", an event with answers "A decision".
+ */
+export function eventTitle(ctx: Ctx, screen: EventScreen): string {
+  const { state, content } = ctx;
+  if (state.backstory.running) {
+    const age = content.backstory?.stages[state.backstory.stage]?.age;
+    return age === undefined ? 'Growing up' : `Age ${String(age)}`;
+  }
+  return screen.options.every((o) => o.label.length === 1 && o.label[0] === CONTINUE_LABEL) ? 'News' : 'A decision';
 }
