@@ -1,30 +1,38 @@
 import { allChronicle } from '../core/archive/archive';
-import { entryText, type ChronicleEntry } from '../core/chronicle/log';
+import { entryText } from '../core/chronicle/log';
 import { loadContent } from '../core/content/load';
 import type { Content } from '../core/content/schema';
+import { eventView } from '../core/events/view';
 import { newGame, type Command } from '../core/game';
+import { getPlayer } from '../core/helpers';
+import { isValidSeed } from '../core/rng';
 import { contentVersion } from '../core/save/content-version';
 import { applyRecorded, newJournal, type Journal } from '../core/save/journal';
-import { isValidSeed } from '../core/rng';
 import type { GameState } from '../core/state';
 import { formatDate } from '../core/time/calendar';
-import { getPlayer } from '../core/helpers';
-import { entityPage } from '../core/pages/entity';
-import { eventView } from '../core/events/view';
-import { DEFAULT_MOOD } from '../core/events/content';
-import { faceSpec } from '../core/looks';
-import { portraitCanvas } from './portrait/canvas';
-import { heroView } from './hero';
-import { heirLine, willCommandOf, willForm, type PersonChoice, type WillForm } from './will';
-import { entityIdFromHash, personHref } from './address';
-import { actionRows, eventScreen } from './event';
-import { actionControl, eventPageKey, chronicleAnnouncement, eventAnnouncement, numbersToggle, optionControl, pickableAt, shortcutPosition, withNumber, type Control } from './access';
+import { chronicleAnnouncement, pickableAt, shortcutPosition } from './access';
+import { entityIdFromHash } from './address';
+import { avatarPanel } from './avatar';
+import { choiceNode } from './choice';
+import { clockPanel } from './clock';
+import { confirmWindow, willWindow } from './dialogs';
+import { el } from './dom';
 import { headIds } from './entry';
-import { entryItem, partNodes, pageView } from './page';
+import { eventAnnouncement, eventPageKey, eventScreen, eventTitle, optionControl } from './event';
+import { headerPanel } from './header';
+import { headerFigures } from './header-model';
+import { latelyPanel } from './lately';
+import { modalFrame, modalHeading } from './modal';
+import { beforeChoice, outcomeOf, type Outcome } from './outcome-model';
+import { outcomeWindow } from './outcome';
+import { partNodes } from './page';
+import { newSidebarState, sidebarPanel, type SidebarState } from './sidebar';
+import { visit } from './sidebar-model';
 import { dropOldSave, loadGame, openIndexedDb, saveGame, seedFromSearch, startChoice, startGame, type AsyncStore, type Saved, type SaveOutcome } from './storage';
+import { whereView } from './where-model';
+import { wherePanel } from './where';
+import { willForm } from './will';
 import './style.css';
-
-const CHRONICLE_LIMIT = 60;
 
 const raw = import.meta.glob<string>('/content/**/*.{yaml,yml}', { query: '?raw', import: 'default', eager: true });
 const files = Object.keys(raw)
@@ -34,11 +42,11 @@ const files = Object.keys(raw)
 const app = document.getElementById('app');
 if (!app) throw new Error('#app not found');
 
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLElementTagNameMap[K]> = {}, ...children: (Node | string)[]) {
-  const node = Object.assign(document.createElement(tag), props);
-  node.append(...children);
-  return node;
-}
+/** `?dev=1`: the tools of the developer (the seed, the journal of commands) are shown; a player never sees them. */
+const DEV = new URLSearchParams(location.search).get('dev') === '1';
+
+/** Narrow screens: one column, the side panel slides over the page (D-248). */
+const NARROW = '(max-width: 47.99rem)';
 
 /** Seed from ?seed=N, otherwise a random one (the UI may use host randomness; the core may not). */
 function pickSeed(): number {
@@ -66,7 +74,14 @@ function dropLocalStorageSave(): void {
   }
 }
 
-type Tab = 'chronicle' | 'journal';
+/** A question the player must answer inside the page before anything else. */
+interface Question {
+  title: string;
+  text: string;
+  yes: string;
+  onYes: () => void;
+  onNo: () => void;
+}
 
 interface Session {
   state: GameState;
@@ -81,24 +96,29 @@ interface Session {
   busy: boolean;
   /** A journal to offer for download: of the game that could not be continued (D-202). */
   lostJournal: Journal | null;
-  /** Shown above the hero: why a game was discarded, or that saving failed. */
+  /** Shown above the centre: why a game was discarded, or that saving failed. */
   notice: string | null;
   saveProblem: string | null;
-  tab: Tab;
-  /** Numbers beside words (stats, chances, opinions): a switch instead of hover texts (D-248). */
-  showNumbers: boolean;
+  /** The side panel: open or folded, the trail of pages, the tab. */
+  sidebar: SidebarState;
+  menuOpen: boolean;
+  /** What the last choice came to, shown before the next event (D-440), and whose lines they are. */
+  outcome: { outcome: Outcome; heroId: string } | null;
+  question: Question | null;
   /** Announced text of the last event page, so the live region speaks a page once. */
   announcedEvent: string;
-  /** What a digit key does on the screen now: position → command, null for grey choices. */
-  keymap: (Command | null)[];
-  /** Move focus to the new event / action list after a command (not on the first render). */
+  /** What a digit key does on the screen now: position → what to do, null for grey choices. */
+  keymap: (null | (() => void))[];
+  /** Move focus to the new window / the "where I am" block after a command (not on the first render). */
   focusAfterRender: boolean;
   /** Lines for the live region, spoken together at the end of the next render. */
   queue: string[];
-  /** `data-focus` key of the control to focus again after a render that replaced it (switch, tabs). */
+  /** `data-focus` key of the control to focus again after a render that replaced it (tabs, menu). */
   refocus: string | null;
-  /** The will screen is open in place of the list of actions (4.6). */
+  /** The will window is open (4.6). */
   willOpen: boolean;
+  /** The unpinned window on screen can be closed with Escape: what that does. */
+  dismiss: (() => void) | null;
 }
 
 function saveProblemText(outcome: SaveOutcome): string | null {
@@ -119,13 +139,6 @@ function downloadJournal(journal: Journal): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/** Own lines lose the subject in the chronicle only; the journal mixes people, so names stay (D-162). */
-function entriesList(state: GameState, entries: readonly ChronicleEntry[], ownLines: boolean): HTMLElement {
-  const recent = entries.slice(-CHRONICLE_LIMIT).reverse();
-  const heads = headIds(allChronicle(state));
-  return el('ul', { className: 'chronicle' }, ...recent.map((e) => entryItem(el, e, ownLines ? state.playerId : null, heads)));
-}
-
 /** Live region outside `#app` (it is replaced on every render): speaks new events and chronicle lines. */
 const announcer = Object.assign(document.createElement('div'), { className: 'sr-only' });
 announcer.setAttribute('role', 'status');
@@ -140,170 +153,118 @@ function announce(text: string): void {
   setTimeout(() => { announcer.textContent = text; }, 50);
 }
 
-function applyAttrs(node: HTMLElement, attrs: Record<string, string>): void {
-  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
-}
-
-/** A choice button built from its pure description: key and name, a note beside it, the reason as text when grey. */
-function choiceNode(session: Session, c: Control, command: Command | null): HTMLElement {
-  const button = el('button', { className: command ? 'choice' : 'choice grey', type: 'button' }, c.text);
-  applyAttrs(button, c.attrs);
-  if (command) button.onclick = () => act(session, command);
-  const note = c.note ? el('span', { className: 'note', id: c.noteId }, c.note) : '';
-  if (command) return el('div', { className: 'option' }, button, note);
-  return el('div', { className: 'unavailable' }, button, note, el('span', { className: 'reason', id: c.reasonId }, c.reason));
-}
-
-function numbersButton(session: Session): HTMLElement {
-  const t = numbersToggle(session.showNumbers);
-  const b = el('button', { className: 'link numbers', type: 'button', onclick: () => { session.showNumbers = !session.showNumbers; session.refocus = 'numbers'; render(session); } }, t.text);
-  applyAttrs(b, { ...t.attrs, 'data-focus': 'numbers' });
-  return b;
-}
-
-/** A list of people to pick one from; the empty value leaves the term to the law. */
-function willSelect(id: string, label: string, empty: string, people: PersonChoice[], value: string | null): { field: HTMLElement; input: HTMLSelectElement } {
-  const input = document.createElement('select');
-  input.id = id;
-  input.append(el('option', { value: '' }, empty));
-  for (const p of people) input.append(el('option', { value: p.id, selected: p.id === value }, p.label));
-  return { field: el('p', {}, el('label', { htmlFor: id }, label), ' ', input), input };
-}
-
-/** The will screen (D-314): heir and guardian, the price, "Go to the notary" and "Cancel". */
-function willView(form: WillForm, onCommand: (cmd: Command) => void, cancel: () => void): HTMLElement {
-  const lawHeir = form.heirs[0];
-  const heir = willSelect('will-heir', 'Main heir:', lawHeir ? `Leave it to the law (${lawHeir.label})` : 'Leave it to the law', form.heirs, form.current?.heir ?? null);
-  const guardian = willSelect('will-guardian', 'Guardian of an heir under age:', 'Leave it to the law', form.guardians, form.current?.guardian ?? null);
-  const status = form.current
-    ? form.current.stale ? 'Your will is out of date: write a new one, or the law fills what it no longer says.' : 'You have a will. A new one replaces it.'
-    : 'You have no will: the law decides who inherits.';
-  const go = el('button', { className: 'choice', type: 'button' }, `Go to the notary (${form.cost} crowns, a few days)`);
-  const parts: (Node | string)[] = [el('h2', { tabIndex: -1 }, 'Your will'), el('p', {}, status), heir.field, guardian.field];
-  if (form.heirs.length === 0 && form.endsWithoutKin) parts.push(el('p', {}, 'You have no kin to name: without kin the house will end with you.'));
-  if (form.reasons.length > 0) {
-    go.className = 'choice grey';
-    go.setAttribute('aria-disabled', 'true');
-    parts.push(el('div', { className: 'unavailable' }, go, el('span', { className: 'reason' }, form.reasons.join('; '))));
-  } else {
-    go.onclick = () => onCommand(willCommandOf(heir.input.value, guardian.input.value));
-    parts.push(el('div', { className: 'option' }, go));
-  }
-  parts.push(el('button', { className: 'link', type: 'button', onclick: cancel }, 'Cancel'));
-  return el('section', { className: 'will' }, ...parts);
-}
-
-/** Who inherits now, by law or by will (D-018, D-314). */
-function heirParagraph(session: Session): HTMLElement {
-  const line = heirLine(session.state);
-  if (!line) {
-    // Until 4.13 a namesake from afar takes a house without kin (D-315); then the house ends.
-    const placeholder = session.content.succession?.temporaryHeir ?? true;
-    return el('p', {}, placeholder ? 'Heir: nobody of the blood; a namesake from afar would take up the house.' : 'Heir: nobody. The house would end with you.');
-  }
-  return el('p', {}, 'Heir: ', el('a', { href: personHref(line.id), className: 'person' }, line.name), ` (${line.by}).`);
-}
-
-/**
- * The hero's face (4.12, D-300): the mood of the event on screen, a calm face otherwise; its text is the label a
- * screen reader speaks (D-248).
- */
-function portraitFigure(session: Session): HTMLElement {
+/** The window of the event on screen, or of a scene of the backstory (D-438): pinned until the player has answered. */
+function eventWindow(session: Session, screen: NonNullable<ReturnType<typeof eventScreen>>): HTMLElement {
   const ctx = { state: session.state, content: session.content };
-  const spec = faceSpec(ctx, getPlayer(session.state), eventView(ctx)?.mood ?? DEFAULT_MOOD);
-  return el('figure', { className: 'portrait' }, portraitCanvas(spec));
+  const controls = screen.options.map((o, i) => optionControl(o, i));
+  const picks = screen.options.map((o) => (o.grey ? null : () => { void act(session, { type: 'choose', option: o.index }); }));
+  session.keymap = picks;
+  const text = eventPageKey(screen.text, screen.options);
+  if (text !== session.announcedEvent) {
+    session.announcedEvent = text;
+    session.queue.push(eventAnnouncement(screen.text, controls));
+  }
+  return modalFrame({ title: eventTitle(ctx, screen), pinned: true, badge: 'answer to go on', kind: 'event' },
+    el('p', { className: 'event-text' }, ...partNodes(el, screen.text)),
+    el('div', { className: 'choices' }, ...controls.map((c, i) => choiceNode(c, picks[i] ?? null))));
+}
+
+function newGameMenu(session: Session): void {
+  session.menuOpen = false;
+  session.question = {
+    title: 'Start a new game?',
+    text: 'The current dynasty will be lost for good.',
+    yes: 'Start a new game',
+    onYes: () => { session.question = null; void newGameNow(session); },
+    onNo: () => { session.question = null; session.focusAfterRender = true; render(session); },
+  };
+  session.focusAfterRender = true;
+  render(session);
 }
 
 function render(session: Session): void {
   const { state, content } = session;
-  const player = getPlayer(state);
-  const hero = heroView(state, content);
-  const rerender = () => render(session);
-  const parts: Node[] = [];
-
-  const pageId = entityIdFromHash(location.hash);
-  if (pageId !== null) {
-    // a person, or a page of any other kind of entity (4.2, D-330); null reads as "nobody by that name"
-    const found = entityPage({ state, content }, pageId);
-    app?.replaceChildren(numbersButton(session), pageView(el, found, headIds(allChronicle(state)), session.showNumbers, (cmd) => act(session, cmd)));
-    if (session.refocus) app?.querySelector<HTMLElement>(`[data-focus="${session.refocus}"]`)?.focus();
-    else window.scrollTo(0, 0);
-    session.refocus = null;
-    return;
-  }
-
-  if (session.notice) {
-    const lost = session.lostJournal;
-    parts.push(el('p', { className: 'notice' }, session.notice,
-      lost ? el('button', { className: 'link', type: 'button', onclick: () => downloadJournal(lost) }, 'Download the journal of that game') : ''));
-  }
-  if (session.saveProblem) parts.push(el('p', { className: 'notice warn', role: 'alert' }, session.saveProblem));
-
-  parts.push(
-    el('h1', {}, `House of ${hero.surname}`),
-    el('div', { className: 'meta bar' }, el('span', {}, `${formatDate(state.day)} · seed ${state.seed}`),
-      el('button', { className: 'link', type: 'button', onclick: () => newGameWithConfirm(session) }, 'New game'),
-      el('button', { className: 'link', type: 'button', onclick: () => downloadJournal(session.journal) }, 'Journal'), numbersButton(session)),
-    el('section', { className: 'hero' },
-      portraitFigure(session),
-      el('h2', {}, el('a', { href: personHref(player.id), className: 'person' }, hero.name)),
-      el('p', {}, `${hero.sex === 'male' ? 'Man' : 'Woman'}, aged ${hero.age}${hero.fame ? `, ${hero.fame}` : ''}. Money ${hero.money}.`),
-      el('p', {}, `Health: ${hero.conditions || 'healthy'}.`),
-      el('dl', { className: 'stats' }, ...hero.stats.flatMap((s) => [
-        el('dt', {}, s.label),
-        el('dd', { title: String(s.value) }, withNumber(s.word, s.value, session.showNumbers)),
-      ])),
-      hero.education.length ? el('p', {}, `Education: ${hero.education.join(', ')}.`) : '',
-      hero.traits.length ? el('p', {}, `Traits: ${hero.traits.join(', ')}.`) : '',
-      heirParagraph(session),
-    ),
-  );
-
   const ctx = { state, content };
+  const hero = getPlayer(state);
+  const heads = headIds(allChronicle(state));
+  const rerender = () => render(session);
+
+  // the address `#/<kind>/<id>` opens a page in the side panel; none shows the hero
+  const addressed = entityIdFromHash(location.hash);
+  session.sidebar.trail = addressed ? visit(session.sidebar.trail, addressed) : [];
+  const pageId = addressed ?? hero.id;
+
+  session.keymap = [];
+  session.dismiss = null;
   const form = willForm(state, content);
   const screen = eventScreen(ctx);
-  let focusTarget: HTMLElement;
-  if (screen) {
-    const controls = screen.options.map((o, i) => optionControl(o, i, session.showNumbers));
-    session.keymap = screen.options.map((o) => (o.grey ? null : { type: 'choose', option: o.index }));
-    const eventText = eventPageKey(screen.text, screen.options);
-    if (eventText !== session.announcedEvent) {
-      session.announcedEvent = eventText;
-      session.queue.push(eventAnnouncement(screen.text, controls));
-    }
-    focusTarget = el('section', { className: 'event', tabIndex: -1 },
-      el('p', {}, ...partNodes(el, screen.text)),
-      el('div', { className: 'choices' }, ...controls.map((c, i) => choiceNode(session, c, session.keymap[i] ?? null))));
-    parts.push(el('h2', {}, 'Event'), focusTarget);
+  let modal: HTMLElement | null = null;
+  if (session.question) {
+    const q = session.question;
+    modal = confirmWindow(q.title, q.text, q.yes, q.onYes, q.onNo);
+    session.dismiss = q.onNo;
+  } else if (session.outcome) {
+    const { outcome, heroId } = session.outcome;
+    const go = () => { session.outcome = null; session.focusAfterRender = true; rerender(); };
+    session.keymap = [go];
+    modal = outcomeWindow(outcome, heroId, heads, { text: '1. Continue', note: '', reason: '', reasonId: 'continue-reason', noteId: 'continue-note', attrs: { 'aria-keyshortcuts': '1' }, key: '1' }, go);
+  } else if (screen) {
+    modal = eventWindow(session, screen);
   } else if (session.willOpen && form && state.status === 'awaiting_action') {
-    session.announcedEvent = '';
-    session.keymap = [];
-    const view = willView(form, (cmd) => { session.willOpen = false; void act(session, cmd); }, () => { session.willOpen = false; session.focusAfterRender = true; rerender(); });
-    focusTarget = view.querySelector('h2') ?? view;
-    parts.push(view);
-  } else {
-    session.announcedEvent = '';
-    session.willOpen = false;
-    const rows = actionRows(ctx);
-    const controls = rows.map((a, i) => actionControl(a, i));
-    session.keymap = rows.map((a) => (a.grey ? null : { type: 'start', actionId: a.id }));
-    focusTarget = el('h2', { tabIndex: -1 }, 'What next?');
-    parts.push(focusTarget, el('div', { className: 'choices' }, ...controls.map((c, i) => choiceNode(session, c, session.keymap[i] ?? null))));
-    if (form && state.status === 'awaiting_action') {
-      parts.push(el('p', {}, el('button', { className: 'link', type: 'button', onclick: () => { session.willOpen = true; session.focusAfterRender = true; rerender(); } }, 'Make a will…')));
-    }
+    const close = () => { session.willOpen = false; session.focusAfterRender = true; rerender(); };
+    modal = willWindow(form, (cmd) => { session.willOpen = false; void act(session, cmd); }, close);
+    session.dismiss = close;
   }
+  if (!screen) session.announcedEvent = '';
+  if (!(session.willOpen && form)) session.willOpen = false;
 
-  const tabButton = (tab: Tab, label: string) =>
-    el('button', { className: session.tab === tab ? 'tab active' : 'tab', type: 'button', onclick: () => { session.tab = tab; session.refocus = `tab-${tab}`; rerender(); } }, label);
-  const keyed = (b: HTMLElement, tab: Tab) => { b.setAttribute('data-focus', `tab-${tab}`); return b; };
-  const withPressed = (b: HTMLElement) => { b.setAttribute('aria-pressed', String(b.classList.contains('active'))); return b; };
-  const level = session.tab === 'chronicle' ? 'chronicle' : 'journal';
-  parts.push(
-    el('div', { className: 'tabs' }, withPressed(keyed(tabButton('chronicle', 'Chronicle'), 'chronicle')), withPressed(keyed(tabButton('journal', 'Journal'), 'journal'))),
-    entriesList(state, allChronicle(state).filter((e) => e.level === level), level === 'chronicle'),
-  );
-  app?.replaceChildren(...parts);
+  const where = whereView(ctx);
+  const keymap: (null | (() => void))[] = [];
+  const centre = wherePanel({
+    view: where,
+    onStart: (actionId) => { void act(session, { type: 'start', actionId }); },
+    onWill: form && state.status === 'awaiting_action' ? () => { session.willOpen = true; session.focusAfterRender = true; rerender(); } : null,
+    keymap,
+  });
+  if (!modal) session.keymap = keymap;
+
+  const notices: HTMLElement[] = [];
+  if (session.notice) {
+    const lost = session.lostJournal;
+    notices.push(el('p', { className: 'notice' }, session.notice,
+      lost ? el('button', { className: 'link', type: 'button', onclick: () => downloadJournal(lost) }, 'Download the journal of that game') : ''));
+  }
+  if (session.saveProblem) notices.push(el('p', { className: 'notice warn', role: 'alert' }, session.saveProblem));
+
+  const sidebar = sidebarPanel({
+    ctx, view: session.sidebar, pageId, heads,
+    onToggle: () => { session.sidebar.open = !session.sidebar.open; session.refocus = 'sidebar-toggle'; rerender(); },
+    onTab: (tab) => { session.sidebar.tab = tab; session.sidebar.tabFor = pageId; session.refocus = `tab-${tab}`; rerender(); },
+    onCommand: (cmd) => {
+      // the answer is an event window: on a phone the panel gets out of its way
+      if (window.matchMedia(NARROW).matches) session.sidebar.open = false;
+      void act(session, cmd);
+    },
+  });
+
+  const header = headerPanel({
+    figures: headerFigures(state, content),
+    menuOpen: session.menuOpen,
+    onMenuToggle: () => { session.menuOpen = !session.menuOpen; session.refocus = 'menu'; rerender(); },
+    items: [{ label: 'New game', onClick: () => newGameMenu(session) }, ...(DEV ? [{ label: 'Download the command journal', onClick: () => downloadJournal(session.journal) }] : [])],
+    devNotes: DEV ? [`Seed ${state.seed}`] : [],
+  });
+
+  const game = el('div', { className: session.sidebar.open ? 'game' : 'game side-closed' },
+    ...sidebar,
+    header,
+    el('main', { className: 'center', id: 'center' }, ...notices, centre, latelyPanel(allChronicle(state), hero.id, heads)),
+    clockPanel(formatDate(state.day)),
+    avatarPanel(ctx, () => openProfile(session)));
+  if (modal) game.inert = true;
+  app?.replaceChildren(game, ...(modal ? [modal] : []));
+  if (DEV) game.setAttribute('data-seed', String(state.seed));
+
   announce(session.queue.splice(0).filter(Boolean).join(' '));
   if (session.refocus) {
     app?.querySelector<HTMLElement>(`[data-focus="${session.refocus}"]`)?.focus();
@@ -311,8 +272,18 @@ function render(session: Session): void {
   }
   if (session.focusAfterRender) {
     session.focusAfterRender = false;
-    focusTarget.focus({ preventScroll: false });
+    (modal ? modalHeading(modal) : app?.querySelector<HTMLElement>('#where-heading'))?.focus({ preventScroll: false });
   }
+}
+
+/** The avatar opens the hero's profile in the side panel, even from a page of someone else or with the panel folded. */
+function openProfile(session: Session): void {
+  session.sidebar.open = true;
+  if (entityIdFromHash(location.hash) !== null) history.pushState(null, '', location.pathname + location.search);
+  session.sidebar.tab = null;
+  session.sidebar.tabFor = null;
+  session.refocus = 'avatar';
+  render(session);
 }
 
 /**
@@ -323,11 +294,21 @@ async function act(session: Session, cmd: Command): Promise<void> {
   if (session.busy) return;
   session.busy = true;
   try {
+    const ctx = { state: session.state, content: session.content };
     // the archive phase moves old lines out of the hot part: count over the whole chronicle
     const seen = allChronicle(session.state).length;
+    let before = null;
+    if (cmd.type === 'choose') {
+      const chosen = eventView(ctx)?.options.find((o) => o.index === cmd.option);
+      before = beforeChoice(ctx, Boolean(chosen?.chance));
+    }
     applyRecorded(session.journal, session.state, session.content, cmd);
     session.focusAfterRender = true;
-    // new chronicle lines go to the live region first, the event page follows in render()
+    if (before) {
+      const outcome = outcomeOf(ctx, before);
+      session.outcome = outcome ? { outcome, heroId: before.hero.id } : null;
+    }
+    // new chronicle lines go to the live region first, the event window follows in render()
     const lines = allChronicle(session.state).slice(seen).filter((e) => e.level === 'chronicle').map(entryText);
     session.queue.push(chronicleAnnouncement(lines));
     session.saveProblem = saveProblemText(await saveGame(session.store, session.state, session.journal, session.saved, session.contentVersion));
@@ -345,19 +326,30 @@ function newGameMark(): string {
 async function startSession(session: Session, seed: number): Promise<void> {
   session.state = newGame(seed, session.content);
   session.journal = newJournal(seed, session.contentVersion);
+  session.outcome = null;
+  session.willOpen = false;
+  session.sidebar.trail = [];
+  session.sidebar.tab = null;
+  session.sidebar.tabFor = null;
   const started = await startGame(session.store, session.state, session.journal, session.contentVersion, newGameMark());
   session.saved = started.saved;
   session.saveProblem = saveProblemText(started.outcome);
   render(session);
 }
 
-async function newGameWithConfirm(session: Session): Promise<void> {
-  if (session.busy || !confirm('Start a new game? The current dynasty will be lost for good.')) return;
+/** The address of this page without a seed or a page, keeping the developer flag. */
+function bareAddress(): string {
+  return location.pathname + (DEV ? '?dev=1' : '');
+}
+
+async function newGameNow(session: Session): Promise<void> {
+  if (session.busy) return;
   session.busy = true;
   try {
-    history.replaceState(null, '', location.pathname);
+    history.replaceState(null, '', bareAddress());
     session.notice = null;
     session.lostJournal = null;
+    session.focusAfterRender = true;
     await startSession(session, pickSeed());
   } finally {
     session.busy = false;
@@ -380,11 +372,21 @@ async function boot(content: Content, version: string): Promise<void> {
   const session: Session = {
     state, content, contentVersion: version, store,
     journal: loadedGame?.journal ?? newJournal(state.seed, version), saved: loadedGame?.saved ?? { game: '', chunks: 0, commands: 0 }, busy: false, lostJournal: null,
-    notice: null, saveProblem: null, tab: 'chronicle', showNumbers: false, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false,
+    notice: null, saveProblem: null, sidebar: newSidebarState(!window.matchMedia(NARROW).matches || entityIdFromHash(location.hash) !== null),
+    menuOpen: false, outcome: null, question: null, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false, dismiss: null,
   };
   current = session;
-  if (choice === 'continue' || (choice === 'ask_replace' && !confirm(`The address asks for seed ${String(requested)}, which replaces your saved dynasty. Replace it?`))) {
-    if (choice === 'ask_replace') history.replaceState(null, '', location.pathname);
+  if (choice === 'continue' || choice === 'ask_replace') {
+    if (choice === 'ask_replace' && requested !== null) {
+      // the address asks for another seed than the saved game: ask inside the page, a `confirm()` may not show there
+      session.question = {
+        title: 'Replace your dynasty?',
+        text: `The address asks for seed ${String(requested)}, which replaces your saved dynasty.`,
+        yes: 'Replace it',
+        onYes: () => { session.question = null; session.busy = true; void startSession(session, requested).finally(() => { session.busy = false; }); },
+        onNo: () => { session.question = null; history.replaceState(null, '', bareAddress()); render(session); },
+      };
+    }
     render(session);
   } else {
     if (outcome.kind === 'discarded') {
@@ -397,7 +399,11 @@ async function boot(content: Content, version: string): Promise<void> {
 
 const loaded = loadContent(files);
 let current: Session | null = null;
-window.addEventListener('hashchange', () => { if (current) render(current); });
+window.addEventListener('hashchange', () => {
+  if (!current) return;
+  current.sidebar.open = true;
+  render(current);
+});
 if (!loaded.ok) {
   app.replaceChildren(
     el('h1', {}, 'Content errors'),
@@ -408,12 +414,24 @@ if (!loaded.ok) {
 }
 
 window.addEventListener('keydown', (e) => {
-  if (!current || entityIdFromHash(location.hash) !== null) return;
+  if (!current) return;
+  if (e.key === 'Escape') {
+    const s = current;
+    if (s.dismiss) {
+      e.preventDefault();
+      s.dismiss();
+    } else if (s.menuOpen) {
+      s.menuOpen = false;
+      s.refocus = 'menu';
+      render(s);
+    }
+    return;
+  }
   const position = shortcutPosition({ key: e.key, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey, repeat: e.repeat, target: (e.target as HTMLElement | null)?.tagName });
   if (position === null) return;
   const picked = pickableAt(current.keymap.map((c) => ({ grey: c === null })), position);
   const command = picked === null ? null : current.keymap[picked];
   if (!command) return;
   e.preventDefault();
-  void act(current, command);
+  command();
 });
