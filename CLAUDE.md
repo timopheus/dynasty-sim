@@ -19,15 +19,17 @@
 npm ci                                   # первым делом в новой сессии
 npm run dev                              # игра в браузере
 npm run check                            # typecheck + test + validate + sim 50 лет
+npm run typecheck | npm test | npm run validate   # по отдельности
 npm run sim -- --years 300 --seed 42     # прогон: хроника, журнал, итог рода в out/
-npm run sim -- --years 300 --seed 1 --runs 10 [--bot cautious] [--json]
+npm run -s sim -- --years 300 --seed 1 --runs 10 [--bot cautious] [--json] > a.json   # -s: без заголовка npm в файле
 npm run -s sim -- --compare a.json b.json
-npm run gates                            # 300 лет × seeds 1…10, коридоры метрик
+npm run gates                            # 300 лет × seeds 1…10, коридоры метрик; -- --from a.json проверяет готовый файл
 npx tsx tools/bot-report.ts --runs 10    # отчёт по ботам
-npm run replay -- journal.json           # партия из журнала команд
+npm run replay -- journal.json           # партия из журнала команд; --record out/j.json --seed 1 --years 50 — записать бота
+npm run save-bench                       # размер и время записи сохранения
 npm run build                            # сборка в dist/ (для артефакта: npx vite build --base ./)
 ```
-CI на каждый PR: typecheck, test, validate, sim 50 лет, build; работа `gates` — 300 лет × 10 seeds, валят инварианты, горячая часть > 300 КБ и строки хроники на жизнь главы вне 25–50; работа `bots` — отчёт, не валит. Коридоры меняются только записью в decisions-active.
+CI на каждый PR и push в main: typecheck, test, validate, sim 50 лет, build; работа `gates` — 300 лет × 10 seeds, валят инварианты, горячая часть > 300 КБ и строки хроники на жизнь главы вне 25–50; работа `bots` — отчёт, не валит. Коридор или признак «валит / отчёт» меняется только новым решением в decisions-active (D-203).
 
 ## Правила ядра (src/core)
 - Ядро импортирует только свои модули, `yaml` и `zod`. Запрещены DOM, Node API, `Math.random`, `Date`, `performance` (проверяет `tests/architecture.test.ts`).
@@ -37,9 +39,9 @@ CI на каждый PR: typecheck, test, validate, sim 50 лет, build; раб
 - Обходить массивы контента, а не ключи объектов (исключение — роли события и символы грамматики, D-161).
 - Состояние меняет только `apply(state, content, command)`. Запросы случайность не тратят.
 - Новое правило согласованности — инвариант своего модуля.
-- Хроника — только через `log(ctx, {...})` из `chronicle/log.ts`.
+- Хроника — только через `log(ctx, {subject, kind, level, template | parts, money?, mark?, important?})` из `chronicle/log.ts`; отбор при записи, строку о человеке вне героя, дома и окружения `log` не хранит (D-057, D-064, D-130).
 - id сущностей — `newId(state, prefix)`; сущности не удаляются.
-- Правила симуляции не читают архив (D-312): только горячая часть. История — `allChronicle`/`allCharacters`/`anyCharacter` из `archive/archive.ts`, только для страниц, markdown, метрик, итога и сохранения. Давние данные правилу держит горячими `HOT_REFS` своего модуля (`refs.ts`).
+- Правила симуляции не читают архив (D-312): только горячая часть. История — `allChronicle`/`allCharacters`/`anyCharacter` из `archive/archive.ts`, только для страниц, markdown, метрик, итога и сохранения. Давние данные правилу держит горячими `HOT_REFS` своего модуля (`refs.ts`). Модуль, данные которого ссылаются на людей, отдаёт их своей функцией `RefsFn` в `HOT_REFS`, иначе архив заберёт человека, на которого ссылаются.
 
 ## Владение файлами (D-052, D-060)
 - Задача правит только свой модуль, свой контент и свои тесты — по колонке «Модуль» в ROADMAP.

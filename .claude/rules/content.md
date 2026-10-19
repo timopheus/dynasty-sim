@@ -6,6 +6,14 @@ paths:
   - "src/core/text/**"
   - "src/core/narrator/**"
   - "src/core/stories/**"
+  - "src/core/backstory/**"
+  - "src/core/conditions/**"
+  - "src/core/content/**"
+  - "src/core/*/content.ts"
+  - "src/core/*/effects.ts"
+  - "src/core/*/conditions.ts"
+  - "src/core/effects.ts"
+  - "src/core/condition-keys.ts"
   - "docs/event-format.md"
   - "tests/fixtures/**"
 ---
@@ -23,7 +31,7 @@ paths:
 ## Роли и область ролей (D-162, D-171, D-172)
 - Формат события — контракт `docs/event-format.md`; меняет его только ведущая сессия. Не подходит — опиши в PR.
 - Область ролей `Scope` — роль → id человека. Встроенные роли: `hero` (текущий герой) и `protagonist` (главный участник; в событии героя — герой). Человек — не больше одной роли; роли — из окружения героя (D-056), `pick: kin` и `pick: given` — также из дома героя; героя в роль `given` передаёт только команда `propose` (D-356).
-- Условия, эффекты и тексты видят людей только через область: `(ctx, c, when, scope) → Unmet[]`, `applyEffects(ctx, c, effects, scope)`, `renderTemplate(ctx, template, scope, seq, slot)`. Доступность — по `conditionReport(...).met`.
+- Условия, эффекты и тексты видят людей только через область: `(ctx, c, when, scope) → Unmet[]` (`{text, hidden}`; скрытая причина — то, чего герой знать не может, D-043), `applyEffects(ctx, c, effects, scope)`, `renderTemplate(ctx, template, scope, seq, slot)`. Доступность — по `conditionReport(...).met`.
 - Ключ условия или эффекта, называющий другого человека, называет роль и отдаёт её имя в `conditionRoleRefs` / `effectRoleRefs`.
 - `{name}`, `{he}`… — подлежащее строки (в событии — главный участник); роль — `{role}`, `{role.he}`, `{role.age}`. `result` начинается с `{name}`.
 - `later` хранит область. Смерть от эффекта — только запросом в `state.deathRequests` (D-164).
