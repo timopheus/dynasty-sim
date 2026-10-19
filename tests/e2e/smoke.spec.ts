@@ -101,7 +101,8 @@ test('the screen is in shelves: header, side panel, centre, avatar and date are 
   for (const n of notes) expect(n).toMatch(/^\(.+, \d+%\)$/);
   await page.screenshot({ path: 'out/e2e/layout-1440.png' });
   // tabs of the page, and a page of another kind in the same panel
-  await page.locator('.modal .option button.choice').first().click();
+  // the panel is behind a pinned window until the scenes are answered
+  for (let i = 0; i < 30 && (await page.locator('.modal-layer').count()) > 0; i++) await page.locator('.modal-layer .option button.choice').first().click();
   for (const tab of ['Family', 'People', 'Chronicle', 'Profile']) {
     await page.locator('.sidebar .tab', { hasText: tab }).first().click();
     await expect(page.locator('.sidebar .tab.active')).toHaveText(tab);
