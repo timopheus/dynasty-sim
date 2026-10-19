@@ -1,0 +1,329 @@
+# The house with children (4.13, D-313, D-314): christenings and hard births, a sick child, upbringing, the guardian of a
+# head under age, a widowed house and a second match, the notice that the will is out of date (4.6, D-363).
+events:
+  - id: christening
+    weight: 7
+    cooldown_days: 400
+    when: { children_min: 1 }
+    roles:
+      child: { pick: kin, kind: child, where: { age_max: 0 } }
+      godfather: { pick: circle, optional: true, where: { age_min: 18 } }
+    text: "The child {child} is a few weeks old, and the priest asks when the christening is to be. The neighbours are already counting the guests."
+    mood: joy
+    options:
+      - text: A fine christening, 25 crowns
+        when: { money_min: 25 }
+        effects: { money: -25 }
+        on: { godfather: { opinion: [{ toward: hero, reason: favour }, { toward: hero, reason: gift }] } }
+        result: "{name} had {child} christened with a feast{godfather?, with {godfather} standing sponsor,}."
+        mood: joy
+      - text: Ask a friend to stand sponsor
+        on: { godfather: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} had {child} christened{godfather?, with {godfather} standing sponsor,} in a plain service."
+        mood: joy
+      - text: A plain service at the font
+        result: "{name} had {child} christened at the font without ceremony."
+
+  # Heavy: the mother after a birth. The mother may die; the choice is who to trust (D-164: the hero is not at risk).
+  - id: childbed_fever
+    severity: heavy
+    weight: 1
+    cooldown_days: 1500
+    roles:
+      child: { pick: kin, kind: child, where: { age_max: 0 } }
+      mother: { pick: kin, kind: spouse, where: { sex: female, kin: { kind: parent, with: child } } }
+      physician: { pick: circle, where: { occupation: [physician] }, optional: true }
+    text: "Days after the birth of {child}, {mother} is burning with fever and does not know you. The midwife shakes her head."
+    mood: threat
+    options:
+      - text: Send for a physician, 15 crowns
+        when: { money_min: 15 }
+        check: { stat: learning, of: physician, difficulty: 8 }
+        success:
+          effects: { money: -15 }
+          on: { mother: { opinion: [{ toward: hero, reason: nursed_me }] } }
+          result: "{name} paid for a physician{physician?, {physician},} who brought {mother} through the childbed fever."
+          mood: joy
+        failure:
+          effects: { money: -15 }
+          on: { mother: { disease: fever } }
+          result: "{name} paid for a physician{physician?, {physician},} in vain: {mother} lay sick for weeks after the birth."
+          chronicle: true
+          mood: pain
+      - text: Nurse {mother} yourself through the nights
+        check: { stat: learning, difficulty: 9 }
+        success:
+          on: { mother: { opinion: [{ toward: hero, reason: nursed_me }] } }
+          result: "{name} sat up nights with {mother} until the fever broke."
+          mood: joy
+        failure:
+          on: { mother: { disease: fever } }
+          result: "{name} sat up with {mother} through a long childbed fever and could not break it."
+          chronicle: true
+          mood: pain
+      - text: Leave it to the midwife and to God
+        check: { stat: prowess, of: mother, difficulty: 3 }
+        success:
+          result: "{name} left {mother} to the midwife and to God, and the fever broke on the fifth night."
+          chronicle: true
+          mood: joy
+        failure:
+          on: { mother: { kill: childbirth } }
+          result: "{name} lost {mother} to the childbed fever after the birth of {child}."
+          chronicle: true
+          mood: loss
+
+  - id: child_falls_ill
+    severity: heavy
+    weight: 1
+    cooldown_days: 1500
+    when: { children_min: 1 }
+    roles:
+      child: { pick: kin, kind: child, where: { age_max: 12 } }
+      physician: { pick: circle, where: { occupation: [physician] }, optional: true }
+    text: "{child} woke hot and wheezing, and will not eat. The whole street has heard the cough."
+    mood: threat
+    options:
+      - text: Send for a physician, 10 crowns
+        when: { money_min: 10 }
+        check: { stat: learning, of: physician, difficulty: 6 }
+        success:
+          effects: { money: -10 }
+          result: "{name} paid for a physician{physician?, {physician},} and {child} was on {child.his} feet in a week."
+          mood: joy
+        failure:
+          effects: { money: -10 }
+          on: { child: { disease: fever } }
+          result: "{name} paid for a physician{physician?, {physician},} in vain: {child} lay in a fever for weeks."
+          chronicle: true
+          mood: pain
+      - text: Tend {child} yourself and pray
+        check: { stat: learning, difficulty: 8 }
+        success:
+          on: { child: { opinion: [{ toward: hero, reason: nursed_me }] } }
+          result: "{name} tended {child} through a fever until it broke."
+          mood: joy
+        failure:
+          on: { child: { disease: fever } }
+          result: "{name} tended {child} through a bad fever without being able to break it."
+          chronicle: true
+          mood: pain
+      - text: Leave the child to the will of God
+        check: { stat: prowess, of: child, difficulty: 1 }
+        success:
+          result: "{name} left {child} to God, and the fever passed."
+          mood: joy
+        failure:
+          on: { child: { kill: illness } }
+          result: "{name} lost {child} to a sudden illness."
+          chronicle: true
+          mood: loss
+
+  # Upbringing: a child of the hero is shaped by what the hero does.
+  - id: child_tutor
+    weight: 6
+    cooldown_days: 365
+    when: { children_min: 1 }
+    roles:
+      child: { pick: kin, kind: child, where: { age_min: 6, age_max: 15 } }
+    text: "{child} reads slowly and counts on {child.his} fingers. The curate says a tutor would do wonders, for a price."
+    mood: neutral
+    options:
+      - text: Hire a tutor, 30 crowns
+        when: { money_min: 30 }
+        effects: { money: -30 }
+        on: { child: { stats: { learning: 1 }, traits: { add: [diligent] }, opinion: [{ toward: hero, reason: mentor }] } }
+        result: "{name} hired a tutor for {child}, who took to the books."
+        mood: joy
+      - text: Teach {child} yourself in the evenings
+        check: { stat: learning, difficulty: 6 }
+        success:
+          on: { child: { stats: { learning: 1 }, opinion: [{ toward: hero, reason: mentor }] } }
+          result: "{name} taught {child} to read and cipher in the evenings."
+          mood: joy
+        failure:
+          on: { child: { traits: { add: [lazy] } } }
+          result: "{name} tried to teach {child} in the evenings and gave up in a temper; {child} learned only to dodge the lessons."
+          mood: shame
+      - text: Put {child} to work instead
+        effects: { money: 5 }
+        on: { child: { stats: { stewardship: 1 } } }
+        result: "{name} put {child} to work in place of books."
+
+  - id: child_temper
+    weight: 6
+    cooldown_days: 365
+    when: { children_min: 1 }
+    roles:
+      child: { pick: kin, kind: child, where: { age_min: 6, age_max: 15 } }
+    text: "A neighbour brings {child} home by the ear: {child.he} has bloodied a boy twice {child.his} size, and is not sorry in the least."
+    mood: anger
+    options:
+      - text: Thrash {child} before the neighbour
+        check: { stat: diplomacy, difficulty: 7 }
+        success:
+          on: { child: { traits: { add: [humble] } } }
+          result: "{name} thrashed {child} before the neighbour, and {child} took the lesson to heart."
+          mood: neutral
+        failure:
+          on: { child: { traits: { add: [wrathful] }, opinion: [{ toward: hero, reason: wronged }] } }
+          result: "{name} thrashed {child} before the neighbour; {child} learned only to hate the rod."
+          mood: anger
+      - text: Sit {child} down and talk it through
+        check: { stat: diplomacy, difficulty: 6 }
+        success:
+          on: { child: { traits: { add: [calm] }, opinion: [{ toward: hero, reason: favour }] } }
+          result: "{name} talked it through with {child} until the temper cooled."
+          mood: joy
+        failure:
+          result: "{name} talked to {child} for an hour and was no wiser at the end of it."
+      - text: Children will be children
+        on: { child: { stats: { prowess: 1 } } }
+        result: "{name} let {child}'s fight pass, and {child} grew bolder for it."
+
+  - id: child_apprenticeship
+    weight: 5
+    cooldown_days: 500
+    when: { children_min: 1 }
+    roles:
+      child: { pick: kin, kind: child, where: { age_min: 12, age_max: 17, married: false } }
+    text: "{child} is growing up and idle. A child must come to a trade, and the road is long; where should {child} be put?"
+    mood: neutral
+    options:
+      - text: Send {child} to learn arms, 25 crowns
+        when: { money_min: 25 }
+        effects: { money: -25 }
+        on: { child: { stats: { prowess: 1, martial: 1 }, traits: { add: [brave] } } }
+        result: "{name} sent {child} to learn arms from an old sergeant."
+        mood: neutral
+      - text: Apprentice {child} to a merchant, 15 crowns
+        when: { money_min: 15 }
+        effects: { money: -15 }
+        on: { child: { stats: { stewardship: 1, intrigue: 1 } } }
+        result: "{name} apprenticed {child} to a merchant."
+        mood: neutral
+      - text: Keep {child} at home among the books
+        on: { child: { stats: { learning: 1 } } }
+        result: "{name} kept {child} at home among the books."
+
+  # The guardian of a head under age (4.6, D-314, D-366). For events of a child hero: bound to the child's actions.
+  - id: guardian_squanders
+    actions: [grow_up, lessons]
+    weight: 5
+    cooldown_days: 730
+    when: { age_max: 15, money_min: 40 }
+    roles:
+      guardian: { pick: relation, kind: guardian }
+    text: "A clerk lets slip that {guardian} has been drawing on your inheritance for debts that are not yours. The sums are not small."
+    mood: threat
+    options:
+      - text: Say nothing; you are a child
+        effects: { money: -30 }
+        result: "{name}, a child, said nothing while {guardian} drew on the inheritance."
+        mood: shame
+      - text: Tell an elder of the family
+        check: { stat: diplomacy, difficulty: 8 }
+        success:
+          effects: { money: 10 }
+          on: { guardian: { opinion: [{ toward: hero, reason: humiliated }] } }
+          result: "{name}, a child, told an elder of the family, who made {guardian} repay part of what was taken."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { money: -30 }
+          on: { guardian: { opinion: [{ toward: hero, reason: wronged }] } }
+          result: "{name}, a child, told an elder of the family and was not believed; {guardian} took the more."
+          chronicle: true
+          mood: shame
+      - text: Face {guardian} with what you know
+        check: { stat: intrigue, difficulty: 9 }
+        success:
+          on: { guardian: { opinion: [{ toward: hero, reason: shamed_me }] } }
+          result: "{name}, a child, faced {guardian} with the clerk's books, and the drawing stopped."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { money: -30 }
+          on: { guardian: { opinion: [{ toward: hero, reason: wronged }] } }
+          result: "{name}, a child, faced {guardian} and was laughed out of the room."
+          mood: shame
+
+  - id: guardian_teaches
+    actions: [grow_up, lessons]
+    weight: 7
+    cooldown_days: 365
+    when: { age_max: 15 }
+    roles:
+      guardian: { pick: kin, kind: parent, where: { relation: { kind: guardian, with: hero } } }
+    text: "{guardian} calls you into the yard after supper. There is an evening free, and a head of the house must be fit for what it will ask."
+    mood: neutral
+    options:
+      - text: Learn the ledgers and the law
+        effects: { stats: { learning: 1, stewardship: 1 } }
+        on: { guardian: { opinion: [{ toward: hero, reason: mentor }] } }
+        result: "{name}, a child, learned the ledgers and the law at the knee of {guardian}."
+        mood: neutral
+      - text: Learn to ride and shoot
+        effects: { stats: { prowess: 1 } }
+        on: { guardian: { opinion: [{ toward: hero, reason: mentor }] } }
+        result: "{name}, a child, learned to ride and shoot under {guardian}."
+        mood: joy
+      - text: Slip away to the stables
+        effects: { traits: { add: [lazy] } }
+        result: "{name}, a child, slipped away from {guardian}'s lessons to the stables."
+
+  # Widowed house: the hero has lost a spouse, children remain.
+  - id: widowed_house
+    weight: 5
+    cooldown_days: 730
+    when: { married: false, children_min: 1 }
+    roles:
+      child: { pick: kin, kind: child, where: { age_max: 14 } }
+    text: "The house is quiet since the funeral. {child} sits at the empty place at the table and asks, for the third time this week, when mother or father will be back."
+    mood: loss
+    options:
+      - text: Sit with {child} until sleep comes
+        on: { child: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} sat up with {child} through a long evening of grief."
+        mood: loss
+      - text: Throw yourself into work
+        effects: { money: 10 }
+        on: { child: { opinion: [{ toward: hero, reason: slighted }] } }
+        result: "{name} buried {his} grief in work and left {child} to the maid."
+        mood: shame
+      - text: Send {child} to kin for a season of schooling, 10 crowns
+        when: { money_min: 10 }
+        effects: { money: -10 }
+        on: { child: { stats: { learning: 1 } } }
+        result: "{name} sent {child} to kin for a season of schooling."
+
+  - id: second_match
+    weight: 16
+    cooldown_days: 365
+    when: { age_min: 18, married: false, children_min: 1 }
+    roles:
+      match: { pick: circle, where: { can_marry: hero, age_min: 16, age_max: 40 } }
+    text: "A friend says the house needs a steady hand and the children a second parent, and names {match}, {match.age}, who is both free and fond of children."
+    mood: neutral
+    options:
+      - text: Call on {match}
+        when: { can_marry: match }
+        check: { stat: diplomacy, difficulty: 6 }
+        success:
+          effects: { marry: match, schedule: [{ event: wedding_feast, after_days: { min: 20, max: 60 } }] }
+          result: "{name} married again, to {match}, for the sake of the house and the children."
+          mood: joy
+        failure:
+          result: "{name} called on {match} and was told, kindly, that it was too soon."
+          mood: shame
+      - text: Not yet
+        result: "{name} was not ready for a second marriage and let {match} be."
+
+  # Notice (D-363): the will no longer says all it should. The narrator brings it under `will_stale`.
+  - id: will_out_of_date
+    weight: 8
+    cooldown_days: 1000
+    when: { will_stale: true }
+    text: "Your notary writes: since the will was drawn, a child has been born or a named heir has died, and the paper no longer says what you meant it to."
+    mood: neutral
+    result: "{name} was reminded that the will no longer said all it should."

@@ -29,3 +29,13 @@ export function fixtureNarrator(pace: Partial<NarratorContent>, more: Partial<Co
 export function realContent(): Content {
   return loadOrThrow(readContentFiles());
 }
+
+/**
+ * The real content with the scaffolding of D-315 back on: with no living kin a generated adult takes the house. For
+ * tests of mechanics that need a game that goes on for decades; the rate of extinction is measured by the gates.
+ */
+export function realContentWithHeirs(): Content {
+  const content = realContent();
+  if (!content.succession) throw new Error('The real content has no succession key');
+  return { ...content, succession: { ...content.succession, temporaryHeir: true } };
+}

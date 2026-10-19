@@ -1,0 +1,217 @@
+# Courtship, matches and weddings (4.13, D-313). The paths to a marriage: the courtship story (3.8), a match by calculation,
+# a family of standing above the hero's station, a match offered for a child of the hero. The answer to a proposal made from a page
+# and the action "look for a spouse" are in family-basic.yaml. A marriage of the hero schedules the wedding feast.
+events:
+  # Courtship story: the hero begins to court someone of the circle; the proposal comes in a season or the courtship lapses.
+  - id: courtship_begins
+    weight: 16
+    cooldown_days: 400
+    when: { age_min: 16, married: false }
+    roles:
+      match:
+        pick: circle
+        where: { can_marry: hero, age_min: 16, age_max: 34 }
+        prefer:
+          - { when: { opinion: { toward: hero, min: 10 } }, factor: 3 }
+    text: "Your path keeps crossing that of {match}, {match.age}. {match.He} laughs easily, and you find you are looking for {match.him} in every crowd."
+    mood: joy
+    options:
+      - text: Pay court, one visit after another
+        effects:
+          money: -5
+          story: { open: courtship, days: 240, fallback: [courtship_cools], roles: { match: match } }
+        on: { match: { opinion: [{ toward: hero, reason: gift }] } }
+        result: "{name} began to court {match}."
+        mood: joy
+      - text: Send a gift of 20 crowns first
+        when: { money_min: 20 }
+        effects:
+          money: -20
+          story: { open: courtship, days: 300, fallback: [courtship_cools], roles: { match: match } }
+        on: { match: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} began to court {match} with a handsome gift."
+        mood: joy
+      - text: Keep your distance
+        result: "{name} kept {his} distance from {match}."
+
+  - id: courtship_proposal
+    story: courtship
+    weight: 8
+    when: { married: false }
+    roles:
+      match: { pick: given }
+    text: "The season has been kind to your suit. {match} has stopped looking away when you come, and the family leaves you alone together. It is time to put the question."
+    mood: joy
+    options:
+      - text: Ask for the hand of {match}
+        when: { can_marry: match }
+        check: { stat: diplomacy, difficulty: 3, bonus: [{ when: { fame_min: 1 }, add: 1 }] }
+        success:
+          effects: { marry: match, schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }] }
+          result: "{name} won the hand of {match} after a season of courtship."
+          mood: triumph
+        failure:
+          on: { match: { opinion: [{ toward: hero, reason: slighted }] } }
+          result: "{name} asked for the hand of {match} and was put off."
+          mood: shame
+      - text: Settle a purse of 30 crowns on the family
+        when: { money_min: 30, can_marry: match }
+        effects: { money: -30, marry: match, schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }] }
+        result: "{name} won the hand of {match} with a purse settled on the family."
+        mood: joy
+      - text: Put it off again
+        on: { match: { opinion: [{ toward: hero, reason: jilted }] } }
+        result: "{name} put off the question to {match} and let the courtship fade."
+        mood: neutral
+
+  - id: courtship_cools
+    story: courtship
+    followup_only: true
+    weight: 1
+    roles:
+      match: { pick: given }
+    text: "A season has gone by since you called on {match}. Other suitors have, and the door that stood open is closing."
+    mood: shame
+    on: { match: { opinion: [{ toward: hero, reason: jilted }] } }
+    result: "{name} let the courtship of {match} lapse."
+
+  # A match by calculation: a family with money and no name, or a name and no money.
+  - id: arranged_match
+    weight: 14
+    cooldown_days: 500
+    when: { age_min: 16, married: false }
+    roles:
+      match: { pick: circle, where: { can_marry: hero, age_min: 16, age_max: 34 } }
+    text: "The family of {match}, {match.age}, sends a go-between with sober terms: a dowry of 80 crowns, and your name in the market in return. There is no talk of love."
+    mood: neutral
+    options:
+      - text: Accept the terms
+        when: { can_marry: match }
+        effects:
+          money: 80
+          marry: match
+          schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }]
+        result: "{name} married {match} by arrangement, with a dowry of 80 crowns."
+        mood: neutral
+      - text: Haggle for a larger dowry
+        when: { can_marry: match }
+        check: { stat: stewardship, difficulty: 8 }
+        success:
+          effects:
+            money: 140
+            marry: match
+            schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }]
+          result: "{name} haggled the family of {match} up to a dowry of 140 crowns and married {match.him}."
+          mood: triumph
+        failure:
+          on: { match: { opinion: [{ toward: hero, reason: slighted }] } }
+          result: "{name} haggled over the dowry of {match} until the family walked away."
+          mood: shame
+      - text: Decline the terms
+        result: "{name} declined a match of calculation with {match}."
+
+  # A family of standing above the hero's station (a merchant, a physician, a clerk; no house of the world has a status of
+  # its own yet): the door opens only for a name or a full purse.
+  - id: match_above_station
+    weight: 3
+    cooldown_days: 900
+    when: { age_min: 16, married: false }
+    roles:
+      match: { pick: circle, where: { can_marry: hero, occupation: [merchant, physician, clerk], age_min: 16, age_max: 34 } }
+    text: "{match}, {match.age}, is of a family of standing far above yours. The family would not look at a hero of no name, yet you have been seen, and talked of."
+    mood: threat
+    options:
+      - text: Press your suit with all you have
+        when: { can_marry: match }
+        check:
+          stat: diplomacy
+          difficulty: 10
+          bonus:
+            - { when: { fame_min: 2 }, add: 2 }
+            - { when: { house_renown_min: 5 }, add: 2 }
+        success:
+          effects:
+            marry: match
+            house_renown: 2
+            schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }]
+          result: "{name} won the hand of {match}, of a family of standing far above {his} own."
+          mood: triumph
+        failure:
+          effects: { house_renown: -1 }
+          on: { match: { opinion: [{ toward: hero, reason: slighted }] } }
+          result: "{name} sought the hand of {match} and was shown the door for presuming."
+          mood: shame
+      - text: Send costly gifts to the family, 60 crowns
+        when: { money_min: 60, can_marry: match }
+        check: { stat: diplomacy, difficulty: 7 }
+        success:
+          effects:
+            money: -60
+            marry: match
+            house_renown: 1
+            schedule: [{ event: wedding_feast, after_days: { min: 14, max: 45 } }]
+          result: "{name} bought the hand of {match}, of a family of standing above {his} own, with gifts worth 60 crowns."
+          mood: triumph
+        failure:
+          effects: { money: -60 }
+          result: "{name} sent 60 crowns of gifts to the family of {match} and had them returned."
+          mood: shame
+      - text: Look for a match of your own station
+        result: "{name} thought better of a match with {match}."
+
+  # A match offered for a grown child by a house of the circle; a parent of the groom speaks for them when one is near.
+  - id: suit_for_your_child
+    weight: 8
+    cooldown_days: 365
+    when: { children_min: 1 }
+    roles:
+      child: { pick: kin, kind: child, where: { age_min: 16, married: false } }
+      groom: { pick: circle, where: { can_marry: child, age_max: 34 } }
+      parent: { pick: circle, optional: true, where: { kin: { kind: parent, with: groom } } }
+    text: "A match is offered for {child}{parent?, through {parent},}: {groom}, {groom.age}. It is a decent house, and {child} has been looking at the door."
+    mood: neutral
+    options:
+      - text: Agree to the match
+        on: { child: { marry: groom }, groom: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} gave {child} in marriage to {groom}."
+        mark: true
+        mood: joy
+      - text: Ask for a settlement on {child}
+        check: { stat: stewardship, difficulty: 7 }
+        success:
+          effects: { money: 50 }
+          on: { child: { marry: groom } }
+          result: "{name} gave {child} in marriage to {groom} and had a settlement of 50 crowns out of the house."
+          mark: true
+          mood: triumph
+        failure:
+          on: { groom: { opinion: [{ toward: hero, reason: slighted }] } }
+          result: "{name} asked too much for {child}, and the family of {groom} withdrew."
+          mood: shame
+      - text: Refuse; {child} will choose later
+        on: { groom: { opinion: [{ toward: hero, reason: slighted }] } }
+        result: "{name} refused a match between {child} and {groom}."
+
+  # The feast after a marriage of the hero; scheduled by the marriage.
+  - id: wedding_feast
+    followup_only: true
+    weight: 1
+    roles:
+      spouse: { pick: kin, kind: spouse }
+    text: "The banns are read and the day is set. Your friends ask what kind of wedding {spouse} and you will have."
+    mood: joy
+    options:
+      - text: A grand feast, 60 crowns
+        when: { money_min: 60 }
+        effects: { money: -60, fame: 1 }
+        on: { spouse: { opinion: [{ toward: hero, reason: gift }] } }
+        result: "{name} gave a grand wedding feast for {spouse}, and the whole county talked of it."
+        mood: triumph
+      - text: A modest supper with friends, 15 crowns
+        when: { money_min: 15 }
+        effects: { money: -15 }
+        on: { spouse: { opinion: [{ toward: hero, reason: gift }] } }
+        result: "{name} wed {spouse} in the church and supped modestly with friends."
+        mood: joy
+      - text: The priest and two witnesses
+        result: "{name} wed {spouse} quietly before a priest and two witnesses."
