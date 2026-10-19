@@ -261,7 +261,8 @@ function render(session: Session): void {
     el('main', { className: 'center', id: 'center' }, ...notices, centre, latelyPanel(allChronicle(state), hero.id, heads)),
     clockPanel(formatDate(state.day)),
     avatarPanel(ctx, () => openProfile(session)));
-  if (modal) game.inert = true;
+  // the menu stays reachable under a pinned window: "New game" must work whatever is pending
+  if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar')) part.inert = true;
   app?.replaceChildren(game, ...(modal ? [modal] : []));
   if (DEV) game.setAttribute('data-seed', String(state.seed));
 

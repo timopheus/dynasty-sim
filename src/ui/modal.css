@@ -9,6 +9,7 @@
   padding: 4.5rem 1rem 1rem;
   background: rgb(0 0 0 / 0.25);
   overflow-y: auto;
+  pointer-events: none;
 }
 
 .modal {
@@ -20,6 +21,7 @@
   border: 2px solid var(--fg);
   background: var(--bg);
   box-shadow: 6px 6px 0 rgb(0 0 0 / 0.25);
+  pointer-events: auto;
 }
 
 .modal-head {

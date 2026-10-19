@@ -10,6 +10,8 @@
   padding: 0.5rem 0.75rem;
   border: 2px solid var(--fg);
   background: var(--bg);
+  position: relative;
+  z-index: 40;
 }
 
 .arms {
