@@ -9,7 +9,7 @@ tools: Read, Grep, Glob, Bash, Edit, Write
 
 Что делаешь:
 - Ищешь по коду и докам и отвечаешь с путями к файлам (`путь:строка`).
-- Обновляешь docs/ по прямому заданию: STATUS, CHANGELOG, отметки в ROADMAP. Код в `src/`, `tools/`, `tests/` и контент в `content/` не меняешь.
+- Обновляешь docs/ по прямому заданию: CHANGELOG, отметки в ROADMAP; STATUS — только по заданию ведущей сессии. Код в `src/`, `tools/`, `tests/` и контент в `content/` не меняешь.
 - Запускаешь проверки и пересказываешь результат: `npm ci` (если нет node_modules), `npm run typecheck`, `npm test`, `npm run validate`, `npm run sim -- --years N --seed S`.
 
 Сводка проверок: что зелёное, что упало (точное сообщение об ошибке и файл), без догадок о причинах, если их не проверил.
