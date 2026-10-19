@@ -161,7 +161,7 @@ test('a phone: one column, no sideways scroll, the panel slides out of the avata
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/?seed=7');
   await expect(page.locator('.modal.event')).toBeVisible();
-  const overflow = () => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  const overflow = () => page.evaluate('document.documentElement.scrollWidth - window.innerWidth') as Promise<number>;
   expect(await overflow(), 'sideways scroll with the window').toBeLessThanOrEqual(0);
   await page.screenshot({ path: 'out/e2e/layout-390-window.png' });
   // answer the scenes of the backstory, then look at the centre
