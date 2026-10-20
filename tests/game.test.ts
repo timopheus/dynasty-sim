@@ -201,14 +201,18 @@ describe('time moves only by wait (D-439)', () => {
   });
 
   it('while running, another start, a will or a proposal is refused until S.6 lets the hero switch', () => {
-    const content = fixtureNarrator({ eventChancePer10k: 0 });
-    const state = newGame(1, content);
-    apply(state, content, { type: 'start', actionId: 'wait' });
-    expect(() => apply(state, content, { type: 'start', actionId: 'wait' })).toThrow(/while running/);
-    // the fixture has no wills: refused either way, and time stays
-    expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [] })).toThrow();
+    const content = realContent();
+    const state = newGame(7, content);
+    // through the backstory to the first action
+    while (state.status === 'awaiting_choice') apply(state, content, { type: 'choose', option: firstOption(state, content) });
+    apply(state, content, { type: 'start', actionId: 'rest' });
+    expect(state.status).toBe('running');
+    const hero = getPlayer(state).id;
+    expect(() => apply(state, content, { type: 'start', actionId: 'rest' })).toThrow(/while running/);
+    expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/Cannot go to the notary while running/);
+    expect(() => apply(state, content, { type: 'propose', suitor: hero, target: hero })).toThrow(/Cannot propose a marriage while running/);
     expect(() => apply(state, content, { type: 'choose', option: 0 })).toThrow(/while running/);
-    expect(state.day).toBe(0);
+    expect(state.status).toBe('running');
   });
 
   it('the invariant catches a running game without an action, or with an event waiting', () => {

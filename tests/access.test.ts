@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  eventPageKey, actionControl, chanceText, chronicleAnnouncement, eventAnnouncement, numbersToggle, opinionLineText, optionControl, pickableAt,
-  shortcutKey, shortcutPosition, withNumber,
-} from '../src/ui/access';
-import type { ActionRow, OptionRow } from '../src/ui/event';
+import { actionControl, chronicleAnnouncement, opinionLineText, pickableAt, shortcutKey, shortcutPosition, withNumber } from '../src/ui/access';
+import { chanceText, eventAnnouncement, eventPageKey, optionControl, type ActionRow, type OptionRow } from '../src/ui/event';
 
 const option = (over: Partial<OptionRow> = {}): OptionRow => ({ index: 0, label: ['Hunt'], grey: false, reason: '', chance: null, ...over });
 const chance = { word: 'risky', percent: 25, title: '25%' };
@@ -35,18 +32,11 @@ describe('number keys (D-248)', () => {
   });
 });
 
-describe('numbers are not hover-only', () => {
-  it('puts the number beside the word on request', () => {
-    expect(withNumber('good', 11, false)).toBe('good');
-    expect(withNumber('good', 11, true)).toBe('good (11)');
-    expect(withNumber('good', null, true)).toBe('good');
-    expect(chanceText(chance, false)).toBe('risky');
-    expect(chanceText(chance, true)).toBe('risky, 25%');
-  });
-
-  it('shows the switch state to a screen reader', () => {
-    expect(numbersToggle(false)).toEqual({ text: 'Show numbers', attrs: { 'aria-pressed': 'false' } });
-    expect(numbersToggle(true)).toMatchObject({ text: 'Hide numbers', attrs: { 'aria-pressed': 'true' } });
+describe('numbers are always in brackets (D-434)', () => {
+  it('puts the number beside the word, and none where the player may not know it', () => {
+    expect(withNumber('good', 11)).toBe('good (11)');
+    expect(withNumber('good', null)).toBe('good');
+    expect(chanceText(chance)).toBe('risky, 25%');
   });
 
   it('shows the duration of an action as text beside its name', () => {
@@ -57,19 +47,18 @@ describe('numbers are not hover-only', () => {
 
 describe('controls', () => {
   it('labels an available option with its key, chance word and shortcut attribute', () => {
-    const c = optionControl(option({ chance }), 2, false);
-    expect(c).toMatchObject({ text: '3. Hunt', note: '(risky)', reason: '' });
+    const c = optionControl(option({ chance }), 2);
+    expect(c).toMatchObject({ text: '3. Hunt', note: '(risky, 25%)', reason: '' });
     expect(c.attrs).toEqual({ 'aria-keyshortcuts': '3', 'aria-describedby': c.noteId });
-    expect(optionControl(option({ chance }), 2, true).note).toBe('(risky, 25%)');
   });
 
   it('names link labels by plain text', () => {
-    const c = optionControl(option({ label: ['Ask ', { id: 'c1', name: 'Anna' }, ' for help'] }), 0, false);
+    const c = optionControl(option({ label: ['Ask ', { id: 'c1', name: 'Anna' }, ' for help'] }), 0);
     expect(c.text).toBe('1. Ask Anna for help');
   });
 
   it('reads a grey option by its reason as text, stays focusable and linked to the reason', () => {
-    const c = optionControl(option({ grey: true, reason: 'Requires 1000 crowns' }), 1, false);
+    const c = optionControl(option({ grey: true, reason: 'Requires 1000 crowns' }), 1);
     expect(c.reason).toBe('Unavailable: Requires 1000 crowns');
     expect(c.attrs).toMatchObject({ 'aria-disabled': 'true', 'aria-describedby': c.reasonId });
     expect(c.attrs).not.toHaveProperty('disabled');
@@ -77,23 +66,22 @@ describe('controls', () => {
   });
 
   it('gives no key past the tenth choice', () => {
-    const c = optionControl(option(), 10, false);
+    const c = optionControl(option(), 10);
     expect(c.text).toBe('Hunt');
     expect(c.attrs).toEqual({});
   });
 });
 
 describe('live region texts', () => {
-  it('keeps the page key the same whether numbers are shown or not', () => {
+  it('keys a page by what the live region would say of it', () => {
     const o = [option({ chance })];
-    expect(eventPageKey(['Text.'], o)).toBe(eventAnnouncement(['Text.'], [optionControl(o[0]!, 0, false)]));
-    expect(eventPageKey(['Text.'], o)).not.toContain('25%');
+    expect(eventPageKey(['Text.'], o)).toBe(eventAnnouncement(['Text.'], [optionControl(o[0]!, 0)]));
   });
 
   it('announces a new event with its choices, keys and reasons', () => {
-    const controls = [optionControl(option({ chance }), 0, false), optionControl(option({ label: ['Wait'], grey: true, reason: 'Requires 5 crowns' }), 1, false)];
+    const controls = [optionControl(option({ chance }), 0), optionControl(option({ label: ['Wait'], grey: true, reason: 'Requires 5 crowns' }), 1)];
     expect(eventAnnouncement(['A choice for ', { id: 'c1', name: 'Anna' }, '.'], controls)).toBe(
-      'New event. A choice for Anna. Choices: 1. Hunt (risky). 2. Wait. Unavailable: Requires 5 crowns.',
+      'New event. A choice for Anna. Choices: 1. Hunt (risky, 25%). 2. Wait. Unavailable: Requires 5 crowns.',
     );
   });
 
@@ -106,10 +94,9 @@ describe('live region texts', () => {
 describe('opinion lines', () => {
   const line = { text: 'Helped once', year: 1701, lasting: false, value: 15 };
 
-  it('shows the signed cause number as text when asked, and only words otherwise', () => {
-    expect(opinionLineText(line, false)).toBe('Helped once, 1701');
-    expect(opinionLineText(line, true)).toBe('Helped once, 1701 (+15)');
-    expect(opinionLineText({ ...line, value: -10, lasting: true, year: null }, true)).toBe('Helped once (never fades) (-10)');
-    expect(opinionLineText({ ...line, value: null }, true)).toBe('Helped once, 1701');
+  it('shows the signed cause number when it is known, and only words otherwise', () => {
+    expect(opinionLineText(line)).toBe('Helped once, 1701 (+15)');
+    expect(opinionLineText({ ...line, value: -10, lasting: true, year: null })).toBe('Helped once (never fades) (-10)');
+    expect(opinionLineText({ ...line, value: null })).toBe('Helped once, 1701');
   });
 });

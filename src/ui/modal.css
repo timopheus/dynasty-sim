@@ -1,0 +1,82 @@
+/* Decision windows over the centre (D-438). The layer covers the game area; the background is inert while it is open. */
+.modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 4.5rem 1rem 1rem;
+  background: rgb(0 0 0 / 0.25);
+  overflow-y: auto;
+  pointer-events: none;
+}
+
+.modal {
+  box-sizing: border-box;
+  width: min(34rem, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 1rem 1.25rem 1.25rem;
+  border: 2px solid var(--fg);
+  background: var(--bg);
+  box-shadow: 6px 6px 0 rgb(0 0 0 / 0.25);
+  pointer-events: auto;
+}
+
+.modal-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.modal-title {
+  flex: 1;
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--fg);
+}
+
+.modal-badge {
+  color: var(--muted);
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+
+.modal-close {
+  align-self: flex-start;
+  padding: 0 0.5rem;
+}
+
+.modal p {
+  margin: 0.5rem 0;
+}
+
+.modal .choices {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.modal .choices button.choice {
+  width: 100%;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 47.99rem) {
+  .modal-layer {
+    /* below the header, which stays reachable (the menu) */
+    padding: 8rem 0.5rem 4.5rem;
+    align-items: stretch;
+  }
+}

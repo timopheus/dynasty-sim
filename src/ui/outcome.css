@@ -1,0 +1,21 @@
+.outcome .chronicle .date {
+  display: none;
+}
+
+.outcome .changes {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.outcome .changes li {
+  padding: 0.25rem 0;
+}
+
+.outcome .change-label {
+  color: var(--muted);
+}
+
+.outcome .died {
+  font-weight: bold;
+}
