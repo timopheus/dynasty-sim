@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { botCommand } from '../src/core/bot';
-import { play as step, newGame } from '../src/core/game';
+import { apply, play as step, newGame } from '../src/core/game';
 import { decodeCompact, encodeCompact } from '../src/core/save/compact';
 import { SAVE_VERSION, deserialize, jsonProblems, readSave, readSaveParts, saveParts, savedContentVersion, serialize } from '../src/core/save/save';
 import { contentVersion } from '../src/core/save/content-version';
@@ -56,9 +56,10 @@ describe('saves', () => {
     const botA = seedRng(seed, 1);
     const botB = seedRng(seed, 1);
     let steps = 0;
+    // Every single command, `wait` included: a save in the middle of an action (status `running`, D-439) survives too.
     while (straight.day < endDay) {
-      step(straight, content, botCommand(straight, content, botA));
-      step(reloaded, content, botCommand(reloaded, content, botB));
+      apply(straight, content, botCommand(straight, content, botA));
+      apply(reloaded, content, botCommand(reloaded, content, botB));
       reloaded = deserialize(serialize(reloaded), content);
       expect(reloaded).toEqual(straight);
       steps += 1;
@@ -200,6 +201,8 @@ describe('content version and journal of commands (D-202, D-338)', () => {
     expect(() => replay(content, { ...journal, commands: [{ type: 'choose', option: 5 }] })).toThrow(/Command 1 \(choose\)/);
     expect(readJournal('{')).toMatchObject({ ok: false });
     expect(readJournal(JSON.stringify({ ...journal, journal: 99 }))).toMatchObject({ ok: false });
+    // format 1 had no waits: its starts ran time themselves (D-439)
+    expect(readJournal(JSON.stringify({ ...journal, journal: 1 }))).toMatchObject({ ok: false, message: /format 2/ });
     expect(readJournal(JSON.stringify({ ...journal, commands: [{ type: 'fly' }] }))).toMatchObject({ ok: false, message: /Command 1/ });
   });
 });

@@ -200,6 +200,23 @@ describe('time moves only by wait (D-439)', () => {
     for (const days of [0, -1, 1.5, MAX_WAIT_DAYS + 1]) expect(() => apply(state, content, { type: 'wait', days })).toThrow(/wait takes/);
   });
 
+  it('while running, another start, a will or a proposal is refused until S.6 lets the hero switch', () => {
+    const content = fixtureNarrator({ eventChancePer10k: 0 });
+    const state = newGame(1, content);
+    apply(state, content, { type: 'start', actionId: 'wait' });
+    expect(() => apply(state, content, { type: 'start', actionId: 'wait' })).toThrow(/while running/);
+    // the fixture has no wills: refused either way, and time stays
+    expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [] })).toThrow();
+    expect(() => apply(state, content, { type: 'choose', option: 0 })).toThrow(/while running/);
+    expect(state.day).toBe(0);
+  });
+
+  it('the invariant catches a running game without an action, or with an event waiting', () => {
+    const content = fixtureNarrator({ eventChancePer10k: 0 });
+    const state = newGame(1, content);
+    expect(checkInvariants({ ...state, status: 'running' }, content)).toContain('running without an active action or with a pending event');
+  });
+
   it('a choice does not move time either', () => {
     const content = realContent();
     const state = newGame(7, content);

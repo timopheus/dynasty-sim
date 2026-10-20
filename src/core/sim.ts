@@ -14,7 +14,7 @@ export interface SimOptions {
   bot?: BotCharacter;
 }
 
-/** Steps in a row that may pass without time moving: pages of an event, scenes of the backstory, starts. More is a hang. */
+/** Steps in a row that may pass without time moving: pages of an event, scenes of the backstory. More is a hang. */
 export const MAX_STEPS_WITHOUT_TIME = 50;
 
 export interface SimResult {
