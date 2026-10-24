@@ -1,0 +1,23 @@
+# expect-error: economy.texts.debt /./
+economy:
+  income:
+    - { status: commoner, crowns: 15 }
+  levels:
+    - { id: minor, part: "1/3" }
+  work: []
+  upkeep:
+    status:
+      - { status: commoner, part: "1/2" }
+    spouse: "1/5"
+    child: "1/10"
+    minor: "1/10"
+  adjust:
+    cap: 30
+    stewardship: { from: 5, income: 2, upkeep: 2 }
+    education: { income: 5 }
+    traits: []
+  texts:
+    debt: "{name} fell into {debt"
+    lines: { work: Work, living: Living, spouse: Spouse, children: Children }
+  reasons:
+    afford: "Requires {crowns} crowns"
