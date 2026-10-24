@@ -1,5 +1,5 @@
 # Economy (D-326, D-441): the reference income R of each house status and the price levels as parts of it.
-# Numbers are the approved reference docs/reference/prices-1700.md, calibration "moderate". The monthly balance is S.7.
+# Numbers are the approved reference docs/reference/prices-1700.md, calibration "moderate". S.7: the monthly balance.
 economy:
   income:
     - { status: commoner, crowns: 15 }
@@ -11,5 +11,36 @@ economy:
     - { id: notable, part: 1 }
     - { id: major, part: 4 }
     - { id: ruinous, part: 12 }
+  # Monthly income of an action, a part of R. Not listed: nothing (travel, rest, winter quarters, lessons, the notary).
+  work:
+    - { action: serve_contract, part: 1 }
+    - { action: trade, part: 1 }
+    - { action: hunt, part: "2/5" }
+  # Monthly costs, parts of R. The decency of the position grows with the status; a hero under age pays `minor` instead.
+  upkeep:
+    status:
+      - { status: commoner, part: "1/2" }
+      - { status: guild, part: "3/5" }
+      - { status: noble, part: "3/4" }
+    spouse: "1/5"
+    child: "1/10"
+    minor: "1/10"
+  # Whole percents, never more than `cap` either way. Stewardship: more income, less upkeep.
+  adjust:
+    cap: 30
+    stewardship: { from: 5, income: 2, upkeep: 2 }
+    education: { income: 5 }
+    traits:
+      - { id: diligent, income: 10 }
+      - { id: lazy, income: -10 }
+      - { id: greedy, upkeep: -10 }
+      - { id: generous, upkeep: 10 }
   reasons:
     afford: "Requires {crowns} crowns"
+  texts:
+    debt: "{name} could no longer pay the household bills and sank into debt."
+    lines:
+      work: Work
+      living: Living costs
+      spouse: Spouse
+      children: Children

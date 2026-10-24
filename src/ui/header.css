@@ -39,6 +39,29 @@
   font-size: 0.75rem;
 }
 
+.figure-note {
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.figure-breakdown {
+  position: relative;
+}
+
+.figure-breakdown ul {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  top: 100%;
+  min-width: 11rem;
+  margin: 0.25rem 0 0;
+  padding: 0.4rem 0.6rem;
+  list-style: none;
+  border: 2px solid var(--fg);
+  background: var(--bg);
+  font-size: 0.8rem;
+}
+
 .menu {
   position: relative;
 }

@@ -30,10 +30,29 @@ function menuNode({ menuOpen, onMenuToggle, items, devNotes }: HeaderProps): HTM
   return node;
 }
 
+/** Whether the breakdown of the money is open; kept here because the header is drawn anew after each command. */
+let breakdownOpen = false;
+
+function figureNode(f: Figure): HTMLElement {
+  const node = el('div', { className: 'figure' }, el('span', { className: 'figure-value' }, f.value), el('span', { className: 'figure-label' }, f.label));
+  if (f.note === undefined) return node;
+  if (!f.breakdown || f.breakdown.length === 0) {
+    node.append(el('span', { className: 'figure-note' }, f.note));
+    return node;
+  }
+  const details = el('details', { className: 'figure-breakdown' },
+    el('summary', { className: 'figure-note' }, f.note),
+    el('ul', {}, ...f.breakdown.map((line) => el('li', {}, line))));
+  details.open = breakdownOpen;
+  details.addEventListener('toggle', () => { breakdownOpen = details.open; });
+  node.append(details);
+  return node;
+}
+
 /** The header at the top right (D-438): the coat of arms slot, the shared figures, the menu. */
 export function headerPanel(props: HeaderProps): HTMLElement {
   return el('header', { className: 'topbar' },
     el('div', { className: 'arms' }, 'arms'),
-    ...props.figures.map((f) => el('div', { className: 'figure' }, el('span', { className: 'figure-value' }, f.value), el('span', { className: 'figure-label' }, f.label))),
+    ...props.figures.map(figureNode),
     menuNode(props));
 }
