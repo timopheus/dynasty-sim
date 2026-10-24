@@ -28,7 +28,6 @@ actions:
     name: Serve under contract
     duration: { min: 60, max: 180 }
     when: { age_min: 18, sex: male, fit: true }
-    effects: { money: 60 }
     text: "{name} finished a contract of service and was paid off."
 
   - id: winter_quarters
@@ -48,14 +47,12 @@ actions:
     name: Try a small trade
     duration: { min: 20, max: 60 }
     when: { age_min: 16, fit: true }
-    effects: { money: 10 }
     text: "{name} wound up a small trading venture with a modest profit."
 
   - id: hunt
     name: Go hunting
     duration: { min: 3, max: 14 }
     when: { age_min: 16, fit: true }
-    effects: { money: 5 }
     text: "{name} returned from the hunt with game to sell."
 
   # Only the `will` command starts it (D-314, D-360): the will takes effect at its end; content/succession.yaml.

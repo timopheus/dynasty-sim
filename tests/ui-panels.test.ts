@@ -43,6 +43,16 @@ describe('header', () => {
     expect(figures[1]?.value).toMatch(/\(\d+\)$/);
     expect(figures[2]?.value).toMatch(/\(\d+\)$/);
   });
+
+  it('shows the monthly balance under the money, with its lines, as text', () => {
+    const content = realContent();
+    const state = newGame(5, content);
+    state.activeAction = { actionId: 'serve_contract', endDay: state.day + 100 };
+    const money = headerFigures(state, content)[0];
+    expect(money?.note).toMatch(/^[+−]\d+ \/ month$/);
+    expect(money?.breakdown?.[0]).toMatch(/^Work \+\d+$/);
+    expect(money?.breakdown?.some((l) => l.startsWith('Living costs −'))).toBe(true);
+  });
 });
 
 describe('where I am', () => {

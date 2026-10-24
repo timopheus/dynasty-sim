@@ -1,5 +1,5 @@
 import type { ActionDef } from '../actions/content';
-import { lowestCrowns } from '../economy/economy';
+import { lowestCrowns, workCrowns } from '../economy/economy';
 import type { Content } from '../content/schema';
 import type { Effects } from '../effects';
 import { sceneOf, type EventDef, type OptionDef, type OutcomeDef, type SceneDef } from '../events/content';
@@ -134,5 +134,7 @@ export function actionFeatures(content: Content, action: ActionDef): Features & 
   const related = content.events.filter((e) => e.actions?.includes(action.id) && !e.followup_only);
   const risk = mean(related.map((e) => eventFeatures(content, e, 1)));
   // Money is per 30 days, so a long action does not look richer than a short one.
-  return { ...add(own, { ...risk, money: 0 }), money: Math.floor(((own.money + risk.money) * 30) / days), days };
+  // The occupation pays by the month (S.7, D-450): what the action earns in 30 days, at the lowest income.
+  const work = workCrowns(content, action.id) * 100;
+  return { ...add(own, { ...risk, money: 0 }), money: Math.floor(((own.money + risk.money) * 30) / days) + work, days };
 }
