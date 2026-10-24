@@ -41,6 +41,11 @@ export const NarratorContentSchema = z.strictObject({
   /** The same chance on long actions; `eventChancePer10k` if absent. */
   longActionChancePer10k: Int.min(0).max(10000).optional(),
   /**
+   * The same chance while the hero lives his own life (an `idle` action, S.6, D-325): the pace of days nobody
+   * filled; `eventChancePer10k` if absent.
+   */
+  idleChancePer10k: Int.min(0).max(10000).optional(),
+  /**
    * Chance per day, out of 10000, that one event of a person of the circle fires (D-047, D-166, 3.9): a single
    * roll for the whole circle. 0 if absent.
    */

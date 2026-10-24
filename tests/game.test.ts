@@ -200,7 +200,7 @@ describe('time moves only by wait (D-439)', () => {
     for (const days of [0, -1, 1.5, MAX_WAIT_DAYS + 1]) expect(() => apply(state, content, { type: 'wait', days })).toThrow(/wait takes/);
   });
 
-  it('while running, another start, a will or a proposal is refused until S.6 lets the hero switch', () => {
+  it('while running, another start switches the action (S.6); a will or a proposal is still refused', () => {
     const content = realContent();
     const state = newGame(7, content);
     // through the backstory to the first action
@@ -208,7 +208,9 @@ describe('time moves only by wait (D-439)', () => {
     apply(state, content, { type: 'start', actionId: 'rest' });
     expect(state.status).toBe('running');
     const hero = getPlayer(state).id;
-    expect(() => apply(state, content, { type: 'start', actionId: 'rest' })).toThrow(/while running/);
+    apply(state, content, { type: 'start', actionId: 'live' });
+    expect(state.activeAction?.actionId).toBe('live');
+    expect(state.status).toBe('running');
     expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/Cannot go to the notary while running/);
     expect(() => apply(state, content, { type: 'propose', suitor: hero, target: hero })).toThrow(/Cannot propose a marriage while running/);
     expect(() => apply(state, content, { type: 'choose', option: 0 })).toThrow(/while running/);
