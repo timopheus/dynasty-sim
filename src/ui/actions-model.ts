@@ -72,12 +72,15 @@ export function actionShelves(ctx: Ctx, will: WillForm | null): Panel {
   const { state } = ctx;
   if (state.status === 'ended') return { shelves: [], note: 'The house has come to an end.' };
   if (state.backstory.running) return { shelves: [], note: 'Nothing to do until you have grown up.' };
-  const held = state.status !== 'awaiting_action' || state.pendingEvent !== null ? 'Answer the window first' : '';
+  // an action under way may be changed for another (S.6): only a window that waits for an answer holds the hero
+  const choosing = state.status === 'awaiting_action' || state.status === 'running';
+  const held = !choosing || state.pendingEvent !== null ? 'Answer the window first' : '';
+  const underWay = state.activeAction?.actionId ?? null;
   const shelves: Shelf[] = SHELVES.map((s) => ({ ...s, buttons: [] }));
   for (const { action, unmet, hidden } of actionAvailability(ctx)) {
     if (hidden || outgrown(ctx, action)) continue;
     const shelf = shelves.find((s) => s.category === action.category);
-    const reasons = held ? [held] : unmet;
+    const reasons = held ? [held] : action.id === underWay ? ['you are doing this now'] : unmet;
     shelf?.buttons.push({ id: action.id, name: action.name, info: [daysText(action), ...moneyInfo(ctx, action)], grey: reasons.length > 0, reason: reasons.join('; ') });
   }
   if (will) {

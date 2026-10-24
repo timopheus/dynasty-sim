@@ -59,10 +59,25 @@ function show(target: HTMLElement): void {
   place(target, tip);
 }
 
+let mouse = { x: -1, y: -1 };
+
+/**
+ * The screen is drawn anew after a command and every day of the clock: a tooltip that was open follows the new copy of
+ * its node (under the pointer or on the focus), and goes if there is none.
+ */
+export function syncTip(): void {
+  if (shownFor === null) return;
+  const target = holder(document.activeElement) ?? holder(document.elementFromPoint(mouse.x, mouse.y));
+  shownFor = null;
+  if (target) show(target);
+  else hideTip();
+}
+
 const holder = (t: EventTarget | null): HTMLElement | null => (t instanceof Element ? t.closest<HTMLElement>(`[${ATTR}]`) : null);
 
 /** Once per page: tooltips by delegation, so the panels that are drawn anew after each command need no wiring. */
 export function installTooltips(): void {
+  document.addEventListener('mousemove', (e) => { mouse = { x: e.clientX, y: e.clientY }; });
   document.addEventListener('mouseover', (e) => { const t = holder(e.target); if (t) show(t); else hideTip(); });
   document.addEventListener('focusin', (e) => { const t = holder(e.target); if (t) show(t); else hideTip(); });
   document.addEventListener('focusout', hideTip);

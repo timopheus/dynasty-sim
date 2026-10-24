@@ -7,7 +7,8 @@ import { applyRecorded, newJournal, type Journal } from '../src/core/save/journa
 import { SAVE_VERSION } from '../src/core/save/save';
 import type { GameState } from '../src/core/state';
 import { fromYmd, START_YEAR } from '../src/core/time/calendar';
-import { OLD_SAVE_KEY, dropOldSave, clearGame, loadGame, saveGame, startGame, type AsyncStore, type Saved, type StoreName, type StoreOp } from '../src/ui/storage';
+import { waitDay } from '../src/ui/clock-model';
+import { OLD_SAVE_KEY, dropOldSave, clearGame, gameStamp, loadGame, saveGame, startGame, type AsyncStore, type Saved, type StoreName, type StoreOp } from '../src/ui/storage';
 import { fixtureContent, realContent } from './fixtures/content';
 
 type Data = Record<StoreName, Map<string | number, string>>;
@@ -74,18 +75,31 @@ describe('autosave in IndexedDB (D-234)', () => {
     expect(await loadGame(store, content, 'v1')).toEqual({ kind: 'none' });
     const { state, journal, saved } = await play(store, content, 4, 14);
     expect(state.archive.length).toBeGreaterThan(0);
-    expect(saved).toEqual({ game: 'game4', chunks: state.archive.length, commands: journal.commands.length });
+    expect(saved).toEqual({ game: gameStamp({ ...saved, game: 'game4' }, journal), chunks: state.archive.length, commands: journal.commands.length });
     expect(await loadGame(store, content, 'v1')).toEqual({ kind: 'loaded', state, journal, saved });
     // A chunk and a command are written once; the hot part every time.
     for (const ops of store.log.slice(1)) {
-      expect(ops[0]).toMatchObject({ kind: 'expect', store: 'save', key: 'game', value: 'game4' });
-      expect(ops[1]).toMatchObject({ kind: 'put', store: 'save', key: 'hot' });
+      expect(ops[0]).toMatchObject({ kind: 'expect', store: 'save', key: 'game', value: expect.stringMatching(/^game4\|/) });
+      expect(ops[1]).toMatchObject({ kind: 'put', store: 'save', key: 'game', value: expect.stringMatching(/^game4\|/) });
+      expect(ops[2]).toMatchObject({ kind: 'put', store: 'save', key: 'hot' });
       expect(ops.filter((op) => op.kind === 'add' && op.store === 'commands')).toHaveLength(1);
     }
     const chunkWrites = store.log.flat().filter((op) => op.kind === 'add' && op.store === 'chunks');
     expect(chunkWrites.map((op) => (op as { key: number }).key)).toEqual(state.archive.map((_, i) => i));
     await clearGame(store);
     expect(await loadGame(store, content, 'v1')).toEqual({ kind: 'none' });
+  }, 30_000);
+
+  it('keeps a wait the clock glued days to after it was saved (S.8): the journal loads as it is played', async () => {
+    const store = fakeStore();
+    const { state, journal, saved } = await play(store, content, 8, 1);
+    while (state.status !== 'awaiting_action') applyRecorded(journal, state, content, botCommand(state, content, seedRng(8, 2)));
+    applyRecorded(journal, state, content, { type: 'start', actionId: 'live' });
+    for (let i = 0; i < 3 && (state.status as string) === 'running'; i++) waitDay(journal, state, content);
+    expect(await saveGame(store, state, journal, saved, 'v1')).toEqual({ ok: true });
+    for (let i = 0; i < 3 && (state.status as string) === 'running'; i++) waitDay(journal, state, content);
+    expect(await saveGame(store, state, journal, saved, 'v1')).toEqual({ ok: true });
+    expect(await loadGame(store, content, 'v1')).toMatchObject({ kind: 'loaded', journal: { commands: journal.commands } });
   }, 30_000);
 
   it('writes a whole transaction or nothing: a failed write keeps the previous save and what is counted as saved', async () => {
@@ -118,6 +132,44 @@ describe('autosave in IndexedDB (D-234)', () => {
     expect(store.data).toEqual(afterA);
     // A chunk written again by hand is refused the same way.
     await expect(store.run([{ kind: 'add', store: 'chunks', key: 0, value: 'x' }])).rejects.toMatchObject({ name: 'ConstraintError' });
+  }, 30_000);
+
+  it('two tabs on one game: a write of glued days alone is refused once the other tab wrote (D-339, S.8)', async () => {
+    for (const other of ['glues days', 'answers']) {
+      const store = fakeStore();
+      const { state, journal, saved } = await play(store, content, 8, 1);
+      while (state.status !== 'awaiting_action') applyRecorded(journal, state, content, botCommand(state, content, seedRng(8, 2)));
+      applyRecorded(journal, state, content, { type: 'start', actionId: 'live' });
+      waitDay(journal, state, content);
+      expect(await saveGame(store, state, journal, saved, 'v1')).toEqual({ ok: true });
+      const a = await loadGame(store, content, 'v1');
+      const b = await loadGame(store, content, 'v1');
+      if (a.kind !== 'loaded' || b.kind !== 'loaded') throw new Error('not loaded');
+      // tab A writes first: more glued days, or a command of its own (a change of occupation)
+      if (other === 'glues days') waitDay(a.journal, a.state, content);
+      else applyRecorded(a.journal, a.state, content, { type: 'start', actionId: 'rest' });
+      expect(await saveGame(store, a.state, a.journal, a.saved, 'v1')).toEqual({ ok: true });
+      const afterA = structuredClone(store.data);
+      // tab B only glues days: no new command to collide on, the stamp refuses it
+      waitDay(b.journal, b.state, content);
+      waitDay(b.journal, b.state, content);
+      expect(await saveGame(store, b.state, b.journal, b.saved, 'v1'), other).toMatchObject({ ok: false, reason: 'conflict' });
+      expect(store.data).toEqual(afterA);
+      expect(await loadGame(store, content, 'v1')).toMatchObject({ kind: 'loaded', journal: { commands: a.journal.commands } });
+    }
+  }, 30_000);
+
+  it('a save made before the stamp (a bare mark) loads, and the next write goes through and stamps it', async () => {
+    const store = fakeStore();
+    await play(store, content, 3, 2);
+    store.data.save.set('game', 'oldmark');
+    const loaded = await loadGame(store, content, 'v1');
+    if (loaded.kind !== 'loaded') throw new Error('not loaded');
+    expect(loaded.saved.game).toBe('oldmark');
+    applyRecorded(loaded.journal, loaded.state, content, botCommand(loaded.state, content, seedRng(3, 5)));
+    expect(await saveGame(store, loaded.state, loaded.journal, loaded.saved, 'v1')).toEqual({ ok: true });
+    expect(store.data.save.get('game')).toBe(gameStamp({ ...loaded.saved, game: 'oldmark' }, loaded.journal));
+    expect(await loadGame(store, content, 'v1')).toMatchObject({ kind: 'loaded', journal: { commands: loaded.journal.commands } });
   }, 30_000);
 
   it('a tab still playing a replaced game never writes into the new one (D-339)', async () => {

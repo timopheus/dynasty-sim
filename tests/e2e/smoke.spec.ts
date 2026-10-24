@@ -16,6 +16,19 @@ async function choices(page: Page) {
   return (await page.locator('.modal-layer').count()) > 0 ? page.locator('.modal-layer .option button.choice') : page.locator('.actions-panel button.action:not(.grey)');
 }
 
+/**
+ * Pauses the clock (S.8) and waits until it stands: a pause saves (D-439), so a reload shows this very day. An event
+ * or the end of an action may stop it first; that is a save too.
+ */
+async function standStill(page: Page): Promise<void> {
+  for (let i = 0; i < 5; i++) {
+    if (!((await page.locator('.clock').getAttribute('class')) ?? '').includes('running')) break;
+    await page.locator('.clock .clock-toggle').click({ timeout: 2_000 }).catch(() => undefined);
+    await expect.poll(async () => (await page.locator('.clock').getAttribute('class')) ?? '', { timeout: 5_000 }).not.toMatch(/\brunning\b/).catch(() => undefined);
+  }
+  await expect(page.locator('.clock')).not.toHaveClass(/\brunning\b/);
+}
+
 /** What a player sees: the date, the hero's caption and the latest lines of the chronicle. */
 async function snapshot(page: Page): Promise<{ date: string; hero: string; chronicle: string }> {
   return {
@@ -51,8 +64,19 @@ for (const seed of SEEDS) {
       const count = await buttons.count();
       expect(count, `turn ${String(turn)}: stuck, no available button (${(await page.locator('#app').innerText()).slice(0, 300)})`).toBeGreaterThan(0);
       const before = await page.locator('#app').innerText();
-      // round-robin, not random: a failure replays
-      await buttons.nth(turn % count).click();
+      // round-robin, not random: a failure replays. Time runs (S.8): an event may cover the button just picked, so
+      // the buttons are read again then.
+      let clicked = false;
+      for (let attempt = 0; attempt < 5 && !clicked; attempt++) {
+        const now = await choices(page);
+        const n = await now.count();
+        if (n === 0) {
+          await page.waitForTimeout(500);
+          continue;
+        }
+        clicked = await now.nth(turn % n).click({ timeout: 3_000 }).then(() => true, () => false);
+      }
+      expect(clicked, `turn ${String(turn)}: no button could be pressed in five tries`).toBe(true);
       const moved = await expect.poll(async () => page.locator('#app').innerText(), { timeout: 10_000 }).not.toBe(before).then(() => true, () => false);
       // console errors first: they are the cause when the screen stays put
       expect(problems, `errors after turn ${String(turn)}`).toEqual([]);
@@ -60,6 +84,7 @@ for (const seed of SEEDS) {
       if (turn === Math.floor(TURNS / 2)) await shot(page, seed, '2-middle');
     }
 
+    await standStill(page);
     const end = await snapshot(page);
     await shot(page, seed, '3-end');
     expect(end.date, 'game date did not move').not.toBe(start.date);
@@ -80,6 +105,8 @@ for (const seed of SEEDS) {
 async function growUp(page: Page): Promise<void> {
   for (let i = 0; i < 30 && (await page.locator('.modal-layer').count()) > 0; i++) await page.locator('.modal-layer .option button.choice').first().click();
   await expect(page.locator('.modal-layer')).toHaveCount(0);
+  // the answer sets the clock going (S.8): stand still, so the screen does not change under the test
+  await standStill(page);
 }
 
 for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
@@ -90,6 +117,9 @@ for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]
     for (const selector of ['.topbar', '.sidebar.open', '.center .where', '.center .map-slot', '.avatar', '.clock .date', '.actions-panel']) {
       await expect(page.locator(selector).first(), selector).toBeVisible();
     }
+    // the time player (S.8): during the backstory the clock stands, the speeds are there
+    await expect(page.locator('.clock')).toHaveClass(/\bdecision\b/);
+    await expect(page.locator('.clock .speed')).toHaveText(['×1', '×2', '×5']);
     // the profile of the hero is one sheet in the panel, numbers in brackets (D-434, D-448)
     await expect(page.locator('.sidebar h1')).toBeVisible();
     await expect(page.locator('.sidebar .sheet .facts').first()).toContainText(/\(\d+\)/);

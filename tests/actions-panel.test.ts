@@ -61,6 +61,15 @@ describe('the actions panel (D-443)', () => {
     expect(buttons.find((b) => b.id === 'lessons')?.grey).toBe(false);
   });
 
+  it('offers the other actions while one is under way (S.6), and shows the one under way grey', () => {
+    const ctx = free(30);
+    ctx.state.activeAction = { actionId: 'hunt', endDay: ctx.state.day + 5 };
+    ctx.state.status = 'running';
+    const buttons = actionShelves(ctx, null).shelves.flatMap((s) => s.buttons);
+    expect(buttons.find((b) => b.id === 'hunt')).toMatchObject({ grey: true, reason: 'you are doing this now' });
+    expect(buttons.find((b) => b.id === 'rest')?.grey).toBe(false);
+  });
+
   it('is grey with a reason while a window holds the hero, and empty while growing up or when the house is over', () => {
     const ctx = free(30);
     ctx.state.status = 'awaiting_choice';
