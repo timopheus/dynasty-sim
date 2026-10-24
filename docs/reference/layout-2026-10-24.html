@@ -25,6 +25,15 @@
   .btn { display: block; border: 1px solid var(--ink); background: var(--modal); padding: 6px 10px; margin-top: 6px; }
   .btn small { display: block; color: var(--muted); font-size: 12px; }
   .btn.grey { color: var(--muted); border-style: dashed; border-color: var(--line); }
+  aside h5 { margin: 12px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .chips span { display: inline-block; border: 1px solid var(--line); padding: 1px 6px; margin: 0 4px 4px 0; font-size: 13px; }
+  .line { font-size: 13px; margin-bottom: 3px; }
+  .btn.interact { display: inline-block; margin-top: 2px; }
+  .ctx { position: absolute; left: 150px; top: 205px; width: 250px; background: var(--modal); border: 2px solid var(--ink); box-shadow: 4px 4px 0 rgba(0,0,0,.15); font-size: 13px; z-index: 7; }
+  .ctx-title { padding: 4px 8px; color: var(--muted); font-size: 11px; border-bottom: 1px solid var(--line); }
+  .ctx-item { padding: 5px 8px; border-bottom: 1px solid #e2dccd; }
+  .ctx-item small { display: block; color: var(--muted); font-size: 11px; }
+  .ctx-item.grey { color: var(--muted); }
   .collapse { position: absolute; left: 326px; top: 14px; width: 28px; height: 28px; border: 1px solid var(--line); background: var(--paper); text-align: center; line-height: 26px; z-index: 3; }
   main { position: absolute; left: 340px; right: 300px; top: 0; bottom: 0; padding: 70px 16px 16px; display: flex; flex-direction: column; }
   .box { border: 2px dashed var(--line); padding: 12px; }
@@ -65,15 +74,26 @@
     <div class="crumbs">Hugh Harlow › Thomas Harlow</div>
     <div class="kind">Person</div>
     <h3>Thomas Harlow</h3>
-    <div class="sub">Your father · close (fond, 40)</div>
-    <div class="subtabs"><span>Profile</span><span>Family</span><span class="on">Interactions</span><span>Chronicle</span></div>
-    <span class="btn">Propose a match for your sister <small>he decides · the answer comes as an event</small></span>
-    <span class="btn">Ask for a loan <small>later · needs trust</small></span>
-    <span class="btn grey">Propose marriage <small>Unavailable: he is married</small></span>
-    <p style="color:var(--muted);font-size:13px;margin-top:14px">Interactions with a person live on their page. Your own page has Profile · Family · People · Chronicle.</p>
+    <div class="sub">Your father · close (fond, 40) · 52, cooper in Ashford</div>
+    <span class="btn interact">Interact ▾</span>
+    <h5>Traits</h5>
+    <div class="chips"><span>Diligent</span><span>Stubborn</span><span>Pious</span></div>
+    <h5>Family</h5>
+    <div class="line">Wife <u>Agnes Harlow</u>, 49 · children <u>Hugh</u>, <u>Maud</u>, <u>Ralph</u></div>
+    <h5>Lately</h5>
+    <div class="line">1699 · Took a second apprentice.</div>
+    <div class="line">1700 · Quarrelled with the guild over dues.</div>
+    <div class="line"><u>Whole chronicle →</u></div>
   </aside>
+  <div class="ctx">
+    <div class="ctx-title">Thomas Harlow · right click</div>
+    <div class="ctx-item">Open his page</div>
+    <div class="ctx-item">Propose a match for your sister <small>he decides · answer as an event</small></div>
+    <div class="ctx-item">Ask for a loan <small>needs trust</small></div>
+    <div class="ctx-item grey">Propose marriage <small>he is married</small></div>
+  </div>
   <div class="collapse">‹</div>
-  <div class="tip"><b>Stewardship good (11)</b><br>Managing money and land. Sums of trade and the monthly balance.<br><span style="color:#b9b1a2">+3 education · +2 Diligent</span></div>
+  <div class="tip" style="top:470px"><b>Stewardship good (11)</b><br>Managing money and land. Sums of trade and the monthly balance.<br><span style="color:#b9b1a2">+3 education · +2 Diligent</span></div>
 
   <main>
     <div class="box map"><div>World map — later (D-437)<br><small>fills all the centre the place block leaves</small></div></div>
@@ -131,24 +151,24 @@
   <div class="avatar"><div class="face">portrait</div><div>Hugh, 21</div></div>
   <div class="player"><b>12 March 1701</b><span class="on">❚❚</span><span>▶</span><span>▶▶</span><span>▶▶▶</span></div>
 
-  <div class="n" style="left:300px;top:110px">1</div>
+  <div class="n" style="left:410px;top:200px">1</div>
   <div class="n" style="left:1400px;top:82px">2</div>
   <div class="n" style="left:1112px;top:160px">3</div>
   <div class="n" style="left:620px;top:655px">4</div>
-  <div class="n" style="left:300px;top:386px">5</div>
+  <div class="n" style="left:300px;top:456px">5</div>
   <div class="n" style="left:1395px;top:20px">6</div>
   <div class="n" style="left:128px;top:745px">7</div>
   <div class="n" style="left:1150px;top:820px">8</div>
   <div class="n" style="left:370px;top:84px">9</div>
 </div>
 <div class="legend">
-  <b>Эталон раскладки v3 (D-443…D-446, плейтест 24.10; «ок» Тима 24.10). Только десктоп. Схема, а не дизайн. Пустого места нет: карта занимает весь центр, который не заняла табличка «где я».</b>
+  <b>Эталон раскладки v3 (D-443…D-448, плейтест 24.10; «ок» Тима 24.10). Только десктоп. Схема, а не дизайн. Пустого места нет: карта занимает весь центр, который не заняла табличка «где я».</b>
   <ol>
-    <li><b>Взаимодействия с человеком</b> — на его странице в боковой панели, вкладка «Interactions» (сватовство и т. п.). Своя страница: Profile, Family, People, Chronicle.</li>
+    <li><b>Меню человека</b> (D-448): ПКМ по человеку где угодно — меню взаимодействий; то же — кнопкой «Interact ▾» на его странице и с клавиатуры. Страница человека — один лист: кто он, черты, семья, последние строки хроники; без подвкладок.</li>
     <li><b>Свои действия — правая панель по категориям</b>: Livelihood, Road &amp; place, Family &amp; house, Self. Позже — лагерь, двор, армия, интриги по положению. Действие, которое по возрасту уже никогда не станет доступно, не показывается; ребёнку взрослые действия видны серыми.</li>
     <li><b>Вся информация — внутри кнопки</b>: длительность, доход, шанс, цена, риск, причина недоступности. И в панели, и в окне события.</li>
     <li><b>Где я</b>: картинка места 4:3 (после арт-библии, до неё заглушка) и табличка по D-447: место (вид, размер), держава и провинция, народ, ландшафт, что здесь есть, время года и погода, строка описания. Под ней — что идёт сейчас и сколько осталось. Строк с прочерком нет: правитель, «свои здесь», обстановка — со своими системами.</li>
-    <li><b>Подсказка</b> при наведении и по фокусу с клавиатуры, как в CK3: что это и из чего складывается. Сведения есть и на страницах — подсказка их дополняет (D-444).</li>
+    <li><b>Подсказка</b> при наведении и по фокусу с клавиатуры, как в CK3: что это и из чего складывается. На всём, что есть на экране (D-444, D-448). Esc закрывает окно и меню; пробел — пауза, 1/2/3 — скорость.</li>
     <li><b>Шапка</b> — общие показатели: деньги и баланс за месяц, известность, слава и статус рода, герб, меню.</li>
     <li><b>Аватар</b> — клик открывает свой профиль.</li>
     <li><b>Дата и плеер времени</b> (S.8).</li>

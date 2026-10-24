@@ -80,7 +80,8 @@ describe('portrait grid (4.12, D-300)', () => {
     const bandages = new Set(Array.from({ length: VARIANTS.bandages }, (_, v) => key(portraitGrid(base({ bandages: [p(v)] })))));
     const hats = new Set(Array.from({ length: VARIANTS.headwear }, (_, v) => key(portraitGrid(base({ attire: 2, accessories: [{ slot: 'head', ...p(v) }] })))));
     expect([scars.size, bandages.size, hats.size]).toEqual([VARIANTS.scars, VARIANTS.bandages, VARIANTS.headwear]);
-  });
+    // ~2 s here, over the 5 s default on a loaded CI runner: an explicit timeout, the check is the same
+  }, 20_000);
 
   it('shifts move a detail', () => {
     const a = portraitGrid(base({ eyes: p(0, 0, -1) }));
