@@ -339,3 +339,24 @@ test('the clock run by the mouse does not swap the tip under a still pointer for
   await expect(page.locator('#tooltip strong')).toHaveText(label ?? '');
   expect(problems).toEqual([]);
 });
+
+test('Escape closes the tip of the focus and it stays closed while the clock runs', async ({ page }) => {
+  const problems = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?seed=7');
+  await growUp(page);
+  const date = () => page.locator('.clock .date').textContent();
+  await page.mouse.move(700, 300);
+  await page.keyboard.press('Space');
+  const tip = page.locator('#tooltip');
+  for (let i = 0; i < 60 && !(await tip.isVisible()); i++) await page.keyboard.press('Tab');
+  await expect(tip).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(tip).toBeHidden();
+  const before = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(before);
+  const moved = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(moved);
+  await expect(tip, 'the redraw of a day opened the tip again').toBeHidden();
+  expect(problems).toEqual([]);
+});

@@ -74,6 +74,9 @@ function show(target: HTMLElement, by: 'pointer' | 'focus'): void {
 }
 
 let mouse = { x: -1, y: -1 };
+/** When the player last moved the focus with the keyboard: only such a focus opens a tip. */
+let lastNavKey = -Infinity;
+const NAV_KEYS = new Set(['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
 
 /**
  * The screen is drawn anew after a command and every day of the clock: a tooltip that was open follows the new copy of
@@ -82,10 +85,11 @@ let mouse = { x: -1, y: -1 };
 export function syncTip(): void {
   if (shownFor === null) return;
   const title = shownFor.getAttribute(ATTR_TITLE);
+  const text = shownFor.getAttribute(ATTR);
   const by = shownBy;
   // under a still pointer only the same thing keeps its tip: a new window must not answer for the old hover
   const under = holder(document.elementFromPoint(mouse.x, mouse.y));
-  const target = by === 'pointer' ? (under?.getAttribute(ATTR_TITLE) === title ? under : null) : holder(document.activeElement);
+  const target = by === 'pointer' ? (under && (under.getAttribute(ATTR_TITLE) === title || under.getAttribute(ATTR) === text) ? under : null) : holder(document.activeElement);
   shownFor = null;
   if (target) show(target, by);
   else hideTip();
@@ -105,8 +109,8 @@ export function installTooltips(): void {
   // a redraw moves the focus off a node and back: only a tip that the focus itself opened closes with it
   document.addEventListener('focusin', (e) => {
     const t = holder(e.target);
-    // a focus the program gives back after a redraw is not the keyboard: after a click it is not :focus-visible
-    if (t) { if (t.matches(':focus-visible')) show(t, 'focus'); }
+    // a focus the program gives back after a redraw is not the player's: only a key that moves the focus opens a tip
+    if (t) { if (performance.now() - lastNavKey < 200) show(t, 'focus'); }
     else if (shownBy === 'focus') hideTip();
   });
   document.addEventListener('focusout', () => { if (shownBy === 'focus') hideTip(); });
@@ -114,5 +118,8 @@ export function installTooltips(): void {
   document.addEventListener('click', hideTip);
   document.addEventListener('contextmenu', hideTip);
   document.addEventListener('mouseleave', hideTip);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideTip(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideTip();
+    if (NAV_KEYS.has(e.key)) lastNavKey = performance.now();
+  }, true);
 }
