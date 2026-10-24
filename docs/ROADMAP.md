@@ -390,7 +390,7 @@
 | S.5a | **[ведущая]** Точки подключения: время и экономика | сборочные `game.ts`, `state.ts`, `effects.ts`, `condition-keys.ts`, `content/schema.ts`; `src/core/bot.ts`, `src/core/sim.ts`, `save/journal.ts` | 🟡 время ✅ [#85](https://github.com/timopheus/dynasty-sim/pull/85); экономика — PR «[S.5a] Экономика: точки подключения» |
 | S.6 | Живое время: ядро | `src/core/actions/`, `src/core/narrator/`, `content/actions.yaml`, `content/narrator.yaml` | 🟡 PR «[S.6] Живое время: ядро» |
 | S.7 | Экономика: месячный баланс и цены уровнями | `src/core/economy/` (новый), `content/economy.yaml`, `src/ui/header.ts` | ⬜ |
-| S.8 | Плеер времени (пилот: первый поток в проекте Claude Code, D-449) | `src/ui/clock.ts`, `src/ui/storage.ts`, `src/ui/access.ts` и обработчик клавиш в `main.ts`, `tests/e2e/` | ⬜ |
+| S.8 | Плеер времени (пилот: первый поток в проекте Claude Code, D-449) | `src/ui/clock.ts`, `src/ui/storage.ts`, `src/ui/access.ts` и обработчик клавиш в `main.ts`, `tests/e2e/` | 🔶 PR открыт, ждёт ревью |
 | S.9a | **[ведущая]** Точки подключения: место, стресс, поля события | `state.ts`, `content/schema.ts`, `condition-keys.ts`, `effects.ts`, `game.ts`, `entities/registry.ts`, `docs/event-format.md` | ⬜ |
 | S.9 | Место героя и переезды | `src/core/place/` (новый), `src/core/pages/` (страница места), `content/places.yaml`, `src/ui/where.ts` | ⬜ |
 | S.10 | Выбор по образцу CK3: цена, риск, против характера, стресс | `src/core/events/` (`view.ts`, проверка `risk`), `src/core/mind/` (новый), `content/mind.yaml`, `content/events/mind.yaml`, `src/ui/event.ts`, `src/core/bot.ts` | ⬜ |

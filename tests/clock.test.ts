@@ -28,6 +28,9 @@ function grownUp(content: Content, seed: number): { state: GameState; journal: J
   return { state, journal };
 }
 
+/** Commands change the status behind the back of the type checker. */
+const statusOf = (s: GameState): string => s.status;
+
 const quietOf = (content: Content): Content => ({ ...content, narrator: { ...content.narrator!, eventChancePer10k: 0, idleChancePer10k: 0, npcChancePer10k: 0 } });
 
 describe('the time player (S.8)', () => {
@@ -106,7 +109,7 @@ describe('the time player (S.8)', () => {
       while (state.day < target && state.status !== 'ended') {
         if (state.status === 'running') {
           const stopped = tick(journal, state, content);
-          if (stopped && state.status === 'awaiting_choice') events++;
+          if (stopped && statusOf(state) === 'awaiting_choice') events++;
           if (stopped) expect(state.status).not.toBe('running');
         } else if (state.status === 'awaiting_choice') {
           applyRecorded(journal, state, content, { type: 'choose', option: eventView({ state, content })!.options.find((o) => o.available)!.index });

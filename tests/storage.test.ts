@@ -94,9 +94,9 @@ describe('autosave in IndexedDB (D-234)', () => {
     const { state, journal, saved } = await play(store, content, 8, 1);
     while (state.status !== 'awaiting_action') applyRecorded(journal, state, content, botCommand(state, content, seedRng(8, 2)));
     applyRecorded(journal, state, content, { type: 'start', actionId: 'live' });
-    for (let i = 0; i < 3 && state.status === 'running'; i++) waitDay(journal, state, content);
+    for (let i = 0; i < 3 && (state.status as string) === 'running'; i++) waitDay(journal, state, content);
     expect(await saveGame(store, state, journal, saved, 'v1')).toEqual({ ok: true });
-    for (let i = 0; i < 3 && state.status === 'running'; i++) waitDay(journal, state, content);
+    for (let i = 0; i < 3 && (state.status as string) === 'running'; i++) waitDay(journal, state, content);
     expect(await saveGame(store, state, journal, saved, 'v1')).toEqual({ ok: true });
     expect(await loadGame(store, content, 'v1')).toMatchObject({ kind: 'loaded', journal: { commands: journal.commands } });
   }, 30_000);

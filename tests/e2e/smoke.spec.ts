@@ -16,6 +16,19 @@ async function choices(page: Page) {
   return (await page.locator('.modal-layer').count()) > 0 ? page.locator('.modal-layer .option button.choice') : page.locator('.where .option button.choice');
 }
 
+/**
+ * Pauses the clock (S.8) and waits until it stands: a pause saves (D-439), so a reload shows this very day. An event
+ * or the end of an action may stop it first; that is a save too.
+ */
+async function standStill(page: Page): Promise<void> {
+  for (let i = 0; i < 5; i++) {
+    if (!((await page.locator('.clock').getAttribute('class')) ?? '').includes('running')) break;
+    await page.locator('.clock .clock-toggle').click({ timeout: 2_000 }).catch(() => undefined);
+    await expect.poll(async () => (await page.locator('.clock').getAttribute('class')) ?? '', { timeout: 5_000 }).not.toMatch(/\brunning\b/).catch(() => undefined);
+  }
+  await expect(page.locator('.clock')).not.toHaveClass(/\brunning\b/);
+}
+
 /** What a player sees: the date, the hero's caption and the latest lines of the chronicle. */
 async function snapshot(page: Page): Promise<{ date: string; hero: string; chronicle: string }> {
   return {
@@ -51,8 +64,14 @@ for (const seed of SEEDS) {
       const count = await buttons.count();
       expect(count, `turn ${String(turn)}: stuck, no available button (${(await page.locator('#app').innerText()).slice(0, 300)})`).toBeGreaterThan(0);
       const before = await page.locator('#app').innerText();
-      // round-robin, not random: a failure replays
-      await buttons.nth(turn % count).click();
+      // round-robin, not random: a failure replays. Time runs (S.8): an event may cover the button just picked, so
+      // the buttons are read again then.
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const now = await choices(page);
+        const n = await now.count();
+        if (n === 0) continue;
+        if (await now.nth(turn % n).click({ timeout: 3_000 }).then(() => true, () => false)) break;
+      }
       const moved = await expect.poll(async () => page.locator('#app').innerText(), { timeout: 10_000 }).not.toBe(before).then(() => true, () => false);
       // console errors first: they are the cause when the screen stays put
       expect(problems, `errors after turn ${String(turn)}`).toEqual([]);
@@ -60,6 +79,7 @@ for (const seed of SEEDS) {
       if (turn === Math.floor(TURNS / 2)) await shot(page, seed, '2-middle');
     }
 
+    await standStill(page);
     const end = await snapshot(page);
     await shot(page, seed, '3-end');
     expect(end.date, 'game date did not move').not.toBe(start.date);
@@ -83,8 +103,9 @@ test('the screen is in shelves: header, side panel, centre, avatar and date are 
   for (const selector of ['.topbar', '.sidebar.open', '.center .where', '.center .map-slot', '.avatar', '.clock .date', '.clock-button']) {
     await expect(page.locator(selector).first(), selector).toBeVisible();
   }
-  // the time player is not there yet: its buttons are off
-  await expect(page.locator('.clock-button').first()).toBeDisabled();
+  // the time player (S.8): during the backstory the clock stands, the speeds are there
+  await expect(page.locator('.clock')).toHaveClass(/\bdecision\b/);
+  await expect(page.locator('.clock .speed')).toHaveText(['×1', '×2', '×5']);
   // the profile of the hero is in the panel, numbers in brackets (D-434)
   await expect(page.locator('.sidebar h1')).toBeVisible();
   await expect(page.locator('.sidebar .tab.active')).toHaveText('Profile');
