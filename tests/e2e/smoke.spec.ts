@@ -221,11 +221,12 @@ test('the hero knows the family; every part of the screen explains itself on hov
   await page.locator('.sidebar a.person[data-person]').first().hover();
   await expect(tip).toContainText(/Your|acquaintance|stranger/);
   await page.screenshot({ path: 'out/e2e/tooltip-1440.png' });
-  // by focus alone: a stat of the sheet, a trait, an action button
-  await page.locator('.sidebar .facts dt[data-tip]').first().focus();
-  await expect(tip).toBeVisible();
-  await page.locator('.actions-panel button.action').first().focus();
-  await expect(tip).toBeVisible();
+  // by the keyboard alone: Tab walks over things that explain themselves, the tip follows the focus
+  await page.mouse.move(700, 300);
+  await page.locator('.avatar-button').focus();
+  let tabbed = 0;
+  for (; tabbed < 40 && !(await tip.isVisible()); tabbed++) await page.keyboard.press('Tab');
+  await expect(tip, 'no tip while Tab walked the screen').toBeVisible();
   await page.keyboard.press('Escape');
   await expect(tip).toBeHidden();
   expect(problems).toEqual([]);
@@ -317,5 +318,24 @@ test('a tip under a still pointer stays while the clock runs', async ({ page }) 
   await expect.poll(date, { timeout: 10_000 }).not.toBe(moved);
   await expect(page.locator('#tooltip')).toBeVisible();
   await expect(page.locator('#tooltip strong')).toContainText('money');
+  expect(problems).toEqual([]);
+});
+
+test('the clock run by the mouse does not swap the tip under a still pointer for the tip of its button', async ({ page }) => {
+  const problems = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?seed=7');
+  await growUp(page);
+  const date = () => page.locator('.clock .date').textContent();
+  await page.locator('.clock-toggle').click();
+  await page.locator('.clock-toggle').click();
+  await page.locator('.clock-toggle').click();
+  await page.locator('.sidebar .facts dt[data-tip]').first().hover();
+  const label = await page.locator('#tooltip strong').textContent();
+  const before = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(before);
+  const moved = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(moved);
+  await expect(page.locator('#tooltip strong')).toHaveText(label ?? '');
   expect(problems).toEqual([]);
 });

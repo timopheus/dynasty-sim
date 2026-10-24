@@ -105,7 +105,8 @@ export function installTooltips(): void {
   // a redraw moves the focus off a node and back: only a tip that the focus itself opened closes with it
   document.addEventListener('focusin', (e) => {
     const t = holder(e.target);
-    if (t) show(t, 'focus');
+    // a focus the program gives back after a redraw is not the keyboard: after a click it is not :focus-visible
+    if (t) { if (t.matches(':focus-visible')) show(t, 'focus'); }
     else if (shownBy === 'focus') hideTip();
   });
   document.addEventListener('focusout', () => { if (shownBy === 'focus') hideTip(); });
