@@ -39,9 +39,11 @@ describe('numbers are always in brackets (D-434)', () => {
     expect(chanceText(chance)).toBe('risky, 25%');
   });
 
-  it('shows the duration of an action as text beside its name', () => {
+  it('shows the duration of an action as text beside its name, with no digit key (D-448)', () => {
     const row: ActionRow = { id: 'hunt', name: 'Hunt', days: '3–5 days', grey: false, reason: '' };
-    expect(actionControl(row, 0)).toMatchObject({ text: '1. Hunt', note: '3–5 days', reason: '' });
+    const c = actionControl(row, 0);
+    expect(c).toMatchObject({ text: 'Hunt', note: '3–5 days', reason: '', key: null });
+    expect(c.attrs).not.toHaveProperty('aria-keyshortcuts');
   });
 });
 
