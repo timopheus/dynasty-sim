@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { conditionReport } from '../src/core/condition-keys';
 import { applyEffects } from '../src/core/effects';
+import { introduceKin } from '../src/core/family/acquaint';
 import { familyInvariants } from '../src/core/family/family';
 import { childrenOf, isCloseKin } from '../src/core/family/kin';
 import { canMarry, marry } from '../src/core/family/marriage';
@@ -272,6 +273,23 @@ describe('pedigrees (D-313)', () => {
     const wife = person(ctx, 'female', 22);
     marry(ctx, hero, wife);
     expect(acquaintanceLevel(state, content, hero.id, wife.id)).toBe('close');
+  });
+
+  it('introducing the kin spends no randomness, and a child born to the hero is close at once', () => {
+    const { state, ctx, hero } = game();
+    hero.sex = 'male';
+    const wife = person(ctx, 'female', 22);
+    marry(ctx, hero, wife);
+    const rng = [...state.rng];
+    const relationsRng = JSON.stringify(state.relationsRng ?? null);
+    introduceKin(ctx);
+    expect(state.rng).toEqual(rng);
+    expect(JSON.stringify(state.relationsRng ?? null)).toBe(relationsRng);
+    birthdayToday(state, wife, 22);
+    state.pregnancies.push({ mother: wife.id, father: hero.id, due: state.day });
+    familyPhase.run(ctx);
+    const child = childrenOf(state, hero.id)[0] ?? fail('no child');
+    expect(acquaintanceLevel(state, content, hero.id, child.id)).toBe('close');
   });
 
   it('is the same for the same seed and id, and spends nothing of the world stream', () => {

@@ -442,14 +442,14 @@ function menuNodeFor(session: Session): HTMLElement | null {
 function openPersonMenu(session: Session, anchor: MenuAnchor): void {
   session.personMenu = anchor;
   session.refocus = 'menu-item-0';
-  render(session);
+  keepView(() => render(session));
 }
 
 function closePersonMenu(session: Session): void {
   const from = session.personMenu?.from ?? null;
   session.personMenu = null;
   session.refocus = from;
-  render(session);
+  keepView(() => render(session));
 }
 
 function chooseMenuItem(session: Session, item: MenuItem): void {
@@ -671,7 +671,8 @@ function installPersonMenu(): void {
   });
   document.addEventListener('click', (e) => {
     if (!current?.personMenu || (e.target instanceof Element && e.target.closest('.person-menu, [data-focus="interact"]'))) return;
-    current.personMenu = null;
-    render(current);
+    const session = current;
+    session.personMenu = null;
+    keepView(() => render(session));
   });
 }

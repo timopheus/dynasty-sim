@@ -83,12 +83,12 @@ function chronicleBlocks(chronicle: ChronicleEntry[], own: string | null, events
 }
 
 /** The last lines of the chronicle and the link to all of it. */
-function latelyBlocks(chronicle: ChronicleEntry[], own: string | null): Block[] {
+function latelyBlocks(chronicle: ChronicleEntry[], own: string | null, more = false): Block[] {
   if (chronicle.length === 0) return [{ type: 'heading', text: 'Lately' }, { type: 'text', text: 'Nothing recorded yet.' }];
   return [
     { type: 'heading', text: 'Lately' },
     { type: 'chronicle', entries: chronicle.slice(-SHEET_LINES).reverse(), own },
-    ...(chronicle.length > SHEET_LINES ? [{ type: 'whole' } as Block] : []),
+    ...(chronicle.length > SHEET_LINES || more ? [{ type: 'whole' } as Block] : []),
   ];
 }
 
@@ -124,7 +124,8 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
   if (kin.length) blocks.push({ type: 'heading', text: 'Family' }, { type: 'facts', rows: kin.map((l) => ({ label: l.label, parts: l.parts })) });
   if (page.allies.length) blocks.push({ type: 'heading', text: 'Allies' }, { type: 'facts', rows: relationRows(page.allies) });
   if (page.rivals.length) blocks.push({ type: 'heading', text: 'Rivals' }, { type: 'facts', rows: relationRows(page.rivals) });
-  blocks.push(...latelyBlocks(page.chronicle, page.id));
+  // the small events of the journal are behind the link too, however few lines the chronicle has
+  blocks.push(...latelyBlocks(page.chronicle, page.id, page.journal.length > 0));
   return blocks;
 }
 
@@ -171,7 +172,7 @@ export function sidebarPage(ctx: Ctx, id: string, lastPerson: string = ctx.state
     const tabs: KindTab[] = [{ label: 'Person', id, active: true }, ...(houseId ? [{ label: 'House', id: houseId, active: false }] : [])];
     return {
       id, kind: 'Person', title: p.name, subtitle: knowledge[p.level] ?? '', blocks: personSheet(ctx, p),
-      whole: chronicleBlocks(p.chronicle, p.id, p.journal), tabs, interact: id !== ctx.state.playerId,
+      whole: chronicleBlocks(p.chronicle, p.id, p.journal), tabs, interact: id !== ctx.state.playerId && p.alive,
     };
   }
   const e = found.page;

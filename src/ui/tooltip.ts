@@ -20,6 +20,8 @@ export function withTip<T extends HTMLElement>(node: T, tip: Tip | null | undefi
 
 let box: HTMLElement | null = null;
 let shownFor: HTMLElement | null = null;
+/** What `aria-describedby` of the node was before the tooltip added its own id. */
+let describedBefore: string | null = null;
 
 function ensureBox(): HTMLElement {
   if (!box) {
@@ -31,8 +33,12 @@ function ensureBox(): HTMLElement {
 }
 
 export function hideTip(): void {
-  if (shownFor?.isConnected) shownFor.removeAttribute('aria-describedby');
+  if (shownFor?.isConnected) {
+    if (describedBefore) shownFor.setAttribute('aria-describedby', describedBefore);
+    else shownFor.removeAttribute('aria-describedby');
+  }
   shownFor = null;
+  describedBefore = null;
   if (box) box.hidden = true;
 }
 
@@ -55,7 +61,8 @@ function show(target: HTMLElement): void {
   tip.replaceChildren(el('strong', {}, target.getAttribute(ATTR_TITLE) ?? ''), el('span', {}, target.getAttribute(ATTR) ?? ''));
   tip.hidden = false;
   shownFor = target;
-  target.setAttribute('aria-describedby', 'tooltip');
+  describedBefore = target.getAttribute('aria-describedby');
+  target.setAttribute('aria-describedby', [describedBefore, 'tooltip'].filter(Boolean).join(' '));
   place(target, tip);
 }
 

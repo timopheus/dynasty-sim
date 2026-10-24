@@ -5,11 +5,11 @@ import { WhenSchema } from '../condition-keys';
 import { EffectsSchema } from '../effects';
 import { checkTemplate } from '../text/text';
 
-/** Top-level content key `actions`, a list merged from all files. */
 /** Shelves of the actions panel (D-443): earning, the road and the place, family and house, the hero alone. */
 export const ACTION_CATEGORIES = ['livelihood', 'road', 'family', 'self'] as const;
 export type ActionCategory = (typeof ACTION_CATEGORIES)[number];
 
+/** Top-level content key `actions`, a list merged from all files. */
 export const ActionSchema = z.strictObject({
   id: Id,
   name: Text,

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { getPlayer } from '../src/core/helpers';
 import { newGame } from '../src/core/game';
 import type { Ctx } from '../src/core/state';
-import { fromYmd } from '../src/core/time/calendar';
 import { actionShelves, outgrown, SHELVES, WILL_ID } from '../src/ui/actions-model';
 import { kinship, personMenu, personTip } from '../src/ui/people-model';
 import { willForm } from '../src/ui/will';
@@ -100,14 +99,11 @@ describe('people on the screen (D-448)', () => {
     const menu = personMenu(ctx, hero.mother ?? '');
     expect(menu?.items[0]).toMatchObject({ label: 'Open the page', grey: false });
     const wed = menu?.items.find((i) => i.label === 'Propose marriage');
+    // a mother and her son: no match is offered, so the line is there, grey, with its reason
+    expect(wed).toBeDefined();
     const mother = getPlayer(ctx.state).mother;
-    // her own son may not wed her; a dead mother has no such line
-    if (wed) expect(wed).toMatchObject({ grey: true, reason: expect.stringMatching(/.+/) });
+    expect(wed).toMatchObject({ grey: true, reason: expect.stringMatching(/.+/) });
     expect(mother).not.toBeNull();
     expect(personMenu(ctx, 'c99999')).toBeNull();
-  });
-
-  it('is calm about a date: the fixture hero has a birthday before the day', () => {
-    expect(fromYmd(1700, 1, 1)).toBeLessThanOrEqual(newGame(5, content).day);
   });
 });
