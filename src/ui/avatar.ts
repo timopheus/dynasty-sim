@@ -4,7 +4,9 @@ import { eventView } from '../core/events/view';
 import { faceSpec } from '../core/looks';
 import type { Ctx } from '../core/state';
 import { ageYears } from '../core/time/calendar';
+import { markPerson } from './context-menu';
 import { el } from './dom';
+import { withTip } from './tooltip';
 import { portraitCanvas } from './portrait/canvas';
 import './avatar.css';
 
@@ -20,5 +22,7 @@ export function avatarPanel(ctx: Ctx, onOpen: () => void): HTMLElement {
   const button = el('button', { className: 'avatar-button', type: 'button', onclick: onOpen }, figure);
   button.setAttribute('aria-label', `Open the profile of ${hero.givenName} ${hero.surname}`);
   button.setAttribute('data-focus', 'avatar');
+  markPerson(button, hero.id);
+  withTip(button, { title: `${hero.givenName} ${hero.surname}`, text: 'You. Click for your page; right click for the menu.' });
   return el('div', { className: 'avatar' }, button);
 }

@@ -1,5 +1,6 @@
 import { SPEEDS, type ClockMode, type Speed } from './clock-model';
 import { el } from './dom';
+import { withTip } from './tooltip';
 import './clock.css';
 
 export interface ClockProps {
@@ -30,6 +31,7 @@ export function clockPanel({ date, mode, speed, canPlay, onToggle, onSpeed }: Cl
   const toggle = el('button', { className: 'clock-button clock-toggle', type: 'button', onclick: onToggle, disabled: !running && !canPlay }, running ? 'Pause' : 'Play');
   toggle.setAttribute('aria-keyshortcuts', 'Space');
   toggle.setAttribute('data-focus', 'clock-toggle');
+  withTip(toggle, { title: running ? 'Pause' : 'Play', text: running ? 'Stop time. Space does the same.' : 'Let time run. Space does the same.' });
   // a window holds the clock: the speeds wait for the answer, so they are off and say nothing else
   const off = mode === 'decision' || mode === 'ended';
   const speeds = SPEEDS.map((s, i) => {
@@ -38,12 +40,13 @@ export function clockPanel({ date, mode, speed, canPlay, onToggle, onSpeed }: Cl
     b.setAttribute('aria-keyshortcuts', String(i + 1));
     b.setAttribute('aria-label', `Speed ×${s}`);
     b.setAttribute('data-focus', `clock-speed-${s}`);
+    withTip(b, { title: `Speed ×${s}`, text: `${s === 1 ? 'A day a second' : `${s} days a second`}. Key ${i + 1}.` });
     return b;
   });
   // the buttons stay in one place whatever the date and the state say: the words go to a row of their own below
   return el('div', { className: `clock ${mode}`, role: 'group', ariaLabel: 'Time' },
     el('div', { className: 'clock-row' },
-      el('span', { className: 'date' }, date),
+      withTip(el('span', { className: 'date' }, date), { title: 'The date', text: 'Today in the world of your hero.' }),
       el('span', { className: 'clock-buttons' }, toggle, ...speeds)),
     el('div', { className: 'clock-row clock-words' },
       el('span', { className: 'clock-state' }, stateText(mode, canPlay)),

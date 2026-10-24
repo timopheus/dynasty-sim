@@ -2,5 +2,6 @@
 actions:
   - id: Bad-Id
     name: Bad
+    category: self
     duration: { min: 1, max: 2 }
     text: "{name} was bad."

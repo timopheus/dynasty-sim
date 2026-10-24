@@ -2,35 +2,42 @@
 actions:
   - id: winter_only
     name: Winter only
+    category: self
     duration: { min: 10, max: 10 }
     when: { season: [winter] }
     text: "{name} did a winter job."
   - id: rich
     name: Rich
+    category: self
     duration: { min: 10, max: 10 }
     when: { money_min: 100 }
     text: "{name} did a rich job."
   - id: adult
     name: Adult
+    category: self
     duration: { min: 10, max: 10 }
     when: { age_min: 30 }
     text: "{name} did an adult job."
   - id: young
     name: Young
+    category: self
     duration: { min: 10, max: 10 }
     when: { age_max: 25 }
     text: "{name} did a young job."
   - id: tick
     name: Tick
+    category: self
     duration: { min: 1, max: 1 }
     text: "{name} waited a day."
   - id: pay_later
     name: Pay later
+    category: self
     duration: { min: 10, max: 10 }
     effects: { later: [{ after_days: 15, effects: { money: 100 } }] }
     text: "{name} was promised pay."
   - id: omen
     name: Omen
+    category: self
     duration: { min: 1, max: 1 }
     effects: { later: [{ after_days: 5, effects: { end_action: true } }] }
     text: "{name} saw an omen."

@@ -6,12 +6,14 @@
 # Every action but the ones of `health.rest.actions` needs `fit: true`: a severely ill hero cannot start what the health
 # phase would break off the next day (it would end each day before the family phase).
 # Rest and the road change the course of conditions: lists in content/health.yaml.
+# `category` is the shelf of the actions panel: livelihood, road, family or self (D-443).
 # `text` is written to the chronicle when the action completes. Schema: ActionSchema.
 actions:
   # The hero lives his own life (D-325): time runs and events come, nothing is done on purpose. It ends the usual way
   # (the clock stops, the player chooses what next; the same action again goes on living), writes no chronicle line.
   - id: live
     name: Live as you will
+    category: self
     duration: { min: 30, max: 60 }
     when: { age_min: 16, fit: true }
     idle: true
@@ -19,6 +21,7 @@ actions:
 
   - id: travel
     name: Travel the roads
+    category: road
     duration: { min: 10, max: 40 }
     when: { age_min: 16, fit: true }
     effects: { money: -5 }
@@ -26,12 +29,14 @@ actions:
 
   - id: serve_contract
     name: Serve under contract
+    category: livelihood
     duration: { min: 60, max: 180 }
     when: { age_min: 18, sex: male, fit: true }
     text: "{name} finished a contract of service and was paid off."
 
   - id: winter_quarters
     name: Winter in quarters
+    category: road
     duration: { min: 60, max: 120 }
     when: { age_min: 16, season: [autumn, winter], money_min: 20 }
     effects: { money: -20, heal: all }
@@ -39,18 +44,21 @@ actions:
 
   - id: rest
     name: Rest and recover
+    category: self
     duration: { min: 7, max: 28 }
     effects: { money: -3 }
     text: "{name} spent a few quiet weeks resting."
 
   - id: trade
     name: Try a small trade
+    category: livelihood
     duration: { min: 20, max: 60 }
     when: { age_min: 16, fit: true }
     text: "{name} wound up a small trading venture with a modest profit."
 
   - id: hunt
     name: Go hunting
+    category: livelihood
     duration: { min: 3, max: 14 }
     when: { age_min: 16, fit: true }
     text: "{name} returned from the hunt with game to sell."
@@ -58,6 +66,7 @@ actions:
   # Only the `will` command starts it (D-314, D-360): the will takes effect at its end; content/succession.yaml.
   - id: notary
     name: Draw up a will at the notary
+    category: family
     duration: { min: 3, max: 7 }
     when: { will_command: true, fit: true }
     effects: { will_signed: true }
@@ -66,12 +75,14 @@ actions:
   # A hero under age (D-314): years under the guardian and lessons. Events of upbringing are bound to them (4.13).
   - id: grow_up
     name: Grow up under guardianship
+    category: self
     duration: { min: 365, max: 365 }
     when: { age_max: 14, fit: true }
     text: "{name} grew another year older under the care of {his} guardian."
 
   - id: lessons
     name: Take lessons
+    category: self
     duration: { min: 90, max: 150 }
     when: { age_min: 7, age_max: 15, fit: true }
     effects: { money: -3, stats: { learning: 1 } }

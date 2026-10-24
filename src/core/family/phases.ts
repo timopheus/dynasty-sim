@@ -6,6 +6,7 @@ import { createCharacter } from '../hooks';
 import { chancePer, int } from '../rng';
 import type { Character, Ctx, DayPhase, NewGameHook, SuccessionHook } from '../state';
 import { ageYears, birthDayRange } from '../time/calendar';
+import { introduceKin } from './acquaint';
 import { ageRow, type FamilyContent } from './content';
 import { childWord, logAboutHero, type Pregnancy } from './family';
 import { dropHouseholdFromCircle, ensureOccupation, syncHousehold } from './household';
@@ -92,6 +93,8 @@ export function giveBirth(ctx: Ctx, family: FamilyContent, p: Pregnancy): Charac
   if (mother.id === state.playerId) logAboutHero(ctx, 'birth', texts.bornToHer, { child, kind: childWord(child) });
   else if (father.id === state.playerId) logAboutHero(ctx, 'birth', texts.born, { other: mother, child, kind: childWord(child) });
   if (chancePer(state.rng, family.childbirthDeathPer10k, 10000)) state.deathRequests.push({ characterId: mother.id, cause: 'childbirth' });
+  // a child of the hero, or a brother or sister born to the hero's parents, is family at once
+  introduceKin(ctx);
   return child;
 }
 
@@ -180,11 +183,14 @@ export const familyOnNewGame: NewGameHook = (ctx) => {
   makePedigree(ctx, getPlayer(ctx.state));
   pedigrees(ctx);
   syncHousehold(ctx);
+  introduceKin(ctx);
 };
 
 /** The household of the new head (D-313): the old one leaves, the new one joins. */
 export const familyOnSuccession: SuccessionHook = (ctx) => {
   syncHousehold(ctx);
+  // introduce writes for the current player: the new head's own family is theirs to know, not strangers (S.4b)
+  introduceKin(ctx);
 };
 
 /** What the `propose` command carries (D-313): a match of the hero or a child of theirs with a person or their child. */

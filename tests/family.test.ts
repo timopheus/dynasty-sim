@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { conditionReport } from '../src/core/condition-keys';
 import { applyEffects } from '../src/core/effects';
+import { introduceKin } from '../src/core/family/acquaint';
 import { familyInvariants } from '../src/core/family/family';
 import { childrenOf, isCloseKin } from '../src/core/family/kin';
 import { canMarry, marry } from '../src/core/family/marriage';
@@ -13,6 +14,7 @@ import { proposalOptions } from '../src/core/family/proposals';
 import { play, newGame } from '../src/core/game';
 import { findCharacter, getPlayer } from '../src/core/helpers';
 import { createCharacter } from '../src/core/hooks';
+import { acquaintanceLevel } from '../src/core/relations/acquaintance';
 import { checkInvariants } from '../src/core/invariants';
 import { kill } from '../src/core/lifecycle';
 import { fillRoles } from '../src/core/roles/roles';
@@ -261,6 +263,35 @@ describe('pedigrees (D-313)', () => {
     expect(checkInvariants(state, content)).toEqual([]);
   });
 
+  it('the hero knows their own kin closely: parents, brothers and sisters', () => {
+    const { state, ctx, hero } = game();
+    const kin = [hero.father ?? '', hero.mother ?? '', ...state.characters.filter((c) => c.id !== hero.id && c.father === hero.father).map((c) => c.id)];
+    expect(kin.length).toBeGreaterThanOrEqual(3);
+    for (const id of kin) expect(acquaintanceLevel(state, content, hero.id, id), id).toBe('close');
+    // a spouse is close from the wedding day
+    hero.sex = 'male';
+    const wife = person(ctx, 'female', 22);
+    marry(ctx, hero, wife);
+    expect(acquaintanceLevel(state, content, hero.id, wife.id)).toBe('close');
+  });
+
+  it('introducing the kin spends no randomness, and a child born to the hero is close at once', () => {
+    const { state, ctx, hero } = game();
+    hero.sex = 'male';
+    const wife = person(ctx, 'female', 22);
+    marry(ctx, hero, wife);
+    const rng = [...state.rng];
+    const relationsRng = JSON.stringify(state.relationsRng ?? null);
+    introduceKin(ctx);
+    expect(state.rng).toEqual(rng);
+    expect(JSON.stringify(state.relationsRng ?? null)).toBe(relationsRng);
+    birthdayToday(state, wife, 22);
+    state.pregnancies.push({ mother: wife.id, father: hero.id, due: state.day });
+    familyPhase.run(ctx);
+    const child = childrenOf(state, hero.id)[0] ?? fail('no child');
+    expect(acquaintanceLevel(state, content, hero.id, child.id)).toBe('close');
+  });
+
   it('is the same for the same seed and id, and spends nothing of the world stream', () => {
     const make = () => {
       const { state, ctx } = game(9);
@@ -394,7 +425,7 @@ describe('proposals (D-313)', () => {
     const son = person(ctx, 'male', 2, { father: hero, mother: wife });
     kill(ctx, son, 'illness');
     const lines = familyLines(ctx, hero);
-    expect(lines.map((l) => l.label)).toEqual(['Father', 'Mother', 'Wife', 'Children']);
+    expect(lines.map((l) => l.label)).toEqual(['Father', 'Mother', 'Brothers and sisters', 'Wife', 'Children']);
     expect(lines.at(-1)?.parts).toEqual([{ id: son.id, name: 'Anne Smith' }, ' (dead)']);
   });
 });
@@ -433,6 +464,9 @@ describe('wave 2 together: family (4.5) and succession (4.6)', () => {
     expect(state.status).toBe('awaiting_action');
     expect(state.playerId).toBe(son.id);
     expect(state.chronicle.some((e) => e.kind === 'succession' && e.subject === son.id)).toBe(true);
+    // the new head knows their own mother, and the head who died is their father (S.4b)
+    expect(acquaintanceLevel(state, both, son.id, bride.id)).toBe('close');
+    expect(acquaintanceLevel(state, both, son.id, hero.id)).toBe('close');
     // A head under age: the living parent is the household (D-313).
     expect(state.household).toEqual([bride.id]);
     expect(checkInvariants(state, both)).toEqual([]);

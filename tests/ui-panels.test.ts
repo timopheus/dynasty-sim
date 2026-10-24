@@ -64,28 +64,23 @@ describe('where I am', () => {
     state.pendingEvent = null;
     state.status = 'awaiting_action';
     expect(whereView(ctx)).toMatchObject({ heading: 'Free to act', ended: false });
-    expect(whereView(ctx).actions.length).toBeGreaterThan(0);
+    // only what the core knows: the season from the date, and no row with a dash (D-447)
+    expect(whereView(ctx).table).toEqual([{ label: 'Season', value: expect.stringMatching(/^\w+, January$/) }]);
     const action = content.actions[0]!;
     state.activeAction = { actionId: action.id, endDay: state.day + 8 };
-    expect(whereView(ctx)).toEqual({ heading: action.name, line: '8 days left', actions: [], ended: false });
-    // time runs: the other actions are offered for a change of occupation (S.6, S.8), the one under way is not
-    state.status = 'running';
-    const offered = whereView(ctx).actions.map((a) => a.id);
-    expect(offered.length).toBeGreaterThan(0);
-    expect(offered).not.toContain(action.id);
-    state.status = 'awaiting_action';
+    expect(whereView(ctx)).toMatchObject({ heading: action.name, line: '8 days left', ended: false });
     state.activeAction = { actionId: action.id, endDay: state.day + 1 };
     expect(whereView(ctx).line).toBe('1 day left');
   });
 
-  it('offers no actions to a hero still growing up, and says the house is over when it is', () => {
+  it('says the hero is growing up, and says the house is over when it is', () => {
     const content = realContent();
     const state = newGame(5, content);
     const ctx: Ctx = { state, content };
     expect(state.backstory.running).toBe(true);
-    expect(whereView(ctx)).toMatchObject({ heading: 'Growing up', actions: [] });
+    expect(whereView(ctx)).toMatchObject({ heading: 'Growing up' });
     state.status = 'ended';
-    expect(whereView(ctx)).toMatchObject({ ended: true, actions: [] });
+    expect(whereView(ctx)).toMatchObject({ ended: true });
   });
 });
 
@@ -184,33 +179,37 @@ describe('side panel pages', () => {
   const ctx: Ctx = { state, content };
   const hero = getPlayer(state);
 
-  it('gives a person four tabs with the profile first, numbers in brackets', () => {
+  const factsOf = (page: ReturnType<typeof sidebarPage>) => page.blocks.flatMap((b) => (b.type === 'facts' ? b.rows : []));
+
+  it('gives a person one sheet, no subtabs, numbers in brackets, traits and the latest lines', () => {
+    hero.traits.push(content.traits.find((t) => t.category === 'character')!.id);
     const page = sidebarPage(ctx, hero.id);
     expect(page.kind).toBe('Person');
-    expect(page.tabs.map((t) => t.label)).toEqual(['Profile', 'Family', 'People', 'Chronicle']);
-    const profile = page.tabs[0]!.blocks[0];
-    expect(profile).toMatchObject({ type: 'facts' });
-    const rows = profile?.type === 'facts' ? profile.rows : [];
+    expect(page.tabs.map((t) => t.label)).toEqual(['Person', 'House']);
+    expect(page.interact).toBe(false);
+    const rows = factsOf(page);
     expect(rows.map((r) => r.label)).toEqual(expect.arrayContaining(['Age', 'Health', 'Diplomacy', 'Heir']));
     expect(rows.find((r) => r.label === 'Diplomacy')?.parts[0]).toMatch(/\(\d+\)$/);
+    expect(rows.find((r) => r.label === 'Diplomacy')?.tip?.title).toMatch(/^Diplomacy .*\(\d+\)$/);
+    expect(page.blocks.some((b) => b.type === 'traits')).toBe(true);
+    expect(page.blocks.map((b) => b.type === 'heading' && b.text)).toContain('Family');
   });
 
-  it('shows a stranger by words only', () => {
+  it('shows a stranger by words only, with the Interact button', () => {
     const stranger = createCharacter(ctx, { surname: 'Faraway', age: { min: 30, max: 30 } });
-    const rows = sidebarPage(ctx, stranger.id).tabs[0]!.blocks.flatMap((b) => (b.type === 'facts' ? b.rows : []));
-    for (const r of rows.filter((x) => x.label === 'Diplomacy')) expect(r.parts[0]).not.toMatch(/\(\d+\)/);
+    const page = sidebarPage(ctx, stranger.id);
+    expect(page.interact).toBe(true);
+    for (const r of factsOf(page).filter((x) => x.label === 'Diplomacy')) expect(r.parts[0]).not.toMatch(/\(\d+\)/);
   });
 
-  it('gives a house Overview, Heads, Heirlooms and Chronicle, and the heads come from the house', () => {
+  it('gives a house one sheet: the overview, the heads, and the heads come from the house', () => {
     const houseId = hero.house!;
     const page = sidebarPage(ctx, houseId);
     expect(page.kind).toBe('House');
-    expect(page.tabs.map((t) => t.label)).toEqual(['Overview', 'Heads', 'Heirlooms', 'Chronicle']);
-    const heads = page.tabs[1]!.blocks[0]!;
-    expect(heads).toMatchObject({ type: 'facts' });
-    expect(heads.type === 'facts' ? heads.rows.map((r) => r.parts[0]) : []).toContainEqual({ id: hero.id, name: expect.stringContaining(hero.surname) });
-    const overview = page.tabs[0]!.blocks[0]!;
-    expect(overview.type === 'facts' ? overview.rows.map((r) => r.label) : []).toEqual(expect.arrayContaining(['Status', 'Renown']));
+    expect(page.tabs.map((t) => [t.label, t.active])).toEqual([['Person', false], ['House', true]]);
+    const rows = factsOf(page);
+    expect(rows.map((r) => r.label)).toEqual(expect.arrayContaining(['Status', 'Renown']));
+    expect(rows.map((r) => r.parts[0])).toContainEqual({ id: hero.id, name: expect.stringContaining(hero.surname) });
   });
 
   it('says so for an address with nothing behind it', () => {

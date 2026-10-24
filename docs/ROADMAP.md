@@ -386,7 +386,7 @@
 | S.2 | Видение и целевые истории (интервью Тима) | `docs/VISION.md` | 🟡 обещания и «чего не делаем» готовы (D-432); первые два плейтеста истории не родили, целевые истории — после сборки недели 3 (время течёт само) |
 | S.3 | План среза (architect) | `docs/ROADMAP.md` | ✅ «ок» Тима 19.10 ([#84](https://github.com/timopheus/dynasty-sim/pull/84), D-439) |
 | S.4 | Экран по полочкам и мелкие баги | `src/ui/`, `tests/e2e/` | ✅ [#86](https://github.com/timopheus/dynasty-sim/pull/86) |
-| S.4b | Экран: действия по местам и доводка по плейтесту 2 | `src/ui/` (кроме `clock.ts` и `storage.ts`), `tests/e2e/` (после мержа S.8), `src/core/actions/content.ts` (поле `category`), `content/actions.yaml` (категории), `src/core/family/` (родня знакома) | ⬜ после S.7 |
+| S.4b | Экран: действия по местам и доводка по плейтесту 2 | `src/ui/` (кроме `clock.ts` и `storage.ts`), `tests/e2e/` (после мержа S.8), `src/core/actions/content.ts` (поле `category`), `content/actions.yaml` (категории), `src/core/family/` (родня знакома) | 🟡 PR [#97](https://github.com/timopheus/dynasty-sim/pull/97) |
 | S.5a | **[ведущая]** Точки подключения: время и экономика | сборочные `game.ts`, `state.ts`, `effects.ts`, `condition-keys.ts`, `content/schema.ts`; `src/core/bot.ts`, `src/core/sim.ts`, `save/journal.ts` | 🟡 время ✅ [#85](https://github.com/timopheus/dynasty-sim/pull/85); экономика — PR «[S.5a] Экономика: точки подключения» |
 | S.6 | Живое время: ядро | `src/core/actions/`, `src/core/narrator/`, `content/actions.yaml`, `content/narrator.yaml` | 🟡 PR «[S.6] Живое время: ядро» |
 | S.7 | Экономика: месячный баланс и цены уровнями | `src/core/economy/` (новый), `content/economy.yaml`, `src/ui/header.ts` | 🟡 PR [#91](https://github.com/timopheus/dynasty-sim/pull/91) |

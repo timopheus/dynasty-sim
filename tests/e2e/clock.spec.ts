@@ -43,7 +43,7 @@ test('"Play" moves the date, an event stops the clock; keys pick speed, answer a
   await expect(page.locator('#where-heading')).toHaveText('Free to act');
   await expect(page.locator(CLOCK)).toHaveClass(/\bidle\b/);
   // the actions of the main screen carry no digits: the digits are the speeds now (D-448)
-  const actions = await page.locator('.where button.choice').allTextContents();
+  const actions = await page.locator('.actions-panel .action-name').allTextContents();
   expect(actions.length).toBeGreaterThan(0);
   for (const a of actions) expect(a).not.toMatch(/^\d\./);
   await page.screenshot({ path: 'out/e2e/clock-1-idle-1440.png' });

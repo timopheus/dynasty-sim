@@ -5,10 +5,16 @@ import { WhenSchema } from '../condition-keys';
 import { EffectsSchema } from '../effects';
 import { checkTemplate } from '../text/text';
 
+/** Shelves of the actions panel (D-443): earning, the road and the place, family and house, the hero alone. */
+export const ACTION_CATEGORIES = ['livelihood', 'road', 'family', 'self'] as const;
+export type ActionCategory = (typeof ACTION_CATEGORIES)[number];
+
 /** Top-level content key `actions`, a list merged from all files. */
 export const ActionSchema = z.strictObject({
   id: Id,
   name: Text,
+  /** The shelf of the actions panel this action stands on (D-443). */
+  category: z.enum(ACTION_CATEGORIES),
   /** Duration in days, rolled when the action starts. */
   duration: DayRange,
   /** Conditions to start the action (D-040, D-054); unmet ones are shown as reasons (D-043). */

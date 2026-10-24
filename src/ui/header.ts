@@ -1,4 +1,6 @@
 import { el } from './dom';
+import { HEADER_TIPS } from './tips';
+import { withTip } from './tooltip';
 import type { Figure } from './header-model';
 import './header.css';
 
@@ -17,7 +19,7 @@ export interface HeaderProps {
 }
 
 function menuNode({ menuOpen, onMenuToggle, items, devNotes }: HeaderProps): HTMLElement {
-  const button = el('button', { className: 'menu-button', type: 'button', onclick: onMenuToggle }, 'Menu ▾');
+  const button = withTip(el('button', { className: 'menu-button', type: 'button', onclick: onMenuToggle }, 'Menu ▾'), { title: 'Menu', text: 'Start a new game.' });
   button.setAttribute('aria-expanded', String(menuOpen));
   button.setAttribute('aria-controls', 'menu-list');
   button.setAttribute('data-focus', 'menu');
@@ -49,14 +51,15 @@ function closeOnEscapeOrOutside(details: HTMLDetailsElement): void {
 }
 
 function figureNode(f: Figure): HTMLElement {
-  const node = el('div', { className: 'figure' }, el('span', { className: 'figure-value' }, f.value), el('span', { className: 'figure-label' }, f.label));
+  const tip = HEADER_TIPS[f.label];
+  const node = withTip(el('div', { className: 'figure' }, el('span', { className: 'figure-value' }, f.value), el('span', { className: 'figure-label' }, f.label)), tip ? { title: `${f.value} ${f.label}`, text: tip } : null);
   if (f.note === undefined) return node;
   if (!f.breakdown || f.breakdown.length === 0) {
     node.append(el('span', { className: 'figure-note' }, f.note));
     return node;
   }
   const details = el('details', { className: 'figure-breakdown' },
-    el('summary', { className: 'figure-note' }, f.note),
+    Object.assign(el('summary', { className: 'figure-note' }, f.note), { id: `figure-note-${f.label.replace(/\W+/g, '-')}` }),
     el('ul', {}, ...f.breakdown.map((line) => el('li', {}, line))));
   closeOnEscapeOrOutside(details);
   node.append(details);
@@ -66,7 +69,7 @@ function figureNode(f: Figure): HTMLElement {
 /** The header at the top right (D-438): the coat of arms slot, the shared figures, the menu. */
 export function headerPanel(props: HeaderProps): HTMLElement {
   return el('header', { className: 'topbar' },
-    el('div', { className: 'arms' }, 'arms'),
+    withTip(el('div', { className: 'arms' }, 'arms'), { title: 'Coat of arms', text: 'The arms of your house; they are drawn once the art is ready.' }),
     ...props.figures.map(figureNode),
     menuNode(props));
 }

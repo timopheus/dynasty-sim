@@ -2,5 +2,6 @@
 actions:
   - id: backwards
     name: Backwards
+    category: self
     duration: { min: 10, max: 2 }
     text: "{name} went backwards."

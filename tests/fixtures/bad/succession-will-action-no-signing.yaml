@@ -17,6 +17,7 @@ succession:
 actions:
   - id: notary
     name: Notary
+    category: self
     duration: { min: 5, max: 5 }
     when: { will_command: true }
     text: "{name} saw the notary."

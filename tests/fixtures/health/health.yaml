@@ -110,6 +110,7 @@ health:
 actions:
   - id: march
     name: March
+    category: self
     duration: { min: 30, max: 30 }
     when: { fit: true }
     text: "{name} marched."

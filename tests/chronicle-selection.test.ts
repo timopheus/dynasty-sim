@@ -17,7 +17,7 @@ function withMoney(actionMoney: number, optionMoney: number, mark = false): Cont
   return {
     ...base,
     narrator: { ...narratorContent(base), eventChancePer10k: 10000, minDaysBetweenEvents: 1000 },
-    actions: [{ id: 'wait', name: 'Wait', duration: { min: 30, max: 30 }, effects: { money: actionMoney }, text: '{name} waited.' }],
+    actions: [{ id: 'wait', name: 'Wait', category: 'self', duration: { min: 30, max: 30 }, effects: { money: actionMoney }, text: '{name} waited.' }],
     events: [
       {
         id: 'ping',

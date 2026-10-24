@@ -17,12 +17,14 @@ succession:
 actions:
   - id: notary
     name: Notary
+    category: self
     duration: { min: 5, max: 5 }
     when: { will_command: true }
     effects: { will_signed: true }
     text: "{name} saw the notary."
   - id: grow_up
     name: Grow up
+    category: self
     duration: { min: 365, max: 365 }
     when: { age_max: 14 }
     text: "{name} grew up a year."
