@@ -101,12 +101,18 @@ for (const seed of SEEDS) {
   });
 }
 
-/** Answers the scenes of the backstory, so the panel and the centre are free. */
+/** Answers the scenes of the backstory and stands the clock still, so the panel is free and the screen does not change. */
 async function growUp(page: Page): Promise<void> {
-  for (let i = 0; i < 30 && (await page.locator('.modal-layer').count()) > 0; i++) await page.locator('.modal-layer .option button.choice').first().click();
-  await expect(page.locator('.modal-layer')).toHaveCount(0);
-  // the answer sets the clock going (S.8): stand still, so the screen does not change under the test
-  await standStill(page);
+  for (let i = 0; i < 40; i++) {
+    if ((await page.locator('.modal-layer').count()) > 0) {
+      await page.locator('.modal-layer .option button.choice').first().click();
+      continue;
+    }
+    await standStill(page);
+    // an event may have stopped the clock first: answer it and stand still again
+    if ((await page.locator('.modal-layer').count()) === 0) return;
+  }
+  throw new Error('the hero never became free to act');
 }
 
 for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
