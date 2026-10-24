@@ -60,13 +60,13 @@ export function outgrown(ctx: Ctx, a: ActionDef): boolean {
 
 export interface Panel {
   shelves: Shelf[];
-  /** Shown instead of the shelves: why nothing can be done (the house is over, a window waits). */
+  /** Why nothing can be done now (the house is over, a window waits): above the shelves, or alone when there are none. */
   note: string | null;
 }
 
 /**
  * The right panel (D-443): the actions of the hero by shelf. The will is a button of the interface (4.6); it stands on
- * the shelf "Family & house". While a window holds the hero, the buttons are grey with that reason. Pure.
+ * the shelf "Family & house". While a window holds the hero, the buttons are grey and `note` says why. Pure.
  */
 export function actionShelves(ctx: Ctx, will: WillForm | null): Panel {
   const { state } = ctx;

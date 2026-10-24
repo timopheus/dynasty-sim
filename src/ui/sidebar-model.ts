@@ -85,7 +85,7 @@ function chronicleBlocks(chronicle: ChronicleEntry[], own: string | null, events
 
 /** The last lines of the chronicle and the link to all of it. */
 function latelyBlocks(chronicle: ChronicleEntry[], own: string | null, more = false): Block[] {
-  if (chronicle.length === 0) return [{ type: 'heading', text: 'Lately' }, { type: 'text', text: 'Nothing recorded yet.' }];
+  if (chronicle.length === 0) return [{ type: 'heading', text: 'Lately' }, { type: 'text', text: 'Nothing recorded yet.' }, ...(more ? [{ type: 'whole' } as Block] : [])];
   return [
     { type: 'heading', text: 'Lately' },
     { type: 'chronicle', entries: chronicle.slice(-SHEET_LINES).reverse(), own },

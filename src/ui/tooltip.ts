@@ -57,6 +57,8 @@ function place(target: HTMLElement, tip: HTMLElement): void {
 
 function show(target: HTMLElement): void {
   if (target === shownFor) return;
+  // the node the tip leaves gets its own `aria-describedby` back
+  if (shownFor) hideTip();
   // an open menu is what the player is reading: no tip over it
   if (document.querySelector('.person-menu')) { hideTip(); return; }
   const tip = ensureBox();
