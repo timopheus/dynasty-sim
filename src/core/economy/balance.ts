@@ -73,8 +73,9 @@ export function monthlyBalance(ctx: Ctx, c: Character): MonthlyBalance {
     if (amount !== 0) lines.push({ id, label: economy.texts.lines[id], amount });
   };
 
-  const active = c.id === state.playerId ? state.activeAction : null;
-  const work = economy.work.find((w) => w.action === active?.actionId);
+  // Between actions the hero lives as he will (S.6): the balance the header shows then is that of `idle`, not of nothing.
+  const occupation = c.id === state.playerId ? (state.activeAction?.actionId ?? content.actions.find((a) => a.idle)?.id) : undefined;
+  const work = economy.work.find((w) => w.action === occupation);
   if (work) add('work', changed(partOf(r, work.part), pct.income));
 
   const minor = ageYears(c.birthDay, state.day) < content.settings.adultAge;

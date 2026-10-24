@@ -120,6 +120,7 @@ describe('monthly balance (S.7)', () => {
     expect(total(setup('live'))).toBe(0);
     expect(total(setup('hunt'))).toBe(-1);
     expect(total(setup('travel'))).toBe(-7);
+    expect(total(setup(null))).toBe(0);
   });
 
   it('a commoner with a wife and two children: +3 in service, −5 living, −12 with no income', () => {
@@ -131,8 +132,9 @@ describe('monthly balance (S.7)', () => {
     family(idle);
     idle.state.activeAction = { actionId: 'live', endDay: idle.state.day + 100 };
     expect(total(idle)).toBe(-5);
+    // between actions the hero lives as he will
     idle.state.activeAction = null;
-    expect(total(idle)).toBe(-12);
+    expect(total(idle)).toBe(-5);
   });
 
   it('guild and noble follow the table', () => {

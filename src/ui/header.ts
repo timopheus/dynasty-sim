@@ -30,8 +30,23 @@ function menuNode({ menuOpen, onMenuToggle, items, devNotes }: HeaderProps): HTM
   return node;
 }
 
-/** Whether the breakdown of the money is open; kept here because the header is drawn anew after each command. */
-let breakdownOpen = false;
+/**
+ * The breakdown of the money is closed by Esc and by a click anywhere else (D-448); the header is drawn anew after each
+ * command, which closes it too, so nothing is remembered between draws.
+ */
+function closeOnEscapeOrOutside(details: HTMLDetailsElement): void {
+  const close = (e: Event) => {
+    if (!details.isConnected) {
+      document.removeEventListener('keydown', close);
+      document.removeEventListener('click', close);
+      return;
+    }
+    if (e instanceof KeyboardEvent ? e.key !== 'Escape' : details.contains(e.target as Node)) return;
+    details.open = false;
+  };
+  document.addEventListener('keydown', close);
+  document.addEventListener('click', close);
+}
 
 function figureNode(f: Figure): HTMLElement {
   const node = el('div', { className: 'figure' }, el('span', { className: 'figure-value' }, f.value), el('span', { className: 'figure-label' }, f.label));
@@ -43,8 +58,7 @@ function figureNode(f: Figure): HTMLElement {
   const details = el('details', { className: 'figure-breakdown' },
     el('summary', { className: 'figure-note' }, f.note),
     el('ul', {}, ...f.breakdown.map((line) => el('li', {}, line))));
-  details.open = breakdownOpen;
-  details.addEventListener('toggle', () => { breakdownOpen = details.open; });
+  closeOnEscapeOrOutside(details);
   node.append(details);
   return node;
 }
