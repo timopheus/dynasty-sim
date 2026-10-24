@@ -59,9 +59,12 @@ export function startAction(ctx: Ctx, actionId: string): void {
   const action = findAction(content, actionId);
   if (!availableActions(ctx).includes(action)) throw new Error(`Action "${actionId}" is not available now`);
   // A change of occupation breaks off the one under way: no effects, a journal line (an idle life leaves none).
+  // The same action again would only roll its duration anew for free.
   const current = state.activeAction;
+  if (current?.actionId === action.id) throw new Error(`Action "${actionId}" is already under way`);
   if (current && !findAction(content, current.actionId).idle) {
-    log(ctx, { subject: getPlayer(state), kind: 'interrupt', level: 'journal', template: timeContent(content).texts.interrupted });
+    const template = state.interruptRequest?.template ?? timeContent(content).texts.interrupted;
+    log(ctx, { subject: getPlayer(state), kind: 'interrupt', level: 'journal', template });
   }
   const duration = int(state.rng, action.duration.min, action.duration.max);
   state.activeAction = { actionId: action.id, endDay: state.day + duration };

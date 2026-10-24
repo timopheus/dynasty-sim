@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { availableActions } from '../src/core/actions/actions';
+import { applyEffects } from '../src/core/effects';
+import { getPlayer } from '../src/core/helpers';
 import { botCommand } from '../src/core/bot';
 import { MAX_WAIT_DAYS, apply, newGame, play } from '../src/core/game';
 import { eventView } from '../src/core/events/view';
+import { entryText } from '../src/core/chronicle/log';
 import { checkInvariants } from '../src/core/invariants';
 import { seedRng } from '../src/core/rng';
 import type { Content } from '../src/core/content/schema';
@@ -21,18 +25,21 @@ function grownUp(content: Content, seed: number): GameState {
 describe('living time (S.6, D-325)', () => {
   const content = realContent();
 
-  it('offers live to a grown hero; it is idle: it writes no chronicle line', () => {
-    const state = grownUp(content, 3);
+  it('live is idle: it ends on its day, stops the clock, writes no chronicle line', () => {
+    const quiet = { ...content, narrator: { ...content.narrator!, eventChancePer10k: 0, idleChancePer10k: 0, npcChancePer10k: 0 } };
+    const state = grownUp(quiet, 3);
     expect(content.actions.find((a) => a.id === 'live')?.idle).toBe(true);
     expect(state.status).toBe('awaiting_action');
-    const before = state.chronicle.length;
-    apply(state, content, { type: 'start', actionId: 'live' });
+    const lines = state.chronicle.length;
+    apply(state, quiet, { type: 'start', actionId: 'live' });
     expect(state.status).toBe('running');
-    apply(state, content, { type: 'wait', days: 40 });
-    expect(state.chronicle.filter((e) => e.kind === 'action' && e.level === 'chronicle').length).toBe(
-      state.chronicle.slice(0, before).filter((e) => e.kind === 'action' && e.level === 'chronicle').length,
-    );
-    expect(checkInvariants(state, content)).toEqual([]);
+    const end = state.activeAction!.endDay;
+    apply(state, quiet, { type: 'wait', days: end - state.day });
+    expect(state.day).toBe(end);
+    expect(state.status).toBe('awaiting_action');
+    expect(state.activeAction).toBeNull();
+    expect(state.chronicle.slice(lines).filter((e) => e.kind === 'action')).toEqual([]);
+    expect(checkInvariants(state, quiet)).toEqual([]);
   });
 
   it('365 × wait 1 and one wait 365 in live give the same state', () => {
@@ -54,24 +61,87 @@ describe('living time (S.6, D-325)', () => {
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
   });
 
-  it('the end of an action stops the clock; a new start breaks the action off with a journal line', () => {
+  it('a new start breaks the action off with a journal line; the same action again is refused', () => {
     const state = grownUp(content, 3);
     apply(state, content, { type: 'start', actionId: 'rest' });
     expect(state.status).toBe('running');
-    apply(state, content, { type: 'start', actionId: 'hunt' });
-    expect(state.status).toBe('running');
-    expect(state.activeAction?.actionId).toBe('hunt');
+    expect(() => apply(state, content, { type: 'start', actionId: 'rest' })).toThrow(/already under way/);
+    apply(state, content, { type: 'start', actionId: 'live' });
     expect(state.chronicle.at(-1)).toMatchObject({ kind: 'interrupt', level: 'journal' });
+    const lines = state.chronicle.length;
+    apply(state, content, { type: 'start', actionId: 'rest' });
+    expect(state.activeAction?.actionId).toBe('rest');
+    expect(state.chronicle).toHaveLength(lines); // leaving live writes nothing
+    expect(state.status).toBe('running');
     expect(checkInvariants(state, content)).toEqual([]);
   });
 
-  it('a notice does not stop the clock', () => {
+  it('a switch keeps the text an event asked for its break', () => {
     const state = grownUp(content, 3);
+    apply(state, content, { type: 'start', actionId: 'rest' });
+    state.interruptRequest = { template: '{name} was called away.' };
     apply(state, content, { type: 'start', actionId: 'live' });
-    const end = state.activeAction!.endDay;
-    apply(state, content, { type: 'wait', days: MAX_WAIT_DAYS });
-    // Stopped by a decision (event with a choice) or by the end of the action, never in the middle by a notice.
-    expect(state.status === 'awaiting_choice' || state.day >= end || state.status === 'ended').toBe(true);
-    if (state.pendingEvent) expect(state.pendingEvent.eventId).toBeTruthy();
+    expect(entryText(state.chronicle.at(-1)!)).toMatch(/was called away/);
+    expect(state.interruptRequest).toBeNull();
+  });
+
+  it('a switch from the notary drops the will', () => {
+    const state = grownUp(content, 3);
+    apply(state, content, { type: 'will', heir: null, guardian: null, items: [] });
+    expect(state.activeAction?.actionId).toBe('notary');
+    apply(state, content, { type: 'start', actionId: 'live' });
+    apply(state, content, { type: 'wait', days: 1 }); // the succession phase drops a draft nobody is writing
+    expect(state.willDraft).toBeNull();
+    expect(checkInvariants(state, content)).toEqual([]);
+  });
+
+  /** A hero who only lives: choices with a decision per year and how the clock stopped. */
+  function liveYears(seed: number, years: number) {
+    const state = grownUp(content, seed);
+    const rng = seedRng(seed, 78);
+    const start = state.day;
+    let choices = 0;
+    const stops = new Set<string>();
+    while (state.day - start < years * 365 && state.status !== 'ended') {
+      if (state.status === 'awaiting_choice') {
+        choices++;
+        const def = content.events.find((e) => e.id === state.pendingEvent!.eventId)!;
+        stops.add(def.options || def.pages ? 'decision' : 'notice');
+        apply(state, content, botCommand(state, content, rng));
+      } else if (state.status === 'awaiting_action') {
+        const ok = availableActions({ state, content }).some((a) => a.id === 'live');
+        apply(state, content, { type: 'start', actionId: ok ? 'live' : 'rest' });
+      } else apply(state, content, { type: 'wait', days: MAX_WAIT_DAYS });
+    }
+    return { state, choices, stops, years: (state.day - start) / 365 };
+  }
+
+  it('a notice never stops the clock: only decisions and the end of an action do', () => {
+    const { state, stops } = liveYears(3, 15);
+    expect(state.narratorStats.notices).toBeGreaterThan(0);
+    expect([...stops]).toEqual(['decision']);
+  });
+
+  it('pure living gives 6-12 events with a choice a year (D-168)', () => {
+    let choices = 0;
+    let years = 0;
+    for (const seed of [1, 2, 3]) {
+      const r = liveYears(seed, 15);
+      choices += r.choices;
+      years += r.years;
+      expect(checkInvariants(r.state, content)).toEqual([]);
+    }
+    expect(choices / years).toBeGreaterThanOrEqual(6);
+    expect(choices / years).toBeLessThanOrEqual(12);
+  });
+
+  it('a severely ill hero can start only the actions of rest', () => {
+    const state = grownUp(content, 3);
+    const ctx = { state, content };
+    applyEffects(ctx, getPlayer(state), { wound: 'severe_wound' }, {});
+    const ids = availableActions(ctx).map((a) => a.id);
+    expect(ids.length).toBeGreaterThan(0);
+    expect(ids.every((id) => content.health.rest.actions.includes(id))).toBe(true);
+    expect(ids).toContain('rest');
   });
 });

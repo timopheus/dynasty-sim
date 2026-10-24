@@ -3,6 +3,8 @@
 # resting is for everyone (a sick child must be able to recover, D-366).
 # `when` (optional) limits when the action can be started: season, money_min, age_min, age_max,
 # sex (D-034: paths closed by the customs of 1700), fit (no severe wound or illness).
+# Every action but the ones of `health.rest.actions` needs `fit: true`: a severely ill hero cannot start what the health
+# phase would break off the next day (it would end each day before the family phase).
 # Rest and the road change the course of conditions: lists in content/health.yaml.
 # `text` is written to the chronicle when the action completes. Schema: ActionSchema.
 actions:
@@ -60,7 +62,7 @@ actions:
   - id: notary
     name: Draw up a will at the notary
     duration: { min: 3, max: 7 }
-    when: { will_command: true }
+    when: { will_command: true, fit: true }
     effects: { will_signed: true }
     text: "{name} came back from the notary with a will drawn up and sealed."
 
@@ -68,12 +70,12 @@ actions:
   - id: grow_up
     name: Grow up under guardianship
     duration: { min: 365, max: 365 }
-    when: { age_max: 14 }
+    when: { age_max: 14, fit: true }
     text: "{name} grew another year older under the care of {his} guardian."
 
   - id: lessons
     name: Take lessons
     duration: { min: 90, max: 150 }
-    when: { age_min: 7, age_max: 15 }
+    when: { age_min: 7, age_max: 15, fit: true }
     effects: { money: -3, stats: { learning: 1 } }
     text: "{name} spent a season at {his} lessons."
