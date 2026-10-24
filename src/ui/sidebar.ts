@@ -83,6 +83,7 @@ export function sidebarPanel(props: SidebarProps): HTMLElement[] {
   toggle.setAttribute('aria-controls', 'sidebar');
   toggle.setAttribute('aria-label', props.view.open ? 'Fold the side panel' : 'Open the side panel');
   toggle.setAttribute('data-focus', 'sidebar-toggle');
+  withTip(toggle, { title: props.view.open ? 'Fold the panel' : 'Open the panel', text: 'The page of a person or a house, kept at the left.' });
   const aside = el('aside', { className: props.view.open ? 'sidebar open' : 'sidebar', id: 'sidebar' });
   if (!props.view.open) return [aside, toggle];
 
@@ -98,6 +99,7 @@ export function sidebarPanel(props: SidebarProps): HTMLElement[] {
     const bar = el('div', { className: 'tabs', role: 'group' }, ...kinds.map((t) => {
       const link = el('a', { className: t.active ? 'tab active' : 'tab', href: hrefOf(t.id ?? page.id) }, t.label);
       if (t.active) link.setAttribute('aria-current', 'page');
+      withTip(link, { title: t.label, text: t.label === 'Person' ? 'The page of the person.' : 'The page of their house.' });
       return link;
     }));
     bar.setAttribute('aria-label', 'Kinds of page');
