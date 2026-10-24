@@ -57,6 +57,8 @@ function place(target: HTMLElement, tip: HTMLElement): void {
 
 function show(target: HTMLElement): void {
   if (target === shownFor) return;
+  // an open menu is what the player is reading: no tip over it
+  if (document.querySelector('.person-menu')) { hideTip(); return; }
   const tip = ensureBox();
   tip.replaceChildren(el('strong', {}, target.getAttribute(ATTR_TITLE) ?? ''), el('span', {}, target.getAttribute(ATTR) ?? ''));
   tip.hidden = false;

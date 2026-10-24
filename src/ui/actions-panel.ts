@@ -16,7 +16,7 @@ function buttonNode(b: ActionButton, onStart: (id: string) => void): HTMLElement
   if (b.grey) node.setAttribute('aria-disabled', 'true');
   else node.onclick = () => onStart(b.id);
   node.setAttribute('data-action', b.id);
-  return withTip(node, { title: b.name, text: b.grey ? (b.reason ? `Not now: ${b.reason}.` : 'Not now.') : 'Start it. Another action may take its place at any time.' });
+  return withTip(node, { title: b.name, text: b.grey ? (b.reason ? `Not now: ${b.reason.replace(/\.$/, '')}.` : 'Not now.') : 'Start it. Another action may take its place at any time.' });
 }
 
 /** The right panel (D-443): the actions of the hero by category; the information of an action is inside its button. */

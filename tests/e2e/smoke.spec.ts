@@ -188,6 +188,8 @@ test('the menu of a person opens by right click, by the button and by the keyboa
   await expect(page.locator('.sidebar h1')).toHaveText(who ?? '');
   await page.locator('.sidebar .interact').click();
   await expect(menu).toBeVisible();
+  // the tip of the button does not lie over the menu it opened
+  await expect(page.locator('#tooltip')).toBeHidden();
   await expect(menu).toContainText(who ?? '');
   await page.keyboard.press('Escape');
   await expect(menu).toHaveCount(0);

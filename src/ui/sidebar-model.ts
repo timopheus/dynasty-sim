@@ -103,7 +103,7 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
     row('Age', [[sexWord(page), page.life, page.alive ? '' : 'dead'].filter(Boolean).join(' · ')]),
   ];
   if (page.occupation) rows.push(row('Occupation', [page.occupation]));
-  for (const l of house?.lines ?? []) rows.push({ label: l.label, parts: l.parts });
+  for (const l of house?.lines ?? []) rows.push(row(l.label, l.parts));
   if (page.fame) rows.push(row('Fame', [page.fame]));
   if (page.conditions !== null) rows.push(row('Health', [page.conditions || 'healthy']));
   if (page.money !== null) rows.push(row('Money', [`${page.money} crowns`]));
@@ -122,7 +122,7 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
     if (o.lines.length) blocks.push({ type: 'facts', rows: o.lines.map((l) => ({ label: '', parts: [opinionLineText(l)] })) });
   }
   const kin = (family?.lines ?? []).filter((l) => proposalLabels.indexOf(l.label) < 0);
-  if (kin.length) blocks.push({ type: 'heading', text: 'Family' }, { type: 'facts', rows: kin.map((l) => ({ label: l.label, parts: l.parts })) });
+  if (kin.length) blocks.push({ type: 'heading', text: 'Family' }, { type: 'facts', rows: kin.map((l) => ({ label: l.label, parts: l.parts, ...(ROW_TIPS[l.label] ? { tip: { title: l.label, text: ROW_TIPS[l.label] ?? '' } } : {}) })) });
   if (page.allies.length) blocks.push({ type: 'heading', text: 'Allies' }, { type: 'facts', rows: relationRows(page.allies) });
   if (page.rivals.length) blocks.push({ type: 'heading', text: 'Rivals' }, { type: 'facts', rows: relationRows(page.rivals) });
   // the small events of the journal are behind the link too, however few lines the chronicle has
