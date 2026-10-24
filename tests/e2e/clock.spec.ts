@@ -90,7 +90,7 @@ test('"Play" moves the date, an event stops the clock; keys pick speed, answer a
 
   // the clock's buttons keep the focus when pressed from the keyboard. Each try starts paused with no window; an event
   // that comes in the middle takes the focus to its window as it should, so that try is answered and made again.
-  const focusedOn = (selector: string) => page.locator(selector).evaluate((n) => n === document.activeElement);
+  const focusedOn = (selector: string) => page.locator(selector).evaluate((n) => n.matches(":focus"));
   let checked = false;
   for (let i = 0; i < 6 && !checked; i++) {
     if ((await page.locator('.modal-layer').count()) > 0) {
