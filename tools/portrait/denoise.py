@@ -1,4 +1,4 @@
-"""Free local clean-up: every one-pixel outlier (all four neighbours on the same side of it in tone) takes the most
+"""Free local clean-up (highlights on dark cloth are kept): every one-pixel outlier (all four neighbours on the same side of it in tone) takes the most
 common tone of its neighbours, except inside protected feature boxes (eyes, nostrils, mouth), where single pixels are
 drawn on purpose. Usage: denoise.py <in.png> <out.png> x0,y0,x1,y1 [...]"""
 import sys
@@ -17,6 +17,8 @@ for y in range(1, H - 1):
         if v is None or any(a <= x <= c and b <= y <= d for a, b, c, d in keep): continue
         nb = [idx[y + dy][x + dx] for dx, dy in ((0, -1), (0, 1), (-1, 0), (1, 0))]
         if None in nb: continue
+        # a bright pixel on dark cloth or metal is a highlight (a button, a buckle): keep it
+        if all(n < v for n in nb) and max(nb) <= 4: continue
         if all(n > v for n in nb) or all(n < v for n in nb):
             t = Counter(nb).most_common(1)[0][0]
             im.putpixel((x, y), RGB[t] + (255,)); changed += 1
