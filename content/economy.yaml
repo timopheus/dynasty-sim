@@ -15,6 +15,7 @@ economy:
   work:
     - { action: serve_contract, part: 1 }
     - { action: trade, part: 1 }
+    - { action: live, part: "1/2" }
     - { action: hunt, part: "2/5" }
   # Monthly costs, parts of R. The decency of the position grows with the status; a hero under age pays `minor` instead.
   upkeep:

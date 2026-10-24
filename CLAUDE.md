@@ -55,4 +55,4 @@ CI на каждый PR и push в main: typecheck, test, validate, sim 50 ле�
 
 ## Скиллы и агенты
 - `/finish-task [ID]` — проверки, доки, PR, ревью, CI, мерж. `/run-sim [лет] [seed]` — прогон и сводка хроники по-русски.
-- Агенты `.claude/agents/`: architect, content-writer, scout, reviewer (implementer не используется: код пишет сама сессия, D-430).
+- Агенты `.claude/agents/`: architect, content-writer, scout, reviewer, ui-reviewer (скриншоты интерфейса, D-446); implementer не используется: код пишет сама сессия (D-430).

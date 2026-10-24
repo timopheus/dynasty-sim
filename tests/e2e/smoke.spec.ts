@@ -131,7 +131,10 @@ test('"New game" asks inside the page and starts another game', async ({ page })
   // play a turn, so the old game has a past; the screen redraws after the save, so wait for it as the turns test does
   const shown = await page.locator('#app').innerText();
   await (await choices(page)).first().click();
-  await expect.poll(async () => page.locator('#app').innerText(), { timeout: 10_000 }).not.toBe(shown);
+  const moved = await expect.poll(async () => page.locator('#app').innerText(), { timeout: 10_000 }).not.toBe(shown).then(() => true, () => false);
+  // console errors first: they are the cause when the screen stays put
+  expect(problems, 'errors after the first choice').toEqual([]);
+  expect(moved, 'screen did not change after the first choice').toBe(true);
   const before = await snapshot(page);
 
   await page.getByRole('button', { name: /Menu/ }).click();

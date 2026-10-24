@@ -14,8 +14,12 @@ export const ActionSchema = z.strictObject({
   /** Conditions to start the action (D-040, D-054); unmet ones are shown as reasons (D-043). */
   when: WhenSchema.optional(),
   effects: EffectsSchema.optional(),
-  /** Chronicle line written when the action completes. */
+  /**
+   * Chronicle line written when the action completes. An `idle` action (the hero lives his own life, D-325) writes
+   * none: it ends often, and the chronicle is for what changed a life.
+   */
   text: Text,
+  idle: z.boolean().optional(),
 });
 
 export type ActionDef = z.infer<typeof ActionSchema>;
