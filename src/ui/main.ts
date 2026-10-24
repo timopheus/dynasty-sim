@@ -330,7 +330,7 @@ function pathOf(node: Element): string {
  */
 function keepView(redraw: () => void): void {
   if (!app) return redraw();
-  const focusables = () => [...app.querySelectorAll<HTMLElement>('button, a[href], [tabindex]')];
+  const focusables = () => [...app.querySelectorAll<HTMLElement>('button, a[href], summary, [tabindex]')];
   const active = document.activeElement instanceof HTMLElement && app.contains(document.activeElement) ? document.activeElement : null;
   const key = active?.getAttribute('data-focus') ?? null;
   const id = active?.id || null;

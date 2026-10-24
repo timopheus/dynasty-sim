@@ -13,6 +13,9 @@ export function withTip<T extends HTMLElement>(node: T, tip: Tip | null | undefi
   if (!tip) return node;
   node.setAttribute(ATTR, tip.text);
   node.setAttribute(ATTR_TITLE, tip.title);
+  // the clock redraws the screen every day, and `keepView` finds the focused node again by this key: the title with its
+  // numbers cut, so a sum or a date that changes does not lose the focus
+  if (!node.hasAttribute('data-focus')) node.setAttribute('data-focus', `tip:${tip.title.replace(/[\d+\-−().,%]+/g, '').trim()}`);
   const focusable = node instanceof HTMLButtonElement || node instanceof HTMLAnchorElement || node.tabIndex >= 0;
   if (!focusable) node.tabIndex = 0;
   return node;

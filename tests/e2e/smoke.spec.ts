@@ -386,3 +386,28 @@ test('a tip opened by Tab stays while the clock runs, until Escape', async ({ pa
   await expect(tip).toBeHidden();
   expect(problems).toEqual([]);
 });
+
+test('the focus and its tip stay on a figure whose number changes while the clock runs', async ({ page }) => {
+  test.setTimeout(120_000);
+  const problems = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?seed=7');
+  await growUp(page);
+  const date = () => page.locator('.clock .date').textContent();
+  const money = () => page.locator('.topbar .figure-value').first().textContent();
+  await page.mouse.move(700, 300);
+  await page.keyboard.press('Space');
+  await page.keyboard.press('3');
+  const first = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(first);
+  const tip = page.locator('#tooltip');
+  for (let i = 0; i < 60 && !((await tip.isVisible()) && /money/.test((await page.locator('#tooltip strong').textContent()) ?? '')); i++) await page.keyboard.press('Tab');
+  await expect(page.locator('#tooltip strong')).toContainText('money');
+  const sum = await money();
+  // the sum changes on the first of a month; the focus and the tip are still on the figure then
+  await expect.poll(money, { timeout: 60_000 }).not.toBe(sum);
+  await expect(tip).toBeVisible();
+  await expect(page.locator('#tooltip strong')).toContainText('money');
+  await expect(page.locator('.figure:focus-within')).toHaveCount(1);
+  expect(problems).toEqual([]);
+});

@@ -59,7 +59,7 @@ function figureNode(f: Figure): HTMLElement {
     return node;
   }
   const details = el('details', { className: 'figure-breakdown' },
-    el('summary', { className: 'figure-note' }, f.note),
+    Object.assign(el('summary', { className: 'figure-note' }, f.note), { id: `figure-note-${f.label.replace(/\W+/g, '-')}` }),
     el('ul', {}, ...f.breakdown.map((line) => el('li', {}, line))));
   closeOnEscapeOrOutside(details);
   node.append(details);
