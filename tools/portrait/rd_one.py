@@ -20,9 +20,18 @@ out, seed, max_cost, prompt_file = sys.argv[1], int(sys.argv[2]), float(sys.argv
 style = sys.argv[5] if len(sys.argv) > 5 else 'rd_fast__portrait'
 w, h = map(int, (sys.argv[6] if len(sys.argv) > 6 else '64x80').split('x'))
 pre = len(sys.argv) > 7 and sys.argv[7] == 'pre'
+# img2img: RD_INPUT=<png> RD_STRENGTH=<0..1> in the environment lay a picture under the generation
+import os
+src_in, strength = os.environ.get('RD_INPUT'), float(os.environ.get('RD_STRENGTH', '0.45'))
 prompt = open(prompt_file).read().strip()
 body = {'prompt': prompt, 'prompt_style': style, 'width': w, 'height': h, 'num_images': 1, 'seed': seed,
         'remove_bg': True, **({'return_pre_palette': True} if pre else {}), 'input_palette': base64.b64encode(open(PALETTE, 'rb').read()).decode()}
+if src_in:
+    from PIL import Image
+    import io
+    b = Image.open(src_in).convert('RGBA'); flat = Image.new('RGB', b.size, (0x34, 0x2b, 0x23)); flat.paste(b, mask=b.split()[3])
+    buf = io.BytesIO(); flat.save(buf, 'PNG')
+    body.update(input_image=base64.b64encode(buf.getvalue()).decode(), strength=strength)
 cost = call(API, {**body, 'check_cost': True})
 if cost['balance_cost'] > max_cost or cost['remaining_balance'] < cost['balance_cost']:
     sys.exit(f'refused: cost {cost["balance_cost"]}, balance {cost["remaining_balance"]}, limit {max_cost}')
@@ -40,7 +49,7 @@ for _ in range(100):
         open(out.replace('.png', f'-extra{i}.png'), 'wb').write(base64.b64decode(extra))
     print('images returned:', len(imgs), 'keys:', [k for k in res if 'image' in k or 'pre' in k])
     log = {'when': datetime.datetime.now(datetime.UTC).isoformat(timespec='seconds'), 'file': out, 'style': style, 'seed': seed,
-           'remove_bg': True, 'size': f'{w}x{h}', 'pre_palette': pre, 'cost': res.get('balance_cost'), 'balance': res.get('remaining_balance'), 'task': task['task_id'], 'prompt': prompt}
-    open('docs/samples/portrait/reference/provenance.jsonl', 'a').write(json.dumps(log, ensure_ascii=False) + '\n')
+           'remove_bg': True, 'size': f'{w}x{h}', 'pre_palette': pre, 'input': src_in, 'strength': strength if src_in else None, 'cost': res.get('balance_cost'), 'balance': res.get('remaining_balance'), 'task': task['task_id'], 'prompt': prompt}
+    open(os.environ.get('RD_LOG', 'docs/samples/portrait/reference/provenance.jsonl'), 'a').write(json.dumps(log, ensure_ascii=False) + '\n')
     print(log)
     break
