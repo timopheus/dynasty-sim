@@ -20,6 +20,8 @@ export function withTip<T extends HTMLElement>(node: T, tip: Tip | null | undefi
 
 let box: HTMLElement | null = null;
 let shownFor: HTMLElement | null = null;
+/** What opened the tip: the pointer's tip is not closed by the focus moving, the focus's tip not by the pointer. */
+let shownBy: 'pointer' | 'focus' = 'pointer';
 /** What `aria-describedby` of the node was before the tooltip added its own id. */
 let describedBefore: string | null = null;
 
@@ -55,16 +57,17 @@ function place(target: HTMLElement, tip: HTMLElement): void {
   tip.style.top = `${Math.round(top)}px`;
 }
 
-function show(target: HTMLElement): void {
+function show(target: HTMLElement, by: 'pointer' | 'focus'): void {
   if (target === shownFor) return;
   // the node the tip leaves gets its own `aria-describedby` back
   if (shownFor) hideTip();
   // an open menu is what the player is reading: no tip over it
-  if (document.querySelector('.person-menu')) { hideTip(); return; }
+  if (document.querySelector('.person-menu')) return;
   const tip = ensureBox();
   tip.replaceChildren(el('strong', {}, target.getAttribute(ATTR_TITLE) ?? ''), el('span', {}, target.getAttribute(ATTR) ?? ''));
   tip.hidden = false;
   shownFor = target;
+  shownBy = by;
   describedBefore = target.getAttribute('aria-describedby');
   target.setAttribute('aria-describedby', [describedBefore, 'tooltip'].filter(Boolean).join(' '));
   place(target, tip);
@@ -74,16 +77,17 @@ let mouse = { x: -1, y: -1 };
 
 /**
  * The screen is drawn anew after a command and every day of the clock: a tooltip that was open follows the new copy of
- * its node (under the pointer or on the focus), and goes if there is none.
+ * its node (under the pointer, or on the focus), and goes if there is none.
  */
 export function syncTip(): void {
   if (shownFor === null) return;
   const title = shownFor.getAttribute(ATTR_TITLE);
+  const by = shownBy;
   // under a still pointer only the same thing keeps its tip: a new window must not answer for the old hover
   const under = holder(document.elementFromPoint(mouse.x, mouse.y));
-  const target = holder(document.activeElement) ?? (under?.getAttribute(ATTR_TITLE) === title ? under : null);
+  const target = by === 'pointer' ? (under?.getAttribute(ATTR_TITLE) === title ? under : null) : holder(document.activeElement);
   shownFor = null;
-  if (target) show(target);
+  if (target) show(target, by);
   else hideTip();
 }
 
@@ -95,11 +99,16 @@ export function installTooltips(): void {
   document.addEventListener('mousemove', (e) => {
     mouse = { x: e.clientX, y: e.clientY };
     const t = holder(e.target);
-    if (t) show(t);
+    if (t) show(t, 'pointer');
     else hideTip();
   });
-  document.addEventListener('focusin', (e) => { const t = holder(e.target); if (t) show(t); else hideTip(); });
-  document.addEventListener('focusout', hideTip);
+  // a redraw moves the focus off a node and back: only a tip that the focus itself opened closes with it
+  document.addEventListener('focusin', (e) => {
+    const t = holder(e.target);
+    if (t) show(t, 'focus');
+    else if (shownBy === 'focus') hideTip();
+  });
+  document.addEventListener('focusout', () => { if (shownBy === 'focus') hideTip(); });
   // a click did what the tip said: it must not lie over what the click opened
   document.addEventListener('click', hideTip);
   document.addEventListener('contextmenu', hideTip);

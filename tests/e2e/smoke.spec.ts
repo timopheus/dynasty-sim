@@ -299,3 +299,23 @@ test('a window that opens under a still pointer shows no tip over its choices', 
   await expect(page.locator('#tooltip')).toBeVisible();
   expect(problems).toEqual([]);
 });
+
+test('a tip under a still pointer stays while the clock runs', async ({ page }) => {
+  const problems = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?seed=7');
+  await growUp(page);
+  const date = () => page.locator('.clock .date').textContent();
+  const before = await date();
+  await page.locator('.clock .speed', { hasText: '×5' }).click();
+  await page.locator('.clock-toggle').click();
+  await page.locator('.topbar .figure').first().hover();
+  await expect(page.locator('#tooltip')).toBeVisible();
+  // two or more days of the world pass with the pointer still: the tip is still there
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(before);
+  const moved = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(moved);
+  await expect(page.locator('#tooltip')).toBeVisible();
+  await expect(page.locator('#tooltip strong')).toContainText('money');
+  expect(problems).toEqual([]);
+});
