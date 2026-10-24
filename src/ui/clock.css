@@ -26,6 +26,11 @@
   gap: 0;
 }
 
+/* the keys are in the tips of the buttons: the box stays low enough for the panel above it */
+.clock-keys {
+  display: none;
+}
+
 /* two lines whatever the words say, so the box keeps its height and the buttons their place */
 .clock-state {
   min-height: 2.6em;

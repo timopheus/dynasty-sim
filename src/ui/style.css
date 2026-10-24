@@ -366,3 +366,20 @@ body {
   grid-column: 3;
   justify-self: stretch;
 }
+
+/* the portrait of the hero lies over the bottom left: with the panel folded the centre keeps clear of it */
+.game.side-closed > .center {
+  padding-left: 9rem;
+}
+
+button.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+}
+
+button.choice .note,
+button.choice .reason {
+  font-size: 0.85em;
+}

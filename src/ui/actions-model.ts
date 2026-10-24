@@ -80,14 +80,15 @@ export function actionShelves(ctx: Ctx, will: WillForm | null): Panel {
   for (const { action, unmet, hidden } of actionAvailability(ctx)) {
     if (hidden || outgrown(ctx, action)) continue;
     const shelf = shelves.find((s) => s.category === action.category);
-    const reasons = held ? [held] : action.id === underWay ? ['you are doing this now'] : unmet;
-    shelf?.buttons.push({ id: action.id, name: action.name, info: [daysText(action), ...moneyInfo(ctx, action)], grey: reasons.length > 0, reason: reasons.join('; ') });
+    const reasons = held ? [] : action.id === underWay ? ['you are doing this now'] : unmet;
+    shelf?.buttons.push({ id: action.id, name: action.name, info: [daysText(action), ...moneyInfo(ctx, action)], grey: held !== '' || reasons.length > 0, reason: reasons.join('; ') });
   }
   if (will) {
-    const reasons = held ? [held] : will.reasons;
+    const reasons = held ? [] : will.reasons;
     shelves.find((s) => s.category === 'family')?.buttons.push({
-      id: WILL_ID, name: 'Draw up a will', info: ['at the notary', `${will.cost} crowns`], grey: reasons.length > 0, reason: reasons.join('; '),
+      id: WILL_ID, name: 'Draw up a will', info: ['at the notary', `${will.cost} crowns`], grey: held !== '' || reasons.length > 0, reason: reasons.join('; '),
     });
   }
-  return { shelves: shelves.filter((s) => s.buttons.length > 0), note: null };
+  // one line above the panel instead of the same reason on every button
+  return { shelves: shelves.filter((s) => s.buttons.length > 0), note: held || null };
 }

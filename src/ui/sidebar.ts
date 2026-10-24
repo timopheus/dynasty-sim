@@ -54,7 +54,7 @@ function blockNodes(block: Block, props: SidebarProps, page: SidebarPage): (Node
     case 'chronicle':
       return [entryList(block.entries, block.own, props.heads)];
     case 'whole':
-      return [el('p', {}, el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(page.id) }, 'Whole chronicle →'))];
+      return [el('p', {}, withTip(el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(page.id) }, 'Whole chronicle →'), { title: 'Whole chronicle', text: 'Every line written about this page, the small events too.' }))];
   }
 }
 
@@ -92,8 +92,10 @@ export function sidebarPanel(props: SidebarProps): HTMLElement[] {
   const showWhole = props.view.whole === page.id && page.whole.length > 0;
   const title = el('h1', {}, page.title);
   if (page.kind === 'Person') markPerson(title, page.id);
-  aside.append(breadcrumbs(props, page), title);
-  if (page.subtitle) aside.append(el('p', { className: 'meta' }, page.subtitle));
+  const scroll = el('div', { className: 'sidebar-scroll' });
+  aside.append(scroll);
+  scroll.append(breadcrumbs(props, page), title);
+  if (page.subtitle) scroll.append(el('p', { className: 'meta' }, page.subtitle));
   const kinds = page.tabs.filter((t) => t.id !== null);
   if (kinds.length > 1 || page.interact) {
     const bar = el('div', { className: 'tabs', role: 'group' }, ...kinds.map((t) => {
@@ -111,11 +113,11 @@ export function sidebarPanel(props: SidebarProps): HTMLElement[] {
       withTip(interact, { title: 'Interact', text: 'What you can do with this person. The same menu opens with a right click on their name.' });
       bar.append(interact);
     }
-    aside.append(bar);
+    scroll.append(bar);
   }
   if (showWhole) {
-    aside.append(el('p', {}, el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(null) }, '← Back to the page')));
+    scroll.append(el('p', {}, withTip(el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(null) }, '← Back to the page'), { title: 'Back to the page', text: 'Return to the sheet of this page.' })));
   }
-  aside.append(el('div', { className: 'sheet' }, ...(showWhole ? page.whole : page.blocks).flatMap((b) => blockNodes(b, props, page))));
+  scroll.append(el('div', { className: 'sheet' }, ...(showWhole ? page.whole : page.blocks).flatMap((b) => blockNodes(b, props, page))));
   return [aside, toggle];
 }

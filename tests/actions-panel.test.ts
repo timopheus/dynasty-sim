@@ -72,8 +72,9 @@ describe('the actions panel (D-443)', () => {
   it('is grey with a reason while a window holds the hero, and empty while growing up or when the house is over', () => {
     const ctx = free(30);
     ctx.state.status = 'awaiting_choice';
-    const held = actionShelves(ctx, null).shelves.flatMap((s) => s.buttons);
-    expect(held.every((b) => b.grey && b.reason === 'Answer the window first')).toBe(true);
+    const panel = actionShelves(ctx, null);
+    expect(panel.note).toBe('Answer the window first');
+    expect(panel.shelves.flatMap((s) => s.buttons).every((b) => b.grey)).toBe(true);
     ctx.state.backstory.running = true;
     expect(actionShelves(ctx, null)).toMatchObject({ shelves: [], note: expect.any(String) });
     ctx.state.backstory.running = false;

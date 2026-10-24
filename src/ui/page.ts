@@ -23,7 +23,7 @@ export function partNodes(make: Make, parts: readonly TextPart[]): (Node | strin
     const tip = personTipOf(p.id);
     if (!tip) return link;
     // a person's name opens the menu of the person on a right click (D-448)
-    return withTip(markPerson(link, p.id), tip);
+    return withTip(/^c\d+$/.test(p.id) ? markPerson(link, p.id) : link, tip);
   });
 }
 

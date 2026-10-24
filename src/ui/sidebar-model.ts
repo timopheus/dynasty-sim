@@ -13,6 +13,7 @@ import { opinionLineText, withNumber } from './access';
 import { ROW_TIPS, statTip, traitTip } from './tips';
 import type { Tip } from './tips';
 import { anyCharacter } from '../core/archive/archive';
+import { kinship } from './people-model';
 import { heirLine } from './will';
 
 /** What a page of the side panel is made of. Pure data: the panel draws it, tests read it. */
@@ -167,11 +168,10 @@ export function sidebarPage(ctx: Ctx, id: string, lastPerson: string = ctx.state
   if (!found) return { id, kind: 'Page', title: 'Nobody by that name', subtitle: '', blocks: [{ type: 'text', text: 'There is nothing at this address.' }], ...none };
   if (found.type === 'person') {
     const p = found.page;
-    const knowledge: Record<string, string> = { self: 'Yours', close: 'A close acquaintance', known: 'An acquaintance', stranger: 'A stranger to you' };
     const houseId = anyCharacter(ctx.state, id)?.house ?? null;
     const tabs: KindTab[] = [{ label: 'Person', id, active: true }, ...(houseId ? [{ label: 'House', id: houseId, active: false }] : [])];
     return {
-      id, kind: 'Person', title: p.name, subtitle: knowledge[p.level] ?? '', blocks: personSheet(ctx, p),
+      id, kind: 'Person', title: p.name, subtitle: kinship(ctx, id), blocks: personSheet(ctx, p),
       whole: chronicleBlocks(p.chronicle, p.id, p.journal), tabs, interact: id !== ctx.state.playerId && p.alive,
     };
   }

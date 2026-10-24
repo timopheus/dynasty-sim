@@ -12,6 +12,6 @@ export function choiceNode(c: Control, onPick: (() => void) | null): HTMLElement
   if (!onPick) button.append(el('span', { className: 'reason', id: c.reasonId }, c.reason));
   applyAttrs(button, c.attrs);
   if (onPick) button.onclick = onPick;
-  withTip(button, { title: c.text.replace(/^\d+\.\s*/, ''), text: [c.note, c.reason].filter(Boolean).join(' · ') || 'Choose this.' });
+  withTip(button, { title: c.text.replace(/^\d+\.\s*/, ''), text: [c.note, c.reason].filter(Boolean).join(' · ') || 'Your answer.' });
   return el('div', { className: onPick ? 'option' : 'unavailable' }, button);
 }

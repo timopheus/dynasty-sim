@@ -29,7 +29,7 @@ import { modalFrame, modalHeading } from './modal';
 import { beforeChoice, outcomeOf, type Outcome } from './outcome-model';
 import { outcomeWindow } from './outcome';
 import { partNodes, usePersonTips } from './page';
-import { personMenu, personTip, type MenuItem } from './people-model';
+import { entityTip, personMenu, type MenuItem } from './people-model';
 import { newSidebarState, sidebarPanel, type SidebarState } from './sidebar';
 import { visit } from './sidebar-model';
 import { dropOldSave, loadGame, openIndexedDb, saveGame, seedFromSearch, startChoice, startGame, type AsyncStore, type Saved, type SaveOutcome } from './storage';
@@ -206,7 +206,7 @@ function render(session: Session): void {
   session.sidebar.trail = addressed ? visit(session.sidebar.trail, addressed) : [];
   const pageId = addressed ?? hero.id;
   if (session.sidebar.whole !== pageId) session.sidebar.whole = null;
-  usePersonTips((id) => personTip(ctx, id));
+  usePersonTips((id) => entityTip(ctx, id));
 
   session.keymap = [];
   session.dismiss = null;
@@ -221,6 +221,7 @@ function render(session: Session): void {
     const { outcome, heroId } = session.outcome;
     const go = () => { session.outcome = null; session.focusAfterRender = true; rerender(); };
     session.keymap = [go];
+    session.dismiss = go;
     modal = outcomeWindow(outcome, heroId, heads, { text: '1. Continue', note: '', reason: '', reasonId: 'continue-reason', noteId: 'continue-note', attrs: { 'aria-keyshortcuts': '1' }, key: '1' }, go);
   } else if (screen) {
     modal = eventWindow(session, screen);

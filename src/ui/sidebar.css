@@ -4,14 +4,28 @@
   display: none;
   box-sizing: border-box;
   width: 22rem;
-  overflow-y: auto;
-  padding: 1rem 1rem 11rem;
+  overflow: hidden;
+  padding: 0;
   border-right: 2px solid var(--fg);
   background: color-mix(in srgb, var(--bg) 92%, var(--fg));
 }
 
 .sidebar.open {
-  display: block;
+  display: flex;
+  flex-direction: column;
+}
+
+/* the page scrolls above the portrait of the hero, which never covers a line of it */
+.sidebar-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem 1rem 0.5rem;
+}
+
+.sidebar::after {
+  content: '';
+  flex: 0 0 11rem;
 }
 
 .sidebar h1 {

@@ -88,6 +88,9 @@ export function installTooltips(): void {
   document.addEventListener('mouseover', (e) => { const t = holder(e.target); if (t) show(t); else hideTip(); });
   document.addEventListener('focusin', (e) => { const t = holder(e.target); if (t) show(t); else hideTip(); });
   document.addEventListener('focusout', hideTip);
+  // a click did what the tip said: it must not lie over what the click opened
+  document.addEventListener('click', hideTip);
+  document.addEventListener('contextmenu', hideTip);
   document.addEventListener('mouseleave', hideTip);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideTip(); });
 }
