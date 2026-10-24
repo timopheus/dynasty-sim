@@ -49,15 +49,20 @@ export function actionAvailability(ctx: Ctx): ActionAvailability[] {
 
 /** Actions the player can start now. Never consumes randomness. */
 export function availableActions(ctx: Ctx): ActionDef[] {
-  if (ctx.state.status !== 'awaiting_action') return [];
+  if (ctx.state.status !== 'awaiting_action' && ctx.state.status !== 'running') return [];
   return actionAvailability(ctx).filter((a) => a.unmet.length === 0 && !a.hidden).map((a) => a.action);
 }
 
 export function startAction(ctx: Ctx, actionId: string): void {
   const { state, content } = ctx;
-  if (state.status !== 'awaiting_action') throw new Error(`Cannot start an action while ${state.status}`);
+  if (state.status !== 'awaiting_action' && state.status !== 'running') throw new Error(`Cannot start an action while ${state.status}`);
   const action = findAction(content, actionId);
   if (!availableActions(ctx).includes(action)) throw new Error(`Action "${actionId}" is not available now`);
+  // A change of occupation breaks off the one under way: no effects, a journal line (an idle life leaves none).
+  const current = state.activeAction;
+  if (current && !findAction(content, current.actionId).idle) {
+    log(ctx, { subject: getPlayer(state), kind: 'interrupt', level: 'journal', template: timeContent(content).texts.interrupted });
+  }
   const duration = int(state.rng, action.duration.min, action.duration.max);
   state.activeAction = { actionId: action.id, endDay: state.day + duration };
   state.interruptRequest = null;
@@ -98,7 +103,7 @@ export const actionEndPhase: DayPhase = {
     const player = getPlayer(state);
     const moneyBefore = player.money;
     applyEffects(ctx, player, action.effects, { hero: player.id, protagonist: player.id });
-    log(ctx, { subject: player, kind: 'action', level: 'chronicle', template: action.text, money: player.money - moneyBefore });
+    if (!action.idle) log(ctx, { subject: player, kind: 'action', level: 'chronicle', template: action.text, money: player.money - moneyBefore });
     state.activeAction = null;
     state.interruptRequest = null;
     state.status = 'awaiting_action';

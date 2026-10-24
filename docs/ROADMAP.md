@@ -387,7 +387,7 @@
 | S.3 | План среза (architect) | `docs/ROADMAP.md` | ✅ «ок» Тима 19.10 ([#84](https://github.com/timopheus/dynasty-sim/pull/84), D-439) |
 | S.4 | Экран по полочкам и мелкие баги | `src/ui/`, `tests/e2e/` | ✅ [#86](https://github.com/timopheus/dynasty-sim/pull/86) |
 | S.5a | **[ведущая]** Точки подключения: время и экономика | сборочные `game.ts`, `state.ts`, `effects.ts`, `condition-keys.ts`, `content/schema.ts`; `src/core/bot.ts`, `src/core/sim.ts`, `save/journal.ts` | 🟡 время — PR «[S.5a] Время: команда wait»; экономика — вторым PR до S.7 |
-| S.6 | Живое время: ядро | `src/core/actions/`, `src/core/narrator/`, `content/actions.yaml`, `content/narrator.yaml` | ⬜ |
+| S.6 | Живое время: ядро | `src/core/actions/`, `src/core/narrator/`, `content/actions.yaml`, `content/narrator.yaml` | 🟡 PR «[S.6] Живое время: ядро» |
 | S.7 | Экономика: месячный баланс и цены уровнями | `src/core/economy/` (новый), `content/economy.yaml`, `src/ui/header.ts` | ⬜ |
 | S.8 | Плеер времени | `src/ui/clock.ts`, `src/ui/storage.ts`, `tests/e2e/` | ⬜ |
 | S.9a | **[ведущая]** Точки подключения: место, стресс, поля события | `state.ts`, `content/schema.ts`, `condition-keys.ts`, `effects.ts`, `game.ts`, `entities/registry.ts`, `docs/event-format.md` | ⬜ |
