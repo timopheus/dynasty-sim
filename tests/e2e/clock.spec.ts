@@ -88,19 +88,42 @@ test('"Play" moves the date, an event stops the clock; keys pick speed, answer a
     await expect.poll(async () => (await page.locator('.modal-layer').count()) === 0 || (await page.locator('.modal-layer').innerText()) !== text).toBe(true);
   }
 
-  // the clock's buttons keep the focus when pressed from the keyboard
-  if ((await page.locator('.modal-layer').count()) === 0) {
-    await page.locator('.clock .speed').nth(1).focus();
-    await page.keyboard.press('Enter');
-    await expect(page.locator('.clock .speed.current')).toHaveText('×2');
-    await expect(page.locator('.clock .speed').nth(1)).toBeFocused();
-    if ((await page.locator(CLOCK).getAttribute('class'))?.includes('running')) {
+  // the clock's buttons keep the focus when pressed from the keyboard. Each try starts paused with no window; an event
+  // that comes in the middle takes the focus to its window as it should, so that try is answered and made again.
+  const focusedOn = (selector: string) => page.locator(selector).evaluate((n) => n === document.activeElement);
+  let checked = false;
+  for (let i = 0; i < 6 && !checked; i++) {
+    if ((await page.locator('.modal-layer').count()) > 0) {
+      const text = await page.locator('.modal-layer').innerText();
+      await page.locator('.modal-layer button.choice').first().click();
+      await expect.poll(async () => (await page.locator('.modal-layer').count()) === 0 || (await page.locator('.modal-layer').innerText()) !== text).toBe(true);
+      continue;
+    }
+    const mode = (await page.locator(CLOCK).getAttribute('class')) ?? '';
+    if (mode.includes('running')) {
       await page.locator(TOGGLE).focus();
       await page.keyboard.press('Enter');
       await expect(page.locator(CLOCK)).not.toHaveClass(/\brunning\b/);
-      if ((await page.locator('.modal-layer').count()) === 0) await expect(page.locator(TOGGLE)).toBeFocused();
+      // pause from the keyboard: the focus stays on the button
+      if ((await page.locator('.modal-layer').count()) > 0) continue;
+      await expect(page.locator(CLOCK)).toHaveClass(/\bpaused\b/);
+      expect(await focusedOn(TOGGLE), 'focus left "Pause"').toBe(true);
+      continue;
     }
+    if (!mode.includes('paused')) {
+      await page.locator(TOGGLE).click();
+      continue;
+    }
+    // paused, no window: a speed from the keyboard keeps the focus on its button
+    const speed = page.locator('.clock .speed').nth(1);
+    await speed.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.clock .speed.current')).toHaveText('×2');
+    if ((await page.locator('.modal-layer').count()) > 0) continue;
+    expect(await focusedOn('.clock .speed >> nth=1'), 'focus left "×2"').toBe(true);
+    checked = true;
   }
+  expect(checked, 'the focus of the clock buttons was never checked').toBe(true);
 
   // Space pauses (focus on a heading, not a button); a pause saves, so a reload continues on the same day. An event may
   // come in between: answer it and try again.

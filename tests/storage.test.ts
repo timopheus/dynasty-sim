@@ -159,6 +159,19 @@ describe('autosave in IndexedDB (D-234)', () => {
     }
   }, 30_000);
 
+  it('a save made before the stamp (a bare mark) loads, and the next write goes through and stamps it', async () => {
+    const store = fakeStore();
+    await play(store, content, 3, 2);
+    store.data.save.set('game', 'oldmark');
+    const loaded = await loadGame(store, content, 'v1');
+    if (loaded.kind !== 'loaded') throw new Error('not loaded');
+    expect(loaded.saved.game).toBe('oldmark');
+    applyRecorded(loaded.journal, loaded.state, content, botCommand(loaded.state, content, seedRng(3, 5)));
+    expect(await saveGame(store, loaded.state, loaded.journal, loaded.saved, 'v1')).toEqual({ ok: true });
+    expect(store.data.save.get('game')).toBe(gameStamp({ ...loaded.saved, game: 'oldmark' }, loaded.journal));
+    expect(await loadGame(store, content, 'v1')).toMatchObject({ kind: 'loaded', journal: { commands: loaded.journal.commands } });
+  }, 30_000);
+
   it('a tab still playing a replaced game never writes into the new one (D-339)', async () => {
     const store = fakeStore();
     await play(store, content, 2, 11);

@@ -94,10 +94,7 @@ export function botCommand(state: GameState, content: Content, rng: RngState, ch
   if (state.status === 'running') return { type: 'wait', days: MAX_WAIT_DAYS };
   const house = houseCommand(ctx, rng);
   if (house) return house;
-  // The bot acts on purpose: living one's own life (`idle`, S.6) is no plan, and a cautious bot would take it always
-  // (nothing in it risks anything). The pace of living is measured on its own (S.6), not through the bot.
-  const available = availableActions(ctx);
-  const actions = available.some((a) => !a.idle) ? available.filter((a) => !a.idle) : available;
+  const actions = availableActions(ctx);
   if (character === 'random') return { type: 'start', actionId: pick(rng, actions).id };
   // An action is a leaning, not a rule: a bot that always took the best-scored one would repeat it for a lifetime.
   // It draws among the better half, and a hero in debt weighs money more.
