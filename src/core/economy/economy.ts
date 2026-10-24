@@ -1,4 +1,5 @@
 import type { Content } from '../content/schema';
+import { factorParts } from '../content/types';
 import { isInt } from '../helpers';
 import { houseOf } from '../house/house';
 import { toYmd } from '../time/calendar';
@@ -45,6 +46,15 @@ export function priceCrowns(content: Content, state: GameState, c: Character, re
 export function lowestCrowns(content: Content, ref: PriceRefValue): number {
   const economy = content.economy;
   return economy ? crownsAt(economy, incomeOf(content, null), ref) : 0;
+}
+
+/** Crowns a month the occupation of this action brings at the lowest income (bots, D-247); 0 if it brings none. */
+export function workCrowns(content: Content, actionId: string): number {
+  const economy = content.economy;
+  const work = economy?.work.find((w) => w.action === actionId);
+  if (!economy || !work) return 0;
+  const { num, den } = factorParts(work.part);
+  return Math.floor((incomeOf(content, null) * num) / den);
 }
 
 export const economyInvariants: Invariant = ({ state }) => {
