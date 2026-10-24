@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].effects.pay /needs the top-level key "economy"/
+events:
+  - id: pay_without_content
+    weight: 1
+    text: "{name} walks."
+    options:
+      - text: Walk
+        result: "{name} paid."
+        effects: { pay: minor }

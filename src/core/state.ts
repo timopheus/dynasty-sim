@@ -12,6 +12,7 @@ import { initBackstoryState, type BackstoryState } from './backstory/backstory';
 import type { CharacterBase } from './character/character';
 import { initChronicleState, type ChronicleState } from './chronicle/log';
 import type { Content } from './content/schema';
+import { initEconomyState, type EconomyState } from './economy/economy';
 import { initEventsState, type EventsState } from './events/events';
 import { initFamilyState, type FamilyCharacter, type FamilyState, type Marriage } from './family/family';
 import { initHealthState, type HealthPart, type HealthState } from './health/health';
@@ -69,7 +70,8 @@ export type GameState = CoreState &
   SuccessionState &
   HeirloomState &
   ArchiveState &
-  SummaryState;
+  SummaryState &
+  EconomyState;
 
 /** What hooks, phases and effects get: the state to change and the content it runs on. */
 export interface Ctx {
@@ -110,6 +112,7 @@ export function initialState(seed: number): GameState {
     ...initHeirloomState(),
     ...initArchiveState(),
     ...initSummaryState(),
+    ...initEconomyState(),
   };
 }
 

@@ -10,7 +10,7 @@
 - Интерфейс без фреймворка, обычный DOM.
 
 ## Где что
-- `src/core/` — симуляция без DOM и Node. Модули-папки: у каждого своя часть состояния, контент, хуки, фазы, инварианты: `character`, `health`, `time`, `actions`, `conditions`, `events`, `narrator`, `roles`, `stories`, `backstory`, `world`, `relations`, `chronicle`, `archive`, `entities`, `family`, `succession`, `house`, `heirloom`, `era`, `looks`, `summary`, `save`, `metrics`, `pages`, `text`, `bots`.
+- `src/core/` — симуляция без DOM и Node. Модули-папки: у каждого своя часть состояния, контент, хуки, фазы, инварианты: `character`, `health`, `time`, `actions`, `conditions`, `events`, `narrator`, `roles`, `stories`, `backstory`, `world`, `relations`, `chronicle`, `archive`, `entities`, `family`, `succession`, `house`, `heirloom`, `era`, `economy`, `looks`, `summary`, `save`, `metrics`, `pages`, `text`, `bots`.
 - Сборочные файлы `src/core/`: `game.ts`, `state.ts`, `hooks.ts`, `lifecycle.ts`, `refs.ts`, `invariants.ts`, `effects.ts`, `condition-keys.ts`, `modifiers.ts`, `helpers.ts`, `content/schema.ts`, `content/load.ts`, `content/types.ts`.
 - `src/ui/` — браузерный интерфейс. `content/` — YAML, тексты на английском. `tools/` — валидатор, прогон, ворота, replay. `tests/` — vitest и фикстуры. `map/` — исходники карты.
 
@@ -55,4 +55,4 @@ CI на каждый PR и push в main: typecheck, test, validate, sim 50 ле�
 
 ## Скиллы и агенты
 - `/finish-task [ID]` — проверки, доки, PR, ревью, CI, мерж. `/run-sim [лет] [seed]` — прогон и сводка хроники по-русски.
-- Агенты `.claude/agents/`: architect, content-writer, scout, reviewer (implementer не используется: код пишет сама сессия, D-430).
+- Агенты `.claude/agents/`: architect, content-writer, scout, reviewer, ui-reviewer (скриншоты интерфейса, D-446); implementer не используется: код пишет сама сессия (D-430).

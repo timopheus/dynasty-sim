@@ -1,4 +1,5 @@
 import type { ActionDef } from '../actions/content';
+import { lowestCrowns } from '../economy/economy';
 import type { Content } from '../content/schema';
 import type { Effects } from '../effects';
 import { sceneOf, type EventDef, type OptionDef, type OutcomeDef, type SceneDef } from '../events/content';
@@ -66,6 +67,9 @@ function effectsFeatures(content: Content, effects: Effects | undefined, depth: 
   if (effects.kill !== undefined) f = { ...f, death: 100 };
   if (effects.wound !== undefined) f = { ...f, wound: 100 };
   if (effects.money !== undefined) f = { ...f, money: effects.money * 100 };
+  // Prices by level (D-441): the bot sees content without a game, so it counts them at the lowest income.
+  if (effects.pay !== undefined) f = { ...f, money: f.money - lowestCrowns(content, effects.pay) * 100 };
+  if (effects.gain !== undefined) f = { ...f, money: f.money + lowestCrowns(content, effects.gain) * 100 };
   for (const entry of effects.schedule ?? []) {
     const next = content.events.find((e) => e.id === entry.event);
     if (!next) continue;
