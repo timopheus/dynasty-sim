@@ -360,3 +360,29 @@ test('Escape closes the tip of the focus and it stays closed while the clock run
   await expect(tip, 'the redraw of a day opened the tip again').toBeHidden();
   expect(problems).toEqual([]);
 });
+
+test('a tip opened by Tab stays while the clock runs, until Escape', async ({ page }) => {
+  const problems = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?seed=7');
+  await growUp(page);
+  const date = () => page.locator('.clock .date').textContent();
+  await page.mouse.move(700, 300);
+  await page.keyboard.press('Space');
+  // the command that starts living has its own redraw, which moves the focus: wait until the days run
+  const first = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(first);
+  const tip = page.locator('#tooltip');
+  for (let i = 0; i < 60 && !(await tip.isVisible()); i++) await page.keyboard.press('Tab');
+  await expect(tip).toBeVisible();
+  const title = await page.locator('#tooltip strong').textContent();
+  const before = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(before);
+  const moved = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(moved);
+  await expect(tip).toBeVisible();
+  await expect(page.locator('#tooltip strong')).toHaveText(title ?? '');
+  await page.keyboard.press('Escape');
+  await expect(tip).toBeHidden();
+  expect(problems).toEqual([]);
+});

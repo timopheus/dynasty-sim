@@ -16,6 +16,8 @@ function buttonNode(b: ActionButton, onStart: (id: string) => void): HTMLElement
   if (b.grey) node.setAttribute('aria-disabled', 'true');
   else node.onclick = () => onStart(b.id);
   node.setAttribute('data-action', b.id);
+  // the clock redraws the screen every day: this is how the focus finds its button again (keepView)
+  node.setAttribute('data-focus', `action-${b.id}`);
   return withTip(node, { title: b.name, text: b.grey ? (b.reason ? `Not now: ${b.reason.replace(/\.$/, '')}.` : 'Not now.') : 'Start it. Another action may take its place at any time.' });
 }
 

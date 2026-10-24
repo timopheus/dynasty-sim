@@ -68,12 +68,15 @@ function show(target: HTMLElement, by: 'pointer' | 'focus'): void {
   tip.hidden = false;
   shownFor = target;
   shownBy = by;
+  focusIntent = by === 'focus' ? { title: target.getAttribute(ATTR_TITLE), text: target.getAttribute(ATTR) } : null;
   describedBefore = target.getAttribute('aria-describedby');
   target.setAttribute('aria-describedby', [describedBefore, 'tooltip'].filter(Boolean).join(' '));
   place(target, tip);
 }
 
 let mouse = { x: -1, y: -1 };
+/** The tip the keyboard asked for: a redraw that gives the focus back to the same thing opens it again, until Esc, a click or the next key that moves the focus. */
+let focusIntent: { title: string | null; text: string | null } | null = null;
 /** When the player last moved the focus with the keyboard: only such a focus opens a tip. */
 let lastNavKey = -Infinity;
 const NAV_KEYS = new Set(['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
@@ -110,16 +113,20 @@ export function installTooltips(): void {
   document.addEventListener('focusin', (e) => {
     const t = holder(e.target);
     // a focus the program gives back after a redraw is not the player's: only a key that moves the focus opens a tip
-    if (t) { if (performance.now() - lastNavKey < 200) show(t, 'focus'); }
+    const kept = t !== null && focusIntent !== null && (t.getAttribute(ATTR_TITLE) === focusIntent.title || t.getAttribute(ATTR) === focusIntent.text);
+    if (t) { if (kept || performance.now() - lastNavKey < 200) show(t, 'focus'); }
     else if (shownBy === 'focus') hideTip();
   });
   document.addEventListener('focusout', () => { if (shownBy === 'focus') hideTip(); });
   // a click did what the tip said: it must not lie over what the click opened
-  document.addEventListener('click', hideTip);
-  document.addEventListener('contextmenu', hideTip);
+  document.addEventListener('click', () => { focusIntent = null; hideTip(); });
+  document.addEventListener('contextmenu', () => { focusIntent = null; hideTip(); });
   document.addEventListener('mouseleave', hideTip);
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') hideTip();
-    if (NAV_KEYS.has(e.key)) lastNavKey = performance.now();
+    if (e.key === 'Escape') { focusIntent = null; hideTip(); }
+    if (NAV_KEYS.has(e.key)) {
+      focusIntent = null;
+      lastNavKey = performance.now();
+    }
   }, true);
 }
