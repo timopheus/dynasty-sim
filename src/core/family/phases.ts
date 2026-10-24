@@ -208,7 +208,7 @@ export function proposeCommand(ctx: Ctx, order: ProposeOrder): void {
   const { state, content } = ctx;
   const family = content.family;
   if (!family) throw new Error('Proposals of marriage need the family section of the content');
-  if (state.status !== 'awaiting_action') throw new Error(`Cannot propose a marriage while ${state.status}`);
+  if (state.status !== 'awaiting_action' && state.status !== 'running') throw new Error(`Cannot propose a marriage while ${state.status}`);
   if (!proposalAllowed(ctx, order.suitor, order.target)) throw new Error(`No match can be proposed between ${order.suitor} and ${order.target}`);
   const event = findEvent(content, family.proposalEvent);
   if (!startEvent(ctx, event, getPlayer(state), { suitor: order.suitor, target: order.target })) {

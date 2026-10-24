@@ -29,6 +29,22 @@ async function standStill(page: Page): Promise<void> {
   await expect(page.locator('.clock')).not.toHaveClass(/\brunning\b/);
 }
 
+/**
+ * Lets the clock run until the date leaves `from`: answers a window that stops it (first choice) and presses "Play"
+ * when nothing is under way. Gives up quietly after a few rounds; the caller checks the date.
+ */
+async function letTimeRun(page: Page, from: string): Promise<void> {
+  for (let i = 0; i < 6; i++) {
+    if (((await page.locator(DATE).first().textContent()) ?? '') !== from) return;
+    if ((await page.locator('.modal-layer').count()) > 0) {
+      await page.locator('.modal-layer .option button.choice').first().click({ timeout: 2_000 }).catch(() => undefined);
+    } else if (!((await page.locator('.clock').getAttribute('class')) ?? '').includes('running')) {
+      await page.locator('.clock .clock-toggle').click({ timeout: 2_000 }).catch(() => undefined);
+    }
+    await expect.poll(async () => (await page.locator(DATE).first().textContent()) ?? '', { timeout: 3_000 }).not.toBe(from).catch(() => undefined);
+  }
+}
+
 /** What a player sees: the date, the hero's caption and the latest lines of the chronicle. */
 async function snapshot(page: Page): Promise<{ date: string; hero: string; chronicle: string }> {
   return {
@@ -84,6 +100,9 @@ for (const seed of SEEDS) {
       if (turn === Math.floor(TURNS / 2)) await shot(page, seed, '2-middle');
     }
 
+    // the turns may come faster than a day of the clock (S.8: a day a second, and every window it stops for starts
+    // the day anew), so let time run a little before the date is checked
+    await letTimeRun(page, start.date);
     await standStill(page);
     const end = await snapshot(page);
     await shot(page, seed, '3-end');

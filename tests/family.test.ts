@@ -11,7 +11,7 @@ import { syncHousehold } from '../src/core/family/household';
 import { familyPhase } from '../src/core/family/phases';
 import { worldPhase } from '../src/core/world/phases';
 import { proposalOptions } from '../src/core/family/proposals';
-import { play, newGame } from '../src/core/game';
+import { apply, play, newGame } from '../src/core/game';
 import { findCharacter, getPlayer } from '../src/core/helpers';
 import { createCharacter } from '../src/core/hooks';
 import { acquaintanceLevel } from '../src/core/relations/acquaintance';
@@ -385,6 +385,20 @@ describe('proposals (D-313)', () => {
     expect(state.household).toEqual([bride.id]);
     expect(state.circle).not.toContain(bride.id);
     expect(proposalOptions(ctx, bride.id)).toEqual([]);
+    expect(checkInvariants(state, content)).toEqual([]);
+  });
+
+  it('with live time a match is offered and proposed while an action runs; the action goes on after the answer', () => {
+    const { state, ctx, hero, bride } = setup();
+    apply(state, content, { type: 'start', actionId: 'wait' });
+    expect(state.status).toBe('running');
+    expect(proposalOptions(ctx, bride.id)).toEqual([{ suitor: hero.id, target: bride.id }]);
+    apply(state, content, { type: 'propose', suitor: hero.id, target: bride.id });
+    expect(state.status).toBe('awaiting_choice');
+    apply(state, content, { type: 'choose', option: 0 });
+    expect(hero.spouse).toBe(bride.id);
+    expect(state.activeAction?.actionId).toBe('wait');
+    expect(state.status).toBe('running');
     expect(checkInvariants(state, content)).toEqual([]);
   });
 

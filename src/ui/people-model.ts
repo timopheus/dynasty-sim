@@ -72,7 +72,7 @@ const BARS: Record<string, string> = {
 function whyNotWed(ctx: Ctx, hero: Character, person: Character): string {
   const bar = marriageBar(ctx, hero, person);
   if (bar !== null) return BARS[bar] ?? 'not possible';
-  if (ctx.state.status !== 'awaiting_action') return 'not now';
+  if (ctx.state.status !== 'awaiting_action' && ctx.state.status !== 'running') return 'not now';
   return isNear(ctx.state, person.id) ? 'not possible now' : 'not near you';
 }
 

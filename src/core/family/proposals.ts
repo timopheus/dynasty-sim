@@ -39,12 +39,13 @@ function fits(ctx: Ctx, suitor: Character, target: Character): boolean {
 /**
  * Matches the player could propose to the person `id` and their family (4.1 contract, D-313): the hero or a child of
  * the hero near the hero, with the person or a child of theirs near the hero — both of age, unmarried, a man and a
- * woman, not close kin. Only while the player picks an action. A pure query: no randomness, no changes. The page
+ * woman, not close kin. While the player picks an action or one runs (live time, D-439): the answer is an event that
+ * stops the clock, and the action goes on after it. A pure query: no randomness, no changes. The page
  * (4.5) and the bot (4.6) call it.
  */
 export function proposalOptions(ctx: Ctx, id: string): ProposalOption[] {
   const { state, content } = ctx;
-  if (!content.family || state.status !== 'awaiting_action') return [];
+  if (!content.family || (state.status !== 'awaiting_action' && state.status !== 'running')) return [];
   const person = findCharacter(state, id);
   if (!person) return [];
   const near = nearPeople(ctx);

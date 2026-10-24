@@ -225,7 +225,7 @@ function render(session: Session): void {
     modal = outcomeWindow(outcome, heroId, heads, { text: '1. Continue', note: '', reason: '', reasonId: 'continue-reason', noteId: 'continue-note', attrs: { 'aria-keyshortcuts': '1' }, key: '1' }, go);
   } else if (screen) {
     modal = eventWindow(session, screen);
-  } else if (session.willOpen && form && state.status === 'awaiting_action') {
+  } else if (session.willOpen && form && (state.status === 'awaiting_action' || state.status === 'running')) {
     const close = () => { session.willOpen = false; session.focusAfterRender = true; rerender(); };
     modal = willWindow(form, (cmd) => { session.willOpen = false; void act(session, cmd); }, close);
     session.dismiss = close;
