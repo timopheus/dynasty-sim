@@ -84,6 +84,13 @@
 
 Запасные пути с тем же порядком: PixelLab (бесплатный уровень, картинка до 200×200), Scenario (бесплатный дневной лимит).
 
+## 8б. Retro Diffusion через API (для сессии, которая генерирует)
+Проверено 24.10 по `github.com/Retro-Diffusion/api-examples` (README); полный справочник — retrodiffusion.ai/app/guide/api.
+- Ключ: retrodiffusion.ai → Developer Tools → API Keys → «+» (начинается с `rdpk-`, не больше 5). В облачной сессии — переменная окружения `RD_API_KEY`, в чат не вставлять. Сеть сессии до `api.retrodiffusion.ai` открыта.
+- Запрос: `POST https://api.retrodiffusion.ai/v2/inferences`, заголовки `X-RD-Token` и `Idempotency-Key`; поля `prompt`, `prompt_style`, `width`, `height`, `num_images`, `seed`, `input_palette` (base64 палитры), `check_cost: true` — бесплатная проверка цены.
+- Модели и цена: RD Fast ~$0,03 (`rd_fast__portrait`, 64–384 px), RD Plus ~$0,06, RD Pro $0,18. Референсы (до 9) — только у RD Pro; поле input image на сайте — это img2img (перерисовка картинки), не референс стиля.
+- Бюджет пробы $0,50: около 16 картинок RD Fast. План: портрет 1 — 2 штуки с палитрой, проверка; потом портреты 2–5 по 2 штуки; остаток — на повтор неудачного.
+
 ## 9. Запросы
 Общий хвост каждого запроса:
 > pixel art portrait, 64x80 pixels, head and shoulders, strictly front-facing, looking at the viewer, neutral expression, single light source from the upper left, strong clustered shading in large flat planes, limited palette of 8 shades between dark sepia ink and warm cream paper, no dithering, no anti-aliasing, solid black background, early 18th century Europe, realistic proportions
