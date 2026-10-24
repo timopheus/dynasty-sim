@@ -2,5 +2,6 @@
 actions:
   - id: instant
     name: Instant
+    category: self
     duration: { min: 0, max: 0 }
     text: "{name} did nothing at all."

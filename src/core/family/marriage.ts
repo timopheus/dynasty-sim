@@ -1,5 +1,6 @@
 import { afterMarriage } from '../hooks';
 import type { Character, Ctx } from '../state';
+import { introduceKin } from './acquaint';
 import { logAboutHero, type Marriage } from './family';
 import { syncHousehold } from './household';
 import { canMarry } from './rules';
@@ -27,6 +28,7 @@ export function marry(ctx: Ctx, a: Character, b: Character): Marriage | null {
   const marriage = recordMarriage(ctx, a, b, state.day, () => {
     if (!heroMarries) return;
     syncHousehold(ctx);
+    introduceKin(ctx);
     const texts = content.family?.texts;
     if (texts) logAboutHero(ctx, 'marriage', texts.married, { other: a.id === hero ? b : a });
   });

@@ -2,6 +2,7 @@
 actions:
   - id: paint
     name: Paint
+    category: self
     duration: { min: 1, max: 2 }
     colour: red
     text: "{name} painted."

@@ -33,6 +33,10 @@ export const familySection: PersonSection = (ctx, c, level) => {
       const p = id === null ? null : anyCharacter(state, id);
       if (p) lines.push({ label: p.sex === 'male' ? 'Father' : 'Mother', parts: ref(p) });
     }
+    const siblings = allCharacters(state)
+      .filter((x) => x.id !== c.id && ((c.father !== null && x.father === c.father) || (c.mother !== null && x.mother === c.mother)))
+      .sort((x, y) => x.birthDay - y.birthDay || (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
+    if (siblings.length > 0) lines.push({ label: siblings.length === 1 ? (siblings[0]?.sex === 'male' ? 'Brother' : 'Sister') : 'Brothers and sisters', parts: list(siblings) });
     for (const m of allMarriages(state)) {
       if (m.a !== c.id && m.b !== c.id) continue;
       const spouse = anyCharacter(state, m.a === c.id ? m.b : m.a);

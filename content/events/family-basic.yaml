@@ -5,6 +5,7 @@
 actions:
   - id: seek_spouse
     name: Look for a spouse
+    category: family
     duration: { min: 20, max: 60 }
     when: { age_min: 16, married: false, money_min: 10, fit: true }
     effects: { money: -10 }
