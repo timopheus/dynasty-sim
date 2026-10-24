@@ -281,3 +281,21 @@ test('"New game" asks inside the page and starts another game', async ({ page })
   await expect(page.locator(GAME)).toHaveAttribute('data-seed', fresh ?? '');
   expect(problems).toEqual([]);
 });
+
+test('a window that opens under a still pointer shows no tip over its choices', async ({ page }) => {
+  const problems = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?seed=7');
+  const first = page.locator('.modal-layer .option button.choice').first();
+  await first.hover();
+  await expect(page.locator('#tooltip')).toBeVisible();
+  const title = await page.locator('.modal-title').textContent();
+  await first.click();
+  // the next scene is there, the pointer has not moved: nothing is explained over its choices
+  await expect(page.locator('.modal-title')).not.toHaveText(title ?? '');
+  await expect(page.locator('#tooltip')).toBeHidden();
+  // a real move over a choice does show the tip
+  await page.locator('.modal-layer .option button.choice').first().hover({ position: { x: 20, y: 10 } });
+  await expect(page.locator('#tooltip')).toBeVisible();
+  expect(problems).toEqual([]);
+});

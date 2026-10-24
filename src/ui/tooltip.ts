@@ -78,7 +78,10 @@ let mouse = { x: -1, y: -1 };
  */
 export function syncTip(): void {
   if (shownFor === null) return;
-  const target = holder(document.activeElement) ?? holder(document.elementFromPoint(mouse.x, mouse.y));
+  const title = shownFor.getAttribute(ATTR_TITLE);
+  // under a still pointer only the same thing keeps its tip: a new window must not answer for the old hover
+  const under = holder(document.elementFromPoint(mouse.x, mouse.y));
+  const target = holder(document.activeElement) ?? (under?.getAttribute(ATTR_TITLE) === title ? under : null);
   shownFor = null;
   if (target) show(target);
   else hideTip();
@@ -88,8 +91,13 @@ const holder = (t: EventTarget | null): HTMLElement | null => (t instanceof Elem
 
 /** Once per page: tooltips by delegation, so the panels that are drawn anew after each command need no wiring. */
 export function installTooltips(): void {
-  document.addEventListener('mousemove', (e) => { mouse = { x: e.clientX, y: e.clientY }; });
-  document.addEventListener('mouseover', (e) => { const t = holder(e.target); if (t) show(t); else hideTip(); });
+  // the pointer must really move: a window that opens under a still pointer shows no tip over its choices
+  document.addEventListener('mousemove', (e) => {
+    mouse = { x: e.clientX, y: e.clientY };
+    const t = holder(e.target);
+    if (t) show(t);
+    else hideTip();
+  });
   document.addEventListener('focusin', (e) => { const t = holder(e.target); if (t) show(t); else hideTip(); });
   document.addEventListener('focusout', hideTip);
   // a click did what the tip said: it must not lie over what the click opened
