@@ -44,7 +44,7 @@ describe('economy points (D-441)', () => {
     hero.money = 59;
     const short = conditionReport({ state, content }, hero, { can_afford: 'major' }, scope);
     expect(short.met).toBe(false);
-    expect(short.reasons).toEqual(['Requires 60 crowns.']);
+    expect(short.reasons).toEqual(['Requires 60 crowns']);
     hero.money = 60;
     expect(conditionReport({ state, content }, hero, { can_afford: 'major' }, scope).met).toBe(true);
   });

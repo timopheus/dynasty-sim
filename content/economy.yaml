@@ -12,4 +12,4 @@ economy:
     - { id: major, part: 4 }
     - { id: ruinous, part: 12 }
   reasons:
-    afford: "Requires {crowns} crowns."
+    afford: "Requires {crowns} crowns"

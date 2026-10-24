@@ -18,12 +18,18 @@ export function initEconomyState(): EconomyState {
   return { economy: { balance: null } };
 }
 
-/** Monthly reference income R of a character: by the status of their house, the lowest one without a house. */
-export function referenceIncome(content: Content, state: GameState, c: Character): number {
+/** Income of a status; the lowest status of the house (`house.statuses[0]`) when it is null or unknown. */
+function incomeOf(content: Content, status: string | null): number {
   const economy = content.economy;
   if (!economy) return 0;
-  const status = houseOf(state, c)?.status ?? null;
-  return (economy.income.find((i) => i.status === status) ?? economy.income[0])?.crowns ?? 0;
+  const lowest = content.house?.statuses[0]?.id ?? null;
+  const entry = economy.income.find((i) => i.status === status) ?? economy.income.find((i) => i.status === lowest) ?? economy.income[0];
+  return entry?.crowns ?? 0;
+}
+
+/** Monthly reference income R of a character: by the status of their house, the lowest one without a house. */
+export function referenceIncome(content: Content, state: GameState, c: Character): number {
+  return incomeOf(content, houseOf(state, c)?.status ?? null);
 }
 
 /** Crowns a price costs this character now; 0 without the key `economy`. Never consumes randomness. */
@@ -35,7 +41,7 @@ export function priceCrowns(content: Content, state: GameState, c: Character, re
 /** Crowns of a price at the lowest income, for those who see content without a game: the bots (D-247). */
 export function lowestCrowns(content: Content, ref: PriceRefValue): number {
   const economy = content.economy;
-  return economy ? crownsAt(economy, economy.income[0]?.crowns ?? 0, ref) : 0;
+  return economy ? crownsAt(economy, incomeOf(content, null), ref) : 0;
 }
 
 export const economyInvariants: Invariant = ({ state }) => {
