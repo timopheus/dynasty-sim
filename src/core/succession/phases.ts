@@ -11,6 +11,7 @@ import { int } from '../rng';
 import type { Character, Ctx, DayPhase, DeathHook } from '../state';
 import { fillTemplate, type TextPart } from '../text/text';
 import { ageYears } from '../time/calendar';
+import { timeContent } from '../time/seasons';
 import { isNear } from '../world/world';
 import { canGuard, heirOf, lawGuardian, lawOrder, widowOf, willGuardians, willHeirs, willItems, willReceivers, type HeirBasis } from './law';
 
@@ -263,7 +264,8 @@ export function willCommand(ctx: Ctx, order: WillOrder): void {
   const { state, content } = ctx;
   const pace = content.succession;
   if (!pace) throw new Error('Wills are not in the game yet');
-  if (state.status !== 'awaiting_action') throw new Error(`Cannot go to the notary while ${state.status}`);
+  // With live time the hero is nearly always busy (D-439): going to the notary changes the occupation, as `start` does.
+  if (state.status !== 'awaiting_action' && state.status !== 'running') throw new Error(`Cannot go to the notary while ${state.status}`);
   const reasons = willReasons(ctx) ?? [];
   if (reasons.length > 0) throw new Error(`Cannot make a will now: ${reasons.join('; ')}`);
   const hero = getPlayer(state);
@@ -280,6 +282,12 @@ export function willCommand(ctx: Ctx, order: WillOrder): void {
   }
   const action = content.actions.find((a) => a.id === pace.willAction);
   if (!action) throw new Error(`Unknown action "${pace.willAction}"`);
+  const current = state.activeAction;
+  if (current?.actionId === action.id) throw new Error('The hero is already at the notary');
+  // A change of occupation breaks off the one under way with a journal line, as `start` does; an idle life leaves none.
+  if (current && !content.actions.find((a) => a.id === current.actionId)?.idle) {
+    log(ctx, { subject: hero, kind: 'interrupt', level: 'journal', template: state.interruptRequest?.template ?? timeContent(content).texts.interrupted });
+  }
   const duration = int(state.rng, action.duration.min, action.duration.max);
   state.willDraft = { heir: order.heir, guardian: order.guardian, items: order.items.map((i) => ({ item: i.item, to: i.to })) };
   state.activeAction = { actionId: action.id, endDay: state.day + duration };

@@ -84,7 +84,8 @@ export function actionShelves(ctx: Ctx, will: WillForm | null): Panel {
     shelf?.buttons.push({ id: action.id, name: action.name, info: [daysText(action), ...moneyInfo(ctx, action)], grey: held !== '' || reasons.length > 0, reason: reasons.join('; ') });
   }
   if (will) {
-    const reasons = held ? [] : will.reasons;
+    const atNotary = underWay !== null && underWay === ctx.content.succession?.willAction;
+    const reasons = held ? [] : atNotary ? ['you are at the notary now'] : will.reasons;
     shelves.find((s) => s.category === 'family')?.buttons.push({
       id: WILL_ID, name: 'Draw up a will', info: ['at the notary', `${will.cost} crowns`], grey: held !== '' || reasons.length > 0, reason: reasons.join('; '),
     });

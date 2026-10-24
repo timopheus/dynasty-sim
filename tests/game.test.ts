@@ -200,7 +200,7 @@ describe('time moves only by wait (D-439)', () => {
     for (const days of [0, -1, 1.5, MAX_WAIT_DAYS + 1]) expect(() => apply(state, content, { type: 'wait', days })).toThrow(/wait takes/);
   });
 
-  it('while running, another start switches the action (S.6); a will or a proposal is still refused', () => {
+  it('while running, another start switches the action (S.6); a will and a proposal are taken too (live time)', () => {
     const content = realContent();
     const state = newGame(7, content);
     // through the backstory to the first action
@@ -211,10 +211,16 @@ describe('time moves only by wait (D-439)', () => {
     apply(state, content, { type: 'start', actionId: 'live' });
     expect(state.activeAction?.actionId).toBe('live');
     expect(state.status).toBe('running');
-    expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/Cannot go to the notary while running/);
-    expect(() => apply(state, content, { type: 'propose', suitor: hero, target: hero })).toThrow(/Cannot propose a marriage while running/);
+    // the status no longer refuses them (with live time the hero is nearly always busy): what refuses is the match itself
+    expect(() => apply(state, content, { type: 'propose', suitor: hero, target: hero })).toThrow(/No match can be proposed/);
     expect(() => apply(state, content, { type: 'choose', option: 0 })).toThrow(/while running/);
     expect(state.status).toBe('running');
+    getPlayer(state).money = 1000;
+    apply(state, content, { type: 'will', heir: null, guardian: null, items: [] });
+    expect(state.activeAction?.actionId).toBe(content.succession?.willAction);
+    expect(state.status).toBe('running');
+    expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/already at the notary/);
+    expect(checkInvariants(state, content)).toEqual([]);
   });
 
   it('the invariant catches a running game without an action, or with an event waiting', () => {
