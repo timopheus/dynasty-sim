@@ -397,7 +397,7 @@
 | S.11a | **[ведущая]** Точки подключения: культура и имя | `state.ts`, `hooks.ts` (хук создания — в конец), `content/schema.ts`, `game.ts` (команда `name`), `effects.ts` | ⬜ |
 | S.11 | Предыстория: пол, взросление, родина, имя | `src/core/backstory/`, `src/core/character/` (имена по культуре), `content/backstory/`, `content/cultures.yaml`, `content/names.yaml`, `src/ui/founder.ts`, `src/ui/portrait/` (возраст портрета в сцене) | ⬜ |
 | S.12 | Контент: события — из действий и мест | `content/events/*.yaml`, `content/actions.yaml` | ⬜ |
-| S.13 | Контент: суммы — в уровни; риск у вариантов | `content/events/*.yaml`, `content/*.yaml` (только суммы) | ⬜ |
+| S.13 | Контент: суммы — в уровни; риск у вариантов; порог крупной суммы и `bottom` рассказчика — в уровни (D-450) | `content/events/*.yaml`, `content/*.yaml` (только суммы) | ⬜ |
 | S.14 | После среза: несрочные письма — срок, «не ответил», очередь | `src/core/events/`, `src/core/narrator/`, `src/ui/news.ts` | ⬜ |
 | S.15 | После среза: главное меню (D-445) | `src/ui/` | ⬜ |
 | S.16 | После среза: вложенные подсказки, как в CK3, и подсказки на новых местах (державы, места) (D-444, D-448) | `src/ui/` | ⬜ |
