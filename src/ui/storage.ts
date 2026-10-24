@@ -111,6 +111,10 @@ function writeOps(state: GameState, journal: Journal, saved: Saved, contentVersi
     { kind: 'put', store: 'save', key: HOT, value: hotSave(state, contentVersion) },
   ];
   for (let i = saved.chunks; i < state.archive.length; i++) ops.push({ kind: 'add', store: 'chunks', key: i, value: chunkSave(state, i) });
+  // The clock glues each day to the `wait` before it (S.8): the last command saved may have grown since.
+  const last = saved.commands - 1;
+  const grown = journal.commands[last];
+  if (grown?.type === 'wait') ops.push({ kind: 'put', store: 'commands', key: last, value: JSON.stringify(grown) });
   for (let i = saved.commands; i < journal.commands.length; i++) ops.push({ kind: 'add', store: 'commands', key: i, value: JSON.stringify(journal.commands[i]) });
   return ops;
 }

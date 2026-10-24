@@ -7,6 +7,7 @@ import { applyRecorded, newJournal, type Journal } from '../src/core/save/journa
 import { SAVE_VERSION } from '../src/core/save/save';
 import type { GameState } from '../src/core/state';
 import { fromYmd, START_YEAR } from '../src/core/time/calendar';
+import { waitDay } from '../src/ui/clock-model';
 import { OLD_SAVE_KEY, dropOldSave, clearGame, loadGame, saveGame, startGame, type AsyncStore, type Saved, type StoreName, type StoreOp } from '../src/ui/storage';
 import { fixtureContent, realContent } from './fixtures/content';
 
@@ -86,6 +87,18 @@ describe('autosave in IndexedDB (D-234)', () => {
     expect(chunkWrites.map((op) => (op as { key: number }).key)).toEqual(state.archive.map((_, i) => i));
     await clearGame(store);
     expect(await loadGame(store, content, 'v1')).toEqual({ kind: 'none' });
+  }, 30_000);
+
+  it('keeps a wait the clock glued days to after it was saved (S.8): the journal loads as it is played', async () => {
+    const store = fakeStore();
+    const { state, journal, saved } = await play(store, content, 8, 1);
+    while (state.status !== 'awaiting_action') applyRecorded(journal, state, content, botCommand(state, content, seedRng(8, 2)));
+    applyRecorded(journal, state, content, { type: 'start', actionId: 'live' });
+    for (let i = 0; i < 3 && state.status === 'running'; i++) waitDay(journal, state, content);
+    expect(await saveGame(store, state, journal, saved, 'v1')).toEqual({ ok: true });
+    for (let i = 0; i < 3 && state.status === 'running'; i++) waitDay(journal, state, content);
+    expect(await saveGame(store, state, journal, saved, 'v1')).toEqual({ ok: true });
+    expect(await loadGame(store, content, 'v1')).toMatchObject({ kind: 'loaded', journal: { commands: journal.commands } });
   }, 30_000);
 
   it('writes a whole transaction or nothing: a failed write keeps the previous save and what is counted as saved', async () => {

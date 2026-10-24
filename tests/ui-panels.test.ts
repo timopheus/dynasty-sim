@@ -58,6 +58,12 @@ describe('where I am', () => {
     const action = content.actions[0]!;
     state.activeAction = { actionId: action.id, endDay: state.day + 8 };
     expect(whereView(ctx)).toEqual({ heading: action.name, line: '8 days left', actions: [], ended: false });
+    // time runs: the other actions are offered for a change of occupation (S.6, S.8), the one under way is not
+    state.status = 'running';
+    const offered = whereView(ctx).actions.map((a) => a.id);
+    expect(offered.length).toBeGreaterThan(0);
+    expect(offered).not.toContain(action.id);
+    state.status = 'awaiting_action';
     state.activeAction = { actionId: action.id, endDay: state.day + 1 };
     expect(whereView(ctx).line).toBe('1 day left');
   });

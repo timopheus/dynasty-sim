@@ -11,7 +11,10 @@ export interface WhereView {
   heading: string;
   /** A line under it: how long, or what the hero may do. */
   line: string;
-  /** The actions the player may start now; empty while something else (an event, the backstory) holds the hero. */
+  /**
+   * The actions the player may start now, also while one is under way (a change of occupation, S.6) but for that one;
+   * empty while something else (an event, the backstory) holds the hero.
+   */
   actions: ActionRow[];
   /** The house is over: nothing more can be done. */
   ended: boolean;
@@ -32,7 +35,9 @@ export function whereView(ctx: Ctx): WhereView {
   const active = state.activeAction;
   if (active) {
     const name = content.actions.find((a) => a.id === active.actionId)?.name ?? active.actionId;
-    return { heading: name, line: daysLeft(Math.max(0, active.endDay - state.day)), actions: [], ended: false };
+    const switchable = state.status === 'running' && !state.pendingEvent;
+    const actions = switchable ? actionRows(ctx).filter((a) => a.id !== active.actionId) : [];
+    return { heading: name, line: daysLeft(Math.max(0, active.endDay - state.day)), actions, ended: false };
   }
   const free = state.status === 'awaiting_action' && !state.pendingEvent;
   return {

@@ -26,7 +26,26 @@
   text-align: center;
 }
 
-.clock-soon {
+.clock-button.current {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.clock-toggle {
+  min-width: 4.5rem;
+}
+
+.clock-state {
+  font-size: 0.875rem;
+}
+
+.clock.decision .clock-state,
+.clock.idle .clock-state,
+.clock.paused .clock-state {
+  font-weight: bold;
+}
+
+.clock-keys {
   color: var(--muted);
   font-size: 0.75rem;
 }
@@ -42,7 +61,7 @@
     align-items: flex-end;
   }
 
-  .clock-soon {
+  .clock-keys {
     display: none;
   }
 }

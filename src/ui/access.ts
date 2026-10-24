@@ -3,7 +3,7 @@ import type { ActionRow } from './event';
 
 /**
  * Phone and accessibility rules of the screen as pure functions (D-248, D-262): nothing is reachable by hover only,
- * choices have number keys, grey choices say why in text, new events and chronicle lines are announced.
+ * choices of a window have number keys, grey choices say why in text, new events and chronicle lines are announced.
  * No DOM here, so tests import it without a browser.
  */
 
@@ -60,8 +60,8 @@ export interface Control {
   key: string | null;
 }
 
-export function control(prefix: string, position: number, name: string, note: string, grey: boolean, reason: string): Control {
-  const key = shortcutKey(position);
+export function control(prefix: string, position: number, name: string, note: string, grey: boolean, reason: string, keyed = true): Control {
+  const key = keyed ? shortcutKey(position) : null;
   const reasonId = `${prefix}-${position}-reason`;
   const noteId = `${prefix}-${position}-note`;
   const attrs: Record<string, string> = {};
@@ -85,9 +85,12 @@ export function plainLabel(label: readonly TextPart[]): string {
   return partsText(label);
 }
 
-/** One action as a button; its duration is text beside the name, not a hover title. */
+/**
+ * One action as a button; its duration is text beside the name, not a hover title. No digit key: without a window the
+ * digits pick the speed of the clock (D-448).
+ */
 export function actionControl(a: ActionRow, position: number): Control {
-  return control('action', position, a.name, a.days, a.grey, a.reason);
+  return control('action', position, a.name, a.days, a.grey, a.reason, false);
 }
 
 /** Positions of the choices a key can pick: grey ones are skipped by the handler, not hidden. */

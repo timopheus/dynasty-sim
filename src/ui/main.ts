@@ -3,7 +3,7 @@ import { entryText } from '../core/chronicle/log';
 import { loadContent } from '../core/content/load';
 import type { Content } from '../core/content/schema';
 import { eventView } from '../core/events/view';
-import { MAX_WAIT_DAYS, newGame, timeRuns, type Command } from '../core/game';
+import { newGame, type Command } from '../core/game';
 import { getPlayer } from '../core/helpers';
 import { isValidSeed } from '../core/rng';
 import { contentVersion } from '../core/save/content-version';
@@ -15,6 +15,7 @@ import { entityIdFromHash } from './address';
 import { avatarPanel } from './avatar';
 import { choiceNode } from './choice';
 import { clockPanel } from './clock';
+import { clockMode, idleAction, isPauseKey, newClock, SAVE_EVERY_DAYS, speedForKey, tick, tickMs, type Clock, type Speed } from './clock-model';
 import { confirmWindow, willWindow } from './dialogs';
 import { el } from './dom';
 import { headIds } from './entry';
@@ -119,6 +120,11 @@ interface Session {
   willOpen: boolean;
   /** The unpinned window on screen can be closed with Escape: what that does. */
   dismiss: (() => void) | null;
+  /** A window is on screen: the clock stands and the digits answer it (D-448). */
+  windowOpen: boolean;
+  /** The time player (S.8): speed, pause, days since the last save; the timer of the next day. */
+  clock: Clock;
+  timer: ReturnType<typeof setTimeout> | null;
 }
 
 function saveProblemText(outcome: SaveOutcome): string | null {
@@ -221,14 +227,13 @@ function render(session: Session): void {
   if (!(session.willOpen && form)) session.willOpen = false;
 
   const where = whereView(ctx);
-  const keymap: (null | (() => void))[] = [];
   const centre = wherePanel({
     view: where,
     onStart: (actionId) => { void act(session, { type: 'start', actionId }); },
     onWill: form && state.status === 'awaiting_action' ? () => { session.willOpen = true; session.focusAfterRender = true; rerender(); } : null,
-    keymap,
   });
-  if (!modal) session.keymap = keymap;
+  session.windowOpen = modal !== null;
+  const mode = clockMode(state, session.clock, session.windowOpen);
 
   const notices: HTMLElement[] = [];
   if (session.notice) {
@@ -261,7 +266,14 @@ function render(session: Session): void {
     ...sidebar,
     header,
     el('main', { className: 'center', id: 'center' }, ...notices, centre, latelyPanel(allChronicle(state), hero.id, heads)),
-    clockPanel(formatDate(state.day)),
+    clockPanel({
+      date: formatDate(state.day),
+      mode,
+      speed: session.clock.speed,
+      canPlay: mode === 'paused' || (mode === 'idle' && idleAction(state, content) !== null),
+      onToggle: () => { void togglePause(session); },
+      onSpeed: (speed) => setSpeed(session, speed),
+    }),
     avatarPanel(ctx, () => openProfile(session)));
   // the menu stays reachable under a pinned window: "New game" must work whatever is pending
   if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar, .avatar')) part.inert = true;
@@ -279,6 +291,127 @@ function render(session: Session): void {
     session.focusAfterRender = false;
     (modal ? modalHeading(modal) : app?.querySelector<HTMLElement>('#where-heading'))?.focus({ preventScroll: false });
   }
+  schedule(session);
+}
+
+/** A mouse button is down: a redraw now would swallow the click, so the clock waits for it to come up. */
+let pointerHeld = false;
+window.addEventListener('pointerdown', () => { pointerHeld = true; }, true);
+for (const type of ['pointerup', 'pointercancel', 'blur'] as const) window.addEventListener(type, () => { pointerHeld = false; }, true);
+
+/** A CSS path of an element inside `#app` by tags and classes, to find its new copy after a redraw. */
+function pathOf(node: Element): string {
+  const parts: string[] = [];
+  for (let n: Element | null = node; n && n !== app; n = n.parentElement) {
+    parts.unshift([n.tagName.toLowerCase(), ...[...n.classList].map((c) => CSS.escape(c))].join('.'));
+  }
+  return parts.join(' > ');
+}
+
+/**
+ * A redraw of a day of the clock that the player did not ask for: the focus and the scroll of the panels stay where
+ * they were, so time running never throws the reader or the keyboard back to the top.
+ */
+function keepView(redraw: () => void): void {
+  if (!app) return redraw();
+  const focusables = () => [...app.querySelectorAll<HTMLElement>('button, a[href], [tabindex]')];
+  const active = document.activeElement instanceof HTMLElement && app.contains(document.activeElement) ? document.activeElement : null;
+  const key = active?.getAttribute('data-focus') ?? null;
+  const id = active?.id || null;
+  const index = active ? focusables().indexOf(active) : -1;
+  const label = active?.textContent ?? '';
+  const scrolled = [...app.querySelectorAll('*')].filter((n) => n.scrollTop > 0).map((n) => ({ path: pathOf(n), top: n.scrollTop }));
+  redraw();
+  for (const { path, top } of scrolled) {
+    const node = app.querySelector(path);
+    if (node) node.scrollTop = top;
+  }
+  if (!active || document.activeElement !== document.body) return;
+  const again = (key ? app.querySelector<HTMLElement>(`[data-focus="${CSS.escape(key)}"]`) : null)
+    ?? (id ? document.getElementById(id) : null)
+    ?? focusables().find((n, i) => i === index && n.textContent === label)
+    ?? null;
+  again?.focus({ preventScroll: true });
+}
+
+/** Sets the timer of the next day while time runs, clears it when it does not; a running timer is left alone. */
+function schedule(session: Session): void {
+  const mode = clockMode(session.state, session.clock, session.windowOpen);
+  if (mode !== 'running') {
+    if (session.timer !== null) clearTimeout(session.timer);
+    session.timer = null;
+    return;
+  }
+  if (session.timer === null) session.timer = setTimeout(() => { void runDay(session); }, tickMs(session.clock.speed));
+}
+
+/** Saves now (D-439: on a decision, on pause, every 30 days); the next command waits for the write (D-234). */
+async function saveNow(session: Session): Promise<void> {
+  session.saveProblem = saveProblemText(await saveGame(session.store, session.state, session.journal, session.saved, session.contentVersion));
+  session.clock.unsaved = 0;
+}
+
+/** One day of the clock: `wait 1`, the idle action again if it ended, a stop on a decision. */
+async function runDay(session: Session): Promise<void> {
+  session.timer = null;
+  if (current !== session) return;
+  if (clockMode(session.state, session.clock, session.windowOpen) !== 'running') return;
+  if (session.busy || pointerHeld) {
+    schedule(session);
+    return;
+  }
+  session.busy = true;
+  try {
+    const seen = allChronicle(session.state).length;
+    const stopped = tick(session.journal, session.state, session.content);
+    session.clock.unsaved += 1;
+    const lines = allChronicle(session.state).slice(seen).filter((e) => e.level === 'chronicle').map(entryText);
+    session.queue.push(chronicleAnnouncement(lines));
+    if (stopped || session.clock.unsaved >= SAVE_EVERY_DAYS) await saveNow(session);
+    if (stopped) {
+      session.focusAfterRender = true;
+      render(session);
+    } else {
+      keepView(() => render(session));
+    }
+  } finally {
+    session.busy = false;
+  }
+  schedule(session);
+}
+
+/** "Play"/"Pause" and Space (D-448): pause saves (D-439); play with nothing to do starts living as one wills. */
+async function togglePause(session: Session): Promise<void> {
+  if (session.busy) return;
+  const { state, content, clock } = session;
+  const mode = clockMode(state, clock, session.windowOpen);
+  if (mode === 'running') {
+    clock.paused = true;
+    session.busy = true;
+    try {
+      await saveNow(session);
+    } finally {
+      session.busy = false;
+    }
+    render(session);
+  } else if (mode === 'paused') {
+    clock.paused = false;
+    render(session);
+  } else if (mode === 'idle') {
+    const live = idleAction(state, content);
+    if (live === null) return;
+    clock.paused = false;
+    await act(session, { type: 'start', actionId: live });
+  }
+}
+
+/** A speed button or 1/2/3 (D-448): the new pace, and time goes on if it was paused. */
+function setSpeed(session: Session, speed: Speed): void {
+  session.clock.speed = speed;
+  session.clock.paused = false;
+  if (session.timer !== null) clearTimeout(session.timer);
+  session.timer = null;
+  render(session);
 }
 
 /** The avatar opens the hero's profile in the side panel, even from a page of someone else or with the panel folded. */
@@ -292,8 +425,9 @@ function openProfile(session: Session): void {
 }
 
 /**
- * Applies a command, then autosaves (D-016): one save after every command. The screen changes only once the write is
- * done, and no command is taken meanwhile (D-234): a reload never shows a choice that was not saved.
+ * Applies a command of the player, then autosaves (D-016): a command is a decision, and the game saves on every
+ * decision (D-439). The screen changes only once the write is done, and no command is taken meanwhile (D-234): a
+ * reload never shows a choice that was not saved. Time runs on afterwards by the clock, never here (S.8).
  */
 async function act(session: Session, cmd: Command): Promise<void> {
   if (session.busy) return;
@@ -313,13 +447,10 @@ async function act(session: Session, cmd: Command): Promise<void> {
       const outcome = outcomeOf(ctx, before);
       session.outcome = outcome ? { outcome, heroId: before.hero.id } : null;
     }
-    // Only `wait` moves time (D-439): the outcome above is taken before it, so it is exact. Until the clock (S.8) the
-    // days then run on to the next decision at once, as one step.
-    if (timeRuns(session.state)) applyRecorded(session.journal, session.state, session.content, { type: 'wait', days: MAX_WAIT_DAYS });
     // new chronicle lines go to the live region first, the event window follows in render()
     const lines = allChronicle(session.state).slice(seen).filter((e) => e.level === 'chronicle').map(entryText);
     session.queue.push(chronicleAnnouncement(lines));
-    session.saveProblem = saveProblemText(await saveGame(session.store, session.state, session.journal, session.saved, session.contentVersion));
+    await saveNow(session);
     render(session);
   } finally {
     session.busy = false;
@@ -336,6 +467,9 @@ async function startSession(session: Session, seed: number): Promise<void> {
   session.journal = newJournal(seed, session.contentVersion);
   session.outcome = null;
   session.willOpen = false;
+  if (session.timer !== null) clearTimeout(session.timer);
+  session.timer = null;
+  session.clock = newClock(false);
   session.sidebar.trail = [];
   session.sidebar.tab = null;
   session.sidebar.tabFor = null;
@@ -382,6 +516,8 @@ async function boot(content: Content, version: string): Promise<void> {
     journal: loadedGame?.journal ?? newJournal(state.seed, version), saved: loadedGame?.saved ?? { game: '', chunks: 0, commands: 0 }, busy: false, lostJournal: null,
     notice: null, saveProblem: null, sidebar: newSidebarState(!window.matchMedia(NARROW).matches || entityIdFromHash(location.hash) !== null),
     menuOpen: false, outcome: null, question: null, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false, dismiss: null,
+    // a game continued after a reload starts paused: the player picks it up himself
+    windowOpen: false, clock: newClock(loadedGame !== null), timer: null,
   };
   current = session;
   if (choice === 'continue' || choice === 'ask_replace') {
@@ -435,7 +571,22 @@ window.addEventListener('keydown', (e) => {
     }
     return;
   }
-  const position = shortcutPosition({ key: e.key, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey, repeat: e.repeat, target: (e.target as HTMLElement | null)?.tagName });
+  const target = (e.target as HTMLElement | null)?.tagName;
+  if (isPauseKey({ key: e.key, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey, repeat: e.repeat, target })) {
+    e.preventDefault();
+    void togglePause(current);
+    return;
+  }
+  // digits answer a window when one is open (D-263), else pick the speed of the clock (D-448)
+  if (!current.windowOpen) {
+    const speed = shortcutPosition({ key: e.key, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey, repeat: e.repeat, target }) === null ? null : speedForKey(e.key);
+    if (speed !== null) {
+      e.preventDefault();
+      setSpeed(current, speed);
+    }
+    return;
+  }
+  const position = shortcutPosition({ key: e.key, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey, repeat: e.repeat, target });
   if (position === null) return;
   const picked = pickableAt(current.keymap.map((c) => ({ grey: c === null })), position);
   const command = picked === null ? null : current.keymap[picked];
