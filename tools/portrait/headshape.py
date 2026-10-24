@@ -1,4 +1,5 @@
-"""Head shape by code (constructor probe): the sides of the head — the outline, the ear and the outer cheek — are moved
+"""REJECTED (24.10): kept only as a record of the failed trial — head shapes are drawn by RD, not by code.
+Head shape by code (constructor probe): the sides of the head — the outline, the ear and the outer cheek — are moved
 out or in row by row as a whole, so neither the ear nor the outline is stretched; the gap next to the band of the
 features is filled with the cheek tone at its edge, and on narrowing the inner cheek is what disappears. The eyes,
 nose and mouth stay exactly on the mannequin's anchors; the palette is untouched. A profile gives, for each
