@@ -128,8 +128,10 @@ test('"New game" asks inside the page and starts another game', async ({ page })
   const problems = watch(page);
   await page.goto('/?seed=1&dev=1');
   await expect(page.locator(GAME)).toHaveAttribute('data-seed', '1');
-  // play a turn, so the old game has a past
+  // play a turn, so the old game has a past; wait for its line, or the snapshot may miss it
+  const lately = (await page.locator(LATELY).textContent()) ?? '';
   await (await choices(page)).first().click();
+  await expect(page.locator(LATELY)).not.toHaveText(lately);
   const before = await snapshot(page);
 
   await page.getByRole('button', { name: /Menu/ }).click();
