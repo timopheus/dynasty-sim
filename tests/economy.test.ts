@@ -115,20 +115,22 @@ describe('monthly balance (S.7)', () => {
 
   const total = (s: ReturnType<typeof setup>) => monthlyBalance(s.ctx, s.hero).total;
 
-  it('a single commoner: +8 in service; with no income, only costs (live is S.6)', () => {
+  it('a single commoner: +8 in service, 0 living, only costs without income', () => {
     expect(total(setup('serve_contract'))).toBe(8);
-    expect(total(setup('live'))).toBe(-7);
+    expect(total(setup('live'))).toBe(0);
     expect(total(setup('hunt'))).toBe(-1);
     expect(total(setup('travel'))).toBe(-7);
   });
 
-  it('a commoner with a wife and two children: +3 in service, −12 with no income', () => {
+  it('a commoner with a wife and two children: +3 in service, −5 living, −12 with no income', () => {
     const served = setup('serve_contract');
     family(served);
     expect(total(served)).toBe(3);
     expect(monthlyBalance(served.ctx, served.hero).lines.map((l) => [l.id, l.amount])).toEqual([['work', 15], ['living', -7], ['spouse', -3], ['children', -2]]);
     const idle = setup('trade');
     family(idle);
+    idle.state.activeAction = { actionId: 'live', endDay: idle.state.day + 100 };
+    expect(total(idle)).toBe(-5);
     idle.state.activeAction = null;
     expect(total(idle)).toBe(-12);
   });
