@@ -214,7 +214,9 @@ export const narratorPhase: DayPhase = {
     }
 
     // 3. The chance of the day, by the length of the action (D-168).
-    if (!chancePer(state.rng, long ? (pace.longActionChancePer10k ?? pace.eventChancePer10k) : pace.eventChancePer10k, 10000)) return false;
+    const idle = findAction(ctx.content, active.actionId).idle === true;
+    const chance = idle ? (pace.idleChancePer10k ?? pace.eventChancePer10k) : long ? (pace.longActionChancePer10k ?? pace.eventChancePer10k) : pace.eventChancePer10k;
+    if (!chancePer(state.rng, chance, 10000)) return false;
 
     // 4. Events of open stories first, then the deck.
     const { deck, stories } = candidates(ctx, pace, hero, bottom);
