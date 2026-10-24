@@ -128,8 +128,10 @@ test('"New game" asks inside the page and starts another game', async ({ page })
   const problems = watch(page);
   await page.goto('/?seed=1&dev=1');
   await expect(page.locator(GAME)).toHaveAttribute('data-seed', '1');
-  // play a turn, so the old game has a past
+  // play a turn, so the old game has a past; the screen redraws after the save, so wait for it as the turns test does
+  const shown = await page.locator('#app').innerText();
   await (await choices(page)).first().click();
+  await expect.poll(async () => page.locator('#app').innerText(), { timeout: 10_000 }).not.toBe(shown);
   const before = await snapshot(page);
 
   await page.getByRole('button', { name: /Menu/ }).click();
