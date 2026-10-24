@@ -30,6 +30,15 @@ describe('the actions panel (D-443)', () => {
     expect(panel.shelves[0]?.buttons.map((b) => b.id)).toContain('hunt');
   });
 
+  it('greys the will while the hero is at the notary (D-453)', () => {
+    const ctx = free(30);
+    getPlayer(ctx.state).money = 1000;
+    ctx.state.activeAction = { actionId: content.succession?.willAction ?? 'notary', endDay: ctx.state.day + 5 };
+    ctx.state.status = 'running';
+    const will = actionShelves(ctx, willForm(ctx.state, content)).shelves.flatMap((s) => s.buttons).find((b) => b.id === WILL_ID);
+    expect(will).toMatchObject({ grey: true, reason: 'you are at the notary now' });
+  });
+
   it('puts the will on the shelf Family & house, as a button of the interface', () => {
     const ctx = free(30);
     const family = actionShelves(ctx, willForm(ctx.state, content)).shelves.find((s) => s.category === 'family');

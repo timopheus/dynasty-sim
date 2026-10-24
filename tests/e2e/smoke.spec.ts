@@ -100,8 +100,8 @@ for (const seed of SEEDS) {
       if (turn === Math.floor(TURNS / 2)) await shot(page, seed, '2-middle');
     }
 
-    // the turns may come faster than a day of the clock (S.8: a day a second, and a new occupation starts its day
-    // anew), so let time run a little before the date is checked
+    // the turns may come faster than a day of the clock (S.8: a day a second, and every window it stops for starts
+    // the day anew), so let time run a little before the date is checked
     await letTimeRun(page, start.date);
     await standStill(page);
     const end = await snapshot(page);

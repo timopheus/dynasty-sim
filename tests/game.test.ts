@@ -223,6 +223,20 @@ describe('time moves only by wait (D-439)', () => {
     expect(checkInvariants(state, content)).toEqual([]);
   });
 
+  it('going to the notary breaks off a busy action with a journal line, as start does (D-453)', () => {
+    const content = realContent();
+    const state = newGame(7, content);
+    while (state.status === 'awaiting_choice') apply(state, content, { type: 'choose', option: firstOption(state, content) });
+    apply(state, content, { type: 'start', actionId: 'rest' });
+    getPlayer(state).money = 1000;
+    const lines = state.chronicle.length;
+    apply(state, content, { type: 'will', heir: null, guardian: null, items: [] });
+    expect(state.chronicle.length).toBe(lines + 1);
+    expect(state.chronicle.at(-1)).toMatchObject({ kind: 'interrupt', level: 'journal' });
+    expect(state.willDraft).not.toBeNull();
+    expect(checkInvariants(state, content)).toEqual([]);
+  });
+
   it('the invariant catches a running game without an action, or with an event waiting', () => {
     const content = fixtureNarrator({ eventChancePer10k: 0 });
     const state = newGame(1, content);
