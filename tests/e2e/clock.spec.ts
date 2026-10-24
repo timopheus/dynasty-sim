@@ -16,8 +16,16 @@ function watch(page: Page): string[] {
 
 const date = async (page: Page) => (await page.locator(DATE).textContent()) ?? '';
 
+/** Where "Play"/"Pause" is on screen: it must not move under the cursor whatever the clock says. */
+const toggleBox = async (page: Page) => {
+  const box = await page.locator(TOGGLE).boundingBox();
+  return box ? { x: Math.round(box.x), y: Math.round(box.y), width: Math.round(box.width) } : null;
+};
+
 /** Answers the scenes of the backstory with their first choice, until the hero is free to act. */
 async function growUp(page: Page): Promise<void> {
+  // a new game opens on the first scene of the backstory; wait for it, the page draws after the store is read
+  await expect(page.locator('.modal.event')).toBeVisible();
   for (let i = 0; i < 40 && (await page.locator('.modal-layer').count()) > 0; i++) {
     const shown = await page.locator('#app').innerText();
     await page.locator('.modal-layer .option button.choice').first().click();
@@ -39,6 +47,8 @@ test('"Play" moves the date, an event stops the clock; keys pick speed, answer a
   expect(actions.length).toBeGreaterThan(0);
   for (const a of actions) expect(a).not.toMatch(/^\d\./);
   await page.screenshot({ path: 'out/e2e/clock-1-idle-1440.png' });
+  const place = await toggleBox(page);
+  expect(place).not.toBeNull();
 
   // 3 → ×5 without a window
   await page.locator('#where-heading').focus();
@@ -52,11 +62,15 @@ test('"Play" moves the date, an event stops the clock; keys pick speed, answer a
   await expect.poll(() => date(page), { timeout: 10_000 }).not.toBe(before);
   await expect(page.locator(CLOCK)).toHaveClass(/\brunning\b/);
   await expect(page.locator(TOGGLE)).toHaveText('Pause');
+  expect(await toggleBox(page), 'the button moved when time began to run').toEqual(place);
   await page.screenshot({ path: 'out/e2e/clock-2-running-1440.png' });
 
   // an event with a choice comes, and the clock stands
   await expect(page.locator('.modal.event')).toBeVisible({ timeout: 120_000 });
   await expect(page.locator(CLOCK)).toHaveClass(/\bdecision\b/);
+  expect(await toggleBox(page), 'the button moved when the clock stopped').toEqual(place);
+  // a window holds the clock: the speeds wait for the answer
+  await expect(page.locator('.clock .speed').first()).toBeDisabled();
   const stopped = await date(page);
   await page.waitForTimeout(1500);
   expect(await date(page), 'the date moved under an event').toBe(stopped);
@@ -74,14 +88,43 @@ test('"Play" moves the date, an event stops the clock; keys pick speed, answer a
     await expect.poll(async () => (await page.locator('.modal-layer').count()) === 0 || (await page.locator('.modal-layer').innerText()) !== text).toBe(true);
   }
 
-  // Space pauses (focus on a heading, not a button); a pause saves, so a reload continues on the same day
-  if (!(await page.locator(CLOCK).getAttribute('class'))?.includes('running')) {
-    await page.locator(TOGGLE).click();
-    await expect(page.locator(CLOCK)).toHaveClass(/\brunning\b/);
+  // the clock's buttons keep the focus when pressed from the keyboard
+  if ((await page.locator('.modal-layer').count()) === 0) {
+    await page.locator('.clock .speed').nth(1).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.clock .speed.current')).toHaveText('×2');
+    await expect(page.locator('.clock .speed').nth(1)).toBeFocused();
+    if ((await page.locator(CLOCK).getAttribute('class'))?.includes('running')) {
+      await page.locator(TOGGLE).focus();
+      await page.keyboard.press('Enter');
+      await expect(page.locator(CLOCK)).not.toHaveClass(/\brunning\b/);
+      if ((await page.locator('.modal-layer').count()) === 0) await expect(page.locator(TOGGLE)).toBeFocused();
+    }
   }
-  await page.locator('#where-heading').focus();
-  await page.keyboard.press(' ');
-  await expect(page.locator(CLOCK)).toHaveClass(/\bpaused\b|\bdecision\b|\bidle\b/);
+
+  // Space pauses (focus on a heading, not a button); a pause saves, so a reload continues on the same day. An event may
+  // come in between: answer it and try again.
+  for (let i = 0; i < 10; i++) {
+    if ((await page.locator('.modal-layer').count()) > 0) {
+      const text = await page.locator('.modal-layer').innerText();
+      await page.locator('.modal-layer button.choice').first().click();
+      await expect.poll(async () => (await page.locator('.modal-layer').count()) === 0 || (await page.locator('.modal-layer').innerText()) !== text).toBe(true);
+      continue;
+    }
+    if (!(await page.locator(CLOCK).getAttribute('class'))?.includes('running')) {
+      await page.locator(TOGGLE).click();
+      await page.waitForTimeout(300);
+      continue;
+    }
+    await page.locator('#where-heading').focus();
+    await page.keyboard.press(' ');
+    await page.waitForTimeout(300);
+    if ((await page.locator(CLOCK).getAttribute('class'))?.includes('paused')) break;
+  }
+  await expect(page.locator(CLOCK)).toHaveClass(/\bpaused\b/);
+  await expect(page.locator('.modal-layer')).toHaveCount(0);
+  expect(await toggleBox(page), 'the button moved on pause').toEqual(place);
+
   const paused = await date(page);
   await page.waitForTimeout(1000);
   expect(await date(page), 'the date moved while paused').toBe(paused);

@@ -5,14 +5,15 @@ import type { GameState } from '../core/state';
 
 /**
  * The autosave in IndexedDB (D-234, D-339): the hot part, the chunks of the archive and the journal of commands
- * (D-202). The hot part is rewritten after every command; a chunk and a command are written once, by number, and
- * never again. One write is one transaction: all of it lands or none (a crash, a second tab). Nothing here touches
- * the DOM; tests pass a fake store.
+ * (D-202). The hot part is rewritten on every write; a chunk and a command are written once, by number, and never
+ * again, but for the last command saved: the clock glues days to a `wait` (S.8), so a saved `wait` may be rewritten
+ * as it grows. One write is one transaction: all of it lands or none (a crash, a second tab). Nothing here touches the
+ * DOM; tests pass a fake store.
  */
 
 /**
- * `save` holds the hot part (`hot`), the head of the journal (`journal`) and the mark of the game (`game`); `chunks` and
- * `commands` are by number, from 0 without gaps.
+ * `save` holds the hot part (`hot`), the head of the journal (`journal`) and the stamp of the game (`game`); `chunks`
+ * and `commands` are by number, from 0 without gaps.
  */
 export type StoreName = 'save' | 'chunks' | 'commands';
 
@@ -38,7 +39,8 @@ export interface AsyncStore {
 
 /**
  * Which game the store holds and how much of its archive and journal: what the next write leaves out. `game` is the
- * mark a new game writes; a write checks it, so a tab that still plays a replaced game never writes into the new one.
+ * stamp this tab last wrote (`gameStamp`: the mark of the game, the count and the last command); a write checks it,
+ * so a tab that still plays a replaced game, or that another tab has written past, never writes over it.
  */
 export interface Saved {
   game: string;
@@ -102,19 +104,30 @@ function failure(error: unknown): SaveOutcome {
 }
 
 /**
- * What a write puts in: the check of the game, the hot part, then the chunks and the commands made since `saved`.
- * Throws on a state that is not plain JSON.
+ * The stamp of the game after a write (D-339): its mark, how many commands the journal has and the last of them. Every
+ * write checks the stamp it last saw and leaves a new one, so a tab that wrote nothing since another tab wrote, even a
+ * glued `wait` alone (S.8), is refused. A save made before the stamp is the bare mark: it reads as such.
+ */
+export function gameStamp(saved: Saved, journal: Journal): string {
+  const mark = saved.game.split('|')[0] ?? '';
+  return `${mark}|${journal.commands.length}|${JSON.stringify(journal.commands.at(-1) ?? null)}`;
+}
+
+/**
+ * What a write puts in: the check and the new stamp of the game, the hot part, the last saved `wait` if the clock has
+ * glued days to it since (S.8), then the chunks and the commands made since `saved`. Throws on a state that is not
+ * plain JSON.
  */
 function writeOps(state: GameState, journal: Journal, saved: Saved, contentVersion: string): StoreOp[] {
   const ops: StoreOp[] = [
     { kind: 'expect', store: 'save', key: GAME, value: saved.game },
+    { kind: 'put', store: 'save', key: GAME, value: gameStamp(saved, journal) },
     { kind: 'put', store: 'save', key: HOT, value: hotSave(state, contentVersion) },
   ];
-  for (let i = saved.chunks; i < state.archive.length; i++) ops.push({ kind: 'add', store: 'chunks', key: i, value: chunkSave(state, i) });
-  // The clock glues each day to the `wait` before it (S.8): the last command saved may have grown since.
   const last = saved.commands - 1;
   const grown = journal.commands[last];
   if (grown?.type === 'wait') ops.push({ kind: 'put', store: 'commands', key: last, value: JSON.stringify(grown) });
+  for (let i = saved.chunks; i < state.archive.length; i++) ops.push({ kind: 'add', store: 'chunks', key: i, value: chunkSave(state, i) });
   for (let i = saved.commands; i < journal.commands.length; i++) ops.push({ kind: 'add', store: 'commands', key: i, value: JSON.stringify(journal.commands[i]) });
   return ops;
 }
@@ -142,6 +155,7 @@ async function write(store: AsyncStore | null, ops: () => StoreOp[]): Promise<Sa
 export async function saveGame(store: AsyncStore | null, state: GameState, journal: Journal, saved: Saved, contentVersion: string): Promise<SaveOutcome> {
   const outcome = await write(store, () => writeOps(state, journal, saved, contentVersion));
   if (outcome.ok) {
+    saved.game = gameStamp(saved, journal);
     saved.chunks = state.archive.length;
     saved.commands = journal.commands.length;
   }
@@ -162,6 +176,7 @@ export async function startGame(store: AsyncStore | null, state: GameState, jour
     ...writeOps(state, journal, saved, contentVersion),
   ]);
   if (outcome.ok) {
+    saved.game = gameStamp(saved, journal);
     saved.chunks = state.archive.length;
     saved.commands = journal.commands.length;
   }

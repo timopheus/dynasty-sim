@@ -66,12 +66,17 @@ for (const seed of SEEDS) {
       const before = await page.locator('#app').innerText();
       // round-robin, not random: a failure replays. Time runs (S.8): an event may cover the button just picked, so
       // the buttons are read again then.
-      for (let attempt = 0; attempt < 5; attempt++) {
+      let clicked = false;
+      for (let attempt = 0; attempt < 5 && !clicked; attempt++) {
         const now = await choices(page);
         const n = await now.count();
-        if (n === 0) continue;
-        if (await now.nth(turn % n).click({ timeout: 3_000 }).then(() => true, () => false)) break;
+        if (n === 0) {
+          await page.waitForTimeout(500);
+          continue;
+        }
+        clicked = await now.nth(turn % n).click({ timeout: 3_000 }).then(() => true, () => false);
       }
+      expect(clicked, `turn ${String(turn)}: no button could be pressed in five tries`).toBe(true);
       const moved = await expect.poll(async () => page.locator('#app').innerText(), { timeout: 10_000 }).not.toBe(before).then(() => true, () => false);
       // console errors first: they are the cause when the screen stays put
       expect(problems, `errors after turn ${String(turn)}`).toEqual([]);

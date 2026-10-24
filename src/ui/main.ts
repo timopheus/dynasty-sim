@@ -393,10 +393,10 @@ async function togglePause(session: Session): Promise<void> {
     } finally {
       session.busy = false;
     }
-    render(session);
+    keepView(() => render(session));
   } else if (mode === 'paused') {
     clock.paused = false;
-    render(session);
+    keepView(() => render(session));
   } else if (mode === 'idle') {
     const live = idleAction(state, content);
     if (live === null) return;
@@ -411,7 +411,8 @@ function setSpeed(session: Session, speed: Speed): void {
   session.clock.paused = false;
   if (session.timer !== null) clearTimeout(session.timer);
   session.timer = null;
-  render(session);
+  // the focus stays on the button pressed (or wherever it was, for a key)
+  keepView(() => render(session));
 }
 
 /** The avatar opens the hero's profile in the side panel, even from a page of someone else or with the panel folded. */
