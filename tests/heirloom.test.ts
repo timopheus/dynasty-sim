@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { conditionReport, type When } from '../src/core/condition-keys';
 import { entryText } from '../src/core/chronicle/log';
 import { applyEffects, type Effects } from '../src/core/effects';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { heirloomById, heldBy, livingHeirlooms } from '../src/core/heirloom/heirloom';
 import { checkInvariants } from '../src/core/invariants';
@@ -262,9 +262,9 @@ describe('the change of head', () => {
     expect(form.items).toEqual([{ id, label: 'Dawn', to: null }]);
     expect(form.receivers.map((c) => c.id)).toContain(son.id);
     expect(form.receivers.map((c) => c.id)).not.toContain(stranger.id);
-    expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [{ item: 'i999', to: son.id }] })).toThrow(/not a thing/);
-    expect(() => apply(state, content, { type: 'will', heir: null, guardian: null, items: [{ item: id, to: stranger.id }] })).toThrow(/cannot receive/);
-    apply(state, content, { type: 'will', heir: null, guardian: null, items: [{ item: id, to: son.id }] });
+    expect(() => play(state, content, { type: 'will', heir: null, guardian: null, items: [{ item: 'i999', to: son.id }] })).toThrow(/not a thing/);
+    expect(() => play(state, content, { type: 'will', heir: null, guardian: null, items: [{ item: id, to: stranger.id }] })).toThrow(/cannot receive/);
+    play(state, content, { type: 'will', heir: null, guardian: null, items: [{ item: id, to: son.id }] });
     expect((state.willDraft ?? state.will)?.items).toEqual([{ item: id, to: son.id }]);
   });
 
@@ -281,7 +281,7 @@ describe('the change of head', () => {
     }
     expect(found).not.toBeNull();
     expect(found).toMatchObject({ items: [{ item: id }] });
-    expect(() => apply(state, content, found!)).not.toThrow();
+    expect(() => play(state, content, found!)).not.toThrow();
     expect(willCommandOf('', '', [{ item: id, to: '' }])).toEqual({ type: 'will', heir: null, guardian: null, items: [] });
     expect(willCommandOf('', '', [{ item: id, to: son.id }])).toMatchObject({ items: [{ item: id, to: son.id }] });
   });

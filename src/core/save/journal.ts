@@ -1,5 +1,5 @@
 import type { Content } from '../content/schema';
-import { apply, newGame, type Command } from '../game';
+import { apply, MAX_WAIT_DAYS, newGame, timeRuns, type Command } from '../game';
 import type { GameState } from '../state';
 
 /**
@@ -16,7 +16,8 @@ export interface Journal {
   commands: Command[];
 }
 
-export const JOURNAL_VERSION = 1;
+/** 2: time moves only by `wait` (D-439); a journal of format 1 has no waits and would play another game. */
+export const JOURNAL_VERSION = 2;
 
 export function newJournal(seed: number, contentVersion: string): Journal {
   return { journal: JOURNAL_VERSION, seed, content: contentVersion, commands: [] };
@@ -26,6 +27,12 @@ export function newJournal(seed: number, contentVersion: string): Journal {
 export function applyRecorded(journal: Journal, state: GameState, content: Content, cmd: Command): void {
   apply(state, content, cmd);
   journal.commands.push(cmd);
+}
+
+/** `play` recorded: the command, then a recorded `wait` until the next decision if time runs. */
+export function playRecorded(journal: Journal, state: GameState, content: Content, cmd: Command): void {
+  applyRecorded(journal, state, content, cmd);
+  if (timeRuns(state)) applyRecorded(journal, state, content, { type: 'wait', days: MAX_WAIT_DAYS });
 }
 
 /** The game the journal records, played again from the seed. Throws when a command is refused. */
@@ -41,7 +48,7 @@ export function replay(content: Content, journal: Journal): GameState {
   return state;
 }
 
-const COMMAND_TYPES: readonly string[] = ['start', 'choose', 'end', 'will', 'propose'];
+const COMMAND_TYPES: readonly string[] = ['start', 'choose', 'wait', 'end', 'will', 'propose'];
 
 export type JournalResult = { ok: true; journal: Journal } | { ok: false; message: string };
 

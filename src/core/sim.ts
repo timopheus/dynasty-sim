@@ -2,7 +2,7 @@ import { botCommand } from './bot';
 import { BOT_STREAMS, type BotCharacter } from './bots/characters';
 import { formatDate, fromYmd, START_YEAR, toYmd } from './time/calendar';
 import type { Content } from './content/schema';
-import { apply, newGame } from './game';
+import { apply, MAX_WAIT_DAYS, newGame, timeRuns } from './game';
 import { checkInvariants } from './invariants';
 import type { GameState } from './state';
 import { seedRng } from './rng';
@@ -44,10 +44,13 @@ export function runSim(content: Content, { seed, years, bot = 'random' }: SimOpt
     if (cmd.type === 'start') choices[`action/${cmd.actionId}`] = (choices[`action/${cmd.actionId}`] ?? 0) + 1;
     else if (cmd.type === 'choose' && key) choices[`${key}/${cmd.option}`] = (choices[`${key}/${cmd.option}`] ?? 0) + 1;
     apply(state, content, cmd);
+    // A started action and its days are one step, as before D-439: invariants are checked once per decision.
+    const waited = cmd.type === 'wait' || timeRuns(state);
+    if (cmd.type !== 'wait' && timeRuns(state)) apply(state, content, { type: 'wait', days: MAX_WAIT_DAYS });
     steps += 1;
-    // A choice may leave time where it was (another page, a scene, the first action to pick); an action may not.
+    // Only `wait` moves time (D-439), and it always does; other commands leave it where it was.
     if (state.day > prevDay) still = 0;
-    else if (cmd.type === 'start') violations.push(`step ${steps}: time did not advance from day ${prevDay}`);
+    else if (waited) violations.push(`step ${steps}: time did not advance from day ${prevDay}`);
     else if (++still > MAX_STEPS_WITHOUT_TIME) violations.push(`step ${steps}: ${still} choices in a row without time moving from day ${prevDay}`);
     for (const v of checkInvariants(state, content)) violations.push(`step ${steps}, ${formatDate(state.day)}: ${v}`);
   }

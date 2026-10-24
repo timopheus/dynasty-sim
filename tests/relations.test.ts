@@ -4,7 +4,7 @@ import { entryText } from '../src/core/chronicle/log';
 import { conditionReport, conditionRoleRefs, type When } from '../src/core/condition-keys';
 import { applyEffects, effectRoleRefs, type Effects } from '../src/core/effects';
 import { chooseOption, fireEvent, findEvent, optionState } from '../src/core/events/events';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
 import { createCharacter, kill } from '../src/core/lifecycle';
@@ -41,7 +41,7 @@ const ctxOf = (state: GameState): Ctx => ({ state, content });
 /** A game after the first day, so the circle exists; returns the hero and two people of the circle with set traits. */
 function setup(seed = 3): { state: GameState; ctx: Ctx; hero: Character; x: Character; y: Character } {
   const state = newGame(seed, content);
-  apply(state, content, { type: 'start', actionId: 'rest' });
+  play(state, content, { type: 'start', actionId: 'rest' });
   state.acquaintances.length = 0;
   const ctx = ctxOf(state);
   const [x, y] = state.circle.map((id) => state.characters.find((c) => c.id === id) as Character);
@@ -343,7 +343,7 @@ describe('acquaintance', () => {
   it('runs once a week of the game, on its own, in the day loop', () => {
     const { state, hero } = setup();
     const start = state.day;
-    while (state.day < start + 70) apply(state, content, { type: 'start', actionId: 'rest' });
+    while (state.day < start + 70) play(state, content, { type: 'start', actionId: 'rest' });
     const weeks = Math.floor(state.day / 7) - Math.floor(start / 7);
     const mine = state.acquaintances.filter((a) => a.holder === hero.id);
     expect(mine.length).toBeGreaterThan(0);
@@ -372,7 +372,7 @@ describe('a long game', () => {
     const bot = seedRng(11, 1);
     const end = fromYmd(START_YEAR + 60, 1, 1);
     while (state.day < end) {
-      apply(state, content, botCommand(state, content, bot));
+      play(state, content, botCommand(state, content, bot));
       expect(checkInvariants(state, content)).toEqual([]);
     }
     const heroes = new Set(state.acquaintances.map((a) => a.holder));
@@ -387,7 +387,7 @@ describe('a long game', () => {
     const run = () => {
       const state = newGame(4, content);
       const bot = seedRng(4, 1);
-      while (state.day < fromYmd(START_YEAR + 15, 1, 1)) apply(state, content, botCommand(state, content, bot));
+      while (state.day < fromYmd(START_YEAR + 15, 1, 1)) play(state, content, botCommand(state, content, bot));
       return state.acquaintances;
     };
     expect(run()).toEqual(run());
@@ -404,7 +404,7 @@ const eventContent = loadOrThrow([
 
 function eventGame(seed = 3) {
   const state = newGame(seed, eventContent);
-  apply(state, eventContent, { type: 'start', actionId: 'rest' });
+  play(state, eventContent, { type: 'start', actionId: 'rest' });
   state.acquaintances.length = 0;
   const ctx: Ctx = { state, content: eventContent };
   const hero = getPlayer(state);
@@ -615,7 +615,7 @@ describe('events with relations over a long game', () => {
     const state = newGame(seed, long);
     const bot = seedRng(seed, 1);
     while (state.day < fromYmd(START_YEAR + 40, 1, 1)) {
-      apply(state, long, botCommand(state, long, bot));
+      play(state, long, botCommand(state, long, bot));
       expect(checkInvariants(state, long)).toEqual([]);
     }
     return state;

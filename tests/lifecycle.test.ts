@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { interruptAction } from '../src/core/actions/actions';
 import { unmetConditions } from '../src/core/condition-keys';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
 import { createCharacter, kill } from '../src/core/lifecycle';
@@ -27,7 +27,7 @@ describe('hook points', () => {
   it('interrupts the hero action and hands control back to the player', () => {
     const content = fixtureNarrator({ eventChancePer10k: 10000 });
     const state = newGame(1, content);
-    apply(state, content, { type: 'start', actionId: 'wait' });
+    play(state, content, { type: 'start', actionId: 'wait' });
     expect(state.status).toBe('awaiting_choice');
     interruptAction({ state, content });
     expect(state.status).toBe('awaiting_action');

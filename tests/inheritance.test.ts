@@ -20,7 +20,7 @@ import { isStoryOpen } from '../src/core/stories/stories';
 import { readContentFiles } from '../tools/content-files';
 import { BASE_FILES, loadOrThrow } from './fixtures/content';
 import { fireEvent, findEvent } from '../src/core/events/events';
-import { apply } from '../src/core/game';
+import { play } from '../src/core/game';
 
 /** Base, population, the trait set, the succession and house fixtures and the opinions of 4.8; the stories fixture adds the events. */
 const loaded = loadOrThrow([
@@ -223,7 +223,7 @@ describe('stories and follow-ups pass to the heir', () => {
     const accuser = circleMember(s.ctx);
     s.ctx.state.circle.push(person(s.ctx, 30).id);
     expect(fireEvent(s.ctx, findEvent(content, 'accusation'), s.hero, {})).toBe('waiting');
-    apply(s.state, content, { type: 'choose', option: 0 });
+    play(s.state, content, { type: 'choose', option: 0 });
     return { ...s, accuser: s.ctx.state.characters.find((c) => c.id === s.state.openStories[0]!.given.accuser) ?? accuser };
   }
 
@@ -245,7 +245,7 @@ describe('stories and follow-ups pass to the heir', () => {
     const { ctx, state, hero, son } = withSon();
     circleMember(ctx);
     expect(fireEvent(ctx, findEvent(content, 'challenge'), hero, {})).toBe('waiting');
-    apply(state, content, { type: 'choose', option: 0 });
+    play(state, content, { type: 'choose', option: 0 });
     const rival = state.followups[0]!.given.rival;
     kill(ctx, hero, 'fever');
     expect(state.followups).toMatchObject([{ eventId: 'duel', protagonist: son.id, given: { rival }, offered: null }]);
@@ -256,7 +256,7 @@ describe('stories and follow-ups pass to the heir', () => {
     const { ctx, state, hero } = withSon();
     circleMember(ctx);
     expect(fireEvent(ctx, findEvent(content, 'challenge'), hero, {})).toBe('waiting');
-    apply(state, content, { type: 'choose', option: 0 });
+    play(state, content, { type: 'choose', option: 0 });
     state.followups[0]!.offered = state.day;
     state.lastFired.duel = state.day;
     kill(ctx, hero, 'fever');
@@ -277,7 +277,7 @@ describe('stories and follow-ups pass to the heir', () => {
     const { ctx, state, hero, son } = withSon();
     circleMember(ctx);
     expect(fireEvent(ctx, findEvent(content, 'accusation'), hero, {})).toBe('waiting');
-    apply(state, content, { type: 'choose', option: 0 });
+    play(state, content, { type: 'choose', option: 0 });
     state.openStories[0]!.given = { accuser: son.id };
     kill(ctx, hero, 'fever');
     expect(state.openStories).toEqual([]);
@@ -287,7 +287,7 @@ describe('stories and follow-ups pass to the heir', () => {
     const { ctx, state, hero } = setup();
     circleMember(ctx);
     expect(fireEvent(ctx, findEvent(content, 'accusation'), hero, {})).toBe('waiting');
-    apply(state, content, { type: 'choose', option: 0 });
+    play(state, content, { type: 'choose', option: 0 });
     kill(ctx, hero, 'fever');
     expect(state.status).toBe('ended');
     expect(checkInvariants(state, content)).toEqual([]);

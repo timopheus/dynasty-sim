@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { kill } from '../src/core/lifecycle';
 import { personPage } from '../src/core/pages/person';
@@ -22,7 +22,7 @@ const content = loadOrThrow([
 
 function setup(seed = 3): { state: GameState; ctx: Ctx; hero: Character; x: Character; y: Character } {
   const state = newGame(seed, content);
-  apply(state, content, { type: 'start', actionId: 'rest' });
+  play(state, content, { type: 'start', actionId: 'rest' });
   state.acquaintances.length = 0;
   const [x, y] = state.circle.map((id) => state.characters.find((c) => c.id === id) as Character);
   return { state, ctx: { state, content }, hero: getPlayer(state), x: x as Character, y: y as Character };

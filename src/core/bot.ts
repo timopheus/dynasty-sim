@@ -7,7 +7,7 @@ import type { Content } from './content/schema';
 import { pendingEventDef } from './events/events';
 import { sceneOf, type OptionDef } from './events/content';
 import { eventView } from './events/view';
-import type { Command } from './game';
+import { MAX_WAIT_DAYS, type Command } from './game';
 import { proposalOptions } from './family/proposals';
 import { chancePer, pick, type RngState } from './rng';
 import type { Ctx, GameState } from './state';
@@ -90,6 +90,8 @@ export function botCommand(state: GameState, content: Content, rng: RngState, ch
     });
     return { type: 'choose', option: best.index };
   }
+  // An action under way: let the days pass until the next decision, as the old `start` did (D-439).
+  if (state.status === 'running') return { type: 'wait', days: MAX_WAIT_DAYS };
   const house = houseCommand(ctx, rng);
   if (house) return house;
   const actions = availableActions(ctx);

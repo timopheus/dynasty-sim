@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { botCommand } from '../src/core/bot';
 import type { Content } from '../src/core/content/schema';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
 import { createCharacter, kill } from '../src/core/lifecycle';
@@ -133,7 +133,7 @@ describe('the will (D-314, D-360)', () => {
     const younger = child(ctx, hero, 'male', 18);
     hero.money = 50;
     const day = state.day;
-    apply(state, quiet, { type: 'will', heir: younger.id, guardian: null, items: [] });
+    play(state, quiet, { type: 'will', heir: younger.id, guardian: null, items: [] });
     expect(state.day).toBe(day + 5);
     expect(state.will).toEqual({ day: day + 5, heir: younger.id, guardian: null, items: [], stale: false });
     expect(state.willDraft).toBeNull();
@@ -150,7 +150,7 @@ describe('the will (D-314, D-360)', () => {
     const elder = child(ctx, hero, 'male', 20);
     const younger = child(ctx, hero, 'male', 18);
     state.circle.push(elder.id);
-    apply(state, quiet, { type: 'will', heir: younger.id, guardian: null, items: [] });
+    play(state, quiet, { type: 'will', heir: younger.id, guardian: null, items: [] });
     kill(ctx, hero, 'natural');
     expect(state.playerId).toBe(younger.id);
     expect(state.chronicle.at(-1)).toMatchObject({ kind: 'succession', parts: [{ id: younger.id }, ' took over by the will of ', { id: hero.id }, '.'] });
@@ -164,7 +164,7 @@ describe('the will (D-314, D-360)', () => {
     const { state, ctx, hero } = setup();
     const elder = child(ctx, hero, 'male', 20);
     const younger = child(ctx, hero, 'male', 18);
-    apply(state, quiet, { type: 'will', heir: younger.id, guardian: null, items: [] });
+    play(state, quiet, { type: 'will', heir: younger.id, guardian: null, items: [] });
     kill(ctx, younger, 'natural');
     expect(state.will).toMatchObject({ heir: null, stale: true });
     expect(state.chronicle.at(-1)).toMatchObject({ kind: 'will', level: 'journal' });
@@ -176,7 +176,7 @@ describe('the will (D-314, D-360)', () => {
   it('a child born after the will makes it out of date', () => {
     const { state, ctx, hero } = setup();
     child(ctx, hero, 'male', 20);
-    apply(state, quiet, { type: 'will', heir: null, guardian: null, items: [] });
+    play(state, quiet, { type: 'will', heir: null, guardian: null, items: [] });
     const baby = child(ctx, hero, 'female', 0);
     state.day += 1;
     baby.birthDay = state.day;
@@ -189,7 +189,7 @@ describe('the will (D-314, D-360)', () => {
     const { state, ctx, hero } = setup();
     const son = child(ctx, hero, 'male', 20);
     hero.money = 50;
-    apply(state, quiet, { type: 'will', heir: son.id, guardian: null, items: [] });
+    play(state, quiet, { type: 'will', heir: son.id, guardian: null, items: [] });
     const signed = structuredClone(state.will);
     const money = hero.money;
     willCommand(ctx, { heir: null, guardian: null, items: [] });
@@ -210,12 +210,12 @@ describe('the will (D-314, D-360)', () => {
     const { state, ctx, hero } = setup();
     const stranger = person(ctx, 'male', 30);
     hero.money = 5;
-    expect(() => apply(state, quiet, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/Cannot make a will/);
+    expect(() => play(state, quiet, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/Cannot make a will/);
     hero.money = 50;
-    expect(() => apply(state, quiet, { type: 'will', heir: stranger.id, guardian: null, items: [] })).toThrow(/not of the kin/);
+    expect(() => play(state, quiet, { type: 'will', heir: stranger.id, guardian: null, items: [] })).toThrow(/not of the kin/);
     hero.birthDay = state.day - 365 * 10;
     expect(willForm(state, quiet)?.reasons.length).toBeGreaterThan(0);
-    expect(() => apply(state, quiet, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/Cannot make a will/);
+    expect(() => play(state, quiet, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/Cannot make a will/);
     expect(state.willDraft).toBeNull();
     expect(state.activeAction).toBeNull();
   });
@@ -229,7 +229,7 @@ describe('the will (D-314, D-360)', () => {
     hero.money = 50;
     hero.conditions.push({ id: 'mortal', stage: 'fatal', start: state.day } as (typeof hero.conditions)[number]);
     expect(willForm(state, sick)?.reasons).toEqual(['Too ill']);
-    expect(() => apply(state, sick, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/Too ill/);
+    expect(() => play(state, sick, { type: 'will', heir: null, guardian: null, items: [] })).toThrow(/Too ill/);
     expect(botCommand(state, sick, seedRng(1, 7))).not.toMatchObject({ type: 'will' });
   });
 
@@ -248,7 +248,7 @@ describe('the guardian (D-314, D-362)', () => {
     state.household.push(son.id);
     const friend = person(ctx, 'male', 40);
     state.circle.push(friend.id);
-    apply(state, quiet, { type: 'will', heir: null, guardian: friend.id, items: [] });
+    play(state, quiet, { type: 'will', heir: null, guardian: friend.id, items: [] });
     expect(state.will?.guardian).toBe(friend.id);
     kill(ctx, hero, 'natural');
     expect(state.playerId).toBe(son.id);
@@ -372,7 +372,7 @@ describe('the end of the house (D-315)', () => {
     const { state, hero } = setup();
     state.pendingEvent = { eventId: 'ping', protagonist: hero.id, scope: { hero: hero.id, protagonist: hero.id }, seq: 0, page: null, lines: [], money: 0, mark: false, important: false, after: [{ day: state.day, subject: hero.id, kind: 'relation', level: 'chronicle', parts: ['held back'] }] };
     state.status = 'awaiting_choice';
-    apply(state, quiet, { type: 'end' });
+    play(state, quiet, { type: 'end' });
     expect(state.chronicle.slice(-2).map((e) => e.kind)).toEqual(['relation', 'house_end']);
     expect(state.status).toBe('ended');
   });

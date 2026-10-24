@@ -3,7 +3,7 @@ import { entryText } from '../src/core/chronicle/log';
 import { loadContent } from '../src/core/content/load';
 import type { Content } from '../src/core/content/schema';
 import { eventWeight, findEvent, fireEvent } from '../src/core/events/events';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
 import { createCharacter, kill } from '../src/core/lifecycle';
@@ -37,7 +37,7 @@ function game(n = 2, c: Content = content): { ctx: Ctx; hero: Character; people:
 /** Fires the event for the hero and answers its first option. */
 function answer(ctx: Ctx, id: string, option = 0): void {
   expect(fireEvent(ctx, findEvent(ctx.content, id), getPlayer(ctx.state))).toBe('waiting');
-  apply(ctx.state, ctx.content, { type: 'choose', option });
+  play(ctx.state, ctx.content, { type: 'choose', option });
 }
 
 const texts = (ctx: Ctx) => ctx.state.chronicle.map((e) => entryText(e));
@@ -48,11 +48,11 @@ describe('follow-ups', () => {
     answer(ctx, 'challenge');
     const rival = ctx.state.followups[0]?.given.rival;
     expect(ctx.state.followups).toMatchObject([{ eventId: 'duel', dueDay: 5, given: { rival } }]);
-    apply(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
+    play(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
     expect(ctx.state.day).toBe(5);
     expect(ctx.state.pendingEvent).toMatchObject({ eventId: 'duel', scope: { rival } });
     expect(checkInvariants(ctx.state, ctx.content)).toEqual([]);
-    apply(ctx.state, ctx.content, { type: 'choose', option: 0 });
+    play(ctx.state, ctx.content, { type: 'choose', option: 0 });
     expect(ctx.state.followups).toEqual([]);
     expect(texts(ctx).some((t) => t.includes('fought a duel with'))).toBe(true);
   });
@@ -71,7 +71,7 @@ describe('follow-ups', () => {
     answer(ctx, 'challenge');
     const rival = ctx.state.characters.find((c) => c.id === ctx.state.followups[0]?.given.rival)!;
     kill(ctx, rival, 'fever');
-    apply(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
+    play(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
     expect(ctx.state.status).toBe('awaiting_action');
     expect(ctx.state.followups).toEqual([]);
     const line = ctx.state.chronicle.find((e) => e.kind === 'followup_cancelled');
@@ -97,7 +97,7 @@ describe('follow-ups', () => {
     answer(ctx, 'slow_accusation', 1);
     expect(ctx.state.followups).toMatchObject([{ eventId: 'errand', protagonist: hero.id, dueDay: 2, given: {} }]);
     const money = hero.money;
-    apply(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
+    play(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
     expect(hero.money).toBe(money + 2 + 1);
   });
 
@@ -109,7 +109,7 @@ describe('follow-ups', () => {
     storiesPhase.run(ctx);
     expect(dueEvents(ctx)).toEqual([{ eventId: 'duel', protagonist: hero.id, given: { rival: people[0]!.id } }]);
     expect(narratorPhase.run(ctx)).toBe(true);
-    apply(ctx.state, ctx.content, { type: 'choose', option: 0 });
+    play(ctx.state, ctx.content, { type: 'choose', option: 0 });
     // The next day the first one is gone and the second one is due.
     expect(ctx.state.pendingEvent).toMatchObject({ eventId: 'duel', scope: { rival: people[1]!.id } });
     expect(ctx.state.day).toBe(1);
@@ -119,11 +119,11 @@ describe('follow-ups', () => {
     const { ctx } = game(3);
     answer(ctx, 'challenge');
     const loaded = deserialize(serialize(ctx.state), content);
-    apply(ctx.state, content, { type: 'start', actionId: 'wait' });
-    apply(loaded, content, { type: 'start', actionId: 'wait' });
+    play(ctx.state, content, { type: 'start', actionId: 'wait' });
+    play(loaded, content, { type: 'start', actionId: 'wait' });
     expect(loaded.pendingEvent).toEqual(ctx.state.pendingEvent);
-    apply(ctx.state, content, { type: 'choose', option: 0 });
-    apply(loaded, content, { type: 'choose', option: 0 });
+    play(ctx.state, content, { type: 'choose', option: 0 });
+    play(loaded, content, { type: 'choose', option: 0 });
     expect(serialize(loaded)).toBe(serialize(ctx.state));
   });
 });
@@ -156,7 +156,7 @@ describe('stories', () => {
     expect(ctx.state.pendingEvent?.eventId).toBe('feud_settled');
     // The story event from the deck comes with the people of the story (D-178).
     expect(ctx.state.pendingEvent?.scope.accuser).toBe(accuser);
-    apply(ctx.state, c, { type: 'choose', option: 0 });
+    play(ctx.state, c, { type: 'choose', option: 0 });
     expect(isStoryOpen(ctx.state, hero.id, 'feud')).toBe(false);
     expect(storyWeight(run, 'feud', hero.id)).toBe(0);
   });
@@ -178,14 +178,14 @@ describe('stories', () => {
     // Every day rolls an event, but the deck holds nothing else: the story event falls the day the story opens.
     const events = ctx.content.events.filter((e) => e.id !== 'ping');
     const c = { ...ctx.content, events, narrator: { ...ctx.content.narrator!, eventChancePer10k: 10000, eventRepeatCooldownDays: 1000 } };
-    apply(ctx.state, c, { type: 'start', actionId: 'wait' });
+    play(ctx.state, c, { type: 'start', actionId: 'wait' });
     expect(ctx.state.day).toBe(3);
     expect(ctx.state.pendingEvent?.eventId).toBe('feud_settled');
-    apply(ctx.state, c, { type: 'choose', option: 0 });
+    play(ctx.state, c, { type: 'choose', option: 0 });
     expect(isStoryOpen(ctx.state, hero.id, 'feud')).toBe(false);
     for (let i = 0; i < 3 && ctx.state.day < 40; i++) {
-      if (ctx.state.status === 'awaiting_choice') apply(ctx.state, c, { type: 'choose', option: 0 });
-      else apply(ctx.state, c, { type: 'start', actionId: 'wait' });
+      if (ctx.state.status === 'awaiting_choice') play(ctx.state, c, { type: 'choose', option: 0 });
+      else play(ctx.state, c, { type: 'start', actionId: 'wait' });
     }
     expect(texts({ ...ctx, content: c }).some((t) => t.includes('forgot the quarrel'))).toBe(false);
   });
@@ -194,8 +194,8 @@ describe('stories', () => {
     const { ctx, hero } = game();
     answer(ctx, 'accusation');
     const accuser = ctx.state.openStories[0]!.given.accuser;
-    apply(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
-    apply(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
+    play(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
+    play(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
     expect(isStoryOpen(ctx.state, hero.id, 'feud')).toBe(false);
     // feud_fades needs a fortune; feud_forgotten is a quiet notice with the same accuser.
     const line = ctx.state.chronicle.find((e) => entryText(e).includes('forgot the quarrel'));
@@ -211,8 +211,8 @@ describe('stories', () => {
     answer(ctx, 'accusation');
     kill(ctx, ctx.state.characters.find((c) => c.id === ctx.state.openStories[0]!.given.accuser)!, 'fever');
     const before = ctx.state.chronicle.length;
-    apply(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
-    apply(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
+    play(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
+    play(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
     expect(isStoryOpen(ctx.state, hero.id, 'feud')).toBe(false);
     expect(ctx.state.chronicle.slice(before).some((e) => /quarrel|peace/.test(entryText(e)))).toBe(false);
     expect(ctx.state.lastFired).not.toHaveProperty('feud_forgotten');
@@ -242,7 +242,7 @@ describe('a person of the world (3.9)', () => {
     expect(f.given.offender).not.toBe(f.protagonist);
     const [actor, offender] = [f.protagonist, f.given.offender!].map((id) => ctx.state.characters.find((c) => c.id === id)!);
     const money = [actor!.money, offender!.money];
-    apply(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
+    play(ctx.state, ctx.content, { type: 'start', actionId: 'wait' });
     expect(ctx.state.status).toBe('awaiting_action');
     expect(ctx.state.followups).toEqual([]);
     expect([actor!.money, offender!.money]).toEqual([money[0]! + 7, money[1]! - 7]);

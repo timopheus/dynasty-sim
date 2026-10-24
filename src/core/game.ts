@@ -1,7 +1,8 @@
 /**
  * Assembly file (D-052): new game, player commands and the day loop. The player
- * picks an action with a duration, then time runs day by day through the phases
- * of DAY_PHASES until a decision is needed.
+ * picks an action with a duration; time runs day by day through the phases of
+ * DAY_PHASES only on the command `wait` (D-439), up to its number of days or
+ * until a decision is needed.
  */
 import { actionEndPhase, startAction } from './actions/actions';
 import { archivePhase } from './archive/phases';
@@ -25,11 +26,13 @@ import { worldOnNewGame, worldPhase } from './world/phases';
 
 /**
  * Player commands. `end`: the player ends the house (D-315). `will`: a will at the notary (D-236, D-314; succession/).
- * `propose`: a proposal of marriage from the page of a person (D-313; family/).
+ * `propose`: a proposal of marriage from the page of a person (D-313; family/). `wait`: lets up to `days` days pass,
+ * stopping earlier at a decision (D-439); no other command moves time.
  */
 export type Command =
   | { type: 'start'; actionId: string }
   | { type: 'choose'; option: number }
+  | { type: 'wait'; days: number }
   | { type: 'end' }
   | ({ type: 'will' } & WillOrder)
   | ({ type: 'propose' } & ProposeOrder);
@@ -77,11 +80,14 @@ export function newGame(seed: number, content: Content): GameState {
   return state;
 }
 
+/** Most days one `wait` may let pass: a hundred years. `play` waits this long, i.e. until the next decision. */
+export const MAX_WAIT_DAYS = 36525;
+
 /**
- * Applies a player command and runs time forward to the next decision. Mutates state. After a choice the days run
- * only if no choice waits any more and the hero has an action: the next page of an event and the scenes of the
- * backstory wait for the player without time passing; a choice that ends an event lets the after-choice hooks start
- * the next scene of the backstory; without an action (or the hero's death inside the choice) the player picks one.
+ * Applies a player command. Mutates state. Only `wait` moves time (D-439): `start` and `will` begin an action and
+ * leave the game `running`; a choice that ends an event lets the after-choice hooks start the next scene of the
+ * backstory, then the game is `running` if the hero still has an action, else it waits for one (also after the hero's
+ * death inside the choice). The next page of an event and the scenes of the backstory wait for the player.
  * A house that has ended takes no command (D-315); `end` ends it; `will` and `propose` go to their modules.
  */
 export function apply(state: GameState, content: Content, cmd: Command): void {
@@ -92,11 +98,15 @@ export function apply(state: GameState, content: Content, cmd: Command): void {
     return;
   }
   if (cmd.type === 'propose') {
-    // The answer is an event: it waits for the player, no time passes.
+    // The answer is an event: it waits for the player.
     proposeCommand(ctx, { suitor: cmd.suitor, target: cmd.target });
     return;
   }
-  // The will starts the action at the notary (4.6): time runs as after `start`.
+  if (cmd.type === 'wait') {
+    waitDays(ctx, cmd.days);
+    return;
+  }
+  // The will starts the action at the notary (4.6), as `start` starts any other.
   if (cmd.type === 'will') willCommand(ctx, { heir: cmd.heir, guardian: cmd.guardian, items: cmd.items });
   else if (cmd.type === 'start') startAction(ctx, cmd.actionId);
   else {
@@ -106,12 +116,22 @@ export function apply(state: GameState, content: Content, cmd: Command): void {
     if (state.pendingEvent) return;
     for (const hook of AFTER_CHOICE_HOOKS) hook(ctx);
     if (state.pendingEvent) return;
-    if (!state.activeAction) {
-      state.status = 'awaiting_action';
-      return;
-    }
   }
-  runUntilDecision(ctx);
+  state.status = state.activeAction ? 'running' : 'awaiting_action';
+}
+
+/** The game waits for `wait`: an action is under way and no decision is pending. */
+export function timeRuns(state: GameState): boolean {
+  return state.status === 'running';
+}
+
+/**
+ * A command, then the days until the next decision, as one step of the old loop: for the bot, runs, tests and the
+ * screen until the clock of the slice (S.8) lets the player pause and speed time himself.
+ */
+export function play(state: GameState, content: Content, cmd: Command): void {
+  apply(state, content, cmd);
+  if (timeRuns(state)) apply(state, content, { type: 'wait', days: MAX_WAIT_DAYS });
 }
 
 /** A function, not an inline test: commands change the status behind the back of the type checker. */
@@ -119,9 +139,14 @@ function hasEnded(state: GameState): boolean {
   return state.status === 'ended';
 }
 
-function runUntilDecision(ctx: Ctx): void {
-  if (!ctx.state.activeAction) throw new Error('No active action');
-  for (;;) {
+/**
+ * Up to `days` whole days through DAY_PHASES (D-439). A phase that returns true (death, the end of the action, a fired
+ * event) ends the run at once; so N waits of one day and one wait of N days give the same game.
+ */
+function waitDays(ctx: Ctx, days: number): void {
+  if (!Number.isInteger(days) || days < 1 || days > MAX_WAIT_DAYS) throw new Error(`wait takes 1…${MAX_WAIT_DAYS} days, got ${String(days)}`);
+  if (!timeRuns(ctx.state)) throw new Error(`Cannot wait while ${ctx.state.status}`);
+  for (let day = 0; day < days; day++) {
     for (const phase of DAY_PHASES) {
       if (phase.run(ctx)) return;
     }

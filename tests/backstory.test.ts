@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { botCommand } from '../src/core/bot';
 import type { Content } from '../src/core/content/schema';
 import { eventView } from '../src/core/events/view';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
 import { kill } from '../src/core/lifecycle';
@@ -31,7 +31,7 @@ function playBackstory(state: GameState, c: Content, pickIndex = (n: number[]) =
     const view = eventView({ state, content: c });
     if (!view) throw new Error('backstory running without a scene');
     shown.push(view.eventId);
-    apply(state, c, { type: 'choose', option: pickIndex(view.options.filter((o) => o.available).map((o) => o.index)) });
+    play(state, c, { type: 'choose', option: pickIndex(view.options.filter((o) => o.available).map((o) => o.index)) });
   }
   return shown;
 }
@@ -53,7 +53,7 @@ describe('the backstory of the first hero (D-167)', () => {
     expect(kinds[0]).toBe('start');
     expect(kinds.at(-1)).toBe('backstory_end');
     expect(entryText(state.chronicle[1]!)).toMatch(/was born/);
-    apply(state, content, { type: 'start', actionId: 'wait' });
+    play(state, content, { type: 'start', actionId: 'wait' });
     expect(state.day).toBeGreaterThan(0);
   });
 
@@ -98,7 +98,7 @@ describe('the backstory of the first hero (D-167)', () => {
           found += 1;
           expect(circle).toContain(pending.scope.mentor);
         }
-        apply(state, content, { type: 'choose', option: eventView({ state, content })!.options.find((o) => o.available)!.index });
+        play(state, content, { type: 'choose', option: eventView({ state, content })!.options.find((o) => o.available)!.index });
       }
       expect(state.characters.length).toBe(people);
     }
@@ -157,8 +157,8 @@ describe('the backstory of the first hero (D-167)', () => {
     for (let step = 0; step < 4 && a.backstory.running; step++) {
       const view = eventView({ state: a, content })!;
       const option = view.options.find((o) => o.available)!.index;
-      apply(a, content, { type: 'choose', option });
-      apply(b, content, { type: 'choose', option });
+      play(a, content, { type: 'choose', option });
+      play(b, content, { type: 'choose', option });
       expect(deserialize(serialize(a), content)).toEqual(a);
       expect(b).toEqual(a);
     }
@@ -274,7 +274,7 @@ describe('the real backstory', () => {
       while (state.backstory.running) {
         const cmd = botCommand(state, real, rng);
         if (cmd.type === 'choose') chain.push(`${state.pendingEvent!.eventId}:${cmd.option}`);
-        apply(state, real, cmd);
+        play(state, real, cmd);
         expect(checkInvariants(state, real)).toEqual([]);
       }
       const hero = getPlayer(state);

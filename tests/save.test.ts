@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { botCommand } from '../src/core/bot';
-import { apply, newGame } from '../src/core/game';
+import { apply, play as step, newGame } from '../src/core/game';
 import { decodeCompact, encodeCompact } from '../src/core/save/compact';
 import { SAVE_VERSION, deserialize, jsonProblems, readSave, readSaveParts, saveParts, savedContentVersion, serialize } from '../src/core/save/save';
 import { contentVersion } from '../src/core/save/content-version';
@@ -15,14 +15,14 @@ describe('saves', () => {
   it('continues identically after a JSON save and load mid-game', () => {
     const content = fixtureNarrator({ eventChancePer10k: 5000, minDaysBetweenEvents: 2 });
     const original = newGame(99, content);
-    apply(original, content, { type: 'start', actionId: 'rest' });
+    step(original, content, { type: 'start', actionId: 'rest' });
     expect(original.status).toBe('awaiting_choice');
     const loaded = deserialize(serialize(original), content);
     expect(loaded).toEqual(original);
 
     const play = (s: typeof original) => {
       for (let i = 0; i < 50; i++) {
-        apply(s, content, s.status === 'awaiting_choice' ? { type: 'choose', option: 1 } : { type: 'start', actionId: 'rest' });
+        step(s, content, s.status === 'awaiting_choice' ? { type: 'choose', option: 1 } : { type: 'start', actionId: 'rest' });
       }
     };
     play(original);
@@ -56,6 +56,7 @@ describe('saves', () => {
     const botA = seedRng(seed, 1);
     const botB = seedRng(seed, 1);
     let steps = 0;
+    // Every single command, `wait` included: a save in the middle of an action (status `running`, D-439) survives too.
     while (straight.day < endDay) {
       apply(straight, content, botCommand(straight, content, botA));
       apply(reloaded, content, botCommand(reloaded, content, botB));
@@ -200,6 +201,8 @@ describe('content version and journal of commands (D-202, D-338)', () => {
     expect(() => replay(content, { ...journal, commands: [{ type: 'choose', option: 5 }] })).toThrow(/Command 1 \(choose\)/);
     expect(readJournal('{')).toMatchObject({ ok: false });
     expect(readJournal(JSON.stringify({ ...journal, journal: 99 }))).toMatchObject({ ok: false });
+    // format 1 had no waits: its starts ran time themselves (D-439)
+    expect(readJournal(JSON.stringify({ ...journal, journal: 1 }))).toMatchObject({ ok: false, message: /format 2/ });
     expect(readJournal(JSON.stringify({ ...journal, commands: [{ type: 'fly' }] }))).toMatchObject({ ok: false, message: /Command 1/ });
   });
 });

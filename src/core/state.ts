@@ -34,7 +34,11 @@ export type Character = CharacterBase & HealthPart & WorldCharacter & RelationsC
  * action (scenes of the backstory, 3.11). `ended`: the house has come to an end (D-315) — nobody inherits, or the
  * player ended it; no action, no event, and `apply` takes no more commands.
  */
-export type GameStatus = 'awaiting_action' | 'awaiting_choice' | 'ended';
+/**
+ * `awaiting_action`: the player picks an action. `running`: an action is under way and only `wait` moves time on
+ * (D-439). `awaiting_choice`: an event waits for an answer. `ended`: the house has come to an end (D-315).
+ */
+export type GameStatus = 'awaiting_action' | 'running' | 'awaiting_choice' | 'ended';
 
 export interface CoreState {
   version: number;

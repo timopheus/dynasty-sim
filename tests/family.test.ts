@@ -10,7 +10,7 @@ import { syncHousehold } from '../src/core/family/household';
 import { familyPhase } from '../src/core/family/phases';
 import { worldPhase } from '../src/core/world/phases';
 import { proposalOptions } from '../src/core/family/proposals';
-import { apply, newGame } from '../src/core/game';
+import { play, newGame } from '../src/core/game';
 import { findCharacter, getPlayer } from '../src/core/helpers';
 import { createCharacter } from '../src/core/hooks';
 import { checkInvariants } from '../src/core/invariants';
@@ -345,10 +345,10 @@ describe('proposals (D-313)', () => {
     expect(proposalOptions(ctx, bride.id)).toEqual([{ suitor: hero.id, target: bride.id }]);
     const line = familySection(ctx, bride, 'stranger')?.lines[0] ?? fail('no line');
     expect(proposalButton(line)).toEqual({ text: `Propose marriage to Anne Wells`, order: { suitor: hero.id, target: bride.id } });
-    apply(state, content, { type: 'propose', suitor: hero.id, target: bride.id });
+    play(state, content, { type: 'propose', suitor: hero.id, target: bride.id });
     expect(state.status).toBe('awaiting_choice');
     expect(state.pendingEvent).toMatchObject({ eventId: 'proposal', scope: { suitor: hero.id, target: bride.id } });
-    apply(state, content, { type: 'choose', option: 0 });
+    play(state, content, { type: 'choose', option: 0 });
     expect(hero.spouse).toBe(bride.id);
     expect(state.status).toBe('awaiting_action');
     expect(state.household).toEqual([bride.id]);
@@ -370,8 +370,8 @@ describe('proposals (D-313)', () => {
     expect(options).toEqual([{ suitor: son.id, target: bride.id }]);
     const line = familySection(ctx, elder, 'known')?.lines.find((l) => proposalButton(l) !== null) ?? fail('no proposal');
     expect(proposalButton(line)?.text).toBe('Propose a match: Anne Smith and Anne Wells');
-    apply(state, content, { type: 'propose', ...options[0] as { suitor: string; target: string } });
-    apply(state, content, { type: 'choose', option: 0 });
+    play(state, content, { type: 'propose', ...options[0] as { suitor: string; target: string } });
+    play(state, content, { type: 'choose', option: 0 });
     expect(son.spouse).toBe(bride.id);
     expect(hero.spouse).toBe(wife.id);
   });
@@ -380,8 +380,8 @@ describe('proposals (D-313)', () => {
     const { state, ctx, hero, bride } = setup();
     const far = person(ctx, 'female', 21);
     const before = serialize(state);
-    expect(() => apply(state, content, { type: 'propose', suitor: hero.id, target: far.id })).toThrow(/No match/);
-    expect(() => apply(state, content, { type: 'propose', suitor: bride.id, target: hero.id })).toThrow(/No match/);
+    expect(() => play(state, content, { type: 'propose', suitor: hero.id, target: far.id })).toThrow(/No match/);
+    expect(() => play(state, content, { type: 'propose', suitor: bride.id, target: hero.id })).toThrow(/No match/);
     expect(serialize(state)).toBe(before);
     void ctx;
   });
@@ -417,8 +417,8 @@ describe('wave 2 together: family (4.5) and succession (4.6)', () => {
     state.circle.push(bride.id);
     bride.kinKnown = true;
     // Marriage by the command from the page of the bride.
-    apply(state, both, { type: 'propose', suitor: hero.id, target: bride.id });
-    apply(state, both, { type: 'choose', option: 0 });
+    play(state, both, { type: 'propose', suitor: hero.id, target: bride.id });
+    play(state, both, { type: 'choose', option: 0 });
     expect(hero.spouse).toBe(bride.id);
     // A child: the conception on her birthday, the birth 270 days later.
     birthdayToday(state, bride, 22);

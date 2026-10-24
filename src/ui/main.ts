@@ -3,7 +3,7 @@ import { entryText } from '../core/chronicle/log';
 import { loadContent } from '../core/content/load';
 import type { Content } from '../core/content/schema';
 import { eventView } from '../core/events/view';
-import { newGame, type Command } from '../core/game';
+import { MAX_WAIT_DAYS, newGame, timeRuns, type Command } from '../core/game';
 import { getPlayer } from '../core/helpers';
 import { isValidSeed } from '../core/rng';
 import { contentVersion } from '../core/save/content-version';
@@ -313,6 +313,9 @@ async function act(session: Session, cmd: Command): Promise<void> {
       const outcome = outcomeOf(ctx, before);
       session.outcome = outcome ? { outcome, heroId: before.hero.id } : null;
     }
+    // Only `wait` moves time (D-439): the outcome above is taken before it, so it is exact. Until the clock (S.8) the
+    // days then run on to the next decision at once, as one step.
+    if (timeRuns(session.state)) applyRecorded(session.journal, session.state, session.content, { type: 'wait', days: MAX_WAIT_DAYS });
     // new chronicle lines go to the live region first, the event window follows in render()
     const lines = allChronicle(session.state).slice(seen).filter((e) => e.level === 'chronicle').map(entryText);
     session.queue.push(chronicleAnnouncement(lines));

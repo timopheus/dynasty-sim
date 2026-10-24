@@ -3,7 +3,7 @@ import { narratorContent } from '../src/core/narrator/content';
 import { botCommand } from '../src/core/bot';
 import { mortalityRow } from '../src/core/health/mortality';
 import { createCharacter, kill } from '../src/core/lifecycle';
-import { apply, DAY_PHASES, newGame } from '../src/core/game';
+import { play as step, DAY_PHASES, newGame } from '../src/core/game';
 import { checkInvariants } from '../src/core/invariants';
 import { getPlayer } from '../src/core/helpers';
 import { seedRng } from '../src/core/rng';
@@ -30,7 +30,7 @@ function play(state: GameState, years: number, seed = 1): void {
   const bot = seedRng(seed, 1);
   const endDay = fromYmd(START_YEAR + years, 1, 1);
   while (state.day < endDay) {
-    apply(state, content, botCommand(state, content, bot));
+    step(state, content, botCommand(state, content, bot));
     const problems = checkInvariants(state, content);
     expect(problems).toEqual([]);
     expect(state.circle.length).toBeLessThanOrEqual(pop.circle.max);
@@ -47,7 +47,7 @@ describe('the circle', () => {
   it('is filled to its lower bound at the start, before the backstory (D-167), and stays within bounds', () => {
     const state = newGame(5, content);
     expect(state.circle.length).toBeGreaterThanOrEqual(pop.circle.min);
-    apply(state, content, { type: 'start', actionId: 'rest' });
+    step(state, content, { type: 'start', actionId: 'rest' });
     expect(state.circle.length).toBeGreaterThanOrEqual(pop.circle.min);
     expect(state.circle.length).toBeLessThanOrEqual(pop.circle.max);
     expect(detailedCharacters(state)).toHaveLength(state.circle.length + 1);
@@ -67,7 +67,7 @@ describe('the circle', () => {
 
   it('loses a person at once when they die, and refills the next day', () => {
     const state = newGame(7, content);
-    apply(state, content, { type: 'start', actionId: 'rest' });
+    step(state, content, { type: 'start', actionId: 'rest' });
     const victim = circleOf(state)[0] as Character;
     const before = state.circle.length;
     // The death hook runs inside kill; the invariants must hold right after it.
@@ -85,7 +85,7 @@ describe('the circle', () => {
     const bot = seedRng(8, 1);
     const endDay = fromYmd(START_YEAR + 120, 1, 1);
     while (state.day < endDay) {
-      apply(state, content, botCommand(state, content, bot));
+      step(state, content, botCommand(state, content, bot));
       heads.add(state.playerId);
       expect(state.circle).not.toContain(state.playerId);
     }
@@ -95,7 +95,7 @@ describe('the circle', () => {
   it('stays empty when the content has no population', () => {
     const none = { ...content, population: null };
     const state = newGame(9, none);
-    for (let i = 0; i < 5; i++) apply(state, none, { type: 'start', actionId: 'rest' });
+    for (let i = 0; i < 5; i++) step(state, none, { type: 'start', actionId: 'rest' });
     expect(state.circle).toEqual([]);
     expect(detailedCharacters(state)).toHaveLength(1);
     expect(checkInvariants(state, none)).toEqual([]);
@@ -105,11 +105,11 @@ describe('the circle', () => {
 describe('moves', () => {
   it('replace part of the circle when the hero completes a moving action', () => {
     const state = newGame(11, content);
-    apply(state, content, { type: 'start', actionId: 'rest' }); // fills the circle
+    step(state, content, { type: 'start', actionId: 'rest' }); // fills the circle
     const before = [...state.circle];
     // Skip chance events: only the move matters here.
     const quiet = { ...content, narrator: { ...narratorContent(content), eventChancePer10k: 0 } };
-    apply(state, quiet, { type: 'start', actionId: 'wait' });
+    step(state, quiet, { type: 'start', actionId: 'wait' });
     const after = state.circle;
     const gone = before.filter((id) => !after.includes(id));
     const added = after.filter((id) => !before.includes(id));
@@ -132,8 +132,8 @@ describe('moves', () => {
   it('are not applied to an interrupted action, nor twice for one action', () => {
     const quiet = { ...content, narrator: { ...narratorContent(content), eventChancePer10k: 0 } };
     const state = newGame(12, quiet);
-    apply(state, quiet, { type: 'start', actionId: 'rest' });
-    apply(state, quiet, { type: 'start', actionId: 'wait' });
+    step(state, quiet, { type: 'start', actionId: 'rest' });
+    step(state, quiet, { type: 'start', actionId: 'wait' });
     expect(state.chronicle.filter((e) => e.kind === 'move')).toHaveLength(1);
     const after = [...state.circle];
     // Pretend the action is still active on its end day: the same move must not run again.
@@ -150,10 +150,10 @@ describe('moves', () => {
 
   it('leave the circle alone for other actions', () => {
     const state = newGame(11, content);
-    apply(state, content, { type: 'start', actionId: 'rest' });
+    step(state, content, { type: 'start', actionId: 'rest' });
     const quiet = { ...content, narrator: { ...narratorContent(content), eventChancePer10k: 0 } };
     const before = [...state.circle];
-    apply(state, quiet, { type: 'start', actionId: 'rest' });
+    step(state, quiet, { type: 'start', actionId: 'rest' });
     expect(state.chronicle.filter((e) => e.kind === 'move')).toHaveLength(0);
     // Without a move only deaths change the circle, and rest lasts at most 10 days.
     expect(before.filter((id) => !state.circle.includes(id)).length).toBeLessThanOrEqual(1);
@@ -164,7 +164,7 @@ describe('the yearly tick of people far away', () => {
   /** A state on 31 December with a far crowd of the given age; returns the crowd. */
   function withCrowd(age: number, n: number, seed = 21): { state: GameState; crowd: Character[] } {
     const state = newGame(seed, content);
-    apply(state, content, { type: 'start', actionId: 'rest' });
+    step(state, content, { type: 'start', actionId: 'rest' });
     const ctx = ctxOf(state);
     const crowd: Character[] = [];
     for (let i = 0; i < n; i++) {
@@ -228,7 +228,7 @@ describe('the yearly tick of people far away', () => {
   it('lets circle members drift away, and they stay alive', () => {
     const all = { ...content, population: { ...pop, driftPer10k: 10000 } };
     const state = newGame(31, all);
-    apply(state, all, { type: 'start', actionId: 'rest' });
+    step(state, all, { type: 'start', actionId: 'rest' });
     const members = [...state.circle];
     expect(members.length).toBeGreaterThan(0);
     state.day = fromYmd(START_YEAR + 3, 1, 1);
@@ -268,8 +268,8 @@ describe('a whole run', () => {
     const botA = seedRng(43, 9);
     const botB = seedRng(43, 9);
     for (let i = 0; i < 40; i++) {
-      apply(a, content, botCommand(a, content, botA));
-      apply(b, content, botCommand(b, content, botB));
+      step(a, content, botCommand(a, content, botA));
+      step(b, content, botCommand(b, content, botB));
     }
     expect(serialize(b)).toBe(serialize(a));
   });
