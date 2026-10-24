@@ -20,6 +20,7 @@ import type { GameState, Invariant } from './state';
 import { storiesInvariants } from './stories/stories';
 import { successionInvariants } from './succession/succession';
 import { summaryInvariants } from './summary/summary';
+import { economyInvariants } from './economy/economy';
 import { timeInvariants } from './time/time';
 import { worldInvariants } from './world/world';
 
@@ -66,6 +67,7 @@ const INVARIANTS: readonly Invariant[] = [
   successionInvariants,
   heirloomInvariants,
   summaryInvariants,
+  economyInvariants,
 ];
 
 /** Returns a list of broken rules; empty means the state is consistent. */

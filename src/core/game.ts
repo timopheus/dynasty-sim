@@ -11,6 +11,7 @@ import { log } from './chronicle/log';
 import type { Content } from './content/schema';
 import { chooseOption } from './events/events';
 import { familyOnNewGame, familyPhase, proposeCommand, type ProposeOrder } from './family/phases';
+import { economyPhase } from './economy/phases';
 import { deathPhase, healthPhase } from './health/phases';
 import { createCharacter } from './hooks';
 import { houseOnNewGame } from './house/phases';
@@ -51,6 +52,7 @@ export const DAY_PHASES: readonly DayPhase[] = [
   familyPhase,
   successionPhase,
   relationsPhase,
+  economyPhase,
   summaryPhase,
   archivePhase,
   actionEndPhase,

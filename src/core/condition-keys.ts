@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { backstoryConditionShape, checkBackstoryConditions } from './backstory/conditions';
 import { characterConditionShape, checkCharacterConditions } from './character/conditions';
 import { checkCommonConditions, commonConditionShape } from './conditions/conditions';
+import { checkEconomyConditions, economyConditionRoleRefs, economyConditionShape } from './economy/conditions';
 import { checkEraConditions, eraConditionRoleRefs, eraConditionShape } from './era/conditions';
 import { checkFamilyConditions, familyConditionRoleRefs, familyConditionShape } from './family/conditions';
 import { checkHealthConditions, healthConditionShape } from './health/health';
@@ -37,6 +38,7 @@ export const WhenSchema = z.strictObject({
   ...successionConditionShape,
   ...heirloomConditionShape,
   ...eraConditionShape,
+  ...economyConditionShape,
 });
 
 export type When = z.infer<typeof WhenSchema>;
@@ -61,6 +63,7 @@ const CONDITION_CHECKS: readonly ((ctx: Ctx, c: Character, when: When, scope: Sc
   checkSuccessionConditions,
   checkHeirloomConditions,
   checkEraConditions,
+  checkEconomyConditions,
 ];
 
 /** Roles each module's keys refer to, for the cross-check of events. */
@@ -71,6 +74,7 @@ const CONDITION_ROLE_REFS: readonly ((when: When) => string[])[] = [
   successionConditionRoleRefs,
   heirloomConditionRoleRefs,
   eraConditionRoleRefs,
+  economyConditionRoleRefs,
 ];
 
 export interface ConditionReport {

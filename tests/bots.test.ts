@@ -142,7 +142,8 @@ describe('bot characters (D-247, D-319)', () => {
       const { choices } = runSim(realContent(), { seed: 5, years: 20, bot });
       expect(Object.keys(choices).filter((k) => k.startsWith('action/')).length, bot).toBeGreaterThan(1);
     }
-  });
+    // two 20-year runs: ~2.6 s alone, more under the load of the whole suite; the default 5 s is too tight in CI
+  }, 30_000);
 
   it('does not change the world stream: the bot never touches the state generator', () => {
     for (const character of BOT_CHARACTERS) {
