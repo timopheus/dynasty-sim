@@ -1,5 +1,7 @@
 """One Retro Diffusion inpainting on the reference base, with a cost check and a provenance log.
-Usage: python3 -I tools/portrait/rd_inpaint.py <base.png> <mask.png> <prompt-file> <seed> <max_cost> <out.png>
+Usage: python3 -I tools/portrait/rd_inpaint.py <base.png> <mask.png> <prompt-file> <seed> <max_cost> <out.png> [outside]
+'outside' lets the mask paint beyond the figure (a hat wider than the head): the base is laid on pure green, which is
+not in our palette, and in the result green pixels stay transparent while anything else becomes part of the figure.
 The base is flattened onto the game background (the tool takes no transparency); the base's own alpha is put back
 after, and pixels outside the mask are copied back from the base, so nothing outside the mask can change."""
 import base64, datetime, io, json, sys, urllib.request
@@ -10,7 +12,8 @@ RGB = [tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for h in PALETTE]
 
 src, mask_p, prompt_f, seed, max_cost, out = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), float(sys.argv[5]), sys.argv[6]
 base = Image.open(src).convert('RGBA'); mask = Image.open(mask_p).convert('RGBA'); W, H = base.size
-flat = Image.new('RGB', (W, H), (0x34, 0x2b, 0x23)); flat.paste(base, mask=base.split()[3])
+outside = len(sys.argv) > 7 and sys.argv[7] == 'outside'
+flat = Image.new('RGB', (W, H), (0, 255, 0) if outside else (0x34, 0x2b, 0x23)); flat.paste(base, mask=base.split()[3])
 buf = io.BytesIO(); flat.save(buf, 'PNG')
 prompt = open(prompt_f).read().strip()
 body = {'input_image': base64.b64encode(buf.getvalue()).decode(), 'mask_image': base64.b64encode(open(mask_p, 'rb').read()).decode(),
@@ -43,8 +46,11 @@ if res.size != (W, H):
 final = base.copy()
 for y in range(H):
     for x in range(W):
-        if mask.getpixel((x, y))[3] > 12 and base.getpixel((x, y))[3] >= 128:
+        inside = base.getpixel((x, y))[3] >= 128
+        if mask.getpixel((x, y))[3] > 12 and (inside or outside):
             c = res.getpixel((x, y))[:3]
+            if not inside and c[1] > 150 and c[0] < 120 and c[2] < 120:
+                continue  # still background: stays transparent
             if c not in RGB:  # the tool takes no palette: snap to the nearest of ours
                 c = min(RGB, key=lambda q: sum((a - b) ** 2 for a, b in zip(q, c)))
             final.putpixel((x, y), c + (255,))
