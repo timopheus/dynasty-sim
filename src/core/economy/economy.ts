@@ -1,6 +1,7 @@
 import type { Content } from '../content/schema';
 import { isInt } from '../helpers';
 import { houseOf } from '../house/house';
+import { toYmd } from '../time/calendar';
 import type { Character, GameState, Invariant } from '../state';
 import { crownsAt, type PriceRefValue } from './content';
 
@@ -51,6 +52,10 @@ export const economyInvariants: Invariant = ({ state }) => {
   const problems: string[] = [];
   if (balance !== null && !isInt(balance)) problems.push(`economy: balance is not a whole number: ${String(balance)}`);
   if (month !== null && !isInt(month)) problems.push(`economy: month is not a whole number: ${String(month)}`);
+  if (month !== null && isInt(month)) {
+    const { year, month: m } = toYmd(state.day);
+    if (month > year * 12 + m - 1) problems.push(`economy: month ${month} is later than today`);
+  }
   if (debtYear !== null && !isInt(debtYear)) problems.push(`economy: debtYear is not a whole number: ${String(debtYear)}`);
   return problems;
 };

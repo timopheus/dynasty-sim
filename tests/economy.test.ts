@@ -202,6 +202,18 @@ describe('monthly balance (S.7)', () => {
     expect(s.state.chronicle.length).toBe(lines);
   });
 
+  it('a day the phase never sees does not lose the month', () => {
+    const s = setup('serve_contract');
+    s.state.activeAction = { actionId: 'serve_contract', endDay: 100000 };
+    const money = s.hero.money;
+    runTo(s.state, fromYmd(1700, 1, 20));
+    // Feb 1 and Mar 1 are skipped by an event; the phase runs again on Mar 2.
+    s.state.day = fromYmd(1700, 3, 1);
+    runTo(s.state, fromYmd(1700, 3, 2));
+    expect(s.hero.money).toBe(money + 2 * 8);
+    expect(s.state.economy.month).toBe(1700 * 12 + 2);
+  });
+
   it('going into debt writes one line and not more often than once a year', () => {
     const s = setup('travel');
     s.state.activeAction = { actionId: 'travel', endDay: 100000 };
