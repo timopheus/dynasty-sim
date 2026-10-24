@@ -1,5 +1,5 @@
 """Idle animation by code (art bible, step 6): rare blinks and an occasional breath.
-- Blink: the closed-eyes frame for 220 ms, at uneven intervals of 5-9 s.
+- Blink: the closed-eyes frame for 150-320 ms (each blink its own), at uneven intervals of 5-9 s.
 - Breath: the whole figure rises 1 px on the inhale (about 1.2 s), settles back, then rests 4-7 s before the next.
 The bottom row is repeated when the figure rises, so the cut-off chest never shows a gap. Deterministic for a seed.
 Usage: idle.py <open.png> <closed.png> <seconds> <seed> <out.gif> [scale]"""
@@ -11,7 +11,6 @@ total, seed, out = int(sys.argv[3]) * 1000, int(sys.argv[4]), sys.argv[5]
 scale = int(sys.argv[6]) if len(sys.argv) > 6 else 4
 W, H = op.size
 rng = random.Random(seed)
-BLINK = 220  # ms with the eyes closed: a touch slower than a real blink, so it reads as a calm one
 
 def lifted(im, dy):
     if dy == 0: return im
@@ -20,16 +19,17 @@ def lifted(im, dy):
     return r
 
 # events on a millisecond timeline
+# each blink holds the eyes closed for its own time (150-320 ms): uneven blinks look alive
 blinks, t = [], rng.randint(2500, 4500)
-while t < total: blinks.append(t); t += rng.randint(5000, 9000)
+while t < total: blinks.append((t, rng.randint(150, 320))); t += rng.randint(5000, 9000)
 breaths, t = [], rng.randint(1500, 3000)
 while t < total: breaths.append(t); t += 1200 + rng.randint(4000, 7000)
 def state(ms):
-    eyes = any(b <= ms < b + BLINK for b in blinks)
+    eyes = any(b <= ms < b + d for b, d in blinks)
     up = any(b <= ms < b + 1200 for b in breaths)
     return eyes, up
 # frames at each change of state
-cuts = sorted({0, total} | {b for b in blinks} | {b + BLINK for b in blinks} | {b for b in breaths} | {b + 1200 for b in breaths})
+cuts = sorted({0, total} | {b for b, _ in blinks} | {b + d for b, d in blinks} | {b for b in breaths} | {b + 1200 for b in breaths})
 cuts = [c for c in cuts if 0 <= c <= total]
 bg = lambda im: (lambda b: (b.alpha_composite(im), b)[1])(Image.new('RGBA', im.size, (0xb4, 0xb4, 0xb4, 255))).convert('RGB').resize((W * scale, H * scale), Image.NEAREST)
 frames, durs = [], []
@@ -38,4 +38,5 @@ for a, b in zip(cuts, cuts[1:]):
     eyes, up = state(a)
     frames.append(bg(lifted(cl if eyes else op, 1 if up else 0))); durs.append(b - a)
 frames[0].save(out, save_all=True, append_images=frames[1:], duration=durs, loop=0)
+print('blink holds, ms:', [d for _, d in blinks])
 print(f'{len(blinks)} blinks, {len(breaths)} breaths in {total // 1000} s; frames {len(frames)}')
