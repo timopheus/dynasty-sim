@@ -1,4 +1,6 @@
 import { el } from './dom';
+import { HEADER_TIPS } from './tips';
+import { withTip } from './tooltip';
 import type { Figure } from './header-model';
 import './header.css';
 
@@ -17,7 +19,7 @@ export interface HeaderProps {
 }
 
 function menuNode({ menuOpen, onMenuToggle, items, devNotes }: HeaderProps): HTMLElement {
-  const button = el('button', { className: 'menu-button', type: 'button', onclick: onMenuToggle }, 'Menu ▾');
+  const button = withTip(el('button', { className: 'menu-button', type: 'button', onclick: onMenuToggle }, 'Menu ▾'), { title: 'Menu', text: 'Start a new game.' });
   button.setAttribute('aria-expanded', String(menuOpen));
   button.setAttribute('aria-controls', 'menu-list');
   button.setAttribute('data-focus', 'menu');
@@ -49,7 +51,8 @@ function closeOnEscapeOrOutside(details: HTMLDetailsElement): void {
 }
 
 function figureNode(f: Figure): HTMLElement {
-  const node = el('div', { className: 'figure' }, el('span', { className: 'figure-value' }, f.value), el('span', { className: 'figure-label' }, f.label));
+  const tip = HEADER_TIPS[f.label];
+  const node = withTip(el('div', { className: 'figure' }, el('span', { className: 'figure-value' }, f.value), el('span', { className: 'figure-label' }, f.label)), tip ? { title: `${f.value} ${f.label}`, text: tip } : null);
   if (f.note === undefined) return node;
   if (!f.breakdown || f.breakdown.length === 0) {
     node.append(el('span', { className: 'figure-note' }, f.note));

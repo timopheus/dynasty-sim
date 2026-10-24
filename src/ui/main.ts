@@ -11,24 +11,28 @@ import { applyRecorded, newJournal, type Journal } from '../core/save/journal';
 import type { GameState } from '../core/state';
 import { formatDate } from '../core/time/calendar';
 import { chronicleAnnouncement, pickableAt, shortcutPosition } from './access';
-import { entityIdFromHash } from './address';
+import { entityIdFromHash, hrefOf } from './address';
+import { actionShelves, WILL_ID } from './actions-model';
+import { actionsPanel } from './actions-panel';
 import { avatarPanel } from './avatar';
 import { choiceNode } from './choice';
 import { clockPanel } from './clock';
+import { keepInView, personMenuNode, personOf, type MenuAnchor } from './context-menu';
 import { confirmWindow, willWindow } from './dialogs';
 import { el } from './dom';
 import { headIds } from './entry';
 import { eventAnnouncement, eventPageKey, eventScreen, eventTitle, optionControl } from './event';
 import { headerPanel } from './header';
 import { headerFigures } from './header-model';
-import { latelyPanel } from './lately';
 import { modalFrame, modalHeading } from './modal';
 import { beforeChoice, outcomeOf, type Outcome } from './outcome-model';
 import { outcomeWindow } from './outcome';
-import { partNodes } from './page';
+import { partNodes, usePersonTips } from './page';
+import { personMenu, personTip, type MenuItem } from './people-model';
 import { newSidebarState, sidebarPanel, type SidebarState } from './sidebar';
 import { visit } from './sidebar-model';
 import { dropOldSave, loadGame, openIndexedDb, saveGame, seedFromSearch, startChoice, startGame, type AsyncStore, type Saved, type SaveOutcome } from './storage';
+import { installTooltips, hideTip } from './tooltip';
 import { whereView } from './where-model';
 import { wherePanel } from './where';
 import { willForm } from './will';
@@ -99,9 +103,11 @@ interface Session {
   /** Shown above the centre: why a game was discarded, or that saving failed. */
   notice: string | null;
   saveProblem: string | null;
-  /** The side panel: open or folded, the trail of pages, the tab. */
+  /** The side panel: open or folded, the trail of pages, the whole chronicle. */
   sidebar: SidebarState;
   menuOpen: boolean;
+  /** The menu of a person (D-448) is open where `anchor` says. */
+  personMenu: MenuAnchor | null;
   /** What the last choice came to, shown before the next event (D-440), and whose lines they are. */
   outcome: { outcome: Outcome; heroId: string } | null;
   question: Question | null;
@@ -193,6 +199,9 @@ function render(session: Session): void {
   const addressed = entityIdFromHash(location.hash);
   session.sidebar.trail = addressed ? visit(session.sidebar.trail, addressed) : [];
   const pageId = addressed ?? hero.id;
+  if (session.sidebar.whole !== pageId) session.sidebar.whole = null;
+  usePersonTips((id) => personTip(ctx, id));
+  hideTip();
 
   session.keymap = [];
   session.dismiss = null;
@@ -220,15 +229,16 @@ function render(session: Session): void {
   if (!screen) session.announcedEvent = '';
   if (!(session.willOpen && form)) session.willOpen = false;
 
-  const where = whereView(ctx);
-  const keymap: (null | (() => void))[] = [];
-  const centre = wherePanel({
-    view: where,
-    onStart: (actionId) => { void act(session, { type: 'start', actionId }); },
-    onWill: form && state.status === 'awaiting_action' ? () => { session.willOpen = true; session.focusAfterRender = true; rerender(); } : null,
-    keymap,
+  const centre = wherePanel(whereView(ctx));
+  const actions = actionsPanel({
+    panel: actionShelves(ctx, form),
+    onStart: (id) => {
+      if (id !== WILL_ID) { void act(session, { type: 'start', actionId: id }); return; }
+      session.willOpen = true;
+      session.focusAfterRender = true;
+      rerender();
+    },
   });
-  if (!modal) session.keymap = keymap;
 
   const notices: HTMLElement[] = [];
   if (session.notice) {
@@ -241,11 +251,10 @@ function render(session: Session): void {
   const sidebar = sidebarPanel({
     ctx, view: session.sidebar, pageId, heads,
     onToggle: () => { session.sidebar.open = !session.sidebar.open; session.refocus = 'sidebar-toggle'; rerender(); },
-    onTab: (tab) => { session.sidebar.tab = tab; session.sidebar.tabFor = pageId; session.refocus = `tab-${tab}`; rerender(); },
-    onCommand: (cmd) => {
-      // the answer is an event window: on a phone the panel gets out of its way
-      if (window.matchMedia(NARROW).matches) session.sidebar.open = false;
-      void act(session, cmd);
+    onWhole: (id) => { session.sidebar.whole = id; rerender(); },
+    onInteract: (id, button) => {
+      const r = button.getBoundingClientRect();
+      openPersonMenu(session, { id, x: Math.round(r.left), y: Math.round(r.bottom + 4), from: 'interact' });
     },
   });
 
@@ -260,12 +269,15 @@ function render(session: Session): void {
   const game = el('div', { className: session.sidebar.open ? 'game' : 'game side-closed' },
     ...sidebar,
     header,
-    el('main', { className: 'center', id: 'center' }, ...notices, centre, latelyPanel(allChronicle(state), hero.id, heads)),
+    el('main', { className: 'center', id: 'center' }, ...notices, centre),
+    actions,
     clockPanel(formatDate(state.day)),
     avatarPanel(ctx, () => openProfile(session)));
   // the menu stays reachable under a pinned window: "New game" must work whatever is pending
-  if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar, .avatar')) part.inert = true;
-  app?.replaceChildren(game, ...(modal ? [modal] : []));
+  if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar, .avatar, .actions-panel')) part.inert = true;
+  const menu = menuNodeFor(session);
+  app?.replaceChildren(game, ...(modal ? [modal] : []), ...(menu ? [menu] : []));
+  if (menu) keepInView(menu);
   // on a phone the window starts below the header, whatever height its words make it
   if (modal && window.matchMedia(NARROW).matches) modal.style.paddingTop = `${Math.ceil(header.getBoundingClientRect().bottom) + 8}px`;
   if (DEV) game.setAttribute('data-seed', String(state.seed));
@@ -281,12 +293,44 @@ function render(session: Session): void {
   }
 }
 
+/** The menu of the person the session has open, or null. A menu of someone no longer known closes itself. */
+function menuNodeFor(session: Session): HTMLElement | null {
+  const anchor = session.personMenu;
+  if (!anchor) return null;
+  const menu = personMenu({ state: session.state, content: session.content }, anchor.id);
+  if (!menu) { session.personMenu = null; return null; }
+  return personMenuNode(menu, anchor, (item) => chooseMenuItem(session, item));
+}
+
+function openPersonMenu(session: Session, anchor: MenuAnchor): void {
+  session.personMenu = anchor;
+  session.refocus = 'menu-item-0';
+  render(session);
+}
+
+function closePersonMenu(session: Session): void {
+  const from = session.personMenu?.from ?? null;
+  session.personMenu = null;
+  session.refocus = from;
+  render(session);
+}
+
+function chooseMenuItem(session: Session, item: MenuItem): void {
+  session.personMenu = null;
+  if (item.action.type === 'open') {
+    session.sidebar.open = true;
+    if (location.hash === hrefOf(item.action.id)) render(session);
+    else location.hash = hrefOf(item.action.id);
+    return;
+  }
+  void act(session, { type: 'propose', ...item.action.order });
+}
+
 /** The avatar opens the hero's profile in the side panel, even from a page of someone else or with the panel folded. */
 function openProfile(session: Session): void {
   session.sidebar.open = true;
   if (entityIdFromHash(location.hash) !== null) history.pushState(null, '', location.pathname + location.search);
-  session.sidebar.tab = null;
-  session.sidebar.tabFor = null;
+  session.sidebar.whole = null;
   session.refocus = 'avatar';
   render(session);
 }
@@ -337,8 +381,8 @@ async function startSession(session: Session, seed: number): Promise<void> {
   session.outcome = null;
   session.willOpen = false;
   session.sidebar.trail = [];
-  session.sidebar.tab = null;
-  session.sidebar.tabFor = null;
+  session.sidebar.whole = null;
+  session.personMenu = null;
   const started = await startGame(session.store, session.state, session.journal, session.contentVersion, newGameMark());
   session.saved = started.saved;
   session.saveProblem = saveProblemText(started.outcome);
@@ -381,7 +425,7 @@ async function boot(content: Content, version: string): Promise<void> {
     state, content, contentVersion: version, store,
     journal: loadedGame?.journal ?? newJournal(state.seed, version), saved: loadedGame?.saved ?? { game: '', chunks: 0, commands: 0 }, busy: false, lostJournal: null,
     notice: null, saveProblem: null, sidebar: newSidebarState(!window.matchMedia(NARROW).matches || entityIdFromHash(location.hash) !== null),
-    menuOpen: false, outcome: null, question: null, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false, dismiss: null,
+    menuOpen: false, personMenu: null, outcome: null, question: null, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false, dismiss: null,
   };
   current = session;
   if (choice === 'continue' || choice === 'ask_replace') {
@@ -410,8 +454,11 @@ let current: Session | null = null;
 window.addEventListener('hashchange', () => {
   if (!current) return;
   current.sidebar.open = true;
+  current.personMenu = null;
   render(current);
 });
+installTooltips();
+installPersonMenu();
 if (!loaded.ok) {
   app.replaceChildren(
     el('h1', {}, 'Content errors'),
@@ -425,7 +472,10 @@ window.addEventListener('keydown', (e) => {
   if (!current) return;
   if (e.key === 'Escape') {
     const s = current;
-    if (s.dismiss) {
+    if (s.personMenu) {
+      e.preventDefault();
+      closePersonMenu(s);
+    } else if (s.dismiss) {
       e.preventDefault();
       s.dismiss();
     } else if (s.menuOpen) {
@@ -443,3 +493,30 @@ window.addEventListener('keydown', (e) => {
   e.preventDefault();
   command();
 });
+
+/**
+ * The menu of a person opens wherever the person is named (D-448): right click, the menu key or Shift+F10 on a name
+ * (D-444: whatever opens by the mouse opens from the keyboard too). A click anywhere else closes it.
+ */
+function installPersonMenu(): void {
+  document.addEventListener('contextmenu', (e) => {
+    const id = personOf(e.target);
+    if (!current || !id) return;
+    e.preventDefault();
+    openPersonMenu(current, { id, x: e.clientX, y: e.clientY, from: null });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!current || !(e.key === 'ContextMenu' || (e.key === 'F10' && e.shiftKey))) return;
+    const id = personOf(e.target);
+    if (!id) return;
+    e.preventDefault();
+    const target = (e.target as Element).closest<HTMLElement>('[data-person]');
+    const r = target?.getBoundingClientRect();
+    openPersonMenu(current, { id, x: Math.round(r?.left ?? 0), y: Math.round((r?.bottom ?? 0) + 4), from: target?.getAttribute('data-focus') ?? null });
+  });
+  document.addEventListener('click', (e) => {
+    if (!current?.personMenu || (e.target instanceof Element && e.target.closest('.person-menu, [data-focus="interact"]'))) return;
+    current.personMenu = null;
+    render(current);
+  });
+}

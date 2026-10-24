@@ -1,0 +1,44 @@
+.actions-panel {
+  grid-column: 3;
+  grid-row: 2;
+  overflow-y: auto;
+  padding: 0.25rem 1rem 0.5rem 0.5rem;
+}
+
+.shelf {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.7rem;
+}
+
+.shelf h2 {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.1rem;
+  width: 100%;
+  min-height: 0;
+  padding: 0.25rem 0.6rem;
+  background: var(--bg);
+  line-height: 1.3;
+}
+
+.action .action-name {
+  font-size: 0.95rem;
+}
+
+.action .note,
+.action .reason {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.action.grey .reason {
+  font-style: italic;
+}

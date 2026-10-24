@@ -102,3 +102,43 @@
     display: none;
   }
 }
+
+/* One sheet per page (D-448); the tabs are kinds of pages, the button opens the menu of the person. */
+.sidebar .tabs a.tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.sidebar .tabs a.tab.active {
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.sidebar .interact {
+  margin-left: auto;
+  min-height: 2rem;
+  padding: 0 0.7rem;
+}
+
+.traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.25rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trait {
+  display: inline-block;
+  padding: 0 0.5rem;
+  border: 1px solid var(--line);
+  font-size: 0.9rem;
+}
