@@ -26,10 +26,10 @@
   .btn small { display: block; color: var(--muted); font-size: 12px; }
   .btn.grey { color: var(--muted); border-style: dashed; border-color: var(--line); }
   .collapse { position: absolute; left: 326px; top: 14px; width: 28px; height: 28px; border: 1px solid var(--line); background: var(--paper); text-align: center; line-height: 26px; z-index: 3; }
-  main { position: absolute; left: 340px; right: 300px; top: 0; bottom: 0; padding: 70px 16px 16px; }
+  main { position: absolute; left: 340px; right: 300px; top: 0; bottom: 0; padding: 70px 16px 16px; display: flex; flex-direction: column; }
   .box { border: 2px dashed var(--line); padding: 12px; }
-  .map { height: 300px; display: grid; place-items: center; color: var(--muted); font-size: 18px; }
-  .where { margin-top: 14px; display: grid; grid-template-columns: 280px 1fr; gap: 14px; }
+  .map { flex: 1; min-height: 0; display: grid; place-items: center start; padding-left: 40px; color: var(--muted); font-size: 18px; }
+  .where { flex: none; margin-top: 14px; display: grid; grid-template-columns: 280px 1fr; gap: 14px; }
   .pic { width: 280px; height: 210px; border: 1px solid var(--line); display: grid; place-items: center; color: var(--muted); text-align: center; background: repeating-linear-gradient(45deg, transparent 0 10px, #e2dccd 10px 11px); }
   table.place { border-collapse: collapse; width: 100%; font-size: 13px; }
   table.place td { border-bottom: 1px solid #d6cfbf; padding: 3px 4px; }
@@ -75,7 +75,7 @@
   <div class="tip"><b>Stewardship good (11)</b><br>Managing money and land. Sums of trade and the monthly balance.<br><span style="color:#b9b1a2">+3 education · +2 Diligent</span></div>
 
   <main>
-    <div class="box map">World map — later (D-437)</div>
+    <div class="box map"><div>World map — later (D-437)<br><small>fills all the centre the place block leaves</small></div></div>
     <div class="box where">
       <div class="pic">picture of the place<br>4:3 · after the art bible</div>
       <div>
@@ -132,14 +132,15 @@
   <div class="n" style="left:300px;top:110px">1</div>
   <div class="n" style="left:1400px;top:82px">2</div>
   <div class="n" style="left:1112px;top:160px">3</div>
-  <div class="n" style="left:620px;top:395px">4</div>
+  <div class="n" style="left:620px;top:655px">4</div>
   <div class="n" style="left:300px;top:386px">5</div>
   <div class="n" style="left:1395px;top:20px">6</div>
   <div class="n" style="left:128px;top:745px">7</div>
   <div class="n" style="left:1170px;top:820px">8</div>
+  <div class="n" style="left:370px;top:84px">9</div>
 </div>
 <div class="legend">
-  <b>Раскладка v3 (D-443…D-446, плейтест 24.10) — черновик эталона, ждёт «ок» Тима. Только десктоп. Схема, а не дизайн.</b>
+  <b>Эталон раскладки v3 (D-443…D-446, плейтест 24.10; «ок» Тима 24.10). Только десктоп. Схема, а не дизайн. Пустого места нет: карта занимает весь центр, который не заняла табличка «где я».</b>
   <ol>
     <li><b>Взаимодействия с человеком</b> — на его странице в боковой панели, вкладка «Interactions» (сватовство и т. п.). Своя страница: Profile, Family, People, Chronicle.</li>
     <li><b>Свои действия — правая панель по категориям</b>: Livelihood, Road &amp; place, Family &amp; house, Self. Позже — лагерь, двор, армия, интриги по положению. Действие, которое по возрасту уже никогда не станет доступно, не показывается; ребёнку взрослые действия видны серыми.</li>
@@ -149,6 +150,7 @@
     <li><b>Шапка</b> — общие показатели: деньги и баланс за месяц, известность, слава и статус рода, герб, меню.</li>
     <li><b>Аватар</b> — клик открывает свой профиль.</li>
     <li><b>Дата и плеер времени</b> (S.8).</li>
+    <li><b>Карта</b> занимает всё место центра над блоком «где я»; до карты мира (D-437) — заглушка того же размера. Пустот в центре нет.</li>
   </ol>
   <p style="color:#6b665c;margin:8px 0 0">Предыстория — отдельный экран-вступление до этого экрана (D-445, S.11). Главное меню — после среза. Тексты кнопок, имена и числа на схеме — примеры, не эталон.</p>
 </div>
