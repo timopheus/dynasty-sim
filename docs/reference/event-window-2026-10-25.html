@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Окно события — эталон S.10</title>
+<!--
+  Эталон окна события для S.10 (D-433, D-440, D-443, D-457): что игрок видит до выбора — шанс, цена, главный риск,
+  «против характера» со стоимостью в счастье — и экран итога после выбора. Три варианта кнопки варианта, Тим выбирает
+  один. Всё внутри кнопки (D-443), числа в скобках (D-434), шанс словом и процентом (D-433). Подписи по-русски — для
+  Тима и пишущей сессии; тексты игры по-английски. Скриншот рядом: event-window-2026-10-25.png.
+-->
+<style>
+  :root { --ink: #222; --paper: #f7f4ec; --line: #8a8579; --muted: #6b665c; --link: #8b2e1a; --bad: #a3321f; --good: #3d6b35; --dim: #b9b5ad; --note: #b0412e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; font: 16px/1.45 Georgia, serif; color: var(--ink); background: var(--dim); width: 1240px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .lead { margin: 0 0 18px; color: #333; font-size: 14px; max-width: 1180px; }
+  .grid { display: grid; grid-template-columns: 590px 590px; gap: 24px; align-items: start; }
+  .label { font: bold 14px/1.3 Georgia, serif; color: var(--note); margin: 0 0 6px; }
+  .label span { font-weight: normal; color: #333; }
+  .modal { background: var(--paper); border: 2px solid var(--ink); box-shadow: 6px 6px 0 rgb(0 0 0 / .25); padding: 16px 20px 20px; }
+  .head { display: flex; align-items: baseline; }
+  .title { flex: 1; font-weight: bold; font-size: 19px; }
+  .badge { color: var(--muted); font-size: 13px; }
+  .text { margin: 10px 0 14px; }
+  a { color: var(--link); text-decoration: underline dotted; }
+  .choices { display: flex; flex-direction: column; gap: 8px; }
+  .opt { border: 1px solid #c9c4b8; background: #fbf9f4; padding: 9px 14px; text-align: left; }
+  .opt .name { font-size: 16px; }
+  .opt.grey { color: #9a958b; background: #f1eee7; }
+  .small { font-size: 13px; color: var(--muted); }
+  .bad { color: var(--bad); }
+  .good { color: var(--good); }
+  .note { font: italic 12px/1.3 Georgia, serif; color: var(--note); margin-top: 8px; }
+
+  /* A: one line under the name */
+  .a .line { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .a .line b { font-weight: normal; color: var(--ink); }
+  .a .nature { font-size: 13px; margin-top: 2px; }
+
+  /* B: card with the chance on the right and a coloured edge */
+  .b .opt { display: grid; grid-template-columns: 1fr 92px; gap: 10px; border-left-width: 5px; }
+  .b .opt.against { border-left-color: var(--bad); }
+  .b .opt.own { border-left-color: var(--good); }
+  .b .chance { text-align: right; border-left: 1px solid #ddd8cc; padding-left: 8px; }
+  .b .chance .pc { font-size: 20px; line-height: 1.1; }
+  .b .chance .w { font-size: 12px; color: var(--muted); }
+  .b .rows { margin-top: 3px; font-size: 13px; display: grid; grid-template-columns: 52px 1fr; column-gap: 6px; color: var(--ink); }
+  .b .rows dt { color: var(--muted); }
+  .b .rows dd { margin: 0; }
+
+  /* C: name with signs on the right, the risk as a second line */
+  .c .top { display: flex; align-items: baseline; gap: 10px; }
+  .c .top .name { flex: 1; }
+  .c .signs { font-size: 13px; white-space: nowrap; color: var(--ink); display: flex; gap: 10px; }
+  .c .sign { border: 1px solid #d6d1c5; padding: 0 5px; background: #fff; }
+  .c .sign.bad { border-color: #d9a79c; }
+  .c .sign.good { border-color: #a9c4a2; }
+  .c .risk { font-size: 13px; font-style: italic; color: var(--muted); margin-top: 2px; }
+
+  /* Outcome */
+  .outcome .text { margin-bottom: 10px; }
+  .changes { font-size: 14px; border-top: 1px solid #ddd8cc; padding-top: 8px; display: grid; grid-template-columns: 120px 1fr; row-gap: 3px; }
+  .changes dt { color: var(--muted); }
+  .changes dd { margin: 0; }
+  .lines { font-size: 13px; color: var(--muted); margin-top: 10px; border-top: 1px solid #ddd8cc; padding-top: 8px; }
+  .btn { display: inline-block; margin-top: 12px; border: 1px solid var(--ink); padding: 6px 16px; background: #fff; }
+  .avatar { display: flex; gap: 10px; align-items: center; margin-top: 14px; font-size: 14px; }
+  .face { width: 46px; height: 56px; border: 1px solid var(--ink); background: #e8e3d8; display: grid; place-items: center; font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<h1>Окно события: что видно до выбора и после (эталон S.10)</h1>
+<p class="lead">Одно и то же событие в трёх вариантах кнопки. В каждом варианте есть всё, что решено: шанс словом и процентом (D-433), цена, которую выводит движок, главный риск, который пишет автор (поле <code>risk:</code>), пометка «против характера» с ценой в счастье (D-457) и «по характеру» с прибавкой (прибавка — предложение, ждёт решения Тима), серый вариант с причиной (D-043). Внизу справа — экран итога после выбора со ставкой (D-440) и счастье на аватаре. Выберите вариант A, B или C; экран итога и аватар общие.</p>
+
+<div class="grid">
+
+<!-- A -->
+<div>
+<p class="label">A. Строка под названием <span>— как сейчас, плюс цена и риск одной строкой</span></p>
+<div class="modal a">
+  <div class="head"><div class="title">A decision</div><div class="badge">answer to go on</div></div>
+  <p class="text">In the common room of the Golden Ox, <a>Jacob Verhoef</a>, to whom you have owed twenty crowns since winter, sits down across from you uninvited. “The fair is over,” he says. “So is my patience.”</p>
+  <div class="choices">
+    <div class="opt"><div class="name">1. Pay him in full</div><div class="line">costs <b>a fair sum (20)</b></div></div>
+    <div class="opt"><div class="name">2. Ask for time until the harvest</div><div class="line"><b>a toss-up, 45%</b> · risk: <b>he may sell your debt to worse men</b></div></div>
+    <div class="opt"><div class="name">3. Swear you paid him at Candlemas</div><div class="line"><b>likely, 70%</b> · risk: <b>if he has a witness, the town hears you lied</b></div><div class="nature bad">against your nature — honest: a heavy heart (−10 happiness)</div></div>
+    <div class="opt"><div class="name">4. Throw him out of the inn</div><div class="line"><b>risky, 30%</b> · risk: <b>the innkeeper may bar you for good</b></div><div class="nature good">true to your nature — wrathful (+5 happiness)</div></div>
+    <div class="opt grey"><div class="name">5. Offer him your father’s ring</div><div class="line">you have no heirloom</div></div>
+  </div>
+  <p class="note">Плюс: привычно, легко читать сверху вниз. Минус: при трёх строках кнопка высокая, окно растёт.</p>
+</div>
+</div>
+
+<!-- B -->
+<div>
+<p class="label">B. Карточка, как в CK3 <span>— шанс крупно справа, цветной край у «против» и «по характеру»</span></p>
+<div class="modal b">
+  <div class="head"><div class="title">A decision</div><div class="badge">answer to go on</div></div>
+  <p class="text">In the common room of the Golden Ox, <a>Jacob Verhoef</a>, to whom you have owed twenty crowns since winter, sits down across from you uninvited. “The fair is over,” he says. “So is my patience.”</p>
+  <div class="choices">
+    <div class="opt"><div><div class="name">1. Pay him in full</div><dl class="rows"><dt>Cost</dt><dd>a fair sum (20)</dd></dl></div><div class="chance"><div class="pc">—</div><div class="w">no roll</div></div></div>
+    <div class="opt"><div><div class="name">2. Ask for time until the harvest</div><dl class="rows"><dt>Risk</dt><dd>he may sell your debt to worse men</dd></dl></div><div class="chance"><div class="pc">45%</div><div class="w">a toss-up</div></div></div>
+    <div class="opt against"><div><div class="name">3. Swear you paid him at Candlemas</div><dl class="rows"><dt>Risk</dt><dd>if he has a witness, the town hears you lied</dd><dt class="bad">Nature</dt><dd class="bad">against honest: a heavy heart (−10)</dd></dl></div><div class="chance"><div class="pc">70%</div><div class="w">likely</div></div></div>
+    <div class="opt own"><div><div class="name">4. Throw him out of the inn</div><dl class="rows"><dt>Risk</dt><dd>the innkeeper may bar you for good</dd><dt class="good">Nature</dt><dd class="good">wrathful: true to yourself (+5)</dd></dl></div><div class="chance"><div class="pc">30%</div><div class="w">risky</div></div></div>
+    <div class="opt grey"><div><div class="name">5. Offer him your father’s ring</div><dl class="rows"><dt>Needs</dt><dd>an heirloom — you have none</dd></dl></div><div class="chance"><div class="pc">—</div><div class="w"></div></div></div>
+  </div>
+  <p class="note">Плюс: шанс виден сразу, «против характера» узнаётся по краю без чтения. Минус: самая высокая кнопка; колонка шанса пустует у вариантов без проверки.</p>
+</div>
+</div>
+
+<!-- C -->
+<div>
+<p class="label">C. Знаки справа <span>— название и короткие знаки в одну строку, риск курсивом под ним</span></p>
+<div class="modal c">
+  <div class="head"><div class="title">A decision</div><div class="badge">answer to go on</div></div>
+  <p class="text">In the common room of the Golden Ox, <a>Jacob Verhoef</a>, to whom you have owed twenty crowns since winter, sits down across from you uninvited. “The fair is over,” he says. “So is my patience.”</p>
+  <div class="choices">
+    <div class="opt"><div class="top"><div class="name">1. Pay him in full</div><div class="signs"><span class="sign">a fair sum (20)</span></div></div></div>
+    <div class="opt"><div class="top"><div class="name">2. Ask for time until the harvest</div><div class="signs"><span class="sign">a toss-up, 45%</span></div></div><div class="risk">he may sell your debt to worse men</div></div>
+    <div class="opt"><div class="top"><div class="name">3. Swear you paid him at Candlemas</div><div class="signs"><span class="sign bad">against honest (−10)</span><span class="sign">likely, 70%</span></div></div><div class="risk">if he has a witness, the town hears you lied</div></div>
+    <div class="opt"><div class="top"><div class="name">4. Throw him out of the inn</div><div class="signs"><span class="sign good">wrathful (+5)</span><span class="sign">risky, 30%</span></div></div><div class="risk">the innkeeper may bar you for good</div></div>
+    <div class="opt grey"><div class="top"><div class="name">5. Offer him your father’s ring</div><div class="signs"><span class="small">you have no heirloom</span></div></div></div>
+  </div>
+  <p class="note">Плюс: самое компактное окно, знаки потом легко заменить иконками из арт-библии. Минус: «against honest (−10)» без слова «happiness» понятно только по подсказке; длинное название с двумя знаками переносится.</p>
+</div>
+</div>
+
+<!-- Outcome -->
+<div>
+<p class="label">Итог после выбора (общий для A, B, C) <span>— текст автора во втором лице, что изменилось, строки хроники</span></p>
+<div class="modal outcome">
+  <div class="head"><div class="title">What came of it</div><div class="badge">21 April 1700</div></div>
+  <p class="text">You swear it on your mother’s grave, and Verhoef believes you — or decides you are not worth the trouble. He leaves the coins on the table for the ale. The lie sits in you like a stone.</p>
+  <dl class="changes">
+    <dt>Roll</dt><dd>Intrigue (11) against 7 — <span class="good">success</span>, likely, 70%</dd>
+    <dt>Money</dt><dd>58 → 58 (the debt stays unpaid)</dd>
+    <dt>Happiness</dt><dd class="bad">content (62) → uneasy (52) — against your nature (honest)</dd>
+  </dl>
+  <div class="lines">Chronicle: “Walter Merrick swore he had paid a debt he had not.”</div>
+  <span class="btn">Continue</span>
+  <div class="avatar"><div class="face">portrait</div><div><b>Walter, 21</b><br><span class="small">uneasy (52)</span> · <span class="small">healthy (82)</span></div></div>
+  <p class="note">Счастье на аватаре — словом и числом (D-434, D-457); мимика портрета берёт его. «Здоровье словом» — S.10b, тут для места.</p>
+</div>
+</div>
+
+</div>
+</body>
+</html>
