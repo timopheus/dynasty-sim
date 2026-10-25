@@ -16,7 +16,7 @@ export const PlaceSchema = z.strictObject({
  * - `kinds`: kinds of places with their names; `road` is reserved for the hero on the road;
  * - `road`: the name of being on the road in the reasons of conditions ("on the road");
  * - `list`: 12–16 places of the region in the slice (D-439);
- * - `roads`: a road between two places and its days; the hero travels only to a place a road leads to;
+ * - `roads`: a road between two places and its days; a journey goes to any place by the shortest way (D-462);
  * - `start`: the place a new game starts in, until the place of birth (S.11a);
  * - `reasons`: texts of unmet conditions: `kind` (`{kinds}`), `place` (`{places}`), `no_road` (none).
  */

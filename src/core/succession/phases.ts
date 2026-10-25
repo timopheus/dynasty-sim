@@ -158,6 +158,7 @@ export function endHouse(ctx: Ctx): void {
   const { state, content } = ctx;
   const pending = state.pendingEvent;
   if (pending) state.chronicle.push(...pending.after);
+  stopJourney(ctx);
   state.activeAction = null;
   state.interruptRequest = null;
   state.pendingEvent = null;

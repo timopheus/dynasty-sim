@@ -12,6 +12,7 @@ import { actionAvailability, actionsOnDeath } from '../src/core/actions/actions'
 import { checkInvariants } from '../src/core/invariants';
 import { heroPlaceKind, placeIdOf, position, routesFrom, standingIn } from '../src/core/place/place';
 import { seedRng } from '../src/core/rng';
+import { endHouse } from '../src/core/succession/phases';
 import type { Ctx, GameState } from '../src/core/state';
 import { BASE_FILES, fixtureContent, loadOrThrow } from './fixtures/content';
 import { readContentFiles } from '../tools/content-files';
@@ -163,6 +164,38 @@ describe('place (S.9a, D-462)', () => {
     expect(state.activeAction?.endDay).toBe(start + 8 + 2 + 6 + 3);
     runOut(state);
     expect(state.place).toMatchObject({ here: meschevsk, road: null });
+  });
+
+  it('on the last day of a journey broken off by an effect the hero is there, without the line of the journey', () => {
+    const { state } = game();
+    apply(state, content, { type: 'start', actionId: 'journey', target: id(state, 'valmont') });
+    state.day = (state.activeAction?.endDay ?? 0) - 1;
+    state.interruptRequest = { template: null };
+    const lines = state.chronicle.length;
+    apply(state, content, { type: 'wait', days: 1 });
+    expect(state.place).toMatchObject({ here: id(state, 'valmont'), road: null });
+    expect(state.chronicle.slice(lines).some((e) => e.kind === 'action')).toBe(false);
+  });
+
+  it('goes on from a point of the road toward its far end, and refuses a journey to the place it already goes to', () => {
+    const { state } = game();
+    const [ostmere, valmont] = ['ostmere', 'valmont'].map((k) => id(state, k)) as [string, string];
+    apply(state, content, { type: 'start', actionId: 'journey', target: valmont });
+    expect(() => apply(state, content, { type: 'start', actionId: 'journey', target: valmont })).toThrow(/already under way/);
+    state.day += 2;
+    apply(state, content, { type: 'start', actionId: 'rest' });
+    apply(state, content, { type: 'start', actionId: 'journey', target: valmont });
+    expect(state.activeAction?.endDay).toBe(state.day + 4);
+    state.day += 1;
+    expect(position(state, content)).toEqual({ road: { a: ostmere, b: valmont, done: 3 }, journey: { to: valmont, arriveDay: state.day + 3 } });
+  });
+
+  it('stops a journey where the hero is when the house comes to an end', () => {
+    const { state, ctx } = game();
+    apply(state, content, { type: 'start', actionId: 'journey', target: id(state, 'valmont') });
+    state.day += 3;
+    endHouse(ctx);
+    expect(state.place.road).toEqual({ a: id(state, 'ostmere'), b: id(state, 'valmont'), done: 3 });
   });
 
   it('leaves the heir on the road where the hero died', () => {

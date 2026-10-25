@@ -111,8 +111,8 @@ export function botCommand(state: GameState, content: Content, rng: RngState, ch
 }
 
 /**
- * The command that starts the action; an action that goes somewhere takes a place a road leads to, drawn from the bot's
- * own generator (S.9a). Without such actions in the content the generator is used as before.
+ * The command that starts the action; an action that goes somewhere takes a place it can reach (D-462), drawn from the
+ * bot's own generator (S.9a). Without such actions in the content the generator is used as before.
  */
 function startCommand(ctx: Ctx, rng: RngState, action: ActionDef): Command {
   if (action.target !== 'place') return { type: 'start', actionId: action.id };

@@ -10,7 +10,7 @@ import { timeContent } from '../time/seasons';
 import type { ActionDef } from './content';
 
 export interface ActionsState {
-  /** `target`: the place the road leads to, for an action with `target: place` (S.9a); null for any other. */
+  /** `target`: the place a journey leads to, for an action with `target: place` (S.9a, D-462); null for any other. */
   activeAction: { actionId: string; endDay: number; target: string | null } | null;
   /**
    * Set by the `end_action` effect; the action-end phase interrupts the action.

@@ -139,9 +139,8 @@ function legsOf(way: Way, to: string): { place: string; day: number }[] {
   return legs;
 }
 
-/** A point `elapsed` days along the shortest way from `from` to `to`. */
-function pointAlong(state: GameState, content: Content, from: Point, to: string, elapsed: number): Point {
-  const way = shortestWays(state, content, from);
+/** A point `elapsed` days along the shortest way from `from` to `to` (`way`: the shortest ways from `from`). */
+function pointAlong(way: Way, from: Point, to: string, elapsed: number): Point {
   const legs = legsOf(way, to);
   let last: Point = from;
   let lastDay = 0;
@@ -180,9 +179,10 @@ export function currentPoint(state: GameState, content: Content): Point | null {
   const active = state.activeAction;
   // Only an action with `target: place` keeps a target (an invariant of actions/).
   if (!active || active.target === null) return from;
-  const total = shortestWays(state, content, from).dist.get(active.target);
+  const way = shortestWays(state, content, from);
+  const total = way.dist.get(active.target);
   if (total === undefined) return from;
-  return pointAlong(state, content, from, active.target, state.day - (active.endDay - total));
+  return pointAlong(way, from, active.target, state.day - (active.endDay - total));
 }
 
 /** Where the hero is now; null without places in the content. A pure query. */
@@ -191,7 +191,7 @@ export function position(state: GameState, content: Content): Position | null {
   if (!point) return null;
   const active = state.activeAction;
   const journey = active && active.target !== null ? { to: active.target, arriveDay: active.endDay } : null;
-  return 'road' in point ? { road: point.road, journey } : { at: point.place, journey };
+  return 'road' in point ? { road: { ...point.road }, journey } : { at: point.place, journey };
 }
 
 /** Kind of the hero's place: the kind of the place he stands in, `road` on the road or on a journey; null without places. */
@@ -280,8 +280,10 @@ export const placeInvariants: Invariant = ({ state, content }) => {
   }
   const target = state.activeAction?.target ?? null;
   if (target !== null) {
+    const from = startPoint(state);
     if (!ids.has(target)) problems.push(`the journey leads to unknown place ${target}`);
     else if (target === here) problems.push(`a journey to ${target}, where the hero already is`);
+    else if (from && !shortestWays(state, content, from).dist.has(target)) problems.push(`no way leads to ${target}`);
   }
   return problems;
 };
