@@ -17,7 +17,9 @@ import { checkFamily, FamilyContentSchema } from '../family/content';
 import { checkHealth, HealthContentSchema } from '../health/content';
 import { checkHeirlooms, HeirloomsContentSchema } from '../heirloom/content';
 import { checkHouse, HouseContentSchema } from '../house/content';
+import { checkMind, MindContentSchema } from '../mind/content';
 import { checkNarrator, NarratorContentSchema } from '../narrator/content';
+import { checkPlaces, PlacesContentSchema } from '../place/content';
 import { checkRelations, OpinionsContentSchema } from '../relations/content';
 import { checkStories } from '../stories/content';
 import { checkSuccession, SuccessionContentSchema } from '../succession/content';
@@ -58,6 +60,8 @@ export const OPTIONAL_KEYS = [
   'heirlooms',
   'eras',
   'economy',
+  'places',
+  'mind',
 ] as const;
 export const LIST_KEYS = ['actions', 'events', 'traits'] as const;
 
@@ -78,6 +82,8 @@ export const ContentFileSchema = z.strictObject({
   heirlooms: HeirloomsContentSchema.optional(),
   eras: ErasContentSchema.optional(),
   economy: EconomyContentSchema.optional(),
+  places: PlacesContentSchema.optional(),
+  mind: MindContentSchema.optional(),
   actions: z.array(ActionSchema).optional(),
   events: z.array(EventSchema).optional(),
   traits: z.array(TraitSchema).optional(),
@@ -134,4 +140,6 @@ export const CROSS_CHECKS: readonly CrossCheck[] = [
   checkHeirlooms,
   checkEras,
   checkEconomy,
+  checkPlaces,
+  checkMind,
 ];

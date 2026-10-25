@@ -3,7 +3,7 @@ import { placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
 import { conditionReport } from '../condition-keys';
 import type { EventDef } from '../events/content';
-import { fireEvent } from '../events/events';
+import { boundHere, fireEvent } from '../events/events';
 import { runNpcEvent } from '../events/npc';
 import { findCharacter, getPlayer } from '../helpers';
 import { baseScope, canFillRoles } from '../roles/roles';
@@ -89,10 +89,10 @@ function rememberNpc(ctx: Ctx, event: EventDef): void {
   if (event.once === 'game' || event.cooldown_days !== undefined) ctx.state.lastFired[event.id] = ctx.state.day;
 }
 
-/** A fallback ending fits now: bound action, `when`, `once` and the roles with the people of the story (D-044). */
+/** A fallback ending fits now: bound action and place, `when`, `once` and the roles with the people of the story (D-044). */
 function fits(ctx: Ctx, event: EventDef, owner: Character, given: Scope): boolean {
   const { state } = ctx;
-  if (event.actions && (!state.activeAction || !event.actions.includes(state.activeAction.actionId))) return false;
+  if (!boundHere(ctx, event)) return false;
   if (event.once === 'game' && Object.hasOwn(state.lastFired, event.id)) return false;
   if (event.once === 'life' && state.lifeHero === state.playerId && state.lifeFired.includes(event.id)) return false;
   const scope = startScope(ctx, owner, given);

@@ -103,7 +103,7 @@ describe('follow-ups', () => {
 
   it('is handed over again the next day if the narrator could not start it, and only once a day per event', () => {
     const { ctx, people } = game(2);
-    ctx.state.activeAction = { actionId: 'wait', endDay: 100 };
+    ctx.state.activeAction = { actionId: 'wait', endDay: 100, target: null };
     const hero = getPlayer(ctx.state);
     for (const p of people) ctx.state.followups.push({ eventId: 'duel', protagonist: hero.id, given: { rival: p.id }, dueDay: 0, offered: null });
     storiesPhase.run(ctx);
@@ -149,7 +149,7 @@ describe('stories', () => {
     const pace = { ...ctx.content.narrator!, eventChancePer10k: 10000 };
     const c = { ...ctx.content, narrator: pace };
     const run = { state: ctx.state, content: c };
-    ctx.state.activeAction = { actionId: 'wait', endDay: 100 };
+    ctx.state.activeAction = { actionId: 'wait', endDay: 100, target: null };
     ctx.state.day = 3;
     const accuser = storyGiven(ctx.state, hero.id, 'feud').accuser;
     expect(narratorPhase.run(run)).toBe(true);
@@ -259,7 +259,7 @@ describe('the deck', () => {
       const { ctx } = game(2);
       const c = { ...ctx.content, narrator: { ...ctx.content.narrator!, eventChancePer10k: 10000 } };
       ctx.state.rng = newGame(seed, c).rng;
-      ctx.state.activeAction = { actionId: 'wait', endDay: 100 };
+      ctx.state.activeAction = { actionId: 'wait', endDay: 100, target: null };
       ctx.state.day = 3;
       narratorPhase.run({ state: ctx.state, content: c });
       expect(['ping', undefined]).toContain(ctx.state.pendingEvent?.eventId);

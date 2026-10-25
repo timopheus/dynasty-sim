@@ -18,7 +18,9 @@ import { initFamilyState, type FamilyCharacter, type FamilyState, type Marriage 
 import { initHealthState, type HealthPart, type HealthState } from './health/health';
 import { initHeirloomState, type HeirloomState } from './heirloom/heirloom';
 import { initHouseState, type HouseCharacter, type HouseState } from './house/house';
+import { initMindState, type MindState } from './mind/mind';
 import { initNarratorState, type NarratorState } from './narrator/narrator';
+import { initPlaceState, type PlaceState } from './place/place';
 import { initRelationsState, type RelationsCharacter, type RelationsState } from './relations/relations';
 import { seedRng, type RngState } from './rng';
 import { SAVE_VERSION } from './save/version';
@@ -71,7 +73,9 @@ export type GameState = CoreState &
   HeirloomState &
   ArchiveState &
   SummaryState &
-  EconomyState;
+  EconomyState &
+  PlaceState &
+  MindState;
 
 /** What hooks, phases and effects get: the state to change and the content it runs on. */
 export interface Ctx {
@@ -113,6 +117,8 @@ export function initialState(seed: number): GameState {
     ...initArchiveState(),
     ...initSummaryState(),
     ...initEconomyState(),
+    ...initPlaceState(),
+    ...initMindState(),
   };
 }
 

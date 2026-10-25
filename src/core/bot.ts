@@ -5,6 +5,7 @@ import { BOT_CHARACTERS, isBotCharacter, scoreOf, type BotCharacter } from './bo
 import { actionFeatures, optionFeatures } from './bots/features';
 import type { Content } from './content/schema';
 import { pendingEventDef } from './events/events';
+import { routesFrom } from './place/place';
 import { sceneOf, type OptionDef } from './events/content';
 import { eventView } from './events/view';
 import { MAX_WAIT_DAYS, type Command } from './game';
@@ -95,7 +96,7 @@ export function botCommand(state: GameState, content: Content, rng: RngState, ch
   const house = houseCommand(ctx, rng);
   if (house) return house;
   const actions = availableActions(ctx);
-  if (character === 'random') return { type: 'start', actionId: pick(rng, actions).id };
+  if (character === 'random') return startCommand(ctx, rng, pick(rng, actions));
   // An action is a leaning, not a rule: a bot that always took the best-scored one would repeat it for a lifetime.
   // It draws among the better half, and a hero in debt weighs money more.
   const debt = getPlayer(state).money < 0;
@@ -106,5 +107,14 @@ export function botCommand(state: GameState, content: Content, rng: RngState, ch
   const ranked = actions.map((a) => ({ a, s: score(a) })).sort((x, y) => y.s - x.s);
   const cut = (ranked[Math.max(1, Math.ceil(ranked.length / 2)) - 1] as { s: number }).s;
   // Everything scoring at least as the last one of the better half: equal scores do not depend on the order in content.
-  return { type: 'start', actionId: pick(rng, ranked.filter((r) => r.s >= cut)).a.id };
+  return startCommand(ctx, rng, pick(rng, ranked.filter((r) => r.s >= cut)).a);
+}
+
+/**
+ * The command that starts the action; an action that goes somewhere takes a place a road leads to, drawn from the bot's
+ * own generator (S.9a). Without such actions in the content the generator is used as before.
+ */
+function startCommand(ctx: Ctx, rng: RngState, action: ActionDef): Command {
+  if (action.target !== 'place') return { type: 'start', actionId: action.id };
+  return { type: 'start', actionId: action.id, target: pick(rng, routesFrom(ctx.state, ctx.content)).to };
 }

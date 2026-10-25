@@ -15,7 +15,9 @@ import { economyPhase } from './economy/phases';
 import { deathPhase, healthPhase } from './health/phases';
 import { createCharacter } from './hooks';
 import { houseOnNewGame } from './house/phases';
+import { mindOnNewGame, mindPhase } from './mind/phases';
 import { narratorPhase } from './narrator/phases';
+import { placeOnNewGame, placePhase } from './place/phases';
 import { relationsPhase } from './relations/relations';
 import { isValidSeed, pick } from './rng';
 import { initialState, type AfterChoiceHook, type Ctx, type DayPhase, type GameState, type NewGameHook } from './state';
@@ -28,10 +30,11 @@ import { worldOnNewGame, worldPhase } from './world/phases';
 /**
  * Player commands. `end`: the player ends the house (D-315). `will`: a will at the notary (D-236, D-314; succession/).
  * `propose`: a proposal of marriage from the page of a person (D-313; family/). `wait`: lets up to `days` days pass,
- * stopping earlier at a decision (D-439); no other command moves time.
+ * stopping earlier at a decision (D-439); no other command moves time. `start` of an action with `target: place` names
+ * the place a road leads to (S.9a, D-461).
  */
 export type Command =
-  | { type: 'start'; actionId: string }
+  | { type: 'start'; actionId: string; target?: string }
   | { type: 'choose'; option: number }
   | { type: 'wait'; days: number }
   | { type: 'end' }
@@ -53,8 +56,10 @@ export const DAY_PHASES: readonly DayPhase[] = [
   successionPhase,
   relationsPhase,
   economyPhase,
+  mindPhase,
   summaryPhase,
   archivePhase,
+  placePhase,
   actionEndPhase,
   storiesPhase,
   narratorPhase,
@@ -62,9 +67,9 @@ export const DAY_PHASES: readonly DayPhase[] = [
 
 /**
  * New game, after the founder and the `start` line (D-167): the circle, the house and the living kin of the founder
- * (stage 4), then the backstory of the founder.
+ * (stage 4), the places and the hero's happiness (S.9a), then the backstory of the founder.
  */
-const NEW_GAME_HOOKS: readonly NewGameHook[] = [worldOnNewGame, houseOnNewGame, familyOnNewGame, backstoryOnNewGame];
+const NEW_GAME_HOOKS: readonly NewGameHook[] = [worldOnNewGame, houseOnNewGame, familyOnNewGame, placeOnNewGame, mindOnNewGame, backstoryOnNewGame];
 
 /** After a choice that left no event waiting: the next scene of the backstory (3.11). */
 const AFTER_CHOICE_HOOKS: readonly AfterChoiceHook[] = [backstoryAfterChoice];
@@ -110,7 +115,7 @@ export function apply(state: GameState, content: Content, cmd: Command): void {
   }
   // The will starts the action at the notary (4.6), as `start` starts any other.
   if (cmd.type === 'will') willCommand(ctx, { heir: cmd.heir, guardian: cmd.guardian, items: cmd.items });
-  else if (cmd.type === 'start') startAction(ctx, cmd.actionId);
+  else if (cmd.type === 'start') startAction(ctx, cmd.actionId, cmd.target ?? null);
   else {
     chooseOption(ctx, cmd.option);
     // Nobody inherited a hero who died in the choice.

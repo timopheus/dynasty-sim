@@ -134,7 +134,7 @@ function npcPool(ctx: Ctx, person: Character): Candidate[] {
   const pool: Candidate[] = [];
   for (const event of content.events) {
     if (event.who === undefined || event.who === 'hero') continue;
-    if (event.followup_only || event.deck === 'backstory' || event.story !== undefined || event.actions || event.once === 'life') continue;
+    if (event.followup_only || event.deck === 'backstory' || event.story !== undefined || event.actions || event.places || event.once === 'life') continue;
     if (event.once === 'game' && Object.hasOwn(state.lastFired, event.id)) continue;
     if (event.cooldown_days !== undefined && Object.hasOwn(state.lastFired, event.id) && state.day - (state.lastFired[event.id] ?? 0) < event.cooldown_days) continue;
     const weight = eventWeight(ctx, event, person);

@@ -47,7 +47,7 @@ describe('header', () => {
   it('shows the monthly balance under the money, with its lines, as text', () => {
     const content = realContent();
     const state = newGame(5, content);
-    state.activeAction = { actionId: 'serve_contract', endDay: state.day + 100 };
+    state.activeAction = { actionId: 'serve_contract', endDay: state.day + 100, target: null };
     const money = headerFigures(state, content)[0];
     expect(money?.note).toMatch(/^[+−]\d+ \/ month$/);
     expect(money?.breakdown?.[0]).toMatch(/^Work \+\d+$/);
@@ -67,9 +67,9 @@ describe('where I am', () => {
     // only what the core knows: the season from the date, and no row with a dash (D-447)
     expect(whereView(ctx).table).toEqual([{ label: 'Season', value: expect.stringMatching(/^\w+, January$/) }]);
     const action = content.actions[0]!;
-    state.activeAction = { actionId: action.id, endDay: state.day + 8 };
+    state.activeAction = { actionId: action.id, endDay: state.day + 8, target: null };
     expect(whereView(ctx)).toMatchObject({ heading: action.name, line: '8 days left', ended: false });
-    state.activeAction = { actionId: action.id, endDay: state.day + 1 };
+    state.activeAction = { actionId: action.id, endDay: state.day + 1, target: null };
     expect(whereView(ctx).line).toBe('1 day left');
   });
 
