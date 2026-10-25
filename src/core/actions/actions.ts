@@ -70,20 +70,19 @@ export function startAction(ctx: Ctx, actionId: string, target: string | null = 
   // The same action again would only roll its duration anew for free.
   const current = state.activeAction;
   if (current?.actionId === action.id) throw new Error(`Action "${actionId}" is already under way`);
-  if (current && !findAction(content, current.actionId).idle) {
-    const template = state.interruptRequest?.template ?? timeContent(content).texts.interrupted;
-    log(ctx, { subject: getPlayer(state), kind: 'interrupt', level: 'journal', template });
-  }
-  let duration: number;
+  // The target is checked before anything changes: a refused command leaves no line and no roll.
+  let roadDays: number | null = null;
   if (action.target === 'place') {
     if (target === null) throw new Error(`Action "${actionId}" needs a place to go to`);
     const road = routesFrom(state, content).find((r) => r.to === target);
     if (!road) throw new Error(`No road leads from here to "${target}"`);
-    duration = road.days;
-  } else {
-    if (target !== null) throw new Error(`Action "${actionId}" takes no target`);
-    duration = int(state.rng, action.duration.min, action.duration.max);
+    roadDays = road.days;
+  } else if (target !== null) throw new Error(`Action "${actionId}" takes no target`);
+  if (current && !findAction(content, current.actionId).idle) {
+    const template = state.interruptRequest?.template ?? timeContent(content).texts.interrupted;
+    log(ctx, { subject: getPlayer(state), kind: 'interrupt', level: 'journal', template });
   }
+  const duration = roadDays ?? int(state.rng, action.duration.min, action.duration.max);
   state.activeAction = { actionId: action.id, endDay: state.day + duration, target: action.target === 'place' ? target : null };
   state.interruptRequest = null;
 }

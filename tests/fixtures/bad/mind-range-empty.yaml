@@ -1,0 +1,5 @@
+# expect-error: mind.happiness.max /max must be above min/
+mind:
+  happiness: { min: 50, max: 50, base: 50 }
+  acts: []
+  reasons: { happiness_min: "At least {value}", happiness_max: "At most {value}" }

@@ -87,6 +87,28 @@ describe('place (S.9a)', () => {
     expect(state.activeAction).toBeNull();
   });
 
+  it('refuses a bad journey while another action runs without breaking it off', () => {
+    const { state } = game();
+    apply(state, content, { type: 'start', actionId: 'market' });
+    const before = JSON.stringify(state);
+    expect(() => apply(state, content, { type: 'start', actionId: 'journey' })).toThrow(/needs a place/);
+    expect(() => apply(state, content, { type: 'start', actionId: 'journey', target: id(state, 'rohrbach') })).toThrow(/No road/);
+    expect(() => apply(state, content, { type: 'start', actionId: 'rest', target: id(state, 'valmont') })).toThrow(/takes no target/);
+    expect(JSON.stringify(state)).toBe(before);
+  });
+
+  it('breaks the road off on its last day when an effect asks to end the action: no arrival', () => {
+    const { state, ctx } = game();
+    apply(state, content, { type: 'start', actionId: 'journey', target: id(state, 'valmont') });
+    const endDay = state.activeAction?.endDay ?? 0;
+    state.day = endDay - 1;
+    state.interruptRequest = { template: null };
+    apply(state, content, { type: 'wait', days: 1 });
+    expect(state.activeAction).toBeNull();
+    expect(state.place.here).toBe(id(state, 'ostmere'));
+    expect(checkInvariants(ctx.state, content)).toEqual([]);
+  });
+
   it('brings the hero to the place on the last day of the road', () => {
     const { state } = game();
     apply(state, content, { type: 'start', actionId: 'journey', target: id(state, 'meschevsk') });
