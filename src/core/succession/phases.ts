@@ -11,6 +11,7 @@ import { int } from '../rng';
 import type { Character, Ctx, DayPhase, DeathHook } from '../state';
 import { fillTemplate, type TextPart } from '../text/text';
 import { ageYears } from '../time/calendar';
+import { stopJourney } from '../place/place';
 import { timeContent } from '../time/seasons';
 import { isNear } from '../world/world';
 import { canGuard, heirOf, lawGuardian, lawOrder, widowOf, willGuardians, willHeirs, willItems, willReceivers, type HeirBasis } from './law';
@@ -157,6 +158,7 @@ export function endHouse(ctx: Ctx): void {
   const { state, content } = ctx;
   const pending = state.pendingEvent;
   if (pending) state.chronicle.push(...pending.after);
+  stopJourney(ctx);
   state.activeAction = null;
   state.interruptRequest = null;
   state.pendingEvent = null;
@@ -290,6 +292,7 @@ export function willCommand(ctx: Ctx, order: WillOrder): void {
   }
   const duration = int(state.rng, action.duration.min, action.duration.max);
   state.willDraft = { heir: order.heir, guardian: order.guardian, items: order.items.map((i) => ({ item: i.item, to: i.to })) };
+  stopJourney(ctx);
   state.activeAction = { actionId: action.id, endDay: state.day + duration, target: null };
   state.interruptRequest = null;
 }

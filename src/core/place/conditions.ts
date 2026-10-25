@@ -3,12 +3,13 @@ import type { Unmet } from '../condition-keys';
 import { fillReason, joinOr } from '../conditions/reasons';
 import { Id } from '../content/types';
 import type { Character, Ctx, Scope } from '../state';
-import { heroPlaceKind, placeKeyOf, position, ROAD_KIND } from './place';
+import { heroPlaceKind, placeKeyOf, ROAD_KIND, standingIn } from './place';
 
 /**
  * Condition keys of this module (D-437, S.9a); they name nobody else:
  * - `at_place_kind: [town, village]` — the hero is in a place of one of these kinds; `road` means on the road;
- * - `at_place: [ostmere]` — the hero stands in one of these places (ids of `places.list`); on the road he is in none.
+ * - `at_place: [ostmere]` — the hero stands in one of these places (ids of `places.list`); on the road and on a journey
+ *   (even passing through it) he is in none.
  * Unmet, the reason is visible (`places.reasons.kind` / `place`): the hero knows where he is. Only the hero has a place
  * (D-461): for anyone else the condition is unmet and hidden, as it is without places in the content.
  */
@@ -36,8 +37,8 @@ export function checkPlaceConditions(ctx: Ctx, c: Character, when: PlaceWhen, _s
     }
   }
   if (when.at_place) {
-    const pos = position(state, content);
-    const key = pos && 'at' in pos ? placeKeyOf(state, pos.at) : null;
+    const at = standingIn(state, content);
+    const key = at === null ? null : placeKeyOf(state, at);
     if (key === null || !when.at_place.includes(key)) {
       const names = when.at_place.map((id) => places.list.find((p) => p.id === id)?.name ?? id);
       out.push({ text: fillReason(places.reasons.place, { places: joinOr(names) }), hidden: false });

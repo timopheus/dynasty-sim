@@ -31,7 +31,7 @@ import { worldOnNewGame, worldPhase } from './world/phases';
  * Player commands. `end`: the player ends the house (D-315). `will`: a will at the notary (D-236, D-314; succession/).
  * `propose`: a proposal of marriage from the page of a person (D-313; family/). `wait`: lets up to `days` days pass,
  * stopping earlier at a decision (D-439); no other command moves time. `start` of an action with `target: place` names
- * the place a road leads to (S.9a, D-461).
+ * the place a journey leads to (S.9a, D-462).
  */
 export type Command =
   | { type: 'start'; actionId: string; target?: string }
