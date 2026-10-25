@@ -181,11 +181,11 @@ describe('onsets', () => {
 describe('rest and the road', () => {
   it('rest stops the way toward death, the road stops recovery', () => {
     const { state, ctx, hero } = setup();
-    state.activeAction = { actionId: 'rest', endDay: state.day + 100 };
+    state.activeAction = { actionId: 'rest', endDay: state.day + 100, target: null };
     applyEffects(ctx, hero, { wound: 'rot' }, {});
     nextWeek(ctx);
     expect(stage(hero, 'rot')).toBe('early'); // rest: worse x0
-    state.activeAction = { actionId: 'march', endDay: state.day + 100 };
+    state.activeAction = { actionId: 'march', endDay: state.day + 100, target: null };
     applyEffects(ctx, hero, { disease: 'flu' }, {});
     nextWeek(ctx);
     expect(stage(hero, 'flu')).toBe('sick'); // road: better x0
@@ -207,7 +207,7 @@ describe('fit condition and interruption', () => {
 
   it('a severe stage breaks off an action that is not rest, with a journal line', () => {
     const { state, ctx, hero } = setup();
-    state.activeAction = { actionId: 'wait', endDay: state.day + 30 };
+    state.activeAction = { actionId: 'wait', endDay: state.day + 30, target: null };
     applyEffects(ctx, hero, { wound: 'rot' }, {});
     expect(nextWeek(ctx)).toBe(true);
     expect(state.activeAction).toBeNull();
@@ -215,7 +215,7 @@ describe('fit condition and interruption', () => {
     expect(state.chronicle.at(-1)).toMatchObject({ kind: 'interrupt', level: 'journal' });
     expect(lastText(state)).toBe('Anne Fixture took to bed.');
 
-    state.activeAction = { actionId: 'rest', endDay: state.day + 30 };
+    state.activeAction = { actionId: 'rest', endDay: state.day + 30, target: null };
     state.day += 1;
     expect(healthPhase.run(ctx)).toBe(false);
     expect(state.activeAction).not.toBeNull();

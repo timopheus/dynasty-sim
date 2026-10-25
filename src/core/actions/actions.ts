@@ -5,11 +5,13 @@ import { applyEffects } from '../effects';
 import { int } from '../rng';
 import { findCharacter, getPlayer, isInt } from '../helpers';
 import type { Ctx, DayPhase, DeathHook, Invariant } from '../state';
+import { routesFrom } from '../place/place';
 import { timeContent } from '../time/seasons';
 import type { ActionDef } from './content';
 
 export interface ActionsState {
-  activeAction: { actionId: string; endDay: number } | null;
+  /** `target`: the place the road leads to, for an action with `target: place` (S.9a); null for any other. */
+  activeAction: { actionId: string; endDay: number; target: string | null } | null;
   /**
    * Set by the `end_action` effect; the action-end phase interrupts the action.
    * `template` null means the default line of `time.texts.interrupted`.
@@ -41,9 +43,11 @@ export function actionAvailability(ctx: Ctx): ActionAvailability[] {
   const hero = getPlayer(state);
   const scope = { hero: hero.id, protagonist: hero.id };
   return content.actions.map((action) => {
-    if (!action.when) return { action, unmet: [], hidden: false };
+    // An action that goes somewhere needs a road from here (S.9a); the hero knows the roads.
+    const noRoad = action.target === 'place' && content.places && routesFrom(state, content).length === 0 ? [content.places.reasons.no_road] : [];
+    if (!action.when) return { action, unmet: noRoad, hidden: false };
     const report = conditionReport(ctx, hero, action.when, scope);
-    return { action, unmet: report.reasons, hidden: report.hidden };
+    return { action, unmet: [...report.reasons, ...noRoad], hidden: report.hidden };
   });
 }
 
@@ -53,7 +57,11 @@ export function availableActions(ctx: Ctx): ActionDef[] {
   return actionAvailability(ctx).filter((a) => a.unmet.length === 0 && !a.hidden).map((a) => a.action);
 }
 
-export function startAction(ctx: Ctx, actionId: string): void {
+/**
+ * Starts an action; `target` is the place of an action with `target: place` (S.9a): a road must lead there from where the
+ * hero stands, and the days of the road are the duration, with no roll. Any other action takes no target.
+ */
+export function startAction(ctx: Ctx, actionId: string, target: string | null = null): void {
   const { state, content } = ctx;
   if (state.status !== 'awaiting_action' && state.status !== 'running') throw new Error(`Cannot start an action while ${state.status}`);
   const action = findAction(content, actionId);
@@ -62,12 +70,20 @@ export function startAction(ctx: Ctx, actionId: string): void {
   // The same action again would only roll its duration anew for free.
   const current = state.activeAction;
   if (current?.actionId === action.id) throw new Error(`Action "${actionId}" is already under way`);
+  // The target is checked before anything changes: a refused command leaves no line and no roll.
+  let roadDays: number | null = null;
+  if (action.target === 'place') {
+    if (target === null) throw new Error(`Action "${actionId}" needs a place to go to`);
+    const road = routesFrom(state, content).find((r) => r.to === target);
+    if (!road) throw new Error(`No road leads from here to "${target}"`);
+    roadDays = road.days;
+  } else if (target !== null) throw new Error(`Action "${actionId}" takes no target`);
   if (current && !findAction(content, current.actionId).idle) {
     const template = state.interruptRequest?.template ?? timeContent(content).texts.interrupted;
     log(ctx, { subject: getPlayer(state), kind: 'interrupt', level: 'journal', template });
   }
-  const duration = int(state.rng, action.duration.min, action.duration.max);
-  state.activeAction = { actionId: action.id, endDay: state.day + duration };
+  const duration = roadDays ?? int(state.rng, action.duration.min, action.duration.max);
+  state.activeAction = { actionId: action.id, endDay: state.day + duration, target: action.target === 'place' ? target : null };
   state.interruptRequest = null;
 }
 
@@ -131,6 +147,8 @@ export const actionsInvariants: Invariant = (ctx) => {
     if (!isInt(active.endDay) || active.endDay <= state.day) {
       problems.push(`active action ends on day ${active.endDay}, not after ${state.day}`);
     }
+    const def = content.actions.find((a) => a.id === active.actionId);
+    if (def && (active.target !== null) !== (def.target !== undefined)) problems.push(`active action ${active.actionId}: target ${String(active.target)} does not fit the action`);
   }
   if (state.interruptRequest && !active) problems.push('interrupt requested without an active action');
   // D-017: the player is never left without a move.

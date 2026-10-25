@@ -1,0 +1,19 @@
+# expect-error: actions[0].when.at_place /unknown place "carrow"/
+places:
+  kinds:
+    - { id: town, name: a town }
+  road: on the road
+  list:
+    - { id: ostmere, name: Ostmere, kind: town }
+    - { id: valmont, name: Valmont, kind: town }
+  roads:
+    - { between: [ostmere, valmont], days: 6 }
+  start: ostmere
+  reasons: { kind: "Only in {kinds}", place: "Only in {places}", no_road: "No road" }
+actions:
+  - id: dock
+    name: Dock work
+    category: livelihood
+    duration: { min: 5, max: 5 }
+    when: { at_place: [carrow] }
+    text: "{name} worked the docks."

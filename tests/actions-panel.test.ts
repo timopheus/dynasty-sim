@@ -33,7 +33,7 @@ describe('the actions panel (D-443)', () => {
   it('greys the will while the hero is at the notary (D-453)', () => {
     const ctx = free(30);
     getPlayer(ctx.state).money = 1000;
-    ctx.state.activeAction = { actionId: content.succession?.willAction ?? 'notary', endDay: ctx.state.day + 5 };
+    ctx.state.activeAction = { actionId: content.succession?.willAction ?? 'notary', endDay: ctx.state.day + 5, target: null };
     ctx.state.status = 'running';
     const will = actionShelves(ctx, willForm(ctx.state, content)).shelves.flatMap((s) => s.buttons).find((b) => b.id === WILL_ID);
     expect(will).toMatchObject({ grey: true, reason: 'you are at the notary now' });
@@ -71,7 +71,7 @@ describe('the actions panel (D-443)', () => {
 
   it('offers the other actions while one is under way (S.6), and shows the one under way grey', () => {
     const ctx = free(30);
-    ctx.state.activeAction = { actionId: 'hunt', endDay: ctx.state.day + 5 };
+    ctx.state.activeAction = { actionId: 'hunt', endDay: ctx.state.day + 5, target: null };
     ctx.state.status = 'running';
     const buttons = actionShelves(ctx, null).shelves.flatMap((s) => s.buttons);
     expect(buttons.find((b) => b.id === 'hunt')).toMatchObject({ grey: true, reason: 'you are doing this now' });

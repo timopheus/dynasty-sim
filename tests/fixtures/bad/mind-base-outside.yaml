@@ -1,0 +1,6 @@
+# expect-error: mind.happiness.base /within 0…100/
+mind:
+  happiness: { min: 0, max: 100, base: 120 }
+  acts:
+    - { id: lie, name: a lie }
+  reasons: { happiness_min: "At least {value}", happiness_max: "At most {value}" }

@@ -332,7 +332,7 @@ describe('the guardian (D-314, D-362)', () => {
         state.pendingEvent = null;
         state.status = 'awaiting_action';
         state.lastEventDay = null;
-        state.activeAction = { actionId, endDay: state.day + 100 };
+        state.activeAction = { actionId, endDay: state.day + 100, target: null };
         narratorPhase.run(ctx);
         if (state.pendingEvent) out.push((state.pendingEvent as { eventId: string }).eventId);
         state.day += 1;

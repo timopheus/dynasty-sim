@@ -126,6 +126,7 @@ export const checkFamily: CrossCheck = ({ family, events, health }) => {
         if (event.roles?.[role]?.pick !== 'given') err('proposalEvent', `event "${event.id}" needs a role "${role}" with pick: given`);
       }
       if (event.actions) err('proposalEvent', `event "${event.id}" is fired by a command and cannot be bound to actions`);
+      if (event.places) err('proposalEvent', `event "${event.id}" is fired by a command and cannot be bound to places`);
     }
     for (const cause of FAMILY_CAUSES) {
       if (!causes.has(cause)) errors.push({ file, path: 'family', message: `health.causes has no line for the cause "${cause}" of births` });

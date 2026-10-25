@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].acts[0] /needs the top-level key "mind"/
+events:
+  - id: road_event
+    weight: 1
+    text: "Something on the road."
+    options:
+      - text: Go on
+        acts: [lie]
+        result: "{name} went on."

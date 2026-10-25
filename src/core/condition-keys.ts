@@ -18,6 +18,8 @@ import { checkFamilyConditions, familyConditionRoleRefs, familyConditionShape } 
 import { checkHealthConditions, healthConditionShape } from './health/health';
 import { checkHeirloomConditions, heirloomConditionRoleRefs, heirloomConditionShape } from './heirloom/conditions';
 import { checkHouseConditions, houseConditionRoleRefs, houseConditionShape } from './house/conditions';
+import { checkMindConditions, mindConditionShape } from './mind/conditions';
+import { checkPlaceConditions, placeConditionShape } from './place/conditions';
 import { checkRelationsConditions, relationsConditionRoleRefs, relationsConditionShape } from './relations/conditions';
 import { checkRolesConditions, rolesConditionShape } from './roles/conditions';
 import type { Character, Ctx, Scope } from './state';
@@ -39,6 +41,8 @@ export const WhenSchema = z.strictObject({
   ...heirloomConditionShape,
   ...eraConditionShape,
   ...economyConditionShape,
+  ...placeConditionShape,
+  ...mindConditionShape,
 });
 
 export type When = z.infer<typeof WhenSchema>;
@@ -64,6 +68,8 @@ const CONDITION_CHECKS: readonly ((ctx: Ctx, c: Character, when: When, scope: Sc
   checkHeirloomConditions,
   checkEraConditions,
   checkEconomyConditions,
+  checkPlaceConditions,
+  checkMindConditions,
 ];
 
 /** Roles each module's keys refer to, for the cross-check of events. */

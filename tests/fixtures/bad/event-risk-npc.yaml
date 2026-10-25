@@ -1,0 +1,10 @@
+# expect-error: events[0].options[0].risk /an event of who: npc has none/
+events:
+  - id: road_event
+    weight: 1
+    who: npc
+    text: "Something on the road."
+    options:
+      - text: Go on
+        risk: you may be robbed
+        result: "{name} went on."

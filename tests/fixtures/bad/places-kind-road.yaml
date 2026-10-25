@@ -1,0 +1,13 @@
+# expect-error: places.kinds[1].id /kind of the hero on the road/
+places:
+  kinds:
+    - { id: town, name: a town }
+    - { id: road, name: a road }
+  road: on the road
+  list:
+    - { id: ostmere, name: Ostmere, kind: town }
+    - { id: valmont, name: Valmont, kind: town }
+  roads:
+    - { between: [ostmere, valmont], days: 6 }
+  start: ostmere
+  reasons: { kind: "Only in {kinds}", place: "Only in {places}", no_road: "No road" }

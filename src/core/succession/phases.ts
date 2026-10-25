@@ -290,6 +290,6 @@ export function willCommand(ctx: Ctx, order: WillOrder): void {
   }
   const duration = int(state.rng, action.duration.min, action.duration.max);
   state.willDraft = { heir: order.heir, guardian: order.guardian, items: order.items.map((i) => ({ item: i.item, to: i.to })) };
-  state.activeAction = { actionId: action.id, endDay: state.day + duration };
+  state.activeAction = { actionId: action.id, endDay: state.day + duration, target: null };
   state.interruptRequest = null;
 }

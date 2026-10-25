@@ -31,7 +31,7 @@ function reasons(state: GameState, id: string): string[] {
 describe('day phases', () => {
   it('run in the order of D-053 and stage 4 (4.1)', () => {
     expect(DAY_PHASES.map((p) => p.id)).toEqual([
-      'new_day', 'scheduled', 'health', 'death', 'world', 'family', 'succession', 'relations', 'economy', 'summary', 'archive', 'action_end', 'stories', 'narrator',
+      'new_day', 'scheduled', 'health', 'death', 'world', 'family', 'succession', 'relations', 'economy', 'mind', 'summary', 'archive', 'place', 'action_end', 'stories', 'narrator',
     ]);
   });
 });
@@ -165,7 +165,7 @@ describe('interrupting an action', () => {
 
   it('interruptAction takes a text of its own', () => {
     const state = newGame(1, content);
-    state.activeAction = { actionId: 'wait', endDay: 30 };
+    state.activeAction = { actionId: 'wait', endDay: 30, target: null };
     interruptAction({ state, content }, '{name} fell ill.');
     expect(entryText(state.chronicle.at(-1)!)).toBe('Anne Fixture fell ill.');
     expect(state.activeAction).toBeNull();

@@ -36,7 +36,7 @@ function setup(events: EventDef[], pace: Partial<NonNullable<Content['narrator']
   const state = newGame(seed, content);
   state.day = 100;
   state.tensionDay = 100;
-  state.activeAction = { actionId: 'wait', endDay: 130 };
+  state.activeAction = { actionId: 'wait', endDay: 130, target: null };
   return { state, content };
 }
 
@@ -98,7 +98,7 @@ describe('the pace', () => {
     const pace = { eventChancePer10k: 0, longActionChancePer10k: 10000 };
     const events = [ev('a')];
     const short = setup(events, pace);
-    short.state.activeAction = { actionId: 'rest', endDay: 108 };
+    short.state.activeAction = { actionId: 'rest', endDay: 108, target: null };
     expect(narratorPhase.run(short)).toBe(false);
     const long = setup(events, { ...pace, longActionDays: 30 });
     expect(narratorPhase.run(long)).toBe(true);

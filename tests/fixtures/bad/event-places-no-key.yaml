@@ -1,0 +1,9 @@
+# expect-error: events[0].places[0] /needs the top-level key "places"/
+events:
+  - id: road_event
+    weight: 1
+    places: [road]
+    text: "Something on the road."
+    options:
+      - text: Go on
+        result: "{name} went on."

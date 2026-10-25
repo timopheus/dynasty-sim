@@ -1,0 +1,14 @@
+# expect-error: events[0].options[0].acts[0] /unknown deed "flee"/
+mind:
+  happiness: { min: 0, max: 100, base: 50 }
+  acts:
+    - { id: lie, name: a lie }
+  reasons: { happiness_min: "At least {value}", happiness_max: "At most {value}" }
+events:
+  - id: road_event
+    weight: 1
+    text: "Something on the road."
+    options:
+      - text: Go on
+        acts: [flee]
+        result: "{name} went on."

@@ -21,6 +21,8 @@ import { storiesInvariants } from './stories/stories';
 import { successionInvariants } from './succession/succession';
 import { summaryInvariants } from './summary/summary';
 import { economyInvariants } from './economy/economy';
+import { mindInvariants } from './mind/mind';
+import { placeInvariants } from './place/place';
 import { timeInvariants } from './time/time';
 import { worldInvariants } from './world/world';
 
@@ -68,6 +70,8 @@ const INVARIANTS: readonly Invariant[] = [
   heirloomInvariants,
   summaryInvariants,
   economyInvariants,
+  placeInvariants,
+  mindInvariants,
 ];
 
 /** Returns a list of broken rules; empty means the state is consistent. */

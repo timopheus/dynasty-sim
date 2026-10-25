@@ -89,7 +89,7 @@ describe('monthly balance (S.7)', () => {
     hero.baseStats.stewardship = 5;
     hero.traits = [];
     hero.spouse = null;
-    state.activeAction = action === null ? null : { actionId: action, endDay: state.day + 100 };
+    state.activeAction = action === null ? null : { actionId: action, endDay: state.day + 100, target: null };
     const house = houseOf(state, hero);
     if (!house) throw new Error('no house');
     house.status = status;
@@ -130,7 +130,7 @@ describe('monthly balance (S.7)', () => {
     expect(monthlyBalance(served.ctx, served.hero).lines.map((l) => [l.id, l.amount])).toEqual([['work', 15], ['living', -7], ['spouse', -3], ['children', -2]]);
     const idle = setup('trade');
     family(idle);
-    idle.state.activeAction = { actionId: 'live', endDay: idle.state.day + 100 };
+    idle.state.activeAction = { actionId: 'live', endDay: idle.state.day + 100, target: null };
     expect(total(idle)).toBe(-5);
     // between actions the hero lives as he will
     idle.state.activeAction = null;
@@ -196,7 +196,7 @@ describe('monthly balance (S.7)', () => {
 
   it('on the first of each month the hero gets the balance, without a line in the chronicle', () => {
     const s = setup('serve_contract');
-    s.state.activeAction = { actionId: 'serve_contract', endDay: 100000 };
+    s.state.activeAction = { actionId: 'serve_contract', endDay: 100000, target: null };
     const money = s.hero.money;
     const lines = s.state.chronicle.length;
     runTo(s.state, fromYmd(1700, 4, 1));
@@ -208,7 +208,7 @@ describe('monthly balance (S.7)', () => {
 
   it('a day the phase never sees does not lose the month', () => {
     const s = setup('serve_contract');
-    s.state.activeAction = { actionId: 'serve_contract', endDay: 100000 };
+    s.state.activeAction = { actionId: 'serve_contract', endDay: 100000, target: null };
     const money = s.hero.money;
     runTo(s.state, fromYmd(1700, 1, 20));
     // Feb 1 and Mar 1 are skipped by an event; the phase runs again on Mar 2.
@@ -220,7 +220,7 @@ describe('monthly balance (S.7)', () => {
 
   it('going into debt writes one line and not more often than once a year', () => {
     const s = setup('travel');
-    s.state.activeAction = { actionId: 'travel', endDay: 100000 };
+    s.state.activeAction = { actionId: 'travel', endDay: 100000, target: null };
     s.state.pendingEvent = null;
     s.hero.money = 10;
     const debt = () => s.state.chronicle.filter((e) => e.kind === 'economy').length;

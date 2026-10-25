@@ -1,0 +1,13 @@
+# expect-error: places.list[2] /no road leads from "ostmere" to "rohrbach"/
+places:
+  kinds:
+    - { id: town, name: a town }
+  road: on the road
+  list:
+    - { id: ostmere, name: Ostmere, kind: town }
+    - { id: valmont, name: Valmont, kind: town }
+    - { id: rohrbach, name: Rohrbach, kind: town }
+  roads:
+    - { between: [ostmere, valmont], days: 6 }
+  start: ostmere
+  reasons: { kind: "Only in {kinds}", place: "Only in {places}", no_road: "No road" }

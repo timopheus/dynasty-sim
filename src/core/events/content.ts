@@ -22,6 +22,11 @@ const outcomeShape = {
   on: z.record(Id, EffectsSchema).optional(),
   /** Chronicle line in the third person, starting with `{name}` (D-162); lines of all pages make one entry. */
   result: Text.optional(),
+  /**
+   * What came of it, in the second person, for the screen of the outcome (D-440, S.9a): "You hold the wagons, but a ball
+   * takes you in the shoulder". Never in the chronicle; only in the hero's events.
+   */
+  aftermath: Text.optional(),
   /** The author wants the line in the chronicle whatever the sum (D-130, D-173 `important`). */
   chronicle: z.boolean().optional(),
   /** A choice that matters: ▸ and always in the chronicle (D-130). Some effects set it by themselves (D-040). */
@@ -78,6 +83,13 @@ export const OptionSchema = z.strictObject({
   success: OutcomeSchema.optional(),
   failure: OutcomeSchema.optional(),
   ai: AiSchema.optional(),
+  /** The main risk, written by the author in the second person and shown before the choice (D-433, D-439, S.9a). */
+  risk: Text.optional(),
+  /**
+   * Deeds the option is (D-460): ids of `mind.acts`, e.g. `[lie]`. The traits of the hero decide whether it goes against
+   * his nature and what it costs in happiness (S.10).
+   */
+  acts: z.array(Id).min(1).optional(),
   ...outcomeShape,
 });
 
@@ -118,6 +130,11 @@ export const EventSchema = z.strictObject({
   tags: z.array(Id).min(1).optional(),
   /** If set, the event can only fire during these actions. */
   actions: z.array(Id).min(1).optional(),
+  /**
+   * If set, the event can only fire while the hero is in a place of one of these kinds, or `road` on the road (D-437,
+   * S.9a). With `actions` too, both must hold.
+   */
+  places: z.array(Id).min(1).optional(),
   /** Conditions on the main participant. */
   when: WhenSchema.optional(),
   /** Factors of the weight; with `role`, the factor applies if some candidate of the role meets `when` (D-161). */
@@ -223,6 +240,10 @@ function checkOutcome(env: EventEnv, path: string, outcome: OutcomeDef): void {
     }
   }
   checkText(env, `${path}.result`, outcome.result);
+  checkText(env, `${path}.aftermath`, outcome.aftermath);
+  if (outcome.aftermath !== undefined && (event.who ?? 'hero') === 'npc') {
+    errors.push({ file, path: `${path}.aftermath`, message: 'the text of the outcome is for the player; an event of who: npc has none' });
+  }
   checkMood(env, path, outcome.mood);
   if (outcome.next !== undefined && !event.pages?.[outcome.next]) {
     errors.push({ file, path: `${path}.next`, message: `unknown page "${outcome.next}"` });
@@ -235,6 +256,12 @@ function checkOutcome(env: EventEnv, path: string, outcome: OutcomeDef): void {
 function checkOption(env: EventEnv, path: string, option: OptionDef): void {
   const { file, errors } = env;
   checkText(env, `${path}.text`, option.text);
+  checkText(env, `${path}.risk`, option.risk);
+  if ((env.event.who ?? 'hero') === 'npc') {
+    // A person of the world chooses by `ai`: the risk and the deeds are told to the player only.
+    if (option.risk !== undefined) errors.push({ file, path: `${path}.risk`, message: 'the risk is for the player; an event of who: npc has none' });
+    if (option.acts !== undefined) errors.push({ file, path: `${path}.acts`, message: 'deeds cost the hero happiness; an event of who: npc has none' });
+  }
   checkWhen(env, `${path}.when`, option.when);
   if (option.check) {
     const { check } = option;
@@ -331,6 +358,7 @@ function checkEvent(sources: ContentSources, file: string, at: string, event: Ev
   const env: EventEnv = { file, at, event, known: new Set(['hero', 'protagonist', ...roles]), roles, optional, symbols, moods, errors };
   if ((event.who ?? 'hero') === 'npc') {
     if (event.actions) errors.push({ file, path: `${at}.actions`, message: 'an event of who: npc is not bound to an action of the hero' });
+    if (event.places) errors.push({ file, path: `${at}.places`, message: 'an event of who: npc is not bound to the place of the hero' });
     if (event.once === 'life') errors.push({ file, path: `${at}.once`, message: 'once: life counts the lives of the heads of the house; an event of who: npc has only once: game' });
   }
   if (event.roles) errors.push(...checkRoles(event.roles, { file, path: `${at}.roles`, sources }));

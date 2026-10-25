@@ -4,6 +4,7 @@ import type { Content } from '../content/schema';
 import { factorParts } from '../content/types';
 import { applyEffects, type Effects } from '../effects';
 import { findCharacter, getPlayer } from '../helpers';
+import { heroPlaceKind } from '../place/place';
 import { introduce } from '../relations/acquaintance';
 import { anyCandidate, baseScope, canFillRoles, fillRoles } from '../roles/roles';
 import type { Character, Ctx, DeathHook, GameState, Invariant, RefsFn, Scope } from '../state';
@@ -45,10 +46,16 @@ export interface EventsState {
   pendingEvent: PendingEvent | null;
   /** Number the next event gets. */
   eventSeq: number;
+  /**
+   * The text of the outcome of the hero's last choice, in the second person (`aftermath`, D-440, S.9a), for the screen of
+   * the outcome: the choice has ended the event by then, and only the core knew whether the check succeeded. Cleared by
+   * the next choice; `seq` is the number of the event it came from.
+   */
+  aftermath: { seq: number; parts: TextPart[] } | null;
 }
 
 export function initEventsState(): EventsState {
-  return { pendingEvent: null, eventSeq: 0 };
+  return { pendingEvent: null, eventSeq: 0, aftermath: null };
 }
 
 export function findEvent(content: Content, id: string): EventDef {
@@ -73,17 +80,31 @@ function met(ctx: Ctx, c: Character, when: Parameters<typeof conditionReport>[2]
 }
 
 /**
- * Weight of the event for the main participant now; 0 means impossible. Bound to an action, the event needs the hero
- * to be doing it; `when` holds for the main participant; every role can be filled; then the factors of `weight_mods`
+ * The event may fall where the hero is now (D-437, S.9a): bound to actions, the hero is doing one of them; bound to kinds
+ * of places, he is in a place of one of them (`road` on the road). Both, when both are set. Pure.
+ */
+export function boundHere(ctx: Ctx, event: EventDef): boolean {
+  const { state, content } = ctx;
+  if (event.actions) {
+    const active = state.activeAction;
+    if (!active || !event.actions.includes(active.actionId)) return false;
+  }
+  if (event.places) {
+    const kind = heroPlaceKind(state, content);
+    if (kind === null || !event.places.includes(kind)) return false;
+  }
+  return true;
+}
+
+/**
+ * Weight of the event for the main participant now; 0 means impossible. Bound to an action or a kind of place, the
+ * event needs the hero to be doing it or to be there (`boundHere`); `when` holds for the main participant; every role can be filled; then the factors of `weight_mods`
  * whose conditions hold (by role: some candidate of the role meets them, D-161) multiply the weight, rounded down
  * once at the end (D-040). Pure: never consumes randomness.
  */
 export function eventWeight(ctx: Ctx, event: EventDef, protagonist: Character, given: Scope = {}): number {
   const { state } = ctx;
-  if (event.actions) {
-    const active = state.activeAction;
-    if (!active || !event.actions.includes(active.actionId)) return 0;
-  }
+  if (!boundHere(ctx, event)) return 0;
   const base = baseScope(getPlayer(state), protagonist);
   if (!met(ctx, protagonist, event.when, base)) return 0;
   // People handed over (roles `pick: given`, D-178) count for filling the roles, not for the conditions of the weight.
@@ -194,6 +215,10 @@ export function resolveOutcome(ctx: Ctx, event: EventDef, pending: PendingEvent,
     if (person) applyEffects(ctx, person, effects, pending.scope);
   }
   pending.money += protagonist.money - moneyBefore;
+  // The text of the outcome is the player's: only for the hero's own event. The text stream, never the world's (3.4).
+  if (outcome.aftermath !== undefined && !npc) {
+    state.aftermath = { seq: pending.seq, parts: renderTemplate(ctx, outcome.aftermath, pending.scope, pending.seq, `${slot}aftermath`, event.grammar ?? null) };
+  }
   if (outcome.result !== undefined) pending.lines.push(renderTemplate(ctx, outcome.result, pending.scope, pending.seq, `${slot}result`, event.grammar ?? null));
   if (outcome.mark === true || (choice && protagonist.id === state.playerId && autoMark(outcome))) pending.mark = true;
   if (outcome.chronicle === true) pending.important = true;
@@ -249,6 +274,8 @@ export function chooseOption(ctx: Ctx, index: number): void {
   const event = findEvent(content, pending.eventId);
   const scene = sceneOf(event, pending.page);
   const path = scenePath(pending.page);
+  // The text of the outcome of the choice before is shown by now (S.10): a new choice starts without one.
+  state.aftermath = null;
   const protagonist = findCharacter(state, pending.protagonist);
   if (!protagonist) throw new Error(`Unknown main participant ${pending.protagonist}`);
   if (!scene.options) {
@@ -280,9 +307,11 @@ export function answerOption(ctx: Ctx, event: EventDef, pending: PendingEvent, o
  */
 export const eventsRefs: RefsFn = ({ state }) => {
   const pending = state.pendingEvent;
-  if (!pending) return [];
   const linked = (parts: readonly TextPart[]) => parts.flatMap((p) => (typeof p === 'string' ? [] : [p.id]));
+  const shown = state.aftermath ? linked(state.aftermath.parts) : [];
+  if (!pending) return shown;
   return [
+    ...shown,
     pending.protagonist,
     ...Object.values(pending.scope),
     ...pending.lines.flatMap(linked),

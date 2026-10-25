@@ -26,6 +26,11 @@ export const ActionSchema = z.strictObject({
    */
   text: Text,
   idle: z.boolean().optional(),
+  /**
+   * The action goes somewhere (S.9a, D-461): `start` names the place, a road must lead there from where the hero stands,
+   * and the days of the road replace `duration` (which stays the measure of the narrator).
+   */
+  target: z.enum(['place']).optional(),
 });
 
 export type ActionDef = z.infer<typeof ActionSchema>;
