@@ -5,7 +5,7 @@ import { applyEffects } from '../effects';
 import { int } from '../rng';
 import { findCharacter, getPlayer, isInt } from '../helpers';
 import type { Ctx, DayPhase, DeathHook, Invariant } from '../state';
-import { routesFrom } from '../place/place';
+import { routesFrom, stopJourney } from '../place/place';
 import { timeContent } from '../time/seasons';
 import type { ActionDef } from './content';
 
@@ -58,8 +58,10 @@ export function availableActions(ctx: Ctx): ActionDef[] {
 }
 
 /**
- * Starts an action; `target` is the place of an action with `target: place` (S.9a): a road must lead there from where the
- * hero stands, and the days of the road are the duration, with no roll. Any other action takes no target.
+ * Starts an action; `target` is the place of an action with `target: place` (S.9a, D-462): any place but the one the hero
+ * stands in, by the shortest way from where he is now; its days are the duration, with no roll. Any other action takes
+ * no target. A journey under way may be turned toward another place; any other change of occupation stops it where
+ * the hero is (`stopJourney`).
  */
 export function startAction(ctx: Ctx, actionId: string, target: string | null = null): void {
   const { state, content } = ctx;
@@ -69,20 +71,22 @@ export function startAction(ctx: Ctx, actionId: string, target: string | null = 
   // A change of occupation breaks off the one under way: no effects, a journal line (an idle life leaves none).
   // The same action again would only roll its duration anew for free.
   const current = state.activeAction;
-  if (current?.actionId === action.id) throw new Error(`Action "${actionId}" is already under way`);
+  const retarget = action.target === 'place' && target !== null && current?.target !== target;
+  if (current?.actionId === action.id && !retarget) throw new Error(`Action "${actionId}" is already under way`);
   // The target is checked before anything changes: a refused command leaves no line and no roll.
   let roadDays: number | null = null;
   if (action.target === 'place') {
     if (target === null) throw new Error(`Action "${actionId}" needs a place to go to`);
-    const road = routesFrom(state, content).find((r) => r.to === target);
-    if (!road) throw new Error(`No road leads from here to "${target}"`);
-    roadDays = road.days;
+    const way = routesFrom(state, content).find((r) => r.to === target);
+    if (!way) throw new Error(`No way leads from here to "${target}"`);
+    roadDays = way.days;
   } else if (target !== null) throw new Error(`Action "${actionId}" takes no target`);
   if (current && !findAction(content, current.actionId).idle) {
     const template = state.interruptRequest?.template ?? timeContent(content).texts.interrupted;
     log(ctx, { subject: getPlayer(state), kind: 'interrupt', level: 'journal', template });
   }
   const duration = roadDays ?? int(state.rng, action.duration.min, action.duration.max);
+  stopJourney(ctx);
   state.activeAction = { actionId: action.id, endDay: state.day + duration, target: action.target === 'place' ? target : null };
   state.interruptRequest = null;
 }
@@ -100,6 +104,7 @@ export function interruptAction(ctx: Ctx, template?: string): void {
     level: 'journal',
     template: template ?? timeContent(content).texts.interrupted,
   });
+  stopJourney(ctx);
   state.activeAction = null;
   state.pendingEvent = null;
   state.interruptRequest = null;
@@ -130,9 +135,11 @@ export const actionEndPhase: DayPhase = {
   },
 };
 
-/** The hero's death ends the action. */
-export const actionsOnDeath: DeathHook = ({ state }, c) => {
+/** The hero's death ends the action; a journey stops where he died, and the heir is there (D-462). */
+export const actionsOnDeath: DeathHook = (ctx, c) => {
+  const { state } = ctx;
   if (c.id === state.playerId) {
+    stopJourney(ctx);
     state.activeAction = null;
     state.interruptRequest = null;
   }
