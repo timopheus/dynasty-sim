@@ -1,0 +1,9 @@
+# expect-error: events[0].options[0].effects.happiness /needs the top-level key "mind"/
+events:
+  - id: road_event
+    weight: 1
+    text: "Something on the road."
+    options:
+      - text: Go on
+        effects: { happiness: -5 }
+        result: "{name} went on."

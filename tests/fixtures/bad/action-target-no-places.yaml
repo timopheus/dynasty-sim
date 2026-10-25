@@ -1,0 +1,8 @@
+# expect-error: actions[0].target /needs the top-level key "places"/
+actions:
+  - id: journey
+    name: Journey
+    category: road
+    duration: { min: 5, max: 5 }
+    target: place
+    text: "{name} journeyed."

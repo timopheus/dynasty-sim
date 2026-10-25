@@ -1,0 +1,10 @@
+# expect-error: events[0].options[0].aftermath /an event of who: npc has none/
+events:
+  - id: road_event
+    weight: 1
+    who: npc
+    text: "Something on the road."
+    options:
+      - text: Go on
+        aftermath: "You go on."
+        result: "{name} went on."

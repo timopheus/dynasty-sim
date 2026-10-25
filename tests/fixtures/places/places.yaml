@@ -1,0 +1,65 @@
+# Places, happiness and the new fields of events (S.9a): four places, two kinds, three roads; a journey with a target,
+# an action of towns, an event of the road with a risk, deeds and the text of the outcome.
+places:
+  kinds:
+    - { id: town, name: a town }
+    - { id: village, name: a village }
+  road: on the road
+  list:
+    - { id: ostmere, name: Ostmere, kind: town }
+    - { id: valmont, name: Valmont, kind: town }
+    - { id: meschevsk, name: Meschevsk, kind: village }
+    - { id: rohrbach, name: Rohrbach, kind: town }
+  roads:
+    - { between: [ostmere, valmont], days: 6 }
+    - { between: [meschevsk, ostmere], days: 3 }
+    - { between: [valmont, rohrbach], days: 9 }
+  start: ostmere
+  reasons:
+    kind: "Only in {kinds}"
+    place: "Only in {places}"
+    no_road: "No road leads anywhere from here"
+mind:
+  happiness: { min: 0, max: 100, base: 50 }
+  acts:
+    - { id: lie, name: a lie }
+    - { id: flee, name: flight }
+  reasons:
+    happiness_min: "Requires happiness of at least {value}"
+    happiness_max: "Requires happiness of at most {value}"
+actions:
+  - id: journey
+    name: Journey
+    category: road
+    duration: { min: 5, max: 5 }
+    target: place
+    text: "{name} came to the end of a journey."
+  - id: market
+    name: Market
+    category: livelihood
+    duration: { min: 2, max: 2 }
+    when: { at_place_kind: [town] }
+    text: "{name} went to market."
+events:
+  - id: highwaymen
+    weight: 10
+    places: [road]
+    text: "Men step out of the trees and take hold of your bridle."
+    options:
+      - text: Hand over your purse
+        risk: they may want more than the purse
+        acts: [flee]
+        effects: { happiness: -5 }
+        result: "{name} was robbed on the road."
+        aftermath: "You hand over the purse, and they let you ride on."
+      - text: Swear you carry nothing
+        acts: [lie]
+        result: "{name} lied to robbers on the road."
+  - id: town_crier
+    weight: 10
+    places: [town]
+    actions: [market]
+    text: "A crier reads the news at the market."
+    options:
+      - text: Listen
+        result: "{name} heard the news at the market."
