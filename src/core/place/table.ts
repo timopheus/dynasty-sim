@@ -63,7 +63,7 @@ export function placeFacts(state: GameState, content: Content, placeId: string):
   const kind = content.places.kinds.find((k) => k.id === def.kind);
   const size = sizeWord(content, def);
   if (kind) rows.push({ label: 'Place', value: size ? `${size} ${bare(kind.name)}` : bare(kind.name) });
-  if (def.realm) rows.push({ label: 'Realm', value: def.province ? `${def.realm}, province of ${def.province}` : def.realm });
+  if (def.realm) rows.push({ label: 'Realm', value: def.province ? `${def.realm} · ${def.province}` : def.realm });
   if (def.people) rows.push({ label: 'People', value: def.people });
   if (def.landscape) rows.push({ label: 'Land', value: def.landscape });
   if (def.has) rows.push({ label: 'Here', value: def.has.join(', ') });

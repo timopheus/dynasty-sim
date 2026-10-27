@@ -32,7 +32,7 @@ export interface WhereView {
 }
 
 /** How many of the nearest places the block names; the panel of actions lists them all. */
-export const GO_TO_LIMIT = 6;
+export const GO_TO_LIMIT = 4;
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -103,7 +103,7 @@ export function whereView(ctx: Ctx): WhereView {
   }
   const free = state.status === 'awaiting_action' && !state.pendingEvent;
   const onRoad = where !== null && where.place === null;
-  const line = !free ? '' : onRoad ? 'Go on, turn back or choose another place: the roads are in the panel on the right.' : 'Choose what to do next in the panel on the right.';
+  const line = !free ? '' : onRoad ? 'Go on, turn back or choose another place: the roads are in the panel on the right.' : '';
   return { ...base, goTo, heading: 'Free to act', line, ended: false };
 }
 

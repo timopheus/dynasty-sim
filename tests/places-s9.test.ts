@@ -75,7 +75,7 @@ describe('the places of the region (S.9, D-439)', () => {
     const facts = placeFacts(state, content, id(state, 'ostmere'));
     expect(facts?.rows.map((r) => r.label)).toEqual(['Place', 'Realm', 'People', 'Land', 'Here']);
     expect(facts?.rows[0]?.value).toBe('great city');
-    expect(facts?.rows[1]?.value).toBe('Haverland, province of Schlilerbach');
+    expect(facts?.rows[1]?.value).toBe('Haverland · Schlilerbach');
   });
 });
 

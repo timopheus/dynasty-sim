@@ -20,7 +20,7 @@
   flex: none;
   display: flex;
   gap: 1rem;
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   border: 2px dashed var(--line);
 }
 
