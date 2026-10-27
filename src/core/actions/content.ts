@@ -31,6 +31,11 @@ export const ActionSchema = z.strictObject({
    * and the days of the road replace `duration` (which stays the measure of the narrator).
    */
   target: z.enum(['place']).optional(),
+  /**
+   * The goal of the action (D-466): once `when` holds for the hero, the action ends as completed, before its last day —
+   * its effects, and the line `text` instead of its own (`null`: no line, the event that reached the goal wrote one).
+   */
+  until: z.strictObject({ when: WhenSchema, text: Text.nullable().optional() }).optional(),
 });
 
 export type ActionDef = z.infer<typeof ActionSchema>;
@@ -47,6 +52,11 @@ export const checkActions: CrossCheck = ({ actions, time }) => {
     ids.add(item.id);
     const problem = checkTemplate(item.text);
     if (problem) errors.push({ file, path: `actions[${index}].text`, message: problem });
+    const untilText = item.until?.text;
+    if (typeof untilText === 'string') {
+      const untilProblem = checkTemplate(untilText);
+      if (untilProblem) errors.push({ file, path: `actions[${index}].until.text`, message: untilProblem });
+    }
     const { when } = item;
     if (!when) continue;
     when.season?.forEach((id, i) => {
