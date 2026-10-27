@@ -116,6 +116,19 @@ interface Way {
  * way is the same on every run. A local Map, never stored. Pure.
  */
 function shortestWays(state: GameState, content: Content, from: Point): Way {
+  // The same point of departure keeps its ways for the whole journey (and every query of the day): remembered by the
+  // state object, never stored in it, and dropped when the point, the content or the records change.
+  const key = 'place' in from ? `p${from.place}` : `r${from.road.a}|${from.road.b}|${from.road.done}`;
+  const known = WAYS.get(state);
+  if (known && known.content === content && known.key === key && known.places === state.place.places.length) return known.way;
+  const way = computeWays(state, content, from);
+  WAYS.set(state, { content, key, places: state.place.places.length, way });
+  return way;
+}
+
+const WAYS = new WeakMap<GameState, { content: Content; key: string; places: number; way: Way }>();
+
+function computeWays(state: GameState, content: Content, from: Point): Way {
   const dist = new Map<string, number>();
   const prev = new Map<string, string | null>();
   const ids = state.place.places.map((p) => p.id);
