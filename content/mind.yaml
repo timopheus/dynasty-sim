@@ -1,0 +1,86 @@
+# Happiness of the hero and what goes by or against his nature (D-457, D-460, D-467). Schema: src/core/mind/content.ts.
+# The table of deeds and traits is docs/reference/against-nature.md: a deed of an option (`acts:`) goes against the
+# traits that list it under `against` and is true to the traits that list it under `favours`. Sizes small : medium : large
+# are 1 : 2 : 4; the price of a deed is `costs`. The numbers are a start for the balance (a report, D-430).
+mind:
+  happiness: { min: 0, max: 100, base: 50 }
+  # Words of the happiness, shown with the number in brackets (D-434).
+  words:
+    - { upTo: 10, word: despairing }
+    - { upTo: 25, word: miserable }
+    - { upTo: 40, word: unhappy }
+    - { upTo: 60, word: content }
+    - { upTo: 80, word: happy }
+    - { upTo: 100, word: joyful }
+  # The face of the portrait when no event on the screen sets a mood.
+  moods:
+    - { upTo: 25, mood: loss }
+    - { upTo: 74, mood: neutral }
+    - { upTo: 100, mood: joy }
+  # One medium deed against the nature is mended by the pull in about half a year; four of them in a short time break the
+  # hero. A deed true to the nature gives a little (D-467).
+  costs: { small: 5, medium: 10, large: 20, favour: 3 }
+  # Each month the happiness moves a sixth of the way (at least a point) toward the base; poverty pulls it down.
+  pull: { den: 6 }
+  poverty: { money_max: -1, monthly: -3 }
+  breakdown:
+    at_most: 10
+    reset: 40
+    trait: despondent
+    text: "{name} broke under the weight of it all and could not be roused for weeks."
+  acts:
+    - { id: deceive, name: a lie or a swindle }
+    - { id: flee, name: running away }
+    - { id: risk_life, name: courting danger }
+    - { id: betray, name: betraying a trust }
+    - { id: give_away, name: giving of your own }
+    - { id: hoard, name: holding fast to your own }
+    - { id: humble_self, name: lowering yourself }
+    - { id: assert_rank, name: demanding your due }
+    - { id: break_vow, name: breaking your word }
+    - { id: forgive, name: forgiving }
+    - { id: retaliate, name: settling a score }
+    - { id: lash_out, name: lashing out }
+    - { id: hold_temper, name: holding your temper }
+    - { id: shirk, name: shirking }
+    - { id: toil, name: working beyond need }
+    - { id: take_on_trust, name: taking on trust }
+    - { id: verify, name: checking up }
+    - { id: reach_higher, name: reaching higher }
+    - { id: settle_for_less, name: settling for less }
+    - { id: harm_weak, name: hurting the helpless }
+  traits:
+    - { trait: proud, against: [{ act: humble_self, cost: medium }, { act: settle_for_less, cost: medium }], favours: [assert_rank] }
+    - { trait: humble, against: [{ act: assert_rank, cost: medium }, { act: harm_weak, cost: medium }], favours: [humble_self] }
+    - { trait: brave, against: [{ act: flee, cost: large }], favours: [risk_life] }
+    - { trait: craven, against: [{ act: risk_life, cost: large }], favours: [flee] }
+    - { trait: honest, against: [{ act: deceive, cost: medium }, { act: break_vow, cost: medium }] }
+    - { trait: deceitful, against: [{ act: humble_self, cost: small }], favours: [deceive] }
+    - { trait: generous, against: [{ act: hoard, cost: medium }], favours: [give_away] }
+    - { trait: greedy, against: [{ act: give_away, cost: medium }], favours: [hoard] }
+    - { trait: vengeful, against: [{ act: forgive, cost: medium }], favours: [retaliate] }
+    - { trait: forgiving, against: [{ act: retaliate, cost: medium }, { act: harm_weak, cost: medium }], favours: [forgive] }
+    - { trait: ambitious, against: [{ act: settle_for_less, cost: medium }], favours: [reach_higher] }
+    - { trait: content, against: [{ act: reach_higher, cost: small }], favours: [settle_for_less] }
+    - { trait: wrathful, against: [{ act: hold_temper, cost: medium }], favours: [lash_out] }
+    - { trait: calm, against: [{ act: lash_out, cost: medium }], favours: [hold_temper] }
+    - { trait: diligent, against: [{ act: shirk, cost: medium }], favours: [toil] }
+    - { trait: lazy, against: [{ act: toil, cost: small }], favours: [shirk] }
+    - { trait: trusting, against: [{ act: verify, cost: medium }], favours: [take_on_trust] }
+    - { trait: suspicious, against: [{ act: take_on_trust, cost: medium }], favours: [verify] }
+    - { trait: oath_keeper, against: [{ act: break_vow, cost: large }, { act: betray, cost: large }] }
+    - { trait: fair_dealer, against: [{ act: deceive, cost: medium }, { act: betray, cost: medium }, { act: break_vow, cost: medium }] }
+    - { trait: bear_slayer, against: [{ act: flee, cost: small }], favours: [risk_life] }
+  reasons:
+    happiness_min: "Requires happiness of at least {value}"
+    happiness_max: "Requires happiness of at most {value}"
+
+traits:
+  # What the hero becomes after a breakdown (`mind.breakdown`): no opposite, never given by chance.
+  - id: despondent
+    name: Despondent
+    category: character
+    stats: { diplomacy: -1, stewardship: -1 }
+    visibility: normal
+    weight: 0
+    gained: "{name} sank into a settled gloom."

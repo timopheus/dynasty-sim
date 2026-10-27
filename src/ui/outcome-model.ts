@@ -6,6 +6,8 @@ import type { ChronicleEntry } from '../core/chronicle/log';
 import { conditionsText } from '../core/health/course';
 import { findCharacter, getPlayer } from '../core/helpers';
 import type { Ctx } from '../core/state';
+import type { Content } from '../core/content/schema';
+import { happinessWord } from '../core/mind/mind';
 import { fullName } from '../core/character/character';
 import { currentScene, pendingEventDef } from '../core/events/events';
 import { ownOutcome } from '../core/events/content';
@@ -24,6 +26,7 @@ export interface HeroSnapshot {
   money: number;
   traits: string[];
   conditions: string;
+  happiness: number | null;
   stats: { label: string; word: string; value: number }[];
 }
 
@@ -38,6 +41,7 @@ export function heroSnapshot(ctx: Ctx): HeroSnapshot {
     money: hero.money,
     traits: hero.traits.flatMap((id) => findTrait(content, id)?.name ?? []),
     conditions: conditionsText(content, hero),
+    happiness: state.mind.happiness,
     stats: STAT_IDS.map((id) => ({ label: id[0]?.toUpperCase() + id.slice(1), word: statWord(content, values[id]), value: values[id] })),
   };
 }
@@ -99,12 +103,15 @@ export function beforeChoice(ctx: Ctx, option: number): BeforeChoice {
   };
 }
 
-function diff(before: HeroSnapshot, after: HeroSnapshot): Change[] {
+function diff(content: Content, before: HeroSnapshot, after: HeroSnapshot): Change[] {
   const out: Change[] = [];
   if (before.money !== after.money) out.push({ label: 'Money', from: `${before.money} crowns`, to: `${after.money} crowns` });
   for (const t of after.traits) if (!before.traits.includes(t)) out.push({ label: 'Trait gained', from: '', to: t });
   for (const t of before.traits) if (!after.traits.includes(t)) out.push({ label: 'Trait lost', from: t, to: '' });
   if (before.conditions !== after.conditions) out.push({ label: 'Health', from: before.conditions || 'healthy', to: after.conditions || 'healthy' });
+  if (before.happiness !== null && after.happiness !== null && before.happiness !== after.happiness) {
+    out.push({ label: 'Happiness', from: withNumber(happinessWord(content, before.happiness), before.happiness), to: withNumber(happinessWord(content, after.happiness), after.happiness) });
+  }
   before.stats.forEach((s, i) => {
     const now = after.stats[i];
     if (now && now.value !== s.value) out.push({ label: s.label, from: withNumber(s.word, s.value), to: withNumber(now.word, now.value) });
@@ -139,7 +146,7 @@ export function outcomeOf(ctx: Ctx, before: BeforeChoice): Outcome | null {
     const heir = state.status === 'ended' || state.playerId === before.hero.id ? null : fullName(getPlayer(state));
     return { lines: own, changes: [], aftermath: aftermathOf(ctx), died: { name: old ? fullName(old) : 'The hero', heir } };
   }
-  const changes = state.day === day && state.playerId === before.hero.id ? diff(before.hero, heroSnapshot(ctx)) : [];
+  const changes = state.day === day && state.playerId === before.hero.id ? diff(ctx.content, before.hero, heroSnapshot(ctx)) : [];
   const hurt = changes.some((c) => c.label === 'Health');
   if (!before.weighty && !hurt) return null;
   return { lines: own, changes, aftermath: aftermathOf(ctx), died: null };
@@ -147,6 +154,7 @@ export function outcomeOf(ctx: Ctx, before: BeforeChoice): Outcome | null {
 
 /** A change as a few words for the news: "+12 crowns", "Trait gained: Brave". */
 function changeWords(c: Change, before: HeroSnapshot, after: HeroSnapshot): string {
+  if (c.label === 'Happiness') return `Happiness ${(after.happiness ?? 0) - (before.happiness ?? 0) > 0 ? '+' : '−'}${Math.abs((after.happiness ?? 0) - (before.happiness ?? 0))}`;
   if (c.label === 'Money') return `${after.money - before.money > 0 ? '+' : '−'}${Math.abs(after.money - before.money)} crowns`;
   return c.to ? `${c.label}: ${c.to}` : `${c.label}: ${c.from} gone`;
 }
@@ -160,7 +168,7 @@ export function newsOf(ctx: Ctx, before: BeforeChoice): string | null {
   if (before.backstory || onSamePage(ctx, before)) return null;
   const day = before.hero.day;
   const after = heroSnapshot(ctx);
-  const changes = state.day === day && state.playerId === before.hero.id ? diff(before.hero, after) : [];
+  const changes = state.day === day && state.playerId === before.hero.id ? diff(ctx.content, before.hero, after) : [];
   const aftermath = aftermathOf(ctx);
   const line = allChronicle(state).slice(before.seen).find((e) => e.day === day && e.subject === before.hero.id);
   const story = aftermath ? partsText(aftermath) : line ? entryText(line) : '';

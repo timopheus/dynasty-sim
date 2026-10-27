@@ -21,7 +21,7 @@ describe('news by the clock (D-464)', () => {
 const view = (over: Partial<OptionView>): OptionView => ({
   index: 0, text: ['Fight'], available: true, reasons: [], chance: null,
   icons: { check: false, cost: false, trait: false },
-  outcomes: { cost: [], result: [], success: [], failure: [], chanceBasis: [] }, risk: null, ...over,
+  outcomes: { cost: [], result: [], success: [], failure: [], chanceBasis: [] }, nature: null, risk: null, ...over,
 });
 
 describe('tooltip of a variant (D-463, D-465)', () => {
@@ -34,9 +34,10 @@ describe('tooltip of a variant (D-463, D-465)', () => {
       chance: { percent: 55, band: 'even' },
       outcomes: { cost: ['Costs 5 crowns'], result: [], success: ['Become Brave'], failure: ['Wound: Light wound'], chanceBasis: ['Prowess (9) against 6'] },
       risk: 'The bailiff may remember.',
+      nature: { lines: ['Against your nature (Brave): happiness −10'], delta: -10 },
     }));
     expect(tip?.text.split('\n')).toEqual([
-      'Chance: a toss-up, 55%', 'Prowess (9) against 6', 'If it works: Become Brave', 'If it fails: Wound: Light wound', 'Costs 5 crowns', 'Risk: The bailiff may remember.',
+      'Chance: a toss-up, 55%', 'Prowess (9) against 6', 'If it works: Become Brave', 'If it fails: Wound: Light wound', 'Costs 5 crowns', 'Risk: The bailiff may remember.', 'Against your nature (Brave): happiness −10',
     ]);
   });
 

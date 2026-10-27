@@ -1,3 +1,5 @@
+import { shiftHappiness } from '../mind/mind';
+import { isRealChoice, natureOf } from '../mind/nature';
 import { log, type ChronicleEntry } from '../chronicle/log';
 import { conditionReport } from '../condition-keys';
 import type { Content } from '../content/schema';
@@ -286,6 +288,11 @@ export function chooseOption(ctx: Ctx, index: number): void {
   const option = scene.options[index];
   if (!Number.isInteger(index) || !option) throw new Error(`Event "${event.id}" has no option ${index}`);
   if (!optionState(ctx, option, protagonist, pending.scope).available) throw new Error(`Option ${index} of event "${event.id}" is not available`);
+  // The deed of the choice costs or gives happiness by the hero's nature, whatever comes of it (D-457, D-460, D-467)
+  if (isRealChoice(scene.options.length)) {
+    const nature = natureOf(content, protagonist, option.acts);
+    if (nature) shiftHappiness(state, content, nature.delta);
+  }
   answerOption(ctx, event, pending, option, `${path}options.${index}.`, protagonist);
 }
 

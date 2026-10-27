@@ -5,6 +5,7 @@ import { partsText, type TextPart } from '../text/text';
 import { chanceBand, checkChance, type ChanceBand } from './checks';
 import { moodOf, scenePath } from './content';
 import { currentScene, optionState, pendingEventDef } from './events';
+import { isRealChoice, natureLines, natureOf } from '../mind/nature';
 import { optionOutcomes, type OptionOutcomes } from './outcomes';
 
 const EMPTY: OptionOutcomes = { cost: [], result: [], success: [], failure: [], chanceBasis: [] };
@@ -27,6 +28,8 @@ export interface OptionView {
   icons: { check: boolean; cost: boolean; trait: boolean };
   /** What the tooltip says: the price, the outcomes in words and what the chance is made of (D-463). */
   outcomes: OptionOutcomes;
+  /** By or against the hero's nature (D-457, D-467): the lines of the tooltip and the happiness it brings; null when neither. */
+  nature: { lines: string[]; delta: number } | null;
   /** The main risk as the author wrote it (`risk:`, D-439); null when none. */
   risk: string | null;
 }
@@ -58,21 +61,23 @@ export function eventView(ctx: Ctx): EventView | null {
   const render = (template: string, slot: string) => renderTemplate(ctx, template, pending.scope, pending.seq, slot, event.grammar ?? null);
   const options: OptionView[] = [];
   if (!scene.options) {
-    options.push({ index: 0, text: null, available: true, reasons: [], chance: null, icons: { check: false, cost: false, trait: false }, outcomes: EMPTY, risk: null });
+    options.push({ index: 0, text: null, available: true, reasons: [], chance: null, icons: { check: false, cost: false, trait: false }, outcomes: EMPTY, nature: null, risk: null });
   } else {
     scene.options.forEach((option, index) => {
       const s = optionState(ctx, option, protagonist, pending.scope);
       if (s.hidden) return;
       const percent = option.check ? checkChance(ctx, option.check, protagonist, pending.scope) : null;
       const outcomes = optionOutcomes(ctx, option, protagonist, pending.scope);
+      const report = isRealChoice(scene.options?.length ?? 0) ? natureOf(content, protagonist, option.acts) : null;
       options.push({
         index,
         text: render(option.text, `${path}options.${index}.text`),
         available: s.available,
         reasons: s.reasons,
         chance: percent === null ? null : { percent, band: chanceBand(percent) },
-        icons: { check: percent !== null, cost: outcomes.cost.length > 0 || option.when?.can_afford !== undefined, trait: false },
+        icons: { check: percent !== null, cost: outcomes.cost.length > 0 || option.when?.can_afford !== undefined, trait: report !== null },
         outcomes,
+        nature: report ? { lines: natureLines(report), delta: report.delta } : null,
         risk: option.risk === undefined ? null : partsText(render(option.risk, `${path}options.${index}.risk`)),
       });
     });

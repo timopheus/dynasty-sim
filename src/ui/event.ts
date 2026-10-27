@@ -71,6 +71,7 @@ export function optionTip(o: OptionView): Tip | null {
     if (o.outcomes.result.length) lines.push(`Result: ${o.outcomes.result.join('; ')}`);
     if (o.outcomes.cost.length) lines.push(o.outcomes.cost.join('; '));
     if (o.risk) lines.push(`Risk: ${o.risk}`);
+    if (o.nature) lines.push(...o.nature.lines);
   } else if (o.reasons.length) {
     lines.push(`Unavailable: ${o.reasons.join('; ')}`);
   }
