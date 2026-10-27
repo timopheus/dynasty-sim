@@ -65,11 +65,11 @@ function whereIs(ctx: Ctx): Where | null {
     const from = fromA ? a : b;
     return {
       place: null, title: 'On the road', status: `Between ${name(a)} and ${name(b)}, ${daysWord(fromA ? done : total - done)} from ${name(from)}`,
-      rows: [{ label: 'Place', value: 'On the road' }], description: null, weatherOf: from, heading,
+      rows: [], description: null, weatherOf: from, heading,
     };
   }
   if (pos.journey) {
-    return { place: null, title: 'On the road', status: `Passing through ${name(pos.at)}`, rows: [{ label: 'Place', value: 'On the road' }], description: null, weatherOf: pos.at, heading };
+    return { place: null, title: 'On the road', status: `Passing through ${name(pos.at)}`, rows: [], description: null, weatherOf: pos.at, heading };
   }
   const facts = placeFacts(state, content, pos.at);
   return { place: { id: pos.at, name: name(pos.at) }, title: name(pos.at), status: 'Standing here', rows: facts?.rows ?? [], description: facts?.description ?? null, weatherOf: pos.at, heading: null };

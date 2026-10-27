@@ -10,7 +10,7 @@ import './where.css';
  * The name of the place and the places the hero can go to are links to their pages in the side panel (S.9).
  */
 export function wherePanel(view: WhereView): HTMLElement {
-  const table = el('dl', { className: 'place-table' }, ...view.table.flatMap((r) => [el('dt', {}, r.label), el('dd', {}, r.value)]));
+  const table = el('dl', { className: 'place-table' }, ...view.table.map((r) => el('div', {}, el('dt', {}, r.label), el('dd', {}, r.value))));
   const title = view.place ? el('a', { href: hrefOf(view.place.id), className: 'place-name' }, view.title) : el('span', { className: 'place-name' }, view.title);
   const roads: (Node | string)[] = view.goTo.flatMap((g, i) => [i > 0 ? ' · ' : '', el('a', { href: hrefOf(g.id), className: 'place-link' }, g.name), ` ${daysWord(g.days)}`]);
   const block = el('section', { className: 'where', ariaLabel: 'Where you are' },
