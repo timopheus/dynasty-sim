@@ -238,8 +238,8 @@ function render(session: Session): void {
   const centre = wherePanel(whereView(ctx));
   const actions = actionsPanel({
     panel: actionShelves(ctx, form),
-    onStart: (id) => {
-      if (id !== WILL_ID) { void act(session, { type: 'start', actionId: id }); return; }
+    onStart: (id, target) => {
+      if (id !== WILL_ID) { void act(session, target === undefined ? { type: 'start', actionId: id } : { type: 'start', actionId: id, target }); return; }
       session.willOpen = true;
       session.focusAfterRender = true;
       rerender();

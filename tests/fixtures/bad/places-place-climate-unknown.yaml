@@ -1,0 +1,19 @@
+# expect-error: places.list[0].climate /unknown climate "arctic"/
+places:
+  kinds:
+    - { id: town, name: a town }
+  road: on the road
+  list:
+    - { id: ostmere, name: Ostmere, kind: town, climate: arctic }
+    - { id: valmont, name: Valmont, kind: town }
+  roads:
+    - { between: [ostmere, valmont], days: 6 }
+  start: ostmere
+  reasons: { kind: "Only in {kinds}", place: "Only in {places}", no_road: "No road" }
+  climates:
+    - id: mild
+      weather:
+        - { season: winter, name: fine, weight: 1 }
+        - { season: spring, name: fine, weight: 1 }
+        - { season: summer, name: fine, weight: 1 }
+        - { season: autumn, name: fine, weight: 1 }

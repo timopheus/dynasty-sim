@@ -11,9 +11,12 @@ const GAME = '.game';
 
 const shot = (page: Page, seed: number, name: string) => page.screenshot({ path: `out/e2e/seed${String(seed)}-${name}.png`, fullPage: true });
 
-/** The buttons a player can press now: the window over the centre if there is one, else the actions panel at the right. */
+/**
+ * The buttons a player can press now: the window over the centre if there is one, else the actions panel at the right.
+ * The directions of the journey fold into a menu (S.9): a folded button cannot be pressed, the place spec opens it.
+ */
 async function choices(page: Page) {
-  return (await page.locator('.modal-layer').count()) > 0 ? page.locator('.modal-layer .option button.choice') : page.locator('.actions-panel button.action:not(.grey)');
+  return (await page.locator('.modal-layer').count()) > 0 ? page.locator('.modal-layer .option button.choice') : page.locator('.actions-panel button.action:not(.grey):visible');
 }
 
 /**

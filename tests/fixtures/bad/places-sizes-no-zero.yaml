@@ -1,0 +1,14 @@
+# expect-error: places.sizes /no size starts at 0/
+places:
+  kinds:
+    - { id: town, name: a town }
+  road: on the road
+  list:
+    - { id: ostmere, name: Ostmere, kind: town }
+    - { id: valmont, name: Valmont, kind: town }
+  roads:
+    - { between: [ostmere, valmont], days: 6 }
+  start: ostmere
+  reasons: { kind: "Only in {kinds}", place: "Only in {places}", no_road: "No road" }
+  sizes:
+    - { min: 100, name: big }

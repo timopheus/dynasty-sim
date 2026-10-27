@@ -20,12 +20,14 @@
   flex: none;
   display: flex;
   gap: 1rem;
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   border: 2px dashed var(--line);
 }
 
 .place-picture {
-  flex: 0 0 14rem;
+  flex: none;
+  align-self: flex-start;
+  width: 14rem;
   aspect-ratio: 4 / 3;
   display: grid;
   place-items: center;
@@ -42,13 +44,20 @@
 
 .place-table {
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.15rem 1.25rem;
-  margin: 0 0 0.75rem;
-  font-size: 0.95rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+.place-table div {
+  display: flex;
+  gap: 0.6rem;
 }
 
 .place-table dt {
+  flex: none;
+  min-width: 4.2rem;
   color: var(--muted);
 }
 
@@ -66,4 +75,30 @@
 
 .where p {
   margin: 0.25rem 0;
+}
+
+.place-head {
+  margin: 0 0 0.4rem;
+}
+
+.place-name {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: var(--fg);
+}
+
+.place-status {
+  color: var(--muted);
+}
+
+.place-line {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.place-roads {
+  color: var(--muted);
+  font-size: 0.9rem;
 }

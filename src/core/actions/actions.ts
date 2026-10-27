@@ -5,7 +5,7 @@ import { applyEffects } from '../effects';
 import { int } from '../rng';
 import { findCharacter, getPlayer, isInt } from '../helpers';
 import type { Ctx, DayPhase, DeathHook, Invariant } from '../state';
-import { routesFrom, stopJourney } from '../place/place';
+import { hasRoadFrom, routesFrom, stopJourney } from '../place/place';
 import { timeContent } from '../time/seasons';
 import type { ActionDef } from './content';
 
@@ -44,7 +44,7 @@ export function actionAvailability(ctx: Ctx): ActionAvailability[] {
   const scope = { hero: hero.id, protagonist: hero.id };
   return content.actions.map((action) => {
     // An action that goes somewhere needs a road from here (S.9a); the hero knows the roads.
-    const noRoad = action.target === 'place' && content.places && routesFrom(state, content).length === 0 ? [content.places.reasons.no_road] : [];
+    const noRoad = action.target === 'place' && content.places && !hasRoadFrom(state, content) ? [content.places.reasons.no_road] : [];
     if (!action.when) return { action, unmet: noRoad, hidden: false };
     const report = conditionReport(ctx, hero, action.when, scope);
     return { action, unmet: [...report.reasons, ...noRoad], hidden: report.hidden };
@@ -81,12 +81,14 @@ export function startAction(ctx: Ctx, actionId: string, target: string | null = 
     if (!way) throw new Error(`No way leads from here to "${target}"`);
     roadDays = way.days;
   } else if (target !== null) throw new Error(`Action "${actionId}" takes no target`);
-  if (current && !findAction(content, current.actionId).idle) {
+  // A turn on the road has its own line (S.9: the journal of the place), not the line of a break.
+  const turning = retarget && current?.actionId === action.id;
+  if (current && !turning && !findAction(content, current.actionId).idle) {
     const template = state.interruptRequest?.template ?? timeContent(content).texts.interrupted;
     log(ctx, { subject: getPlayer(state), kind: 'interrupt', level: 'journal', template });
   }
   const duration = roadDays ?? int(state.rng, action.duration.min, action.duration.max);
-  stopJourney(ctx);
+  stopJourney(ctx, turning && target !== null ? { turn: target } : 'stopped');
   state.activeAction = { actionId: action.id, endDay: state.day + duration, target: action.target === 'place' ? target : null };
   state.interruptRequest = null;
 }
@@ -104,7 +106,7 @@ export function interruptAction(ctx: Ctx, template?: string): void {
     level: 'journal',
     template: template ?? timeContent(content).texts.interrupted,
   });
-  stopJourney(ctx);
+  stopJourney(ctx, 'stopped');
   state.activeAction = null;
   state.pendingEvent = null;
   state.interruptRequest = null;
@@ -133,7 +135,8 @@ export const actionEndPhase: DayPhase = {
     const moneyBefore = player.money;
     applyEffects(ctx, player, action.effects, scope);
     const text = goal && action.until?.text !== undefined ? action.until.text : action.text;
-    if (!action.idle && text !== null) log(ctx, { subject: player, kind: 'action', level: 'chronicle', template: text, money: player.money - moneyBefore });
+    // the line of a journey is the arrival in the journal (S.9): the place is named there; a goal reached on the way has its own line
+    if (!action.idle && (action.target === undefined || goal) && text !== null) log(ctx, { subject: player, kind: 'action', level: 'chronicle', template: text, money: player.money - moneyBefore });
     // a journey whose goal is reached on the way ends there, not back where it set out (D-462)
     if (goal) stopJourney(ctx);
     state.activeAction = null;

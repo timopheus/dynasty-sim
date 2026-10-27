@@ -4,12 +4,36 @@ import { walkKeys } from '../conditions/walk';
 import type { CrossCheck } from '../content/schema';
 import { Id, Int, Text, type ContentError } from '../content/types';
 
-/** One place of the region (D-437, D-439): its id in the content, its name and its kind (town, village, …). */
+/**
+ * One place of the region (D-437, D-439): its id in the content, its name and its kind (town, village, …). The rest is the
+ * table of the place (D-447, S.9): where the place stands on the map, who lives there, what is there, the climate that
+ * weather follows and the one line of description by `docs/reference/places-style.md`. A field left out leaves its row
+ * off the table: no row is drawn with a dash. The real content fills them all (a test checks).
+ */
 export const PlaceSchema = z.strictObject({
   id: Id,
   name: Text,
   kind: Id,
+  /** The realm the place lies in, as the table shows it ("Haverland"). */
+  realm: Text.optional(),
+  /** The province of the map. */
+  province: Text.optional(),
+  /** What the people of the realm are called ("Haverlanders"). */
+  people: Text.optional(),
+  /** Inhabitants, from the map; the size word of the table comes from it (`places.sizes`). */
+  population: Int.min(1).optional(),
+  /** Land and water around the place. */
+  landscape: Text.optional(),
+  /** What is in the place: a harbour, a market, a keep. */
+  has: z.array(Text).min(1).optional(),
+  /** Id of a climate of `places.climates`: the weather follows it and the season. */
+  climate: Id.optional(),
+  /** The line of description (D-467): one detail, no name, kind, realm or weather; tone A on roads and villages, B in towns. */
+  description: Text.optional(),
 });
+
+/** Weather the climate may bring in the seasons it names; `weight` is the chance among those of the season (integers). */
+const WeatherSchema = z.strictObject({ season: Id, name: Text, weight: Int.min(1) });
 
 /**
  * Optional top-level key `places` (S.9a points; S.9 adds the rest of the table of a place, D-447):
@@ -18,7 +42,10 @@ export const PlaceSchema = z.strictObject({
  * - `list`: 12–16 places of the region in the slice (D-439);
  * - `roads`: a road between two places and its days; a journey goes to any place by the shortest way (D-462);
  * - `start`: the place a new game starts in, until the place of birth (S.11a);
- * - `reasons`: texts of unmet conditions: `kind` (`{kinds}`), `place` (`{places}`), `no_road` (none).
+ * - `reasons`: texts of unmet conditions: `kind` (`{kinds}`), `place` (`{places}`), `no_road` (none);
+ * - `sizes`: words for the size of a place by its inhabitants, the largest `min` not above them;
+ * - `climates`: the weather of a climate by season (S.9); the table of a place shows one, the same for a place and a week of a seed;
+ * - `texts`: lines of the journal about the road (placeholders `{name}`, `{place}`, `{from}`, `{to}`).
  */
 export const PlacesContentSchema = z.strictObject({
   kinds: z.array(z.strictObject({ id: Id, name: Text })).min(1),
@@ -27,6 +54,9 @@ export const PlacesContentSchema = z.strictObject({
   roads: z.array(z.strictObject({ between: z.tuple([Id, Id]), days: Int.min(1) })),
   start: Id,
   reasons: z.strictObject({ kind: Text, place: Text, no_road: Text }),
+  sizes: z.array(z.strictObject({ min: Int.min(0), name: Text })).min(1).optional(),
+  climates: z.array(z.strictObject({ id: Id, weather: z.array(WeatherSchema).min(1) })).optional(),
+  texts: z.strictObject({ arrive: Text, stopped: Text, stayed: Text, turned: Text }).optional(),
 });
 
 export type PlaceDef = z.infer<typeof PlaceSchema>;
@@ -39,7 +69,7 @@ const ROAD = 'road';
 const KIND_KEYS = ['at_place_kind'];
 const PLACE_KEYS = ['at_place'];
 
-export const checkPlaces: CrossCheck = ({ places, events, actions }) => {
+export const checkPlaces: CrossCheck = ({ places, events, actions, time }) => {
   const errors: ContentError[] = [];
   const kinds = new Set<string>([ROAD]);
   const placeIds = new Set<string>();
@@ -89,6 +119,30 @@ export const checkPlaces: CrossCheck = ({ places, events, actions }) => {
     for (const [key, allowed] of [['kind', ['kinds']], ['place', ['places']], ['no_road', []]] as const) {
       const problem = checkReason(item.reasons[key], allowed);
       if (problem) err(`reasons.${key}`, problem);
+    }
+    const sizeMins = (item.sizes ?? []).map((s) => s.min);
+    if (item.sizes && !sizeMins.includes(0)) err('sizes', 'no size starts at 0: a small place would have no word');
+    if (new Set(sizeMins).size !== sizeMins.length) err('sizes', 'two sizes start at the same number');
+    const seasonIds = new Set(time.flatMap((t) => t.item.seasons.map((s) => s.id)));
+    const climateIds = new Set<string>();
+    (item.climates ?? []).forEach((c, i) => {
+      if (climateIds.has(c.id)) err(`climates[${i}].id`, `duplicate climate "${c.id}"`);
+      climateIds.add(c.id);
+      c.weather.forEach((w, j) => {
+        if (!seasonIds.has(w.season)) err(`climates[${i}].weather[${j}].season`, `unknown season "${w.season}"`);
+      });
+      for (const id of seasonIds) if (!c.weather.some((w) => w.season === id)) err(`climates[${i}]`, `climate "${c.id}" has no weather for the season "${id}"`);
+    });
+    item.list.forEach((p, i) => {
+      if (p.climate !== undefined && !climateIds.has(p.climate)) err(`list[${i}].climate`, `unknown climate "${p.climate}"`);
+      if (p.climate !== undefined && !item.climates) err(`list[${i}].climate`, 'a climate needs the list `places.climates`');
+    });
+    const texts = item.texts;
+    if (texts) {
+      for (const [key, allowed] of [['arrive', ['name', 'place']], ['stopped', ['name', 'from', 'to']], ['stayed', ['name', 'place']], ['turned', ['name', 'place']]] as const) {
+        const problem = checkReason(texts[key], allowed);
+        if (problem) err(`texts.${key}`, problem);
+      }
     }
   }
   const users: { file: string; base: string; item: unknown }[] = [

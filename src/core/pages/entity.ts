@@ -6,9 +6,10 @@ import type { ChronicleEntry } from '../chronicle/log';
 import type { Ctx } from '../state';
 import type { TextPart } from '../text/text';
 import { personPage, type PersonPage } from './person';
+import { placePage } from './place';
 
 /**
- * The common page of an entity that is not a person (D-311): a house `h…`, an heirloom `i…`; later a place, a
+ * The common page of an entity that is not a person (D-311): a house `h…`, an heirloom `i…`, a place `p…` (S.9); later a
  * realm, a debt. 4.2 builds it and the registry of kinds; 4.7 and 4.9 fill their kinds. What is shown is decided by
  * the kind (for a house and an heirloom: what the player has seen).
  */
@@ -44,7 +45,7 @@ export function entityChronicle(ctx: Ctx, id: string): ChronicleEntry[] {
 
 /** Pages of the common kind by prefix (D-311); 4.7 and 4.9 fill the functions, a later stage adds its kinds here. A person has their own page. */
 export type EntityPages = Readonly<Record<string, (ctx: Ctx, id: string) => EntityPage | null>>;
-export const ENTITY_PAGES: EntityPages = { h: housePage, i: heirloomPage };
+export const ENTITY_PAGES: EntityPages = { h: housePage, i: heirloomPage, p: placePage };
 
 /**
  * The page of the entity with this id, or null for an unknown id (D-311). A pure query: the page of a person for

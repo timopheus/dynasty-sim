@@ -5,6 +5,7 @@ events:
     weight: 10
     severity: medium
     actions: [travel]
+    places: [road]
     mood: threat
     text: "Armed men step out of the hedge <road_weather> and bar the road. One of them names a price for your passage."
     options:
@@ -25,6 +26,7 @@ events:
   - id: broken_wheel
     weight: 8
     actions: [travel, trade]
+    places: [road, city, town]
     roles:
       wheelwright:
         pick: circle
@@ -47,6 +49,7 @@ events:
   - id: fellow_traveller
     weight: 6
     actions: [travel]
+    places: [road]
     roles:
       companion: { pick: circle }
     text: "On the road you fall in step with {companion}, who is bound the same way and offers to share the miles and the cost of the inns."
@@ -69,6 +72,7 @@ events:
     cooldown_days: 1095
     severity: medium
     actions: [travel]
+    places: [road]
     when: { fit: true }
     roles:
       smuggler:
