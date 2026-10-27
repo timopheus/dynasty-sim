@@ -1,7 +1,7 @@
 import type { Outcome } from './outcome-model';
 import { el } from './dom';
 import { entryView } from './entry';
-import { entryNode } from './page';
+import { entryNode, partNodes } from './page';
 import { modalFrame } from './modal';
 import type { Control } from './access';
 import { choiceNode } from './choice';
@@ -13,6 +13,7 @@ export function outcomeWindow(o: Outcome, heroId: string, heads: ReadonlySet<str
   if (o.died) {
     body.push(el('p', { className: 'died' }, `${o.died.name} has died.`, o.died.heir ? ` ${o.died.heir} now leads the house.` : ' The house has no one left to lead it.'));
   }
+  if (o.aftermath?.length) body.push(el('p', { className: 'aftermath' }, ...partNodes(el, o.aftermath)));
   if (o.lines.length) body.push(el('ul', { className: 'chronicle' }, ...o.lines.map((e) => entryNode(entryView(e, heroId, heads), e.day))));
   if (o.changes.length) {
     body.push(el('ul', { className: 'changes' }, ...o.changes.map((c) => el('li', {},

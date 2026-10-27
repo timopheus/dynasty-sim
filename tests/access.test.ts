@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { actionControl, chronicleAnnouncement, opinionLineText, pickableAt, shortcutKey, shortcutPosition, withNumber } from '../src/ui/access';
 import { chanceText, eventAnnouncement, eventPageKey, optionControl, type ActionRow, type OptionRow } from '../src/ui/event';
 
-const option = (over: Partial<OptionRow> = {}): OptionRow => ({ index: 0, label: ['Hunt'], grey: false, reason: '', chance: null, ...over });
+const option = (over: Partial<OptionRow> = {}): OptionRow => ({ index: 0, label: ['Hunt'], grey: false, reason: '', chance: null, icons: { check: false, cost: false, trait: false }, tip: null, ...over });
 const chance = { word: 'risky', percent: 25, title: '25%' };
 
 describe('number keys (D-248)', () => {

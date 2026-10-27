@@ -127,6 +127,7 @@ events:
     text: "A brawl breaks out in <inn_name>{brawler?, with {brawler} in the middle of it}, and a bench comes flying across the room."
     options:
       - text: Join in
+        acts: [lash_out]
         check: { stat: prowess, difficulty: 6 }
         success:
           effects: { traits: { add: [brawler] } }
@@ -165,6 +166,7 @@ events:
     mood: anger
     options:
       - text: Throw down your glove
+        acts: [lash_out]
         effects:
           schedule: [{ event: duel_at_dawn, after_days: { min: 3, max: 10 }, roles: { rival: rival } }]
         result: "{name} challenged {rival} to a duel over an insult at the inn."
@@ -181,6 +183,7 @@ events:
           result: "{name} traded insults with {rival} at the inn and came off worse."
           mood: shame
       - text: Swallow the insult
+        acts: [hold_temper]
         on: { rival: { opinion: [{ toward: hero, reason: no_spine }] } }
         result: "{name} let {rival}'s insult pass and drank in silence."
         mood: shame
@@ -227,6 +230,7 @@ events:
           chronicle: true
           mood: loss
       - text: Refuse to draw
+        acts: [flee]
         effects: { traits: { add: [coward] } }
         on: { rival: { opinion: [{ toward: hero, reason: no_spine }] } }
         result: "{name} refused to face {rival} at dawn and went home in shame."
@@ -242,6 +246,7 @@ events:
     text: "{debtor} takes you aside, hat in hand. A bad season, a bad debt: could you lend 25 crowns for a few weeks?"
     options:
       - text: Lend the 25 crowns
+        acts: [give_away]
         when: { money_min: 25 }
         effects:
           money: -25
@@ -284,6 +289,7 @@ events:
           chronicle: true
           mood: shame
       - text: Take the 25 and wave the rest away
+        acts: [give_away]
         check: { stat: stewardship, of: debtor, difficulty: 4 }
         success:
           effects:
@@ -340,6 +346,7 @@ events:
     text: "You have not eaten properly in two days. {priest} stops you at the church door and looks at your coat, then at your face."
     options:
       - text: Accept the bread and the coins
+        acts: [humble_self]
         effects: { money: 12, opinion: [{ toward: priest, reason: gift }] }
         result: "{name}, with an empty purse, was given alms by {priest}."
         mood: loss
@@ -372,6 +379,7 @@ events:
         result: "{name} did odd jobs for {employer} and was paid fairly for them."
         mood: joy
       - text: Say that you are above such work
+        acts: [assert_rank]
         effects: { traits: { add: [proud] } }
         on: { employer: { opinion: [{ toward: hero, reason: slighted }] } }
         result: "{name} turned down honest work from {employer} and went hungry."

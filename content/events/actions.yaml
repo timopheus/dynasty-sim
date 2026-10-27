@@ -9,6 +9,7 @@ events:
     text: "Armed men step out of the hedge <road_weather> and bar the road. One of them names a price for your passage."
     options:
       - text: Fight them
+        acts: [risk_life]
         check: { stat: prowess, difficulty: 6, bonus: [{ when: { traits_any: [duelist, horseman] }, add: 1 }] }
         success:
           effects: { money: 15 }
@@ -94,6 +95,7 @@ events:
       - text: Refuse and ride on
         result: "{name} refused to carry brandy for {smuggler}."
       - text: Tell the revenue men
+        acts: [betray]
         effects: { money: 10, traits: { add: [traitor] } }
         on: { smuggler: { opinion: [{ toward: hero, reason: betrayed }] } }
         result: "{name} informed on {smuggler} to the revenue men for a reward."
@@ -178,6 +180,7 @@ events:
           mood: pain
           next: shamed
       - text: Charge the ambushers alone
+        acts: [risk_life]
         when: { traits_any: [brave] }
         check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [duelist] }, add: 2 }, { when: { traits_any: [brave] }, add: 2 }] }
         success:
@@ -192,6 +195,7 @@ events:
           chronicle: true
           mood: loss
       - text: Run with {coward}
+        acts: [flee]
         when: { traits_none: [brave] }
         effects: { money: -10, traits: { add: [coward] } }
         on: { employer: { opinion: [{ toward: hero, reason: wronged }] } }
@@ -238,6 +242,7 @@ events:
           result: "{name} was beaten back from the river bank and lost kit."
           mood: pain
       - text: Lead a sortie across the ford
+        acts: [risk_life]
         when: { traits_any: [brave] }
         check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [horseman, duelist] }, add: 2 }] }
         success:
@@ -252,6 +257,7 @@ events:
           chronicle: true
           mood: loss
       - text: Fall back to the camp
+        acts: [flee]
         on: { sergeant: { opinion: [{ toward: hero, reason: no_spine }] } }
         result: "{name} fell back from the ford and left the picket to hold it."
         mood: shame
@@ -340,6 +346,7 @@ events:
           result: "{name} cut prices against {rival} and sold at a loss."
           mood: loss
       - text: Spread word that {rival} gives short measure
+        acts: [deceive]
         check: { stat: intrigue, difficulty: 8 }
         success:
           effects: { money: 20 }
@@ -448,6 +455,7 @@ events:
           result: "{name} killed a charging boar but was gored."
           mood: pain
       - text: Climb a tree
+        acts: [flee]
         result: "{name} waited out a wild boar from the branches of a tree."
 
   - id: bear_in_the_thicket
@@ -460,6 +468,7 @@ events:
     text: "The dogs go quiet, then yelp. In the thicket ahead something very large rises on its hind legs: a bear, and it has seen you."
     options:
       - text: Face the bear with a spear
+        acts: [risk_life]
         when: { traits_any: [brave] }
         check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [brave, duelist] }, add: 2 }] }
         success:
@@ -483,6 +492,7 @@ events:
           result: "{name} wounded a bear with an arrow and was badly clawed for it."
           mood: pain
       - text: Back away slowly
+        acts: [flee]
         result: "{name} backed away from a bear and left the dogs to their luck."
 
   - id: poacher_charge
