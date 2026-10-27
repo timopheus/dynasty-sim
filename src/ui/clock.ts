@@ -23,8 +23,9 @@ function stateText(mode: ClockMode, canPlay: boolean): string {
 }
 
 /**
- * The date and the time player at the bottom right (D-438, S.8): "Play"/"Pause" and the speeds ×1, ×2, ×5. The keys
- * are written beside them (D-448): Space pauses, 1/2/3 pick the speed.
+ * The date and the time player at the bottom right (D-438, S.8): "Play"/"Pause" and the speeds ×1, ×2, ×5. Space
+ * pauses, 1/2/3 pick the speed (D-448); the screen does not write the keys (D-465: they belong to the tutorial), only
+ * `aria-keyshortcuts` names them.
  */
 export function clockPanel({ date, mode, speed, canPlay, onToggle, onSpeed }: ClockProps): HTMLElement {
   const running = mode === 'running';
