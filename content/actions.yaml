@@ -7,6 +7,7 @@
 # phase would break off the next day (it would end each day before the family phase).
 # Rest and the road change the course of conditions: lists in content/health.yaml.
 # `category` is the shelf of the actions panel: livelihood, road, family or self (D-443).
+# `until` (optional, D-466): the goal; once its `when` holds, the action completes early (its `text`, or `until.text`; null — no line).
 # `text` is written to the chronicle when the action completes. Schema: ActionSchema.
 actions:
   # The hero lives his own life (D-325): time runs and events come, nothing is done on purpose. It ends the usual way
@@ -85,5 +86,6 @@ actions:
     category: self
     duration: { min: 90, max: 150 }
     when: { age_min: 7, age_max: 15, fit: true }
+    until: { when: { age_min: 16 } }
     effects: { money: -3, stats: { learning: 1 } }
     text: "{name} spent a season at {his} lessons."

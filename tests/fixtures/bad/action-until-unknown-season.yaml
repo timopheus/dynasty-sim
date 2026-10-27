@@ -1,0 +1,8 @@
+# expect-error: actions[0].until.when.season[0] /unknown season "sprng"/
+actions:
+  - id: save_up
+    name: Save up
+    category: self
+    duration: { min: 10, max: 10 }
+    until: { when: { season: [sprng] } }
+    text: "{name} saved up."

@@ -111,7 +111,10 @@ export function interruptAction(ctx: Ctx, template?: string): void {
   state.status = 'awaiting_action';
 }
 
-/** Completes the action on its end day: effects, chronicle line, back to the player. */
+/**
+ * Completes the action on its end day, or earlier when its goal is reached (`until`, D-466): effects, chronicle line,
+ * back to the player.
+ */
 export const actionEndPhase: DayPhase = {
   id: 'action_end',
   run(ctx) {
@@ -122,12 +125,17 @@ export const actionEndPhase: DayPhase = {
       interruptAction(ctx, state.interruptRequest.template ?? undefined);
       return true;
     }
-    if (state.day < active.endDay) return false;
     const action = findAction(content, active.actionId);
     const player = getPlayer(state);
+    const scope = { hero: player.id, protagonist: player.id };
+    const goal = state.day < active.endDay && action.until !== undefined && conditionReport(ctx, player, action.until.when, scope).met;
+    if (state.day < active.endDay && !goal) return false;
     const moneyBefore = player.money;
-    applyEffects(ctx, player, action.effects, { hero: player.id, protagonist: player.id });
-    if (!action.idle) log(ctx, { subject: player, kind: 'action', level: 'chronicle', template: action.text, money: player.money - moneyBefore });
+    applyEffects(ctx, player, action.effects, scope);
+    const text = goal && action.until?.text !== undefined ? action.until.text : action.text;
+    if (!action.idle && text !== null) log(ctx, { subject: player, kind: 'action', level: 'chronicle', template: text, money: player.money - moneyBefore });
+    // a journey whose goal is reached on the way ends there, not back where it set out (D-462)
+    if (goal) stopJourney(ctx);
     state.activeAction = null;
     state.interruptRequest = null;
     state.status = 'awaiting_action';

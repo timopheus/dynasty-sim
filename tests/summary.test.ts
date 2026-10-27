@@ -10,7 +10,7 @@ import { houseSummary, summaryMarkdown } from '../src/core/summary/house-summary
 import { SUMMARY_RULES } from '../src/core/summary/rules';
 import type { Snapshot } from '../src/core/summary/summary';
 import { findTurns } from '../src/core/summary/turns';
-import { fixtureContent, realContent } from './fixtures/content';
+import { fixtureContent, realContentWithHeirs } from './fixtures/content';
 
 const content = fixtureContent();
 
@@ -146,7 +146,9 @@ describe('peak and low (D-317)', () => {
 
 describe('the summary of a run with the archive (4.3, 4.14)', () => {
   it('builds heads, extremes, turns and milestones from the whole history, and writes it as Markdown', () => {
-    const real = realContent();
+    // With the scaffolding of D-315: the test is about a summary over a long history with the archive, not about whether
+    // seed 1 happens to keep an heir for 120 years (D-466 changed the course of that game).
+    const real = realContentWithHeirs();
     const { state } = runSim(real, { seed: 1, years: 120 });
     expect(state.archive.length).toBeGreaterThan(0);
     const s = houseSummary(state, real);

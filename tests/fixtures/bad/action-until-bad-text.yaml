@@ -1,0 +1,8 @@
+# expect-error: actions[0].until.text /placeholder|\{/
+actions:
+  - id: save_up
+    name: Save up
+    category: self
+    duration: { min: 10, max: 10 }
+    until: { when: { money_min: 60 }, text: "{nobody} saved up." }
+    text: "{name} saved up."

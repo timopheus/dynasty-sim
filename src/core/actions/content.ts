@@ -31,6 +31,11 @@ export const ActionSchema = z.strictObject({
    * and the days of the road replace `duration` (which stays the measure of the narrator).
    */
   target: z.enum(['place']).optional(),
+  /**
+   * The goal of the action (D-466): once `when` holds for the hero, the action ends as completed, before its last day —
+   * its effects, and the line `text` instead of its own (`null`: no line, the event that reached the goal wrote one).
+   */
+  until: z.strictObject({ when: WhenSchema, text: Text.nullable().optional() }).optional(),
 });
 
 export type ActionDef = z.infer<typeof ActionSchema>;
@@ -47,13 +52,20 @@ export const checkActions: CrossCheck = ({ actions, time }) => {
     ids.add(item.id);
     const problem = checkTemplate(item.text);
     if (problem) errors.push({ file, path: `actions[${index}].text`, message: problem });
-    const { when } = item;
-    if (!when) continue;
-    when.season?.forEach((id, i) => {
-      if (!seasonIds.has(id)) errors.push({ file, path: `actions[${index}].when.season[${i}]`, message: `unknown season "${id}"` });
-    });
-    if (when.age_min !== undefined && when.age_max !== undefined && when.age_min > when.age_max) {
-      errors.push({ file, path: `actions[${index}].when.age_max`, message: 'age_max must be >= age_min' });
+    const untilText = item.until?.text;
+    if (typeof untilText === 'string') {
+      const untilProblem = checkTemplate(untilText);
+      if (untilProblem) errors.push({ file, path: `actions[${index}].until.text`, message: untilProblem });
+    }
+    // the goal is a `when` too (D-466): a typo in it would keep the goal from ever holding
+    for (const [key, when] of [['when', item.when], ['until.when', item.until?.when]] as const) {
+      if (!when) continue;
+      when.season?.forEach((id, i) => {
+        if (!seasonIds.has(id)) errors.push({ file, path: `actions[${index}].${key}.season[${i}]`, message: `unknown season "${id}"` });
+      });
+      if (when.age_min !== undefined && when.age_max !== undefined && when.age_min > when.age_max) {
+        errors.push({ file, path: `actions[${index}].${key}.age_max`, message: 'age_max must be >= age_min' });
+      }
     }
   }
   return errors;
