@@ -33,6 +33,8 @@ if src_in:
     b = Image.open(src_in).convert('RGBA'); flat = Image.new('RGB', b.size, (0x34, 0x2b, 0x23)); flat.paste(b, mask=b.split()[3])
     buf = io.BytesIO(); flat.save(buf, 'PNG')
     body.update(input_image=base64.b64encode(buf.getvalue()).decode(), strength=strength)
+if os.environ.get('RD_BYPASS') == '1':
+    body['bypass_prompt_expansion'] = True  # the prompt goes as written, without the service's own enrichment
 cost = call(API, {**body, 'check_cost': True})
 if cost['balance_cost'] > max_cost or cost['remaining_balance'] < cost['balance_cost']:
     sys.exit(f'refused: cost {cost["balance_cost"]}, balance {cost["remaining_balance"]}, limit {max_cost}')
