@@ -26,8 +26,13 @@ import { eventAnnouncement, eventPageKey, eventScreen, eventTitle, optionControl
 import { headerPanel } from './header';
 import { headerFigures } from './header-model';
 import { modalFrame, modalHeading } from './modal';
-import { beforeChoice, outcomeOf, type Outcome } from './outcome-model';
+import { beforeChoice, newsOf, outcomeOf, type Outcome } from './outcome-model';
 import { outcomeWindow } from './outcome';
+import { newsPanel } from './news';
+import { pushNews, visibleNews, type NewsItem } from './news-model';
+import { findAction } from '../core/actions/actions';
+import type { Effects } from '../core/effects';
+import { moneyOf } from '../core/events/outcomes';
 import { partNodes, usePersonTips } from './page';
 import { personMenu, personTip, type MenuItem } from './people-model';
 import { newSidebarState, sidebarPanel, type SidebarState } from './sidebar';
@@ -109,6 +114,8 @@ interface Session {
   menuOpen: boolean;
   /** The menu of a person (D-448) is open where `anchor` says. */
   personMenu: MenuAnchor | null;
+  /** The short words by the clock (D-464): what came of a light choice, and the end of an action. */
+  news: NewsItem[];
   /** What the last choice came to, shown before the next event (D-440), and whose lines they are. */
   outcome: { outcome: Outcome; heroId: string } | null;
   question: Question | null;
@@ -178,7 +185,7 @@ function eventWindow(session: Session, screen: NonNullable<ReturnType<typeof eve
   }
   return modalFrame({ title: eventTitle(ctx, screen), pinned: true, badge: 'answer to go on', kind: 'event' },
     el('p', { className: 'event-text' }, ...partNodes(el, screen.text)),
-    el('div', { className: 'choices' }, ...controls.map((c, i) => choiceNode(c, picks[i] ?? null))));
+    el('div', { className: 'choices' }, ...controls.map((c, i) => choiceNode(c, picks[i] ?? null, { icons: screen.options[i]?.icons ?? {check: false, cost: false, trait: false}, tip: screen.options[i]?.tip ?? null }))));
 }
 
 function newGameMenu(session: Session): void {
@@ -279,14 +286,16 @@ function render(session: Session): void {
     header,
     el('main', { className: 'center', id: 'center' }, ...notices, centre),
     actions,
-    clockPanel({
-      date: formatDate(state.day),
-      mode,
-      speed: session.clock.speed,
-      canPlay: mode === 'paused' || (mode === 'idle' && idleAction(state, content) !== null),
-      onToggle: () => { void togglePause(session); },
-      onSpeed: (speed) => setSpeed(session, speed),
-    }),
+    el('div', { className: 'clock-stack' },
+      newsPanel(visibleNews(session.news, state.day)),
+      clockPanel({
+        date: formatDate(state.day),
+        mode,
+        speed: session.clock.speed,
+        canPlay: mode === 'paused' || (mode === 'idle' && idleAction(state, content) !== null),
+        onToggle: () => { void togglePause(session); },
+        onSpeed: (speed) => setSpeed(session, speed),
+      })),
     avatarPanel(ctx, () => openProfile(session)));
   // the menu stays reachable under a pinned window: "New game" must work whatever is pending
   if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar, .avatar, .actions-panel')) part.inert = true;
@@ -367,6 +376,25 @@ async function saveNow(session: Session): Promise<void> {
   session.clock.unsaved = 0;
 }
 
+/** A word for the news, also spoken by the live region. */
+function addNews(session: Session, text: string): void {
+  session.news = pushNews(session.news, { day: session.state.day, text });
+  session.queue.push(text);
+}
+
+/** The end of an ordinary action (not the idle life) is a word in the news: its name and what it brought (D-464). */
+function actionEndNews(session: Session, before: string | null, seen: number): void {
+  const { state, content } = session;
+  if (before === null || state.activeAction?.actionId === before) return;
+  const action = findAction(content, before);
+  if (action.idle) return;
+  const hero = state.playerId;
+  const done = allChronicle(state).slice(seen).find((e) => e.kind === 'action' && e.subject === hero);
+  if (!done) return;
+  const money = moneyOf({ state, content }, getPlayer(state), action.effects as Effects | undefined);
+  addNews(session, `${action.name}: ${money ? `${money > 0 ? '+' : '−'}${Math.abs(money)} crowns` : 'done'}`);
+}
+
 /** One day of the clock: `wait 1`, the idle action again if it ended, a stop on a decision. */
 async function runDay(session: Session): Promise<void> {
   session.timer = null;
@@ -379,7 +407,9 @@ async function runDay(session: Session): Promise<void> {
   session.busy = true;
   try {
     const seen = allChronicle(session.state).length;
+    const endingAction = session.state.activeAction?.actionId ?? null;
     const stopped = tick(session.journal, session.state, session.content);
+    actionEndNews(session, endingAction, seen);
     session.clock.unsaved += 1;
     const lines = allChronicle(session.state).slice(seen).filter((e) => e.level === 'chronicle').map(entryText);
     session.queue.push(chronicleAnnouncement(lines));
@@ -486,15 +516,15 @@ async function act(session: Session, cmd: Command): Promise<void> {
     // the archive phase moves old lines out of the hot part: count over the whole chronicle
     const seen = allChronicle(session.state).length;
     let before = null;
-    if (cmd.type === 'choose') {
-      const chosen = eventView(ctx)?.options.find((o) => o.index === cmd.option);
-      before = beforeChoice(ctx, Boolean(chosen?.chance));
-    }
+    if (cmd.type === 'choose') before = beforeChoice(ctx, cmd.option);
     applyRecorded(session.journal, session.state, session.content, cmd);
     session.focusAfterRender = true;
     if (before) {
       const outcome = outcomeOf(ctx, before);
       session.outcome = outcome ? { outcome, heroId: before.hero.id } : null;
+      // a light choice leaves a word in the news and the clock goes on (D-464)
+      const word = outcome ? null : newsOf(ctx, before);
+      if (word) addNews(session, word);
     }
     // new chronicle lines go to the live region first, the event window follows in render()
     const lines = allChronicle(session.state).slice(seen).filter((e) => e.level === 'chronicle').map(entryText);
@@ -515,6 +545,7 @@ async function startSession(session: Session, seed: number): Promise<void> {
   session.state = newGame(seed, session.content);
   session.journal = newJournal(seed, session.contentVersion);
   session.outcome = null;
+  session.news = [];
   session.willOpen = false;
   if (session.timer !== null) clearTimeout(session.timer);
   session.timer = null;
@@ -564,7 +595,7 @@ async function boot(content: Content, version: string): Promise<void> {
     state, content, contentVersion: version, store,
     journal: loadedGame?.journal ?? newJournal(state.seed, version), saved: loadedGame?.saved ?? { game: '', chunks: 0, commands: 0 }, busy: false, lostJournal: null,
     notice: null, saveProblem: null, sidebar: newSidebarState(!window.matchMedia(NARROW).matches || entityIdFromHash(location.hash) !== null),
-    menuOpen: false, personMenu: null, outcome: null, question: null, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false, dismiss: null,
+    menuOpen: false, personMenu: null, news: [], outcome: null, question: null, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false, dismiss: null,
     // a game continued after a reload starts paused: the player picks it up himself
     windowOpen: false, clock: newClock(loadedGame !== null), timer: null,
   };

@@ -7,7 +7,7 @@ import { createCharacter } from '../src/core/lifecycle';
 import type { Ctx } from '../src/core/state';
 import { eventScreen, eventTitle } from '../src/ui/event';
 import { headerFigures } from '../src/ui/header-model';
-import { beforeChoice, outcomeOf } from '../src/ui/outcome-model';
+import { beforeChoice, newsOf, outcomeOf } from '../src/ui/outcome-model';
 import { sidebarPage, visit } from '../src/ui/sidebar-model';
 import { whereView } from '../src/ui/where-model';
 import { entityHref, entityIdFromHash } from '../src/ui/address';
@@ -110,7 +110,7 @@ describe('outcome of a choice', () => {
     const { ctx, hero } = eventGame();
     hero.money = 100;
     fireEvent(ctx, findEvent(eventContent, 'choices'), hero);
-    const before = beforeChoice(ctx, true);
+    const before = beforeChoice(ctx, 2);
     apply(ctx.state, eventContent, { type: 'choose', option: 2 });
     const outcome = outcomeOf(ctx, before)!;
     expect(outcome).not.toBeNull();
@@ -119,24 +119,30 @@ describe('outcome of a choice', () => {
     for (const l of outcome.lines) expect(l.day).toBe(before.hero.day);
   });
 
-  it('has no window for a plain choice that changes nothing and writes nothing', () => {
+  it('has a window for a choice the author wants in the chronicle (D-464)', () => {
     const { ctx, hero } = eventGame();
     fireEvent(ctx, findEvent(eventContent, 'loud_notice'), hero);
-    const before = beforeChoice(ctx, false);
+    const loud = beforeChoice(ctx, 0);
     apply(ctx.state, eventContent, { type: 'choose', option: 0 });
-    const money = hero.money;
-    const outcome = outcomeOf(ctx, before);
-    // a quiet notice pays 1 crown: that is a change, so it has a window; the same notice without the pay does not
-    expect(outcome?.changes.map((c) => c.label)).toEqual(['Money']);
-    expect(money).toBeGreaterThan(0);
-    const again = beforeChoice(ctx, false);
-    expect(outcomeOf(ctx, again)).toBeNull();
+    expect(outcomeOf(ctx, loud)?.changes.map((c) => c.label)).toEqual(['Money']);
+  });
+
+  it('puts the author\'s text of the outcome in the window, else in the news', () => {
+    const { ctx, hero } = eventGame();
+    fireEvent(ctx, findEvent(eventContent, 'choices'), hero);
+    const before = beforeChoice(ctx, 0);
+    apply(ctx.state, eventContent, { type: 'choose', option: 0 });
+    // "Take it" is light and has no aftermath: the line it wrote is the word
+    expect(outcomeOf(ctx, before)).toBeNull();
+    expect(newsOf(ctx, before)).toMatch(/took it/);
+    ctx.state.aftermath = { seq: 0, parts: ['You feel lighter.'] };
+    expect(newsOf(ctx, before)).toMatch(/^You feel lighter\./);
   });
 
   it('is not shown between two pages of one event', () => {
     const { ctx, hero } = eventGame();
     fireEvent(ctx, findEvent(eventContent, 'two_pages'), hero);
-    const before = beforeChoice(ctx, false);
+    const before = beforeChoice(ctx, 0);
     apply(ctx.state, eventContent, { type: 'choose', option: 0 });
     expect(ctx.state.pendingEvent?.page).toBe('talk');
     expect(outcomeOf(ctx, before)).toBeNull();
@@ -145,7 +151,7 @@ describe('outcome of a choice', () => {
   it('keeps the difference of the hero out when the date moved', () => {
     const { ctx, hero } = eventGame();
     fireEvent(ctx, findEvent(eventContent, 'loud_notice'), hero);
-    const before = beforeChoice(ctx, true);
+    const before = beforeChoice(ctx, 0);
     apply(ctx.state, eventContent, { type: 'choose', option: 0 });
     ctx.state.day += 3;
     expect(outcomeOf(ctx, before)?.changes).toEqual([]);
@@ -154,7 +160,7 @@ describe('outcome of a choice', () => {
   it('does not put a later death on the choice', () => {
     const { ctx, hero } = eventGame();
     fireEvent(ctx, findEvent(eventContent, 'loud_notice'), hero);
-    const before = beforeChoice(ctx, false);
+    const before = beforeChoice(ctx, 0);
     apply(ctx.state, eventContent, { type: 'choose', option: 0 });
     ctx.state.day += 3;
     hero.deathDay = ctx.state.day;
@@ -164,7 +170,7 @@ describe('outcome of a choice', () => {
   it('shows a death and the new head instead of a difference of two people', () => {
     const { ctx, hero } = eventGame();
     fireEvent(ctx, findEvent(eventContent, 'loud_notice'), hero);
-    const before = beforeChoice(ctx, true);
+    const before = beforeChoice(ctx, 0);
     apply(ctx.state, eventContent, { type: 'choose', option: 0 });
     hero.deathDay = ctx.state.day;
     const outcome = outcomeOf(ctx, before)!;

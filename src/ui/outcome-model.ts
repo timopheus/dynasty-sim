@@ -7,6 +7,10 @@ import { conditionsText } from '../core/health/course';
 import { findCharacter, getPlayer } from '../core/helpers';
 import type { Ctx } from '../core/state';
 import { fullName } from '../core/character/character';
+import { currentScene, pendingEventDef } from '../core/events/events';
+import { ownOutcome } from '../core/events/content';
+import { entryText } from '../core/chronicle/log';
+import { partsText, type TextPart } from '../core/text/text';
 import { withNumber } from './access';
 
 /**
@@ -43,8 +47,14 @@ export interface BeforeChoice {
   hero: HeroSnapshot;
   /** Lines of the whole chronicle so far (the archive may move old ones out of the hot part). */
   seen: number;
-  /** The option chosen had a check: a stake in itself (D-440). */
-  hadCheck: boolean;
+  /**
+   * The choice is weighty (D-464, as in CK3): an event of medium or heavy severity, a step of an event of several
+   * steps, or an option one of whose outcomes the author wants in the chronicle. Only a weighty choice, a death or a
+   * wound earns the window of the outcome; any other choice leaves a word in the news.
+   */
+  weighty: boolean;
+  /** A scene of the backstory: the hero's growing up has no clock and no news. */
+  backstory: boolean;
   /** The event page shown: a following page of the same event is no outcome yet. */
   page: { eventId: string; seq: number } | null;
 }
@@ -59,13 +69,34 @@ export interface Outcome {
   lines: ChronicleEntry[];
   /** Empty when the date moved or the hero died: a difference of two moments would carry foreign changes. */
   changes: Change[];
+  /** What came of it in the second person, as the author wrote it (`aftermath`); null when none. */
+  aftermath: TextPart[] | null;
   /** The hero died in the choice; `heir` is the new head, if the house goes on. */
   died: { name: string; heir: string | null } | null;
 }
 
-export function beforeChoice(ctx: Ctx, hadCheck: boolean): BeforeChoice {
+/** Whether option `option` of the scene on screen is a weighty choice (D-464). */
+function isWeighty(ctx: Ctx, option: number): boolean {
+  const { state, content } = ctx;
+  const event = pendingEventDef(state, content);
+  const scene = currentScene(state, content);
+  if (!event || !scene) return false;
+  if (event.severity === 'medium' || event.severity === 'heavy' || event.pages !== undefined) return true;
+  const chosen = scene.options?.[option];
+  const outcomes = chosen ? [chosen, chosen.success, chosen.failure] : [ownOutcome(scene)];
+  return outcomes.some((o) => o?.chronicle === true);
+}
+
+/** Taken just before the `choose` command for option `option` is applied. */
+export function beforeChoice(ctx: Ctx, option: number): BeforeChoice {
   const p = ctx.state.pendingEvent;
-  return { hero: heroSnapshot(ctx), seen: allChronicle(ctx.state).length, hadCheck, page: p ? { eventId: p.eventId, seq: p.seq } : null };
+  return {
+    hero: heroSnapshot(ctx),
+    seen: allChronicle(ctx.state).length,
+    weighty: isWeighty(ctx, option),
+    backstory: ctx.state.backstory.running,
+    page: p ? { eventId: p.eventId, seq: p.seq } : null,
+  };
 }
 
 function diff(before: HeroSnapshot, after: HeroSnapshot): Change[] {
@@ -81,26 +112,58 @@ function diff(before: HeroSnapshot, after: HeroSnapshot): Change[] {
   return out;
 }
 
+/** Whether the choice carries on into the next page of the same event: no outcome yet (D-440). */
+function onSamePage(ctx: Ctx, before: BeforeChoice): boolean {
+  const p = ctx.state.pendingEvent;
+  return p !== null && before.page !== null && p.eventId === before.page.eventId && p.seq === before.page.seq;
+}
+
+function aftermathOf(ctx: Ctx): TextPart[] | null {
+  return ctx.state.aftermath?.parts ?? null;
+}
+
 /**
- * The outcome window after a choice, or null when nothing was at stake: no check, nothing written that day, nothing
- * changed in the hero (D-440); or when the choice only led to the next page of the same event.
+ * The outcome window after a choice, or null (D-440, D-464): only after a weighty choice, a death or a change in
+ * health; or when the choice only led to the next page of the same event. Everything else is `newsOf`.
  */
 export function outcomeOf(ctx: Ctx, before: BeforeChoice): Outcome | null {
   const { state } = ctx;
-  const p = state.pendingEvent;
-  if (p && before.page && p.eventId === before.page.eventId && p.seq === before.page.seq) return null;
+  if (before.backstory || onSamePage(ctx, before)) return null;
   const day = before.hero.day;
   const written = allChronicle(state).slice(before.seen).filter((e) => e.day === day);
   const own = written.filter((e) => e.level === 'chronicle' || e.subject === before.hero.id);
-  const chronicleLines = written.filter((e) => e.level === 'chronicle');
   const old = findCharacter(state, before.hero.id);
   // a death is the outcome of the choice only on the day of the choice: later it belongs to the days that ran on
   const dead = old !== null && old.deathDay === day;
   if (dead) {
     const heir = state.status === 'ended' || state.playerId === before.hero.id ? null : fullName(getPlayer(state));
-    return { lines: own, changes: [], died: { name: old ? fullName(old) : 'The hero', heir } };
+    return { lines: own, changes: [], aftermath: aftermathOf(ctx), died: { name: old ? fullName(old) : 'The hero', heir } };
   }
   const changes = state.day === day && state.playerId === before.hero.id ? diff(before.hero, heroSnapshot(ctx)) : [];
-  if (!before.hadCheck && chronicleLines.length === 0 && changes.length === 0) return null;
-  return { lines: own, changes, died: null };
+  const hurt = changes.some((c) => c.label === 'Health');
+  if (!before.weighty && !hurt) return null;
+  return { lines: own, changes, aftermath: aftermathOf(ctx), died: null };
+}
+
+/** A change as a few words for the news: "+12 crowns", "Trait gained: Brave". */
+function changeWords(c: Change, before: HeroSnapshot, after: HeroSnapshot): string {
+  if (c.label === 'Money') return `${after.money - before.money > 0 ? '+' : '−'}${Math.abs(after.money - before.money)} crowns`;
+  return c.to ? `${c.label}: ${c.to}` : `${c.label}: ${c.from} gone`;
+}
+
+/**
+ * The word in the news after a choice that earns no window (D-464): the author's `aftermath`, else the line the choice
+ * wrote, then what changed ("+12 crowns"). Null when nothing at all came of it, or the choice is a step of a longer event.
+ */
+export function newsOf(ctx: Ctx, before: BeforeChoice): string | null {
+  const { state } = ctx;
+  if (before.backstory || onSamePage(ctx, before)) return null;
+  const day = before.hero.day;
+  const after = heroSnapshot(ctx);
+  const changes = state.day === day && state.playerId === before.hero.id ? diff(before.hero, after) : [];
+  const aftermath = aftermathOf(ctx);
+  const line = allChronicle(state).slice(before.seen).find((e) => e.day === day && e.subject === before.hero.id);
+  const story = aftermath ? partsText(aftermath) : line ? entryText(line) : '';
+  const words = [story, ...changes.map((c) => changeWords(c, before.hero, after))].filter(Boolean);
+  return words.length ? words.join(' · ') : null;
 }

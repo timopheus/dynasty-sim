@@ -379,6 +379,22 @@ button.choice {
   gap: 0.1rem;
 }
 
+button.choice .choice-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* small signs on the right of a variant (D-463): a die, a trait, a coin */
+.choice-icons {
+  display: inline-flex;
+  gap: 0.35rem;
+  flex: none;
+  font-size: 0.95em;
+}
+
 button.choice .note,
 button.choice .reason {
   font-size: 0.85em;
