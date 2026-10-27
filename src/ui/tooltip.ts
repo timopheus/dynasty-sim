@@ -158,8 +158,9 @@ function wait(target: HTMLElement, by: By): void {
   // the keyboard's wish lasts until the pointer or a key takes over
   focusIntent = by === 'focus' ? idOf(target) : null;
   if (by === 'focus') {
+    // inside the top right corner of the node, so it does not cover the next one (`showRing` adds 12 to both)
     const r = target.getBoundingClientRect();
-    showRing(r.right - 6, r.top - 10);
+    showRing(r.right - 34, r.top - 10);
   } else showRing(mouse.x, mouse.y);
 }
 

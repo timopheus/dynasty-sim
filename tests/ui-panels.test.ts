@@ -190,7 +190,10 @@ describe('side panel pages', () => {
     const rows = factsOf(page);
     expect(rows.map((r) => r.label)).toEqual(expect.arrayContaining(['Age', 'Health', 'Diplomacy', 'Heir']));
     expect(rows.find((r) => r.label === 'Diplomacy')?.parts[0]).toMatch(/\(\d+\)$/);
-    expect(rows.find((r) => r.label === 'Diplomacy')?.tip?.title).toMatch(/^Diplomacy .*\(\d+\)$/);
+    // the row shows the name and the number; the tip says what the stat means and what it is made of (D-465)
+    const tip = rows.find((r) => r.label === 'Diplomacy')?.tip;
+    expect(tip?.title).toBeUndefined();
+    expect(tip?.text).toMatch(/^Winning people over.* Base \d+/);
     expect(page.blocks.some((b) => b.type === 'traits')).toBe(true);
     expect(page.blocks.map((b) => b.type === 'heading' && b.text)).toContain('Family');
   });

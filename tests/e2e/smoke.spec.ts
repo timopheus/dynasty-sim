@@ -258,7 +258,7 @@ test('the hero knows the family; every part of the screen explains itself on hov
   // by hover: a figure of the header, a stat, a name
   await page.locator('.topbar .figure').first().hover();
   await expect(tip).toBeVisible();
-  await page.locator('.sidebar .facts dt[data-tip-title]').first().hover();
+  await page.locator('.sidebar .facts dt[data-tip]').nth(2).hover();
   await expect(tip).toBeVisible();
   await page.locator('.sidebar a.person[data-person]').first().hover();
   await expect(tip).toContainText(/Your|acquaintance|stranger/);
@@ -392,7 +392,7 @@ test('a tip under a still pointer stays while the clock runs', async ({ page }) 
   const moved = await date();
   await expect.poll(date, { timeout: 10_000 }).not.toBe(moved);
   await expect(page.locator('#tooltip')).toBeVisible();
-  await expect(page.locator('#tooltip strong')).toContainText('money');
+  await expect(page.locator('#tooltip')).toContainText('Crowns in your purse');
   expect(problems).toEqual([]);
 });
 
@@ -475,13 +475,13 @@ test('the focus and its tip stay on a figure whose number changes while the cloc
   const first = await date();
   await expect.poll(date, { timeout: 10_000 }).not.toBe(first);
   const tip = page.locator('#tooltip');
-  await tabToTip(page, /crowns money/);
-  await expect(page.locator('#tooltip strong')).toContainText('money');
+  await tabToTip(page, /Crowns in your purse/);
+  await expect(tip).toContainText('Crowns in your purse');
   const sum = await money();
   // the sum changes on the first of a month; the focus and the tip are still on the figure then
   await expect.poll(money, { timeout: 60_000 }).not.toBe(sum);
   await expect(tip).toBeVisible();
-  await expect(page.locator('#tooltip strong')).toContainText('money');
+  await expect(tip).toContainText('Crowns in your purse');
   await expect(page.locator('.figure:focus-within')).toHaveCount(1);
   expect(problems).toEqual([]);
 });

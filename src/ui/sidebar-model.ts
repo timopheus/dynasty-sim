@@ -109,7 +109,8 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
   if (page.money !== null) rows.push(row('Money', [`${page.money} crowns`]));
   for (const s of page.stats ?? []) {
     const shown = withNumber(s.word, s.value);
-    rows.push({ label: s.label, parts: [shown], tip: statTip(ctx, s.value !== null ? c : null, s.id, s.label, shown) });
+    const tip = statTip(ctx, s.value !== null ? c : null, s.id);
+    rows.push({ label: s.label, parts: [shown], ...(tip ? { tip } : {}) });
   }
   if (page.id === ctx.state.playerId) rows.push(heirRow(ctx));
   if (page.death) rows.push({ label: 'Death', parts: [`${page.death.year}${page.death.cause ? `. ${page.death.cause}` : ''}`] });
@@ -151,7 +152,7 @@ function houseSheet(ctx: Ctx, id: string, facts: { label: string; parts: TextPar
     if (!who || who.house !== id) return [];
     return [{ label: 'Held', parts: [{ id: h.id, name: h.name }, ' — with ', { id: who.id, name: `${who.givenName} ${who.surname}` }] as TextPart[] }];
   });
-  const blocks: Block[] = [{ type: 'facts', rows: overview }];
+  const blocks: Block[] = [{ type: 'facts', rows: overview.map((r) => ({ ...r, ...(ROW_TIPS[r.label] ? { tip: { text: ROW_TIPS[r.label] ?? '' } } : {}) })) }];
   if (heads.length) blocks.push({ type: 'heading', text: 'Heads' }, { type: 'facts', rows: heads });
   if (things.length) blocks.push({ type: 'heading', text: 'Heirlooms' }, { type: 'facts', rows: things });
   blocks.push(...latelyBlocks(chronicle, null));

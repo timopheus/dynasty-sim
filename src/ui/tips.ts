@@ -41,10 +41,12 @@ export function statParts(ctx: Ctx, c: Character, id: StatId): string[] {
   return out;
 }
 
-export function statTip(ctx: Ctx, c: Character | null, id: string, label: string, shown: string): Tip {
+/** A stat: what it means and what it is made of; the row shows its name and number already, so no title (D-465). */
+export function statTip(ctx: Ctx, c: Character | null, id: string): Tip | null {
   const known = STAT_IDS.find((s) => s === id);
-  const parts = known && c ? statParts(ctx, c, known).join(' · ') : '';
-  return { title: `${label} ${shown}`, text: [known ? STAT_MEANING[known] : '', parts].filter(Boolean).join(' ') };
+  if (!known) return null;
+  const parts = c ? statParts(ctx, c, known).join(' · ') : '';
+  return { text: [STAT_MEANING[known], parts ? `${parts.charAt(0).toUpperCase()}${parts.slice(1)}.` : ''].filter(Boolean).join(' ') };
 }
 
 /** A trait with what it changes, from the content; the name is on the screen already, so the tip has no title. */
@@ -72,4 +74,7 @@ export const HEADER_TIPS: Record<string, string> = {
 export const ROW_TIPS: Record<string, string> = {
   Fame: 'How far the name has travelled. It opens doors and draws eyes.',
   Heir: 'Who takes up the house when the head dies, by law or by will.',
+  Status: 'Where the house stands among the families of the land.',
+  Renown: 'How well the house is known, beyond the fame of its head.',
+  Living: 'Members of the house alive now whom you know of.',
 };

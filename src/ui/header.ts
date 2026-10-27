@@ -52,7 +52,7 @@ function closeOnEscapeOrOutside(details: HTMLDetailsElement): void {
 
 function figureNode(f: Figure): HTMLElement {
   const tip = HEADER_TIPS[f.label];
-  const node = withTip(el('div', { className: 'figure' }, el('span', { className: 'figure-value' }, f.value), el('span', { className: 'figure-label' }, f.label)), tip ? { title: `${f.value} ${f.label}`, text: tip } : null);
+  const node = withTip(el('div', { className: 'figure' }, el('span', { className: 'figure-value' }, f.value), el('span', { className: 'figure-label' }, f.label)), tip ? { text: tip } : null);
   if (f.note === undefined) return node;
   if (!f.breakdown || f.breakdown.length === 0) {
     node.append(el('span', { className: 'figure-note' }, f.note));
