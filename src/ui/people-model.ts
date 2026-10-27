@@ -27,7 +27,10 @@ export function kinship(ctx: Ctx, id: string): string {
   return level === 'close' ? 'A close acquaintance' : level === 'known' ? 'An acquaintance' : 'A stranger to you';
 }
 
-/** Tooltip of a name anywhere on the screen (D-448): who it is to the hero, and the age of someone the hero knows. */
+/**
+ * Tooltip of a name anywhere on the screen (D-448): who it is to the hero, and the age of someone the hero knows. A
+ * link to a house has none: its name says it all (D-465).
+ */
 export function personTip(ctx: Ctx, id: string): Tip | null {
   const c = anyCharacter(ctx.state, id);
   if (!c) return null;
@@ -35,11 +38,6 @@ export function personTip(ctx: Ctx, id: string): Tip | null {
   const known = who !== 'A stranger to you';
   const age = known ? `, ${c.deathDay === null ? `aged ${ageYears(c.birthDay, ctx.state.day)}` : 'dead'}` : c.deathDay !== null ? ', dead' : '';
   return { title: fullName(c), text: `${who}${age}.` };
-}
-
-/** Tooltip of a link to a page: a person says who they are to the hero; a house link says it all by its name (D-465). */
-export function entityTip(ctx: Ctx, id: string): Tip | null {
-  return personTip(ctx, id);
 }
 
 /** One line of the menu of a person (D-448): grey with the reason when it cannot be done now. */

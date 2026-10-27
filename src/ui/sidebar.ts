@@ -73,6 +73,12 @@ function breadcrumbs(props: SidebarProps, page: SidebarPage): HTMLElement {
   return crumbs;
 }
 
+/** The clock redraws the screen every day: `keepView` finds the focused node again by this key. */
+function withFocusKey<T extends HTMLElement>(node: T, key: string): T {
+  node.setAttribute('data-focus', key);
+  return node;
+}
+
 /**
  * The side panel at the left (D-438): a viewer of one page at a time with the tabs of its kind and the trail of pages
  * opened, foldable. The page comes from the address `#/<kind>/<id>`; with none, the hero's own.
@@ -101,6 +107,7 @@ export function sidebarPanel(props: SidebarProps): HTMLElement[] {
     const bar = el('div', { className: 'tabs', role: 'group' }, ...kinds.map((t) => {
       const link = el('a', { className: t.active ? 'tab active' : 'tab', href: hrefOf(t.id ?? page.id) }, t.label);
       if (t.active) link.setAttribute('aria-current', 'page');
+      link.setAttribute('data-focus', `tab-${t.label}`);
       return link;
     }));
     bar.setAttribute('aria-label', 'Kinds of page');
@@ -114,7 +121,7 @@ export function sidebarPanel(props: SidebarProps): HTMLElement[] {
     scroll.append(bar);
   }
   if (showWhole) {
-    scroll.append(el('p', {}, el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(null) }, '← Back to the page')));
+    scroll.append(el('p', {}, withFocusKey(el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(null) }, '← Back to the page'), 'whole-back')));
   }
   scroll.append(el('div', { className: 'sheet' }, ...(showWhole ? page.whole : page.blocks).flatMap((b) => blockNodes(b, props, page))));
   return [aside, toggle];

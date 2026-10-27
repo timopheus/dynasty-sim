@@ -20,9 +20,10 @@ export function withTip<T extends HTMLElement>(node: T, tip: Tip | null | undefi
   if (!tip) return node;
   node.setAttribute(ATTR, tip.text);
   if (tip.title) node.setAttribute(ATTR_TITLE, tip.title);
-  // the clock redraws the screen every day, and `keepView` finds the focused node again by this key: the title (or the
-  // text) with its numbers cut, so a sum or a date that changes does not lose the focus
-  if (!node.hasAttribute('data-focus')) node.setAttribute('data-focus', `tip:${(tip.title ?? tip.text).replace(/[\d+\-−().,%]+/g, '').trim()}`);
+  // the clock redraws the screen every day, and `keepView` finds the focused node again by this key: the title, or the
+  // words on the node itself (a text shared by many nodes would send the focus to the first), with the numbers cut, so
+  // a sum or a date that changes does not lose the focus
+  if (!node.hasAttribute('data-focus')) node.setAttribute('data-focus', `tip:${(tip.title ?? node.textContent ?? tip.text).replace(/[\d+\-−().,%]+/g, '').trim()}`);
   const focusable = node instanceof HTMLButtonElement || node instanceof HTMLAnchorElement || node.tabIndex >= 0;
   if (!focusable) node.tabIndex = 0;
   return node;
@@ -102,11 +103,23 @@ function place(target: HTMLElement, tip: HTMLElement): void {
   tip.style.top = `${Math.round(top)}px`;
 }
 
-/** Whether a node carries the same tip as the one described: the same title, or the same text. */
-function sameTip(node: Element | null, title: string | null, text: string | null): boolean {
-  if (!node) return false;
-  return (title !== null && node.getAttribute(ATTR_TITLE) === title) || (text !== null && node.getAttribute(ATTR) === text);
+/** What a tip is known by across redraws: its title and text (a sum in the title may change) and the focus key of its node. */
+interface TipId {
+  title: string | null;
+  text: string | null;
+  key: string | null;
 }
+
+const idOf = (node: Element): TipId => ({ title: node.getAttribute(ATTR_TITLE), text: node.getAttribute(ATTR), key: node.getAttribute('data-focus') });
+
+/** Whether a node is the same thing as the one described: the same focus key, and the same title or the same text. */
+function sameTip(node: Element | null, id: TipId): boolean {
+  if (!node || node.getAttribute('data-focus') !== id.key) return false;
+  return (id.title !== null && node.getAttribute(ATTR_TITLE) === id.title) || (id.text !== null && node.getAttribute(ATTR) === id.text);
+}
+
+/** The pointer, or the focus, owns the tip that is open or waits; `shownBy` alone may be left over from a closed tip. */
+const owns = (by: By): boolean => pending?.by === by || (shownFor !== null && shownBy === by);
 
 function show(target: HTMLElement, by: By): void {
   cancelPending();
@@ -121,7 +134,7 @@ function show(target: HTMLElement, by: By): void {
   tip.hidden = false;
   shownFor = target;
   shownBy = by;
-  focusIntent = by === 'focus' ? { title, text: target.getAttribute(ATTR) } : null;
+  focusIntent = by === 'focus' ? idOf(target) : null;
   describedBefore = target.getAttribute('aria-describedby');
   target.setAttribute('aria-describedby', [describedBefore, 'tooltip'].filter(Boolean).join(' '));
   place(target, tip);
@@ -137,28 +150,31 @@ function wait(target: HTMLElement, by: By): void {
     const t = pending?.target ?? null;
     pending = null;
     hideRing();
-    if (t?.isConnected) show(t, by);
+    // still under the pointer (a scroll may have moved it away), still with the focus (the window may have lost it)
+    const still = by === 'pointer' ? holder(document.elementFromPoint(mouse.x, mouse.y)) === t : holder(document.activeElement) === t && document.hasFocus();
+    if (t?.isConnected && still) show(t, by);
   }, TIP_DELAY_MS);
   pending = { target, by, timer };
+  // the keyboard's wish lasts until the pointer or a key takes over
+  focusIntent = by === 'focus' ? idOf(target) : null;
   if (by === 'focus') {
-    focusIntent = { title: target.getAttribute(ATTR_TITLE), text: target.getAttribute(ATTR) };
     const r = target.getBoundingClientRect();
     showRing(r.right - 6, r.top - 10);
   } else showRing(mouse.x, mouse.y);
 }
 
 let mouse = { x: -1, y: -1 };
-/** The tip the keyboard asked for: a redraw that gives the focus back to the same thing opens it again, until Esc, a click or the next key that moves the focus. */
-let focusIntent: { title: string | null; text: string | null } | null = null;
+/** The tip the keyboard asked for: a redraw that gives the focus back to the same thing opens it again, until Esc, a click, the pointer or the next key that moves the focus. */
+let focusIntent: TipId | null = null;
 /** When the player last moved the focus with the keyboard: only such a focus opens a tip. */
 let lastNavKey = -Infinity;
 const NAV_KEYS = new Set(['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
 
 /** The new copy of a node after a redraw: under a still pointer, or on the focus. */
-function copyOf(by: By, title: string | null, text: string | null): HTMLElement | null {
+function copyOf(by: By, id: TipId): HTMLElement | null {
   // under a still pointer only the same thing keeps its tip: a new window must not answer for the old hover
   const node = by === 'pointer' ? holder(document.elementFromPoint(mouse.x, mouse.y)) : holder(document.activeElement);
-  return node && sameTip(node, title, text) ? node : null;
+  return node && sameTip(node, id) ? node : null;
 }
 
 /**
@@ -169,14 +185,14 @@ function copyOf(by: By, title: string | null, text: string | null): HTMLElement 
 export function syncTip(): void {
   if (pending) {
     const old = pending.target;
-    const target = old.isConnected ? old : copyOf(pending.by, old.getAttribute(ATTR_TITLE), old.getAttribute(ATTR));
+    const target = old.isConnected ? old : copyOf(pending.by, idOf(old));
     if (target) pending.target = target;
     // the focus comes back to its node only after the redraw (`keepView`, then `focusin`): the wait stays for it
     else if (pending.by === 'pointer') cancelPending();
   }
   if (shownFor === null) return;
   const by = shownBy;
-  const target = copyOf(by, shownFor.getAttribute(ATTR_TITLE), shownFor.getAttribute(ATTR));
+  const target = copyOf(by, idOf(shownFor));
   shownFor = null;
   if (target) show(target, by);
   else hideTip();
@@ -191,7 +207,7 @@ export function installTooltips(): void {
     mouse = { x: e.clientX, y: e.clientY };
     const t = holder(e.target);
     if (!t) {
-      if (pending?.by === 'pointer' || (shownFor !== null && shownBy === 'pointer')) hideTip();
+      if (owns('pointer')) hideTip();
       return;
     }
     if (pending?.target === t && pending.by === 'pointer') moveRing(mouse.x, mouse.y);
@@ -201,20 +217,21 @@ export function installTooltips(): void {
   document.addEventListener('focusin', (e) => {
     const t = holder(e.target);
     // a focus the program gives back after a redraw is not the player's: only a key that moves the focus opens a tip
-    const kept = t !== null && focusIntent !== null && sameTip(t, focusIntent.title, focusIntent.text);
+    const kept = t !== null && focusIntent !== null && sameTip(t, focusIntent);
     if (t && kept) {
       // the tip was open: it opens again at once; it was waiting: the wait goes on with the new copy
       if (pending?.by === 'focus') pending.target = t;
       else show(t, 'focus');
     } else if (t && performance.now() - lastNavKey < 200) wait(t, 'focus');
-    else if (shownBy === 'focus' || pending?.by === 'focus') hideTip();
+    else if (owns('focus')) hideTip();
   });
-  // the tip goes with the focus; `focusIntent` stays, so a redraw that gives the focus back opens it again
+  // the tip goes with the focus; `focusIntent` stays, so a redraw that gives the focus back opens it again (a wait
+  // stays too: the redraw gives the focus back to its node, and the timer checks the focus before it opens the tip)
   document.addEventListener('focusout', () => { if (shownFor !== null && shownBy === 'focus') hideTip(); });
   // a click did what the tip said: it must not lie over what the click opened
   document.addEventListener('click', () => { focusIntent = null; hideTip(); });
   document.addEventListener('contextmenu', () => { focusIntent = null; hideTip(); });
-  document.addEventListener('mouseleave', () => { if (pending?.by === 'pointer' || (shownFor !== null && shownBy === 'pointer')) hideTip(); });
+  document.addEventListener('mouseleave', () => { if (owns('pointer')) hideTip(); });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { focusIntent = null; hideTip(); }
     if (NAV_KEYS.has(e.key)) {
