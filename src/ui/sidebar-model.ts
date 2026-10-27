@@ -21,7 +21,7 @@ export type Block =
   | { type: 'facts'; rows: { label: string; parts: TextPart[]; tip?: Tip }[] }
   | { type: 'heading'; text: string }
   | { type: 'text'; text: string }
-  | { type: 'traits'; items: { name: string; tip: Tip }[] }
+  | { type: 'traits'; items: { name: string; tip: Tip | null }[] }
   | { type: 'chronicle'; entries: ChronicleEntry[]; own: string | null }
   /** The link to the whole chronicle of the page (D-448: the page is one sheet, the rest is behind a link). */
   | { type: 'whole' };
@@ -98,7 +98,7 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
   const house = page.sections.find((s) => s.id === 'house');
   const family = page.sections.find((s) => s.id === 'family');
   const c = anyCharacter(ctx.state, page.id);
-  const row = (label: string, parts: TextPart[]) => ({ label, parts, ...(ROW_TIPS[label] ? { tip: { title: label, text: ROW_TIPS[label] } } : {}) });
+  const row = (label: string, parts: TextPart[]) => ({ label, parts, ...(ROW_TIPS[label] ? { tip: { text: ROW_TIPS[label] } } : {}) });
   const rows: { label: string; parts: TextPart[]; tip?: Tip }[] = [
     row('Age', [[sexWord(page), page.life, page.alive ? '' : 'dead'].filter(Boolean).join(' · ')]),
   ];
@@ -122,7 +122,7 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
     if (o.lines.length) blocks.push({ type: 'facts', rows: o.lines.map((l) => ({ label: '', parts: [opinionLineText(l)] })) });
   }
   const kin = (family?.lines ?? []).filter((l) => proposalLabels.indexOf(l.label) < 0);
-  if (kin.length) blocks.push({ type: 'heading', text: 'Family' }, { type: 'facts', rows: kin.map((l) => ({ label: l.label, parts: l.parts, ...(ROW_TIPS[l.label] ? { tip: { title: l.label, text: ROW_TIPS[l.label] ?? '' } } : {}) })) });
+  if (kin.length) blocks.push({ type: 'heading', text: 'Family' }, { type: 'facts', rows: kin.map((l) => ({ label: l.label, parts: l.parts, ...(ROW_TIPS[l.label] ? { tip: { text: ROW_TIPS[l.label] ?? '' } } : {}) })) });
   if (page.allies.length) blocks.push({ type: 'heading', text: 'Allies' }, { type: 'facts', rows: relationRows(page.allies) });
   if (page.rivals.length) blocks.push({ type: 'heading', text: 'Rivals' }, { type: 'facts', rows: relationRows(page.rivals) });
   // the small events of the journal are behind the link too, however few lines the chronicle has

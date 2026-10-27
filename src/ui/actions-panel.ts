@@ -1,6 +1,5 @@
 import type { ActionButton, Panel } from './actions-model';
 import { el } from './dom';
-import { withTip } from './tooltip';
 import './actions-panel.css';
 
 export interface ActionsProps {
@@ -18,7 +17,8 @@ function buttonNode(b: ActionButton, onStart: (id: string) => void): HTMLElement
   node.setAttribute('data-action', b.id);
   // the clock redraws the screen every day: this is how the focus finds its button again (keepView)
   node.setAttribute('data-focus', `action-${b.id}`);
-  return withTip(node, { title: b.name, text: b.grey ? (b.reason ? `Not now: ${b.reason.replace(/\.$/, '')}.` : 'Not now.') : 'Start it. Another action may take its place at any time.' });
+  // the button says all there is (D-448): the name, the days, the price, the reason; so no tip repeats it (D-465)
+  return node;
 }
 
 /** The right panel (D-443): the actions of the hero by category; the information of an action is inside its button. */

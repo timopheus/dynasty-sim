@@ -134,6 +134,29 @@ async function growUp(page: Page): Promise<void> {
   throw new Error('the hero never became free to act');
 }
 
+/** A tip opens after this delay (D-465, `TIP_DELAY_MS` of `src/ui/tooltip.ts`); twice it is surely past. */
+const TIP_WAIT = 1_000;
+
+/**
+ * Presses Tab until the focus rests on a thing whose tip (title and text) matches, then waits for the tip to open after
+ * its delay (D-465).
+ */
+async function tabToTip(page: Page, match: RegExp = /./, max = 60): Promise<void> {
+  for (let i = 0; i < max; i++) {
+    await page.keyboard.press('Tab');
+    // a string: the tests are typed without the DOM
+    const tip = await page.evaluate<string | null>(`(() => {
+      const n = document.activeElement?.closest('[data-tip]');
+      return n ? (n.getAttribute('data-tip-title') ?? '') + ' ' + (n.getAttribute('data-tip') ?? '') : null;
+    })()`);
+    if (tip !== null && match.test(tip)) {
+      await expect(page.locator('#tooltip')).toBeVisible();
+      return;
+    }
+  }
+  throw new Error(`Tab found no tip that says ${String(match)}`);
+}
+
 for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
   test(`the screen is in shelves, with no empty space in the centre at ${String(size.width)}×${String(size.height)}`, async ({ page }) => {
     const problems = watch(page);
@@ -232,10 +255,10 @@ test('the hero knows the family; every part of the screen explains itself on hov
   await expect(page.locator('.sidebar .meta').first()).not.toHaveText('A stranger to you');
   await page.locator('.avatar-button').click();
   const tip = page.locator('#tooltip');
-  // by hover: a figure of the header, an action, a name
+  // by hover: a figure of the header, a stat, a name
   await page.locator('.topbar .figure').first().hover();
   await expect(tip).toBeVisible();
-  await page.locator('.actions-panel button.action').first().hover();
+  await page.locator('.sidebar .facts dt[data-tip-title]').first().hover();
   await expect(tip).toBeVisible();
   await page.locator('.sidebar a.person[data-person]').first().hover();
   await expect(tip).toContainText(/Your|acquaintance|stranger/);
@@ -243,9 +266,7 @@ test('the hero knows the family; every part of the screen explains itself on hov
   // by the keyboard alone: Tab walks over things that explain themselves, the tip follows the focus
   await page.mouse.move(700, 300);
   await page.locator('.avatar-button').focus();
-  let tabbed = 0;
-  for (; tabbed < 40 && !(await tip.isVisible()); tabbed++) await page.keyboard.press('Tab');
-  await expect(tip, 'no tip while Tab walked the screen').toBeVisible();
+  await tabToTip(page, /./, 40);
   await page.keyboard.press('Escape');
   await expect(tip).toBeHidden();
   expect(problems).toEqual([]);
@@ -302,21 +323,56 @@ test('"New game" asks inside the page and starts another game', async ({ page })
   expect(problems).toEqual([]);
 });
 
-test('a window that opens under a still pointer shows no tip over its choices', async ({ page }) => {
+test('a choice that says it all has no tip; a window that opens under a still pointer shows none', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/?seed=7');
+  const tip = page.locator('#tooltip');
   const first = page.locator('.modal-layer .option button.choice').first();
+  // the first scene: its choices are words only, nothing to explain (D-465)
   await first.hover();
-  await expect(page.locator('#tooltip')).toBeVisible();
+  await page.waitForTimeout(TIP_WAIT);
+  await expect(tip).toBeHidden();
+  await expect(page.locator('.tip-timer')).toHaveCount(0);
+  // a scene with a name in its words: the name explains itself after the delay
+  for (let i = 0; i < 6 && (await page.locator('.modal-layer [data-tip]').count()) === 0; i++) await first.click();
+  await page.locator('.modal-layer [data-tip]').first().hover();
+  await expect(tip).toBeVisible();
   const title = await page.locator('.modal-title').textContent();
   await first.click();
   // the next scene is there, the pointer has not moved: nothing is explained over its choices
   await expect(page.locator('.modal-title')).not.toHaveText(title ?? '');
-  await expect(page.locator('#tooltip')).toBeHidden();
-  // a real move over a choice does show the tip
-  await page.locator('.modal-layer .option button.choice').first().hover({ position: { x: 20, y: 10 } });
-  await expect(page.locator('#tooltip')).toBeVisible();
+  await page.waitForTimeout(TIP_WAIT);
+  await expect(tip).toBeHidden();
+  expect(problems).toEqual([]);
+});
+
+test('a tip waits a moment with a ring at the pointer; a pointer that passes over opens none (D-465)', async ({ page }) => {
+  const problems = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?seed=7');
+  await growUp(page);
+  const tip = page.locator('#tooltip');
+  const figure = page.locator('.topbar .figure').first();
+  const box = await figure.boundingBox();
+  if (!box) throw new Error('no figure in the header');
+  await page.mouse.move(700, 300);
+  // at rest on the figure: first the ring, then the tip, and the ring is gone
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  const early = await page.evaluate<{ ring: number; open: boolean }>(`({ ring: document.querySelectorAll('.tip-timer').length, open: !(document.getElementById('tooltip')?.hidden ?? true) })`);
+  expect(early, 'the tip waits, with the ring').toEqual({ ring: 1, open: false });
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: 'out/e2e/tip-timer-1440.png', clip: { x: Math.max(0, box.x - 40), y: Math.max(0, box.y - 20), width: 240, height: 120 } });
+  await expect(tip).toBeVisible();
+  await expect(page.locator('.tip-timer')).toHaveCount(0);
+  // passing over: the pointer leaves before the delay, and nothing opens
+  await page.mouse.move(700, 300);
+  await expect(tip).toBeHidden();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.move(700, 300);
+  await page.waitForTimeout(TIP_WAIT);
+  await expect(tip).toBeHidden();
+  await expect(page.locator('.tip-timer')).toHaveCount(0);
   expect(problems).toEqual([]);
 });
 
@@ -350,12 +406,13 @@ test('the clock run by the mouse does not swap the tip under a still pointer for
   await page.locator('.clock-toggle').click();
   await page.locator('.clock-toggle').click();
   await page.locator('.sidebar .facts dt[data-tip]').first().hover();
-  const label = await page.locator('#tooltip strong').textContent();
+  await expect(page.locator('#tooltip')).toBeVisible();
+  const label = await page.locator('#tooltip').textContent();
   const before = await date();
   await expect.poll(date, { timeout: 10_000 }).not.toBe(before);
   const moved = await date();
   await expect.poll(date, { timeout: 10_000 }).not.toBe(moved);
-  await expect(page.locator('#tooltip strong')).toHaveText(label ?? '');
+  await expect(page.locator('#tooltip')).toHaveText(label ?? '');
   expect(problems).toEqual([]);
 });
 
@@ -368,8 +425,7 @@ test('Escape closes the tip of the focus and it stays closed while the clock run
   await page.mouse.move(700, 300);
   await page.keyboard.press('Space');
   const tip = page.locator('#tooltip');
-  for (let i = 0; i < 60 && !(await tip.isVisible()); i++) await page.keyboard.press('Tab');
-  await expect(tip).toBeVisible();
+  await tabToTip(page);
   await page.keyboard.press('Escape');
   await expect(tip).toBeHidden();
   const before = await date();
@@ -392,15 +448,14 @@ test('a tip opened by Tab stays while the clock runs, until Escape', async ({ pa
   const first = await date();
   await expect.poll(date, { timeout: 10_000 }).not.toBe(first);
   const tip = page.locator('#tooltip');
-  for (let i = 0; i < 60 && !(await tip.isVisible()); i++) await page.keyboard.press('Tab');
-  await expect(tip).toBeVisible();
-  const title = await page.locator('#tooltip strong').textContent();
+  await tabToTip(page);
+  const said = await tip.textContent();
   const before = await date();
   await expect.poll(date, { timeout: 10_000 }).not.toBe(before);
   const moved = await date();
   await expect.poll(date, { timeout: 10_000 }).not.toBe(moved);
   await expect(tip).toBeVisible();
-  await expect(page.locator('#tooltip strong')).toHaveText(title ?? '');
+  await expect(tip).toHaveText(said ?? '');
   await page.keyboard.press('Escape');
   await expect(tip).toBeHidden();
   expect(problems).toEqual([]);
@@ -420,7 +475,7 @@ test('the focus and its tip stay on a figure whose number changes while the cloc
   const first = await date();
   await expect.poll(date, { timeout: 10_000 }).not.toBe(first);
   const tip = page.locator('#tooltip');
-  for (let i = 0; i < 60 && !((await tip.isVisible()) && /money/.test((await page.locator('#tooltip strong').textContent()) ?? '')); i++) await page.keyboard.press('Tab');
+  await tabToTip(page, /crowns money/);
   await expect(page.locator('#tooltip strong')).toContainText('money');
   const sum = await money();
   // the sum changes on the first of a month; the focus and the tip are still on the figure then

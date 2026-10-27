@@ -5,9 +5,13 @@ import type { Content } from '../core/content/schema';
 import type { Character, Ctx } from '../core/state';
 import { ageYears } from '../core/time/calendar';
 
-/** What a tooltip says (D-444, D-448): a title and a line or two; never another tooltip inside. */
+/**
+ * What a tooltip says (D-444, D-448, D-465): a line or two, under a title when the title tells more than the name on
+ * the screen (a stat with its number, the full name of a person); never another tooltip inside, never how to use the
+ * mouse or the keys.
+ */
 export interface Tip {
-  title: string;
+  title?: string;
   text: string;
 }
 
@@ -43,39 +47,29 @@ export function statTip(ctx: Ctx, c: Character | null, id: string, label: string
   return { title: `${label} ${shown}`, text: [known ? STAT_MEANING[known] : '', parts].filter(Boolean).join(' ') };
 }
 
-/** A trait with what it changes, from the content. */
-export function traitTip(content: Content, name: string): Tip {
+/** A trait with what it changes, from the content; the name is on the screen already, so the tip has no title. */
+export function traitTip(content: Content, name: string): Tip | null {
   const def = content.traits.find((t) => t.name === name);
-  if (!def) return { title: name, text: 'A trait.' };
+  if (!def) return null;
   const bonuses = STAT_IDS.flatMap((s) => (def.stats?.[s] ? [`${signed(def.stats[s] ?? 0)} ${s}`] : []));
   if (def.education) bonuses.push(`${signed(2 * def.education.level)} ${def.education.stat}`);
   const kind = def.category === 'education' ? 'Education' : def.category === 'body' ? 'A trait of the body' : 'A trait of character';
-  return { title: name, text: [kind, bonuses.join(', ')].filter(Boolean).join('. ') + '.' };
+  return { text: [kind, bonuses.join(', ')].filter(Boolean).join('. ') + '.' };
 }
 
 /** The figures of the header (D-448). */
 export const HEADER_TIPS: Record<string, string> = {
-  money: 'Crowns in your purse. Under it, what the month brings in and takes out; click it for the lines.',
+  money: 'Crowns in your purse. Under it, what the month brings in and takes out.',
   fame: 'How far your name has travelled. It opens doors and draws eyes.',
   'house renown': 'How well the house is known, beyond the fame of its head.',
   'house status': 'Where the house stands among the families of the land.',
 };
 
-/** Rows of a page that explain themselves on hover. */
+/**
+ * Rows of a page whose label does not say it all (D-465); the others (father, money, age…) have no tip. The label is on
+ * the screen, so the tip has no title.
+ */
 export const ROW_TIPS: Record<string, string> = {
-  Age: 'Sex and years of life.',
-  Occupation: 'What the person does for a living.',
-  Fame: 'How far the name has travelled.',
-  Health: 'Wounds and illnesses now.',
-  Money: 'Crowns in the purse.',
-  House: 'The house the person belongs to.',
-  Father: 'The father.',
-  Mother: 'The mother.',
-  'Brothers and sisters': 'Children of the same parents.',
-  Brother: 'A brother.',
-  Sister: 'A sister.',
-  Wife: 'The wife.',
-  Husband: 'The husband.',
-  Children: 'Sons and daughters, eldest first.',
+  Fame: 'How far the name has travelled. It opens doors and draws eyes.',
   Heir: 'Who takes up the house when the head dies, by law or by will.',
 };
