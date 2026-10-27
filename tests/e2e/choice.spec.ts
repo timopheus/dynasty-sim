@@ -7,7 +7,7 @@ const TIP_WAIT = 1_000;
 async function growUp(page: Page): Promise<void> {
   for (let i = 0; i < 60; i++) {
     if ((await page.locator('.modal-layer').count()) > 0) {
-      await page.locator('.modal-layer .option button.choice').first().click();
+      await page.locator('.modal-layer .option button.choice').first().click({ timeout: 2_000 }).catch(() => undefined);
       continue;
     }
     return;
