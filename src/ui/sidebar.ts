@@ -54,7 +54,7 @@ function blockNodes(block: Block, props: SidebarProps, page: SidebarPage): (Node
     case 'chronicle':
       return [entryList(block.entries, block.own, props.heads)];
     case 'whole':
-      return [el('p', {}, withTip(el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(page.id) }, 'Whole chronicle →'), { title: 'Whole chronicle', text: 'Every line written about this page, the small events too.' }))];
+      return [el('p', {}, withTip(el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(page.id) }, 'Whole chronicle →'), { text: 'Every line written about this page, the small events too.' }))];
   }
 }
 
@@ -73,6 +73,12 @@ function breadcrumbs(props: SidebarProps, page: SidebarPage): HTMLElement {
   return crumbs;
 }
 
+/** The clock redraws the screen every day: `keepView` finds the focused node again by this key. */
+function withFocusKey<T extends HTMLElement>(node: T, key: string): T {
+  node.setAttribute('data-focus', key);
+  return node;
+}
+
 /**
  * The side panel at the left (D-438): a viewer of one page at a time with the tabs of its kind and the trail of pages
  * opened, foldable. The page comes from the address `#/<kind>/<id>`; with none, the hero's own.
@@ -83,7 +89,7 @@ export function sidebarPanel(props: SidebarProps): HTMLElement[] {
   toggle.setAttribute('aria-controls', 'sidebar');
   toggle.setAttribute('aria-label', props.view.open ? 'Fold the side panel' : 'Open the side panel');
   toggle.setAttribute('data-focus', 'sidebar-toggle');
-  withTip(toggle, { title: props.view.open ? 'Fold the panel' : 'Open the panel', text: 'The page of a person or a house, kept at the left.' });
+  withTip(toggle, { text: props.view.open ? 'Fold the panel of pages.' : 'Open the panel of pages: a person or a house.' });
   const aside = el('aside', { className: props.view.open ? 'sidebar open' : 'sidebar', id: 'sidebar' });
   if (!props.view.open) return [aside, toggle];
 
@@ -101,7 +107,7 @@ export function sidebarPanel(props: SidebarProps): HTMLElement[] {
     const bar = el('div', { className: 'tabs', role: 'group' }, ...kinds.map((t) => {
       const link = el('a', { className: t.active ? 'tab active' : 'tab', href: hrefOf(t.id ?? page.id) }, t.label);
       if (t.active) link.setAttribute('aria-current', 'page');
-      withTip(link, { title: t.label, text: t.label === 'Person' ? 'The page of the person.' : 'The page of their house.' });
+      link.setAttribute('data-focus', `tab-${t.label}`);
       return link;
     }));
     bar.setAttribute('aria-label', 'Kinds of page');
@@ -110,13 +116,12 @@ export function sidebarPanel(props: SidebarProps): HTMLElement[] {
       interact.setAttribute('aria-haspopup', 'menu');
       interact.setAttribute('data-focus', 'interact');
       interact.onclick = () => props.onInteract(page.id, interact);
-      withTip(interact, { title: 'Interact', text: 'What you can do with this person. The same menu opens with a right click on their name.' });
       bar.append(interact);
     }
     scroll.append(bar);
   }
   if (showWhole) {
-    scroll.append(el('p', {}, withTip(el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(null) }, '← Back to the page'), { title: 'Back to the page', text: 'Return to the sheet of this page.' })));
+    scroll.append(el('p', {}, withFocusKey(el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(null) }, '← Back to the page'), 'whole-back')));
   }
   scroll.append(el('div', { className: 'sheet' }, ...(showWhole ? page.whole : page.blocks).flatMap((b) => blockNodes(b, props, page))));
   return [aside, toggle];

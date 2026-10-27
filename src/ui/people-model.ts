@@ -4,7 +4,6 @@ import { marriageBar } from '../core/family/marriage';
 import { proposalOptions } from '../core/family/proposals';
 import type { ProposeOrder } from '../core/family/phases';
 import { findCharacter, getPlayer } from '../core/helpers';
-import { houseById } from '../core/house/house';
 import { acquaintanceLevel } from '../core/relations/acquaintance';
 import type { Character, Ctx } from '../core/state';
 import { ageYears } from '../core/time/calendar';
@@ -28,22 +27,17 @@ export function kinship(ctx: Ctx, id: string): string {
   return level === 'close' ? 'A close acquaintance' : level === 'known' ? 'An acquaintance' : 'A stranger to you';
 }
 
-/** Tooltip of a name anywhere on the screen (D-448): who it is to the hero, and the age of someone the hero knows. */
+/**
+ * Tooltip of a name anywhere on the screen (D-448): who it is to the hero, and the age of someone the hero knows. A
+ * link to a house has none: its name says it all (D-465).
+ */
 export function personTip(ctx: Ctx, id: string): Tip | null {
   const c = anyCharacter(ctx.state, id);
   if (!c) return null;
   const who = kinship(ctx, id);
   const known = who !== 'A stranger to you';
   const age = known ? `, ${c.deathDay === null ? `aged ${ageYears(c.birthDay, ctx.state.day)}` : 'dead'}` : c.deathDay !== null ? ', dead' : '';
-  return { title: fullName(c), text: `${who}${age}. Click for the page, right click for what you can do.` };
-}
-
-/** Tooltip of a link to a page: a person says who they are to the hero, a house names itself. */
-export function entityTip(ctx: Ctx, id: string): Tip | null {
-  const person = personTip(ctx, id);
-  if (person) return person;
-  const house = houseById(ctx.state, id);
-  return house ? { title: `House ${house.name}`, text: 'A house. Click for its page.' } : null;
+  return { title: fullName(c), text: `${who}${age}.` };
 }
 
 /** One line of the menu of a person (D-448): grey with the reason when it cannot be done now. */

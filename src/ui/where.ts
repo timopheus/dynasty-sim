@@ -1,5 +1,4 @@
 import { el } from './dom';
-import { withTip } from './tooltip';
 import type { WhereView } from './where-model';
 import './where.css';
 
@@ -8,7 +7,7 @@ import './where.css';
  * bottom with the picture of the place (a placeholder until the art bible), the table of the place and what is going on.
  */
 export function wherePanel(view: WhereView): HTMLElement {
-  const table = el('dl', { className: 'place-table' }, ...view.table.flatMap((r) => [withTip(el('dt', {}, r.label), { title: r.label, text: 'Where and when you are: the time of year.' }), el('dd', {}, r.value)]));
+  const table = el('dl', { className: 'place-table' }, ...view.table.flatMap((r) => [el('dt', {}, r.label), el('dd', {}, r.value)]));
   const block = el('section', { className: 'where' },
     el('div', { className: 'place-picture', ariaHidden: 'true' }, 'picture of the place'),
     el('div', { className: 'where-text' },

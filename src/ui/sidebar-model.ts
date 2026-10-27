@@ -21,7 +21,7 @@ export type Block =
   | { type: 'facts'; rows: { label: string; parts: TextPart[]; tip?: Tip }[] }
   | { type: 'heading'; text: string }
   | { type: 'text'; text: string }
-  | { type: 'traits'; items: { name: string; tip: Tip }[] }
+  | { type: 'traits'; items: { name: string; tip: Tip | null }[] }
   | { type: 'chronicle'; entries: ChronicleEntry[]; own: string | null }
   /** The link to the whole chronicle of the page (D-448: the page is one sheet, the rest is behind a link). */
   | { type: 'whole' };
@@ -98,7 +98,7 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
   const house = page.sections.find((s) => s.id === 'house');
   const family = page.sections.find((s) => s.id === 'family');
   const c = anyCharacter(ctx.state, page.id);
-  const row = (label: string, parts: TextPart[]) => ({ label, parts, ...(ROW_TIPS[label] ? { tip: { title: label, text: ROW_TIPS[label] } } : {}) });
+  const row = (label: string, parts: TextPart[]) => ({ label, parts, ...(ROW_TIPS[label] ? { tip: { text: ROW_TIPS[label] } } : {}) });
   const rows: { label: string; parts: TextPart[]; tip?: Tip }[] = [
     row('Age', [[sexWord(page), page.life, page.alive ? '' : 'dead'].filter(Boolean).join(' · ')]),
   ];
@@ -109,7 +109,8 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
   if (page.money !== null) rows.push(row('Money', [`${page.money} crowns`]));
   for (const s of page.stats ?? []) {
     const shown = withNumber(s.word, s.value);
-    rows.push({ label: s.label, parts: [shown], tip: statTip(ctx, s.value !== null ? c : null, s.id, s.label, shown) });
+    const tip = statTip(ctx, s.value !== null ? c : null, s.id);
+    rows.push({ label: s.label, parts: [shown], ...(tip ? { tip } : {}) });
   }
   if (page.id === ctx.state.playerId) rows.push(heirRow(ctx));
   if (page.death) rows.push({ label: 'Death', parts: [`${page.death.year}${page.death.cause ? `. ${page.death.cause}` : ''}`] });
@@ -122,7 +123,7 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
     if (o.lines.length) blocks.push({ type: 'facts', rows: o.lines.map((l) => ({ label: '', parts: [opinionLineText(l)] })) });
   }
   const kin = (family?.lines ?? []).filter((l) => proposalLabels.indexOf(l.label) < 0);
-  if (kin.length) blocks.push({ type: 'heading', text: 'Family' }, { type: 'facts', rows: kin.map((l) => ({ label: l.label, parts: l.parts, ...(ROW_TIPS[l.label] ? { tip: { title: l.label, text: ROW_TIPS[l.label] ?? '' } } : {}) })) });
+  if (kin.length) blocks.push({ type: 'heading', text: 'Family' }, { type: 'facts', rows: kin.map((l) => ({ label: l.label, parts: l.parts, ...(ROW_TIPS[l.label] ? { tip: { text: ROW_TIPS[l.label] ?? '' } } : {}) })) });
   if (page.allies.length) blocks.push({ type: 'heading', text: 'Allies' }, { type: 'facts', rows: relationRows(page.allies) });
   if (page.rivals.length) blocks.push({ type: 'heading', text: 'Rivals' }, { type: 'facts', rows: relationRows(page.rivals) });
   // the small events of the journal are behind the link too, however few lines the chronicle has
@@ -151,7 +152,7 @@ function houseSheet(ctx: Ctx, id: string, facts: { label: string; parts: TextPar
     if (!who || who.house !== id) return [];
     return [{ label: 'Held', parts: [{ id: h.id, name: h.name }, ' — with ', { id: who.id, name: `${who.givenName} ${who.surname}` }] as TextPart[] }];
   });
-  const blocks: Block[] = [{ type: 'facts', rows: overview }];
+  const blocks: Block[] = [{ type: 'facts', rows: overview.map((r) => ({ ...r, ...(ROW_TIPS[r.label] ? { tip: { text: ROW_TIPS[r.label] ?? '' } } : {}) })) }];
   if (heads.length) blocks.push({ type: 'heading', text: 'Heads' }, { type: 'facts', rows: heads });
   if (things.length) blocks.push({ type: 'heading', text: 'Heirlooms' }, { type: 'facts', rows: things });
   blocks.push(...latelyBlocks(chronicle, null));
