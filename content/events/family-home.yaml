@@ -287,6 +287,7 @@ events:
         result: "{name} sat up with {child} through a long evening of grief."
         mood: loss
       - text: Throw yourself into work
+        acts: [toil]
         effects: { money: 10 }
         on: { child: { opinion: [{ toward: hero, reason: slighted }] } }
         result: "{name} buried {his} grief in work and left {child} to the maid."
