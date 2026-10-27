@@ -7,7 +7,8 @@ The API key is added by the session's network secret (header X-RD-Token); it is 
 import base64, datetime, json, sys, time, urllib.request, uuid
 
 API = 'https://api.retrodiffusion.ai/v2/inferences'
-PALETTE = 'docs/reference/portrait/palette-ink-paper-large.png'
+import os
+PALETTE = os.environ.get('RD_PALETTE', 'docs/reference/portrait/palette-ink-paper-large.png')
 
 
 def call(url, body=None, headers=None):
