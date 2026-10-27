@@ -2,6 +2,7 @@ import { actionAvailability } from '../core/actions/actions';
 import type { ActionCategory, ActionDef } from '../core/actions/content';
 import { getPlayer } from '../core/helpers';
 import { priceCrowns, workCrowns } from '../core/economy/economy';
+import { placeDef, routesFrom } from '../core/place/place';
 import type { Ctx } from '../core/state';
 import { ageYears } from '../core/time/calendar';
 import type { WillForm } from './will';
@@ -16,6 +17,20 @@ export interface ActionButton {
   grey: boolean;
   /** Why not now, as text. */
   reason: string;
+  /**
+   * An action that goes somewhere (`target: place`, S.9) is a menu of directions: one entry per place the hero can go to
+   * from where he is now, the nearest first. Not for a grey button.
+   */
+  destinations?: Destination[];
+}
+
+/** A direction of the menu "Travel": the place (record id), the days of the shortest way, and whether it is the end of the journey now under way. */
+export interface Destination {
+  to: string;
+  name: string;
+  days: number;
+  /** The hero is already going there. */
+  going: boolean;
 }
 
 export interface Shelf {
@@ -58,6 +73,15 @@ export function outgrown(ctx: Ctx, a: ActionDef): boolean {
   return max !== undefined && ageYears(getPlayer(ctx.state).birthDay, ctx.state.day) > max;
 }
 
+/** The places the hero can go to now, the nearest first; ties in the order of the content. */
+function destinations(ctx: Ctx): Destination[] {
+  const going = ctx.state.activeAction?.target ?? null;
+  return routesFrom(ctx.state, ctx.content)
+    .map((r, i) => ({ r, i }))
+    .sort((a, b) => a.r.days - b.r.days || a.i - b.i)
+    .map(({ r }) => ({ to: r.to, name: placeDef(ctx.state, ctx.content, r.to)?.name ?? r.to, days: r.days, going: r.to === going }));
+}
+
 export interface Panel {
   shelves: Shelf[];
   /** Why nothing can be done now (the house is over, a window waits): above the shelves, or alone when there are none. */
@@ -80,8 +104,13 @@ export function actionShelves(ctx: Ctx, will: WillForm | null): Panel {
   for (const { action, unmet, hidden } of actionAvailability(ctx)) {
     if (hidden || outgrown(ctx, action)) continue;
     const shelf = shelves.find((s) => s.category === action.category);
-    const reasons = held ? [] : action.id === underWay ? ['you are doing this now'] : unmet;
-    shelf?.buttons.push({ id: action.id, name: action.name, info: [daysText(action), ...moneyInfo(ctx, action)], grey: held !== '' || reasons.length > 0, reason: reasons.join('; ') });
+    // a journey under way may be turned toward another place (D-462): its menu stays open
+    const turnable = action.target !== undefined;
+    const reasons = held ? [] : action.id === underWay && !turnable ? ['you are doing this now'] : unmet;
+    const grey = held !== '' || reasons.length > 0;
+    const button: ActionButton = { id: action.id, name: action.name, info: [...(turnable ? [] : [daysText(action)]), ...moneyInfo(ctx, action)], grey, reason: reasons.join('; ') };
+    if (turnable && !grey) button.destinations = destinations(ctx);
+    shelf?.buttons.push(button);
   }
   if (will) {
     const atNotary = underWay !== null && underWay === ctx.content.succession?.willAction;

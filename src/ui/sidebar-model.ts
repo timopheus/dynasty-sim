@@ -183,7 +183,7 @@ export function sidebarPage(ctx: Ctx, id: string, lastPerson: string = ctx.state
   }
   const blocks: Block[] = [{ type: 'facts', rows: e.facts }];
   if (e.chronicle.length) blocks.push({ type: 'heading', text: 'Chronicle' }, { type: 'chronicle', entries: e.chronicle.slice().reverse(), own: null });
-  return { id, kind: 'Heirloom', title: e.title, subtitle: e.subtitle, blocks, whole: [], tabs: [], interact: false };
+  return { id, kind: e.kind === 'place' ? 'Place' : 'Heirloom', title: e.title, subtitle: e.subtitle, blocks, whole: [], tabs: [], interact: false };
 }
 
 /** Moves the trail of visited pages to `id`: the same page stays, an earlier one cuts the trail back to it, a new one is added. */

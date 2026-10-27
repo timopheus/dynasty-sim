@@ -1,5 +1,9 @@
+import { placeholderValues } from '../character/text';
+import { log } from '../chronicle/log';
 import type { Content } from '../content/schema';
+import { getPlayer } from '../helpers';
 import type { Ctx, GameState, Invariant } from '../state';
+import { fillTemplate, type TextPart } from '../text/text';
 import type { PlaceDef } from './content';
 
 /**
@@ -61,12 +65,35 @@ export function placeDef(state: GameState, content: Content, id: string): PlaceD
   return key === null ? null : (content.places?.list.find((p) => p.id === key) ?? null);
 }
 
+/** Days of the roads of a content by the keys of their ends, both ways: made once per content, a cache that is never stored. */
+const ROAD_DAYS = new WeakMap<Content, Map<string, number>>();
+
+function roadDaysByKey(content: Content, ka: string, kb: string): number | null {
+  let days = ROAD_DAYS.get(content);
+  if (!days) {
+    days = new Map();
+    for (const r of content.places?.roads ?? []) {
+      days.set(`${r.between[0]}|${r.between[1]}`, r.days);
+      days.set(`${r.between[1]}|${r.between[0]}`, r.days);
+    }
+    ROAD_DAYS.set(content, days);
+  }
+  return days.get(`${ka}|${kb}`) ?? null;
+}
+
 /** Days of the road between two places (record ids), or null if no road joins them. */
 export function roadDays(state: GameState, content: Content, a: string, b: string): number | null {
   const ka = placeKeyOf(state, a);
   const kb = placeKeyOf(state, b);
-  const road = content.places?.roads.find((r) => (r.between[0] === ka && r.between[1] === kb) || (r.between[0] === kb && r.between[1] === ka));
-  return road ? road.days : null;
+  return ka === null || kb === null ? null : roadDaysByKey(content, ka, kb);
+}
+
+/** Whether any road leads from where the hero stands (or set out from): the cheap test behind "no road from here". */
+export function hasRoadFrom(state: GameState, content: Content): boolean {
+  const { here, road } = state.place;
+  if (road !== null) return true;
+  const key = here === null ? null : placeKeyOf(state, here);
+  return key !== null && (content.places?.roads.some((r) => r.between[0] === key || r.between[1] === key) ?? false);
 }
 
 /** The point the hero set out from, or stands at when no journey runs; null without places. */
@@ -92,11 +119,13 @@ function shortestWays(state: GameState, content: Content, from: Point): Way {
   const dist = new Map<string, number>();
   const prev = new Map<string, string | null>();
   const ids = state.place.places.map((p) => p.id);
+  const keys = new Map(state.place.places.map((p) => [p.id, p.key]));
+  const between = (a: string, b: string): number | null => roadDaysByKey(content, keys.get(a) as string, keys.get(b) as string);
   if ('place' in from) {
     dist.set(from.place, 0);
     prev.set(from.place, null);
   } else {
-    const days = roadDays(state, content, from.road.a, from.road.b) ?? 0;
+    const days = between(from.road.a, from.road.b) ?? 0;
     dist.set(from.road.a, from.road.done);
     prev.set(from.road.a, null);
     dist.set(from.road.b, days - from.road.done);
@@ -115,7 +144,7 @@ function shortestWays(state: GameState, content: Content, from: Point): Way {
     const base = dist.get(next) as number;
     for (const id of ids) {
       if (done.has(id)) continue;
-      const days = roadDays(state, content, next, id);
+      const days = between(next, id);
       if (days === null) continue;
       const d = base + days;
       const old = dist.get(id);
@@ -225,20 +254,45 @@ export function routesFrom(state: GameState, content: Content): { to: string; da
 }
 
 /**
+ * What the journal says when a journey stops (S.9): `stopped` — another occupation, an illness, a window broke it off,
+ * and the hero stands where it left him; `{ turn }` — he turns toward another place without stopping (D-462), the
+ * line of a turn, not of a break. `null` writes nothing: a goal reached on the way (D-466), the death of the hero.
+ */
+export type JourneyNote = 'stopped' | { turn: string } | null;
+
+function placeLink(state: GameState, content: Content, id: string): TextPart {
+  return { id, name: placeDef(state, content, id)?.name ?? id };
+}
+
+/** A line of the journal about the road: `texts` of the content with the hero and the places named in `values`. */
+function journeyLine(ctx: Ctx, kind: 'arrive' | 'stopped' | 'stayed' | 'turned', values: Record<string, TextPart>): void {
+  const texts = ctx.content.places?.texts;
+  if (!texts) return;
+  const hero = getPlayer(ctx.state);
+  log(ctx, { subject: hero, kind: 'journey', level: 'journal', parts: fillTemplate(texts[kind], { ...placeholderValues(hero, ctx.state.day), ...values }) });
+}
+
+/**
  * A journey stops short of its end (another occupation, an illness, the hero's death, D-462): he stays where the days
  * gone by have brought him — in a place he passed, or on the road. Call before the action is dropped or replaced.
+ * `note` says what the journal gets (S.9): the line "stood on the road" or "stayed in …", the line of a turn, or none.
  */
-export function stopJourney(ctx: Ctx): void {
+export function stopJourney(ctx: Ctx, note: JourneyNote = null): void {
   const { state, content } = ctx;
   if (!state.activeAction || state.activeAction.target === null) return;
   const point = currentPoint(state, content);
   if (!point) return;
   setPoint(state, point);
+  if (note === null) return;
+  if (typeof note === 'object') journeyLine(ctx, 'turned', { place: placeLink(state, content, note.turn) });
+  else if ('place' in point) journeyLine(ctx, 'stayed', { place: placeLink(state, content, point.place) });
+  else journeyLine(ctx, 'stopped', { from: placeLink(state, content, point.road.a), to: placeLink(state, content, point.road.b) });
 }
 
-/** The journey has come to its end: the hero is in the place it led to. */
-export function arrive(state: GameState, id: string): void {
-  setPoint(state, { place: id });
+/** The journey has come to its end: the hero is in the place it led to, and the journal says so (S.9). */
+export function arrive(ctx: Ctx, id: string): void {
+  setPoint(ctx.state, { place: id });
+  journeyLine(ctx, 'arrive', { place: placeLink(ctx.state, ctx.content, id) });
 }
 
 function setPoint(state: GameState, point: Point): void {

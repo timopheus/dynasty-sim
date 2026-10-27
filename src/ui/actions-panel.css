@@ -42,3 +42,24 @@
 .action.grey .reason {
   font-style: italic;
 }
+
+.directions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.directions > summary {
+  cursor: pointer;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--line);
+}
+
+.directions[open] > summary {
+  margin-bottom: 0.3rem;
+}
+
+.directions > .action {
+  margin-left: 0.8rem;
+  width: calc(100% - 0.8rem);
+}

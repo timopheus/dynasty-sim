@@ -67,3 +67,27 @@
 .where p {
   margin: 0.25rem 0;
 }
+
+.place-head {
+  margin: 0 0 0.4rem;
+}
+
+.place-name {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: var(--fg);
+}
+
+.place-status {
+  color: var(--muted);
+}
+
+.place-line {
+  margin: 0 0 0.6rem;
+  font-style: italic;
+}
+
+.place-roads {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
