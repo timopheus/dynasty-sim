@@ -95,6 +95,16 @@ function place(target: HTMLElement, tip: HTMLElement): void {
   const w = tip.offsetWidth;
   const h = tip.offsetHeight;
   const margin = 8;
+  // a tip of a choice stands beside its window, so it never covers the choices below (D-463)
+  const frame = target.closest('.modal');
+  if (frame) {
+    const m = frame.getBoundingClientRect();
+    const right = m.right + margin;
+    const x = right + w <= window.innerWidth - margin ? right : Math.max(margin, m.left - w - margin);
+    tip.style.left = `${Math.round(x)}px`;
+    tip.style.top = `${Math.round(Math.min(Math.max(margin, r.top), window.innerHeight - h - margin))}px`;
+    return;
+  }
   let left = Math.min(Math.max(margin, r.left), window.innerWidth - w - margin);
   let top = r.bottom + 6;
   if (top + h > window.innerHeight - margin) top = Math.max(margin, r.top - h - 6);

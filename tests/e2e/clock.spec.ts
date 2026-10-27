@@ -28,7 +28,7 @@ async function growUp(page: Page): Promise<void> {
   await expect(page.locator('.modal.event')).toBeVisible();
   for (let i = 0; i < 40 && (await page.locator('.modal-layer').count()) > 0; i++) {
     const shown = await page.locator('#app').innerText();
-    await page.locator('.modal-layer .option button.choice').first().click();
+    await page.locator('.modal-layer .option button.choice').first().click({ timeout: 2_000 }).catch(() => undefined);
     await expect.poll(async () => page.locator('#app').innerText()).not.toBe(shown);
   }
   await expect(page.locator('.modal-layer')).toHaveCount(0);

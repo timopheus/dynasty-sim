@@ -94,6 +94,7 @@ events:
         result: "{name} married {match} by arrangement, with a dowry of 80 crowns."
         mood: neutral
       - text: Haggle for a larger dowry
+        acts: [hoard]
         when: { can_marry: match }
         check: { stat: stewardship, difficulty: 8 }
         success:

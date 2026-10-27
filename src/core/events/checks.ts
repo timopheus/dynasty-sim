@@ -26,7 +26,7 @@ export const CHANCE_BANDS = [
 export type ChanceBand = (typeof CHANCE_BANDS)[number]['id'];
 
 /** Who is checked: the main participant, or the role `of` (D-193). */
-function checkedPerson(ctx: Ctx, check: CheckDef, protagonist: Character, scope: Scope): Character {
+export function checkedPerson(ctx: Ctx, check: CheckDef, protagonist: Character, scope: Scope): Character {
   if (check.of === undefined) return protagonist;
   const id = scope[check.of];
   const person = id === undefined ? null : findCharacter(ctx.state, id);
