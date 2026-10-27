@@ -33,6 +33,8 @@ if src_in:
     b = Image.open(src_in).convert('RGBA'); flat = Image.new('RGB', b.size, (0x34, 0x2b, 0x23)); flat.paste(b, mask=b.split()[3])
     buf = io.BytesIO(); flat.save(buf, 'PNG')
     body.update(input_image=base64.b64encode(buf.getvalue()).decode(), strength=strength)
+if os.environ.get('RD_REFS'):  # RD Pro only: comma-separated reference pictures (style and content), up to 9
+    body['reference_images'] = [base64.b64encode(open(f, 'rb').read()).decode() for f in os.environ['RD_REFS'].split(',')]
 if os.environ.get('RD_BYPASS') == '1':
     body['bypass_prompt_expansion'] = True  # the prompt goes as written, without the service's own enrichment
 cost = call(API, {**body, 'check_cost': True})
@@ -52,7 +54,7 @@ for _ in range(100):
         open(out.replace('.png', f'-extra{i}.png'), 'wb').write(base64.b64decode(extra))
     print('images returned:', len(imgs), 'keys:', [k for k in res if 'image' in k or 'pre' in k])
     log = {'when': datetime.datetime.now(datetime.UTC).isoformat(timespec='seconds'), 'file': out, 'style': style, 'seed': seed,
-           'remove_bg': True, 'size': f'{w}x{h}', 'pre_palette': pre, 'input': src_in, 'strength': strength if src_in else None, 'cost': res.get('balance_cost'), 'balance': res.get('remaining_balance'), 'task': task['task_id'], 'prompt': prompt}
+           'remove_bg': True, 'size': f'{w}x{h}', 'pre_palette': pre, 'input': src_in, 'strength': strength if src_in else None, 'cost': res.get('balance_cost'), 'balance': res.get('remaining_balance'), 'task': task['task_id'], 'refs': os.environ.get('RD_REFS'), 'prompt': prompt}
     open(os.environ.get('RD_LOG', 'docs/samples/portrait/reference/provenance.jsonl'), 'a').write(json.dumps(log, ensure_ascii=False) + '\n')
     print(log)
     break
