@@ -48,6 +48,11 @@ export const SHELVES: { category: ActionCategory; title: string }[] = [
 
 export const WILL_ID = 'will';
 
+/** Reasons side by side: the full stops of the texts are cut so that they do not read ".;". */
+function joinReasons(reasons: string[]): string {
+  return reasons.map((r) => r.replace(/\.$/, '')).join('; ');
+}
+
 function daysText(a: ActionDef): string {
   const { min, max } = a.duration;
   return min === max ? `${min} days` : `${min}–${max} days`;
@@ -108,7 +113,7 @@ export function actionShelves(ctx: Ctx, will: WillForm | null): Panel {
     const turnable = action.target !== undefined;
     const reasons = held ? [] : action.id === underWay && !turnable ? ['you are doing this now'] : unmet;
     const grey = held !== '' || reasons.length > 0;
-    const button: ActionButton = { id: action.id, name: action.name, info: [...(turnable ? [] : [daysText(action)]), ...moneyInfo(ctx, action)], grey, reason: reasons.join('; ') };
+    const button: ActionButton = { id: action.id, name: action.name, info: [...(turnable ? [] : [daysText(action)]), ...moneyInfo(ctx, action)], grey, reason: joinReasons(reasons) };
     if (turnable && !grey) button.destinations = destinations(ctx);
     shelf?.buttons.push(button);
   }
@@ -116,7 +121,7 @@ export function actionShelves(ctx: Ctx, will: WillForm | null): Panel {
     const atNotary = underWay !== null && underWay === ctx.content.succession?.willAction;
     const reasons = held ? [] : atNotary ? ['you are at the notary now'] : will.reasons;
     shelves.find((s) => s.category === 'family')?.buttons.push({
-      id: WILL_ID, name: 'Draw up a will', info: ['at the notary', `${will.cost} crowns`], grey: held !== '' || reasons.length > 0, reason: reasons.join('; '),
+      id: WILL_ID, name: 'Draw up a will', info: ['at the notary', `${will.cost} crowns`], grey: held !== '' || reasons.length > 0, reason: joinReasons(reasons),
     });
   }
   // one line above the panel instead of the same reason on every button

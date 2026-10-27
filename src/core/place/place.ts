@@ -279,12 +279,19 @@ function journeyLine(ctx: Ctx, kind: 'arrive' | 'stopped' | 'stayed' | 'turned',
  */
 export function stopJourney(ctx: Ctx, note: JourneyNote = null): void {
   const { state, content } = ctx;
-  if (!state.activeAction || state.activeAction.target === null) return;
+  const active = state.activeAction;
+  if (!active || active.target === null) return;
   const point = currentPoint(state, content);
   if (!point) return;
+  // he has not left yet: the journey was set out on and broken off the same day, and there is nothing to tell
+  const left = !('place' in point && point.place === state.place.here);
   setPoint(state, point);
   if (note === null) return;
-  if (typeof note === 'object') journeyLine(ctx, 'turned', { place: placeLink(state, content, note.turn) });
+  if ('place' in point && point.place === active.target) {
+    // the health phase runs before the arrival: a hero who falls ill on the last day has come all the same
+    journeyLine(ctx, 'arrive', { place: placeLink(state, content, point.place) });
+  } else if (!left) return;
+  else if (typeof note === 'object') journeyLine(ctx, 'turned', { place: placeLink(state, content, note.turn) });
   else if ('place' in point) journeyLine(ctx, 'stayed', { place: placeLink(state, content, point.place) });
   else journeyLine(ctx, 'stopped', { from: placeLink(state, content, point.road.a), to: placeLink(state, content, point.road.b) });
 }

@@ -35,18 +35,20 @@ function directionsNode(b: ActionButton, onStart: ActionsProps['onStart']): HTML
   details.addEventListener('toggle', () => { travelOpen = details.open; });
   const underWay = (b.destinations ?? []).some((d) => d.going);
   details.append(el('summary', { className: 'action-name', tabIndex: 0 }, b.name, ...(b.info.length > 0 ? [el('span', { className: 'note' }, ` ${b.info.join(' · ')}`)] : [])));
+  const list = el('div', { className: 'directions-list' });
   for (const d of b.destinations ?? []) {
     const label = underWay ? `Turn toward ${d.name}` : `Travel to ${d.name}`;
     const node = el('button', { className: d.going ? 'action grey' : 'action', type: 'button' },
       el('span', { className: 'action-name' }, label),
       el('span', { className: d.going ? 'reason' : 'note' }, d.going ? 'you are going there' : daysWord(d.days)));
     if (d.going) node.setAttribute('aria-disabled', 'true');
-    else node.onclick = () => onStart(b.id, d.to);
+    else node.onclick = () => { travelOpen = false; onStart(b.id, d.to); };
     node.setAttribute('data-action', b.id);
     node.setAttribute('data-target', d.to);
     node.setAttribute('data-focus', `action-${b.id}-${d.to}`);
-    details.append(node);
+    list.append(node);
   }
+  details.append(list);
   return details;
 }
 

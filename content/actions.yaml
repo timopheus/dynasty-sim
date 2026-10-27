@@ -73,7 +73,7 @@ actions:
     name: Draw up a will at the notary
     category: family
     duration: { min: 3, max: 7 }
-    when: { will_command: true, fit: true, at_place_kind: [city, town] }
+    when: { will_command: true, fit: true }
     effects: { will_signed: true }
     text: "{name} came back from the notary with a will drawn up and sealed."
 

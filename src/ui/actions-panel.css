@@ -59,7 +59,16 @@
   margin-bottom: 0.3rem;
 }
 
-.directions > .action {
+.directions-list > .action {
   margin-left: 0.8rem;
   width: calc(100% - 0.8rem);
+}
+
+/* fifteen places: the list scrolls inside the menu, so the shelves below it stay in reach */
+.directions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 16rem;
+  overflow-y: auto;
 }

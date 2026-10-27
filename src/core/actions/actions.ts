@@ -135,8 +135,8 @@ export const actionEndPhase: DayPhase = {
     const moneyBefore = player.money;
     applyEffects(ctx, player, action.effects, scope);
     const text = goal && action.until?.text !== undefined ? action.until.text : action.text;
-    // the line of a journey is the arrival in the journal (S.9): the place is named there
-    if (!action.idle && action.target === undefined && text !== null) log(ctx, { subject: player, kind: 'action', level: 'chronicle', template: text, money: player.money - moneyBefore });
+    // the line of a journey is the arrival in the journal (S.9): the place is named there; a goal reached on the way has its own line
+    if (!action.idle && (action.target === undefined || goal) && text !== null) log(ctx, { subject: player, kind: 'action', level: 'chronicle', template: text, money: player.money - moneyBefore });
     // a journey whose goal is reached on the way ends there, not back where it set out (D-462)
     if (goal) stopJourney(ctx);
     state.activeAction = null;

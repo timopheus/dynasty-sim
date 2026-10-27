@@ -12,7 +12,7 @@ import './where.css';
 export function wherePanel(view: WhereView): HTMLElement {
   const table = el('dl', { className: 'place-table' }, ...view.table.map((r) => el('div', {}, el('dt', {}, r.label), el('dd', {}, r.value))));
   const title = view.place ? el('a', { href: hrefOf(view.place.id), className: 'place-name' }, view.title) : el('span', { className: 'place-name' }, view.title);
-  const roads: (Node | string)[] = view.goTo.flatMap((g, i) => [i > 0 ? ' · ' : '', el('a', { href: hrefOf(g.id), className: 'place-link' }, g.name), ` ${daysWord(g.days)}`]);
+  const roads: (Node | string)[] = view.goTo.flatMap((g, i) => [i > 0 ? ' · ' : '', el('a', { href: hrefOf(g.id), className: 'place-link' }, g.name), ` ${daysWord(g.days).replace(' ', '\u00a0')}`]);
   const block = el('section', { className: 'where', ariaLabel: 'Where you are' },
     el('div', { className: 'place-picture', ariaHidden: 'true' }, 'picture of the place'),
     el('div', { className: 'where-text' },

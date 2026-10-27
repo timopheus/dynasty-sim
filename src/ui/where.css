@@ -93,7 +93,9 @@
 
 .place-line {
   margin: 0 0 0.4rem;
+  font-size: 0.9rem;
   font-style: italic;
+  color: var(--muted);
 }
 
 .place-roads {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { actionAvailability } from '../src/core/actions/actions';
+import { actionAvailability, interruptAction } from '../src/core/actions/actions';
 import { partsText } from '../src/core/text/text';
 import { allChronicle } from '../src/core/archive/archive';
 import { apply, newGame } from '../src/core/game';
@@ -159,6 +159,26 @@ describe('the road in the journal (S.9, D-462)', () => {
     apply(state, quiet, { type: 'wait', days: 9 });
     apply(state, quiet, { type: 'start', actionId: 'rest' });
     expect(journal(state).at(-1)).toMatch(/ broke off the journey in Teigach\.$/);
+  });
+});
+
+describe('the road in the journal: edge days (S.9)', () => {
+  it('says the hero came when a break-off falls on the day of arrival, and nothing when he never left', () => {
+    const { state, ctx } = game();
+    apply(state, quiet, { type: 'start', actionId: 'travel', target: id(state, 'rohrbach') });
+    apply(state, quiet, { type: 'wait', days: 1 });
+    state.day += 1;
+    interruptAction(ctx);
+    expect(position(state, quiet)).toEqual({ at: id(state, 'rohrbach'), journey: null });
+    expect(journal(state).at(-1)).toMatch(/ came to Rohrbach\.$/);
+
+    // set out and change of mind on the same day: no line of a journey, he is where he was
+    const other = game();
+    apply(other.state, quiet, { type: 'start', actionId: 'travel', target: id(other.state, 'rohrbach') });
+    apply(other.state, quiet, { type: 'start', actionId: 'rest' });
+    apply(other.state, quiet, { type: 'start', actionId: 'travel', target: id(other.state, 'teigach') });
+    apply(other.state, quiet, { type: 'start', actionId: 'travel', target: id(other.state, 'rohrbach') });
+    expect(journal(other.state)).toEqual([]);
   });
 });
 
