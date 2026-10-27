@@ -143,6 +143,12 @@ const TIP_WAIT = 1_000;
  */
 async function tabToTip(page: Page, match: RegExp = /./, max = 60): Promise<void> {
   for (let i = 0; i < max; i++) {
+    // an event of the running clock may put a window over the screen: its choices have tips of their own (D-463), and
+    // the tabs of the test are for the screen under it, so the window is answered first
+    if ((await page.locator('.modal-layer').count()) > 0) {
+      await page.locator('.modal-layer .option button.choice').first().click({ timeout: 2_000 }).catch(() => undefined);
+      continue;
+    }
     await page.keyboard.press('Tab');
     // a string: the tests are typed without the DOM
     const tip = await page.evaluate<string | null>(`(() => {
