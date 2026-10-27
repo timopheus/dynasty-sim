@@ -134,6 +134,8 @@ export const actionEndPhase: DayPhase = {
     applyEffects(ctx, player, action.effects, scope);
     const text = goal && action.until?.text !== undefined ? action.until.text : action.text;
     if (!action.idle && text !== null) log(ctx, { subject: player, kind: 'action', level: 'chronicle', template: text, money: player.money - moneyBefore });
+    // a journey whose goal is reached on the way ends there, not back where it set out (D-462)
+    if (goal) stopJourney(ctx);
     state.activeAction = null;
     state.interruptRequest = null;
     state.status = 'awaiting_action';

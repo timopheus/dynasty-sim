@@ -57,13 +57,15 @@ export const checkActions: CrossCheck = ({ actions, time }) => {
       const untilProblem = checkTemplate(untilText);
       if (untilProblem) errors.push({ file, path: `actions[${index}].until.text`, message: untilProblem });
     }
-    const { when } = item;
-    if (!when) continue;
-    when.season?.forEach((id, i) => {
-      if (!seasonIds.has(id)) errors.push({ file, path: `actions[${index}].when.season[${i}]`, message: `unknown season "${id}"` });
-    });
-    if (when.age_min !== undefined && when.age_max !== undefined && when.age_min > when.age_max) {
-      errors.push({ file, path: `actions[${index}].when.age_max`, message: 'age_max must be >= age_min' });
+    // the goal is a `when` too (D-466): a typo in it would keep the goal from ever holding
+    for (const [key, when] of [['when', item.when], ['until.when', item.until?.when]] as const) {
+      if (!when) continue;
+      when.season?.forEach((id, i) => {
+        if (!seasonIds.has(id)) errors.push({ file, path: `actions[${index}].${key}.season[${i}]`, message: `unknown season "${id}"` });
+      });
+      if (when.age_min !== undefined && when.age_max !== undefined && when.age_min > when.age_max) {
+        errors.push({ file, path: `actions[${index}].${key}.age_max`, message: 'age_max must be >= age_min' });
+      }
     }
   }
   return errors;

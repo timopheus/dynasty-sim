@@ -40,7 +40,6 @@ actions:
     category: road
     duration: { min: 60, max: 120 }
     when: { age_min: 16, season: [autumn, winter], money_min: 20 }
-    until: { when: { season: [spring, summer] } }
     effects: { money: -20, heal: all }
     text: "{name} wintered in quiet quarters and recovered strength."
 
