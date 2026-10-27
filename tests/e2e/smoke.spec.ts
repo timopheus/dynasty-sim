@@ -329,14 +329,17 @@ test('a choice that says it all has no tip; a window that opens under a still po
   await page.goto('/?seed=7');
   const tip = page.locator('#tooltip');
   const first = page.locator('.modal-layer .option button.choice').first();
-  // the first scene: its choices are words only, nothing to explain (D-465)
-  await first.hover();
+  // a choice that is words only has nothing to explain (D-465); one with a chance or a price does (D-463): look for a plain one
+  const plain = page.locator('.modal-layer .option button.choice:not([data-tip])').first();
+  for (let i = 0; i < 12 && (await plain.count()) === 0; i++) await first.click({ timeout: 2_000 }).catch(() => undefined);
+  await plain.hover();
   await page.waitForTimeout(TIP_WAIT);
   await expect(tip).toBeHidden();
   await expect(page.locator('.tip-timer')).toHaveCount(0);
   // a scene with a name in its words: the name explains itself after the delay
-  for (let i = 0; i < 6 && (await page.locator('.modal-layer [data-tip]').count()) === 0; i++) await first.click();
-  await page.locator('.modal-layer [data-tip]').first().hover();
+  const named = page.locator('.modal-layer .event-text [data-tip]');
+  for (let i = 0; i < 8 && (await named.count()) === 0; i++) await first.click({ timeout: 2_000 }).catch(() => undefined);
+  await named.first().hover();
   await expect(tip).toBeVisible();
   const title = await page.locator('.modal-title').textContent();
   await first.click();
