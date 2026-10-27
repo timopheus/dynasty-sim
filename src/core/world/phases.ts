@@ -71,7 +71,7 @@ function applyMove(ctx: Ctx, population: PopulationContent, move: MoveDef): void
  */
 function yearlyTick(ctx: Ctx, population: PopulationContent): void {
   const { state } = ctx;
-  const inCircle = new Set(state.circle);
+  let inCircle = new Set(state.circle);
   // Deaths do not add characters, and nobody far is the hero, so the list is stable while we walk it.
   for (const c of state.characters) {
     // The hero and the household are simulated day by day (D-313, D-354): no yearly roll of the far for them.
@@ -86,6 +86,8 @@ function yearlyTick(ctx: Ctx, population: PopulationContent): void {
     }
     if (chancePer(state.rng, annualDeathChance(age), ANNUAL_DEATH_DENOMINATOR)) {
       kill(ctx, c, mortalityRow(ctx.content, age).cause);
+      // a death may bring someone far into the circle (the next guardian of a young hero, D-314): they must not join twice
+      inCircle = new Set(state.circle);
       continue;
     }
     if (chancePer(state.rng, population.far.occupationChangePer10k, 10000)) {
