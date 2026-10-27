@@ -33,6 +33,7 @@ import { pushNews, visibleNews, type NewsItem } from './news-model';
 import { findAction } from '../core/actions/actions';
 import type { Effects } from '../core/effects';
 import { moneyOf } from '../core/events/outcomes';
+import { workCrowns } from '../core/economy/economy';
 import { partNodes, usePersonTips } from './page';
 import { personMenu, personTip, type MenuItem } from './people-model';
 import { newSidebarState, sidebarPanel, type SidebarState } from './sidebar';
@@ -114,6 +115,8 @@ interface Session {
   menuOpen: boolean;
   /** The menu of a person (D-448) is open where `anchor` says. */
   personMenu: MenuAnchor | null;
+  /** The action under way and the day it began, for the word at its end (D-464). */
+  actionStart: { id: string; day: number } | null;
   /** The short words by the clock (D-464): what came of a light choice, and the end of an action. */
   news: NewsItem[];
   /** What the last choice came to, shown before the next event (D-440), and whose lines they are. */
@@ -215,6 +218,9 @@ function render(session: Session): void {
   if (session.sidebar.whole !== pageId) session.sidebar.whole = null;
   usePersonTips((id) => personTip(ctx, id));
 
+  const underway = state.activeAction?.actionId ?? null;
+  if (underway === null) session.actionStart = null;
+  else if (session.actionStart?.id !== underway) session.actionStart = { id: underway, day: state.day };
   session.keymap = [];
   session.dismiss = null;
   const form = willForm(state, content);
@@ -391,7 +397,9 @@ function actionEndNews(session: Session, before: string | null, seen: number): v
   const hero = state.playerId;
   const done = allChronicle(state).slice(seen).find((e) => e.kind === 'action' && e.subject === hero);
   if (!done) return;
-  const money = moneyOf({ state, content }, getPlayer(state), action.effects as Effects | undefined);
+  // what the action brought: its own effects and the income of its occupation for the days it lasted (S.7)
+  const days = session.actionStart?.id === before ? state.day - session.actionStart.day : 0;
+  const money = moneyOf({ state, content }, getPlayer(state), action.effects as Effects | undefined) + Math.floor((workCrowns(content, before) * days) / 30);
   addNews(session, `${action.name}: ${money ? `${money > 0 ? '+' : '−'}${Math.abs(money)} crowns` : 'done'}`);
 }
 
@@ -595,7 +603,7 @@ async function boot(content: Content, version: string): Promise<void> {
     state, content, contentVersion: version, store,
     journal: loadedGame?.journal ?? newJournal(state.seed, version), saved: loadedGame?.saved ?? { game: '', chunks: 0, commands: 0 }, busy: false, lostJournal: null,
     notice: null, saveProblem: null, sidebar: newSidebarState(!window.matchMedia(NARROW).matches || entityIdFromHash(location.hash) !== null),
-    menuOpen: false, personMenu: null, news: [], outcome: null, question: null, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false, dismiss: null,
+    menuOpen: false, personMenu: null, actionStart: null, news: [], outcome: null, question: null, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false, dismiss: null,
     // a game continued after a reload starts paused: the player picks it up himself
     windowOpen: false, clock: newClock(loadedGame !== null), timer: null,
   };

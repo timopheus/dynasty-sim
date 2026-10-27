@@ -33,11 +33,12 @@ test('a variant has signs, a tip with its outcomes, and a light choice leaves a 
   await page.goto('/?seed=7');
   await growUp(page);
   let seen = 0;
-  for (let round = 0; round < 30 && seen < 1; round++) {
+  let news = 0;
+  for (let round = 0; round < 40 && (seen < 1 || news < 1); round++) {
     await untilWindow(page);
     const buttons = page.locator('.modal.event .option button.choice');
     // nothing on a button but its name and signs: no numbers, no percent
-    for (const text of await buttons.allTextContents()) expect(text).not.toMatch(/\d+%|days/);
+    for (const text of await buttons.locator('.choice-head').allTextContents()) expect(text).not.toMatch(/\d+%|days/);
     const signed = page.locator('.modal.event .option button.choice [data-tip], .modal.event .option button[data-tip]');
     if ((await signed.count()) > 0) {
       seen += 1;
@@ -51,9 +52,13 @@ test('a variant has signs, a tip with its outcomes, and a light choice leaves a 
       await page.screenshot({ path: 'out/e2e/choice-outcome-1440.png' });
       await page.locator('.modal.outcome button.choice').first().click();
     } else if ((await page.locator('.news-item').count()) > 0) {
+      // a light choice: no window, a word in the news, and the clock is not held by it
+      news += 1;
+      await expect(page.locator('.modal-layer')).toHaveCount(0);
       await page.screenshot({ path: 'out/e2e/choice-news-1440.png' });
     }
   }
   expect(seen, 'some window offered a variant with something to explain').toBeGreaterThan(0);
+  expect(news, 'a light choice left a word in the news').toBeGreaterThan(0);
   expect(problems).toEqual([]);
 });

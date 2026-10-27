@@ -4,7 +4,7 @@ import { renderTemplate } from '../text/render';
 import { partsText, type TextPart } from '../text/text';
 import { chanceBand, checkChance, type ChanceBand } from './checks';
 import { moodOf, scenePath } from './content';
-import { currentScene, optionState, pendingEventDef } from './events';
+import { currentScene, optionState, pendingEventDef, visibleOptionCount } from './events';
 import { isRealChoice, natureLines, natureOf } from '../mind/nature';
 import { optionOutcomes, type OptionOutcomes } from './outcomes';
 
@@ -68,7 +68,7 @@ export function eventView(ctx: Ctx): EventView | null {
       if (s.hidden) return;
       const percent = option.check ? checkChance(ctx, option.check, protagonist, pending.scope) : null;
       const outcomes = optionOutcomes(ctx, option, protagonist, pending.scope);
-      const report = isRealChoice(scene.options?.length ?? 0) ? natureOf(content, protagonist, option.acts) : null;
+      const report = isRealChoice(visibleOptionCount(ctx, scene.options ?? [], protagonist, pending.scope)) ? natureOf(content, protagonist, option.acts) : null;
       options.push({
         index,
         text: render(option.text, `${path}options.${index}.text`),

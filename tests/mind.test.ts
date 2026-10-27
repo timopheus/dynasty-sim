@@ -126,3 +126,28 @@ describe('happiness through the months (D-457)', () => {
     expect([10, 50, 90, null].map((h) => happinessMood(content, h))).toEqual(['loss', 'neutral', 'joy', null]);
   });
 });
+
+describe('a lone visible answer is no deed (D-460)', () => {
+  it('costs nothing when the other option is hidden by an empty role', () => {
+    const base = realContent();
+    const event: EventDef = {
+      id: 'hidden_other', weight: 1, text: 'No choice in truth.',
+      roles: { ghost: { pick: 'circle', where: { money_min: 999999 }, optional: true } },
+      options: [
+        { text: 'Run', acts: ['flee'], result: '{name} ran.' },
+        { text: 'Ask the ghost', check: { stat: 'diplomacy', of: 'ghost', difficulty: 5 }, success: { result: '{name} asked.' }, failure: { result: '{name} failed.' } },
+      ],
+    } as EventDef;
+    const content = { ...base, events: [...base.events, event] };
+    const state = newGame(5, content);
+    const hero = getPlayer(state);
+    hero.traits = ['brave'];
+    startEvent({ state, content }, event, hero);
+    const view = eventView({ state, content })!;
+    expect(view.options).toHaveLength(1);
+    expect(view.options[0]!.icons.trait).toBe(false);
+    const before = state.mind.happiness;
+    apply(state, content, { type: 'choose', option: 0 });
+    expect(state.mind.happiness).toBe(before);
+  });
+});

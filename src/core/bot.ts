@@ -88,7 +88,9 @@ export function botCommand(state: GameState, content: Content, rng: RngState, ch
       // A notice has one answer; its outcome is the same whatever is pressed.
       if (!def) return 0;
       // the price of the deed in happiness, by the hero's nature, and what the option gives or takes itself (D-457)
-      const happiness = (o.nature?.delta ?? 0) + (def.effects?.happiness ?? 0);
+      const win = o.chance?.percent ?? 100;
+      const happiness = (o.nature?.delta ?? 0) + (def.effects?.happiness ?? 0)
+        + Math.floor(((def.success?.effects?.happiness ?? 0) * win + (def.failure?.effects?.happiness ?? 0) * (100 - win)) / 100);
       return scoreOf(character, optionFeatures(content, event, def, o.chance?.percent ?? null)) + happiness * HAPPINESS_WEIGHT[character];
     });
     return { type: 'choose', option: best.index };

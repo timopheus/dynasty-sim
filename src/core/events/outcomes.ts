@@ -1,7 +1,6 @@
 import { findTrait } from '../character/holding';
 import { fullName } from '../character/character';
 import { STAT_IDS } from '../character/stat-ids';
-import { conditionReport } from '../condition-keys';
 import { conditionDef } from '../health/course';
 import { findCharacter } from '../helpers';
 import { priceParts } from '../economy/content';
@@ -84,7 +83,7 @@ export function effectWords(ctx: Ctx, effects: Effects | undefined, c: Character
   if (effects.wound !== undefined) out.push(`Wound: ${conditionDef(content, effects.wound).name}`);
   if (effects.disease !== undefined) out.push(`Disease: ${conditionDef(content, effects.disease).name}`);
   if (effects.heal !== undefined) out.push('You mend');
-  if (effects.kill !== undefined) out.push('You may die');
+  if (effects.kill !== undefined) out.push('You die');
   if (effects.happiness) out.push(`Happiness ${signed(effects.happiness)}`);
   if (effects.house_renown) out.push(effects.house_renown > 0 ? 'Your house gains renown' : 'Your house loses renown');
   if (effects.marry !== undefined) out.push('Marriage');
@@ -134,6 +133,14 @@ function splitCost(ctx: Ctx, hero: Character, outcomes: OutcomeDef[]): { cost: s
   const sums = outcomes.map((o) => moneyOf(ctx, hero, o.effects as Effects | undefined));
   const first = sums[0];
   if (first === undefined || first >= 0 || !sums.every((s) => s === first)) return { cost: [], paid: 0 };
+  // a price by level keeps its level in words (D-326, D-441)
+  const refs = outcomes.map((o) => JSON.stringify((o.effects as Effects | undefined)?.pay));
+  const pay = (outcomes[0]?.effects as Effects | undefined)?.pay;
+  const sameLevel = pay !== undefined && refs.every((r) => r === refs[0]) && outcomes.every((o) => (o.effects as Effects | undefined)?.money === undefined);
+  if (pay !== undefined && sameLevel) {
+    const { level, times } = priceParts(pay);
+    return { cost: [`Costs ${LEVEL_WORDS[level] ?? level}${times > 1 ? ` ×${times}` : ''} (${-first} crowns)`], paid: first };
+  }
   return { cost: [`Costs ${-first} crowns`], paid: first };
 }
 
@@ -156,16 +163,17 @@ export function optionOutcomes(ctx: Ctx, option: OptionDef, hero: Character, sco
   if (!check) return { cost, result: words(outcomes[0] ?? {}), success: [], failure: [], chanceBasis: [] };
   const stat = checkStat(ctx, check, hero, scope);
   const target = checkTarget(ctx, check, scope);
-  const bonus = (check.bonus ?? []).filter((b) => conditionReport(ctx, hero, b.when, scope).met).reduce((sum, b) => sum + b.add, 0);
+  // `checkStat` has the bonuses in it already; the person checked may be a role (`of`), who is named
+  const who = check.of === undefined ? null : nameOf(ctx, scope, check.of);
   const opponent = check.against ? nameOf(ctx, scope, check.against.role) : null;
   const against = check.against ? `${opponent ?? 'the other'}'s ${cap(check.against.stat)} (${target})` : `${target}`;
-  const basis = `${cap(check.stat)} (${stat}) against ${against}`;
+  const basis = `${who ? `${who}'s ` : ''}${cap(check.stat)} (${stat}) against ${against}`;
   return {
     cost,
     result: [],
     success: words(outcomes[0] ?? {}),
     failure: words(outcomes[1] ?? {}),
-    chanceBasis: [bonus !== 0 ? `${basis}, with ${signed(bonus)} from your circumstances` : basis],
+    chanceBasis: [basis],
   };
 }
 

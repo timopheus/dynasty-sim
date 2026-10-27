@@ -263,6 +263,11 @@ export function optionState(ctx: Ctx, option: OptionDef, protagonist: Character,
   return { available: report.met, hidden: report.hidden, reasons: report.reasons };
 }
 
+/** How many options of a scene the player can see (hidden ones, D-043, are not counted): a lone answer is no deed (D-460). */
+export function visibleOptionCount(ctx: Ctx, options: readonly OptionDef[], protagonist: Character, scope: Scope): number {
+  return options.filter((o) => !optionState(ctx, o, protagonist, scope).hidden).length;
+}
+
 /**
  * Answers the pending event: option `index` of the scene shown, or 0 ("Continue") on a notice. Throws on an option
  * that is unknown or not available. A check rolls from the world's stream; the outcome may lead to the next page.
@@ -289,7 +294,7 @@ export function chooseOption(ctx: Ctx, index: number): void {
   if (!Number.isInteger(index) || !option) throw new Error(`Event "${event.id}" has no option ${index}`);
   if (!optionState(ctx, option, protagonist, pending.scope).available) throw new Error(`Option ${index} of event "${event.id}" is not available`);
   // The deed of the choice costs or gives happiness by the hero's nature, whatever comes of it (D-457, D-460, D-467)
-  if (isRealChoice(scene.options.length)) {
+  if (isRealChoice(visibleOptionCount(ctx, scene.options, protagonist, pending.scope))) {
     const nature = natureOf(content, protagonist, option.acts);
     if (nature) shiftHappiness(state, content, nature.delta);
   }

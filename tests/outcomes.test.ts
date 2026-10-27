@@ -34,7 +34,7 @@ describe('option outcomes (S.10, D-463)', () => {
   it('a priced option shows a coin and its price, a risk the author wrote', () => {
     const o = view()!.options[0]!;
     expect(o.icons).toEqual({ check: false, cost: true, trait: false });
-    expect(o.outcomes.cost[0]).toMatch(/^Costs \d+ crowns$/);
+    expect(o.outcomes.cost[0]).toMatch(/^Costs a small sum \(\d+ crowns\)$/);
     expect(o.outcomes.result).toEqual([]);
     expect(o.risk).toBe('The man may talk.');
   });
@@ -47,6 +47,25 @@ describe('option outcomes (S.10, D-463)', () => {
     expect(o.outcomes.success).toEqual(expect.arrayContaining(['Become Brave', '+1 Martial']));
     expect(o.outcomes.success.some((w) => w.startsWith('Gain a trifle'))).toBe(true);
     expect(o.outcomes.failure).toEqual(expect.arrayContaining(['Wound: Light wound', 'Lose 3 crowns']));
+  });
+
+  it('does not count a bonus twice in what the chance is made of', () => {
+    const base = realContent();
+    const event: EventDef = {
+      id: 'bonus_test', weight: 1, text: 'A fight.',
+      options: [
+        { text: 'Fight', check: { stat: 'prowess', difficulty: 6, bonus: [{ when: { money_min: 0 }, add: 3 }] }, success: { result: '{name} won.' }, failure: { result: '{name} lost.' } },
+        { text: 'Leave', result: '{name} left.' },
+      ],
+    };
+    const content = { ...base, events: [...base.events, event] };
+    const state = newGame(3, content);
+    const hero = getPlayer(state);
+    startEvent({ state, content }, event, hero);
+    const v = eventView({ state, content })!.options[0]!;
+    const stat = Number(/\((\d+)\)/.exec(v.outcomes.chanceBasis[0] ?? '')?.[1]);
+    expect(v.outcomes.chanceBasis[0]).not.toMatch(/with/);
+    expect(v.chance!.percent).toBe(Math.min(95, Math.max(5, 50 + 5 * (stat - 6))));
   });
 
   it('an option with nothing to say has no icons and no words', () => {

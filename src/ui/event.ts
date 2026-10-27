@@ -110,7 +110,7 @@ export function chanceText(chance: NonNullable<OptionRow['chance']>): string {
  * stay as text for a screen reader only, who has no hover (D-444).
  */
 export function optionControl(o: OptionRow, position: number): Control {
-  return control('option', position, plainLabel(o.label), o.chance ? `(${chanceText(o.chance)})` : '', o.grey, o.reason);
+  return control('option', position, plainLabel(o.label), o.chance && !o.grey ? `(${chanceText(o.chance)})` : '', o.grey, o.reason);
 }
 
 /** Text for the live region when a new event page appears: the event, then its options with keys. */
