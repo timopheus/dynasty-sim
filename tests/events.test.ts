@@ -212,7 +212,7 @@ describe('pages', () => {
     fire(ctx, 'two_pages', hero);
     play(ctx.state, content, { type: 'choose', option: 0 });
     play(ctx.state, content, { type: 'choose', option: 1 });
-    expect(eventView(ctx)!.options).toEqual([{ index: 0, text: null, available: true, reasons: [], chance: null }]);
+    expect(eventView(ctx)!.options).toMatchObject([{ index: 0, text: null, available: true, reasons: [], chance: null, icons: { check: false, cost: false, trait: false }, nature: null, risk: null }]);
     expect(() => play(ctx.state, content, { type: 'choose', option: 1 })).toThrow();
     play(ctx.state, content, { type: 'choose', option: 0 });
     expect(entryText(lastLine(ctx))).toMatch(/met .* left early\.$/);
