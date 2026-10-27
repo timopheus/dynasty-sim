@@ -132,9 +132,9 @@ describe('outcome of a choice', () => {
     fireEvent(ctx, findEvent(eventContent, 'choices'), hero);
     const before = beforeChoice(ctx, 0);
     apply(ctx.state, eventContent, { type: 'choose', option: 0 });
-    // "Take it" is light and has no aftermath: the line it wrote is the word
+    // "Take it" is light and has no aftermath: what you did is the word
     expect(outcomeOf(ctx, before)).toBeNull();
-    expect(newsOf(ctx, before)).toMatch(/took it/);
+    expect(newsOf(ctx, before)).toBe('Take it');
     ctx.state.aftermath = { seq: 0, parts: ['You feel lighter.'] };
     expect(newsOf(ctx, before)).toMatch(/^You feel lighter\./);
   });

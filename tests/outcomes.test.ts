@@ -43,13 +43,13 @@ describe('option outcomes (S.10, D-463)', () => {
     const o = view()!.options[1]!;
     expect(o.icons.check).toBe(true);
     expect(o.chance).not.toBeNull();
-    expect(o.outcomes.chanceBasis[0]).toMatch(/^Prowess \(\d+\) against 6/);
+    expect(o.outcomes.chanceBasis[0]).toMatch(/^Prowess \(\d+\) against difficulty 6/);
     expect(o.outcomes.success).toEqual(expect.arrayContaining(['Become Brave', '+1 Martial']));
     expect(o.outcomes.success.some((w) => w.startsWith('Gain a trifle'))).toBe(true);
     expect(o.outcomes.failure).toEqual(expect.arrayContaining(['Wound: Light wound', 'Lose 3 crowns']));
   });
 
-  it('does not count a bonus twice in what the chance is made of', () => {
+  it('names the bonus inside the stat shown, not on top of it', () => {
     const base = realContent();
     const event: EventDef = {
       id: 'bonus_test', weight: 1, text: 'A fight.',
@@ -63,8 +63,8 @@ describe('option outcomes (S.10, D-463)', () => {
     const hero = getPlayer(state);
     startEvent({ state, content }, event, hero);
     const v = eventView({ state, content })!.options[0]!;
-    const stat = Number(/\((\d+)\)/.exec(v.outcomes.chanceBasis[0] ?? '')?.[1]);
-    expect(v.outcomes.chanceBasis[0]).not.toMatch(/with/);
+    const stat = Number(/\((\d+)/.exec(v.outcomes.chanceBasis[0] ?? '')?.[1]);
+    expect(v.outcomes.chanceBasis[0]).toMatch(/of which \+3 from circumstances/);
     expect(v.chance!.percent).toBe(Math.min(95, Math.max(5, 50 + 5 * (stat - 6))));
   });
 

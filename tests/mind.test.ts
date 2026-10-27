@@ -122,7 +122,7 @@ describe('happiness through the months (D-457)', () => {
 
   it('is worded by bands and the portrait takes a mood from it', () => {
     const { content } = setup([]);
-    expect([5, 30, 50, 70, 95].map((h) => happinessWord(content, h))).toEqual(['despairing', 'unhappy', 'content', 'happy', 'joyful']);
+    expect([5, 30, 50, 70, 95].map((h) => happinessWord(content, h))).toEqual(['Despairing', 'Unhappy', 'Content', 'Happy', 'Joyful']);
     expect([10, 50, 90, null].map((h) => happinessMood(content, h))).toEqual(['loss', 'neutral', 'joy', null]);
   });
 });

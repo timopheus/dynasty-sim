@@ -8,6 +8,6 @@ export function newsPanel(rows: readonly NewsRow[]): HTMLElement {
     const item = el('li', { className: `news-item age-${r.age}` }, r.text);
     return item;
   }));
-  const panel = el('div', { className: rows.length ? 'news' : 'news empty', role: 'log', ariaLabel: 'News' }, list);
+  const panel = el('div', { className: rows.length ? 'news' : 'news empty', role: 'log', ariaLabel: 'News' }, el('h2', { className: 'news-title' }, 'News'), list);
   return panel;
 }

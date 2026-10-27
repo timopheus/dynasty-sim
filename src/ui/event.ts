@@ -63,19 +63,23 @@ export function eventScreen(ctx: Ctx): EventScreen | null {
  * line per fact; null when the button says it all.
  */
 export function optionTip(o: OptionView): Tip | null {
-  const lines: string[] = [];
+  const groups: string[][] = [];
+  const list = (head: string, items: string[]): string[] => (items.length === 1 ? [`${head} ${items[0]}`] : [head, ...items.map((i) => ` • ${i}`)]);
   if (o.available) {
-    if (o.chance) lines.push(`Chance: ${CHANCE_WORDS[o.chance.band]}, ${o.chance.percent}%`, ...o.outcomes.chanceBasis);
-    if (o.outcomes.success.length) lines.push(`If it works: ${o.outcomes.success.join('; ')}`);
-    if (o.outcomes.failure.length) lines.push(`If it fails: ${o.outcomes.failure.join('; ')}`);
-    if (o.outcomes.result.length) lines.push(`Result: ${o.outcomes.result.join('; ')}`);
-    if (o.outcomes.cost.length) lines.push(o.outcomes.cost.join('; '));
-    if (o.risk) lines.push(`Risk: ${o.risk}`);
-    if (o.nature) lines.push(...o.nature.lines);
+    if (o.chance) groups.push([`Chance: ${CHANCE_WORDS[o.chance.band]}, ${o.chance.percent}%`, ...o.outcomes.chanceBasis]);
+    const outcomes: string[] = [];
+    if (o.outcomes.success.length) outcomes.push(...list('If it works:', o.outcomes.success));
+    if (o.outcomes.failure.length) outcomes.push(...list('If it fails:', o.outcomes.failure));
+    if (o.outcomes.result.length) outcomes.push(...list('Result:', o.outcomes.result));
+    if (outcomes.length) groups.push(outcomes);
+    const price: string[] = [...o.outcomes.cost];
+    if (o.risk) price.push(`Risk: ${o.risk}`);
+    if (price.length) groups.push(price);
+    if (o.nature) groups.push(o.nature.lines);
   } else if (o.reasons.length) {
-    lines.push(`Unavailable: ${o.reasons.join('; ')}`);
+    groups.push([`Unavailable: ${o.reasons.join('; ')}`]);
   }
-  return lines.length ? { text: lines.join('\n') } : null;
+  return groups.length ? { text: groups.map((g) => g.join('\n')).join('\n\n') } : null;
 }
 
 export interface ActionRow {

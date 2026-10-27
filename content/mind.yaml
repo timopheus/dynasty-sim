@@ -6,12 +6,12 @@ mind:
   happiness: { min: 0, max: 100, base: 50 }
   # Words of the happiness, shown with the number in brackets (D-434).
   words:
-    - { upTo: 10, word: despairing }
-    - { upTo: 25, word: miserable }
-    - { upTo: 40, word: unhappy }
-    - { upTo: 60, word: content }
-    - { upTo: 80, word: happy }
-    - { upTo: 100, word: joyful }
+    - { upTo: 10, word: Despairing }
+    - { upTo: 25, word: Miserable }
+    - { upTo: 40, word: Unhappy }
+    - { upTo: 60, word: Content }
+    - { upTo: 80, word: Happy }
+    - { upTo: 100, word: Joyful }
   # The face of the portrait when no event on the screen sets a mood.
   moods:
     - { upTo: 25, mood: loss }

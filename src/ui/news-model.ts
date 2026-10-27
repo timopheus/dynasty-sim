@@ -9,7 +9,7 @@ export interface NewsItem {
 }
 
 /** At most this many words show at once. */
-export const NEWS_MAX = 4;
+export const NEWS_MAX = 3;
 /** A word goes after this many days of the game. */
 export const NEWS_DAYS = 45;
 

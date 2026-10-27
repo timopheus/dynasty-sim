@@ -9,7 +9,8 @@ import { findReason } from '../relations/opinions';
 import { findRelationKind } from '../relations/links';
 import type { Effects } from '../effects';
 import type { Character, Ctx, Scope } from '../state';
-import { checkStat, checkTarget } from './checks';
+import { stats } from '../character/stats';
+import { checkedPerson, checkStat, checkTarget } from './checks';
 import type { OptionDef, OutcomeDef } from './content';
 
 /**
@@ -125,7 +126,8 @@ function roleWords(ctx: Ctx, outcome: OutcomeDef, scope: Scope): string[] {
 function outcomeWords(ctx: Ctx, outcome: OutcomeDef, hero: Character, scope: Scope): string[] {
   const out = [...effectWords(ctx, outcome.effects as Effects | undefined, hero, scope), ...roleWords(ctx, outcome, scope)];
   if (outcome.next !== undefined) out.push('The matter goes on');
-  return out;
+  // the same line from two effects (two opinions of one person) is said once
+  return [...new Set(out)];
 }
 
 /** The price: money paid in every outcome of the option, at the same sum. */
@@ -165,9 +167,12 @@ export function optionOutcomes(ctx: Ctx, option: OptionDef, hero: Character, sco
   const target = checkTarget(ctx, check, scope);
   // `checkStat` has the bonuses in it already; the person checked may be a role (`of`), who is named
   const who = check.of === undefined ? null : nameOf(ctx, scope, check.of);
+  // the bonuses are tested on the person checked, as `checkStat` does; they are part of the number shown
+  const person = checkedPerson(ctx, check, hero, scope);
+  const bonus = stat - stats(ctx, person)[check.stat];
   const opponent = check.against ? nameOf(ctx, scope, check.against.role) : null;
-  const against = check.against ? `${opponent ?? 'the other'}'s ${cap(check.against.stat)} (${target})` : `${target}`;
-  const basis = `${who ? `${who}'s ` : ''}${cap(check.stat)} (${stat}) against ${against}`;
+  const against = check.against ? `${opponent ?? 'the other'}'s ${cap(check.against.stat)} (${target})` : `difficulty ${target}`;
+  const basis = `${who ? `${who}'s ` : ''}${cap(check.stat)} (${stat}${bonus !== 0 ? `, of which ${signed(bonus)} from circumstances` : ''}) against ${against}`;
   return {
     cost,
     result: [],

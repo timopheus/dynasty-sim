@@ -9,9 +9,9 @@ import type { Ctx } from '../core/state';
 import type { Content } from '../core/content/schema';
 import { happinessWord } from '../core/mind/mind';
 import { fullName } from '../core/character/character';
+import { eventView } from '../core/events/view';
 import { currentScene, pendingEventDef } from '../core/events/events';
 import { ownOutcome } from '../core/events/content';
-import { entryText } from '../core/chronicle/log';
 import { partsText, type TextPart } from '../core/text/text';
 import { withNumber } from './access';
 
@@ -57,6 +57,8 @@ export interface BeforeChoice {
    * wound earns the window of the outcome; any other choice leaves a word in the news.
    */
   weighty: boolean;
+  /** The words of the option chosen, plain: the news says what you did when the author wrote no `aftermath`. */
+  choice: string;
   /** A scene of the backstory: the hero's growing up has no clock and no news. */
   backstory: boolean;
   /** The event page shown: a following page of the same event is no outcome yet. */
@@ -91,6 +93,12 @@ function isWeighty(ctx: Ctx, option: number): boolean {
   return outcomes.some((o) => o?.chronicle === true);
 }
 
+/** The label of the option, without links; empty for a notice. */
+function chosenLabel(ctx: Ctx, option: number): string {
+  const text = eventView(ctx)?.options.find((o) => o.index === option)?.text;
+  return text ? partsText(text) : '';
+}
+
 /** Taken just before the `choose` command for option `option` is applied. */
 export function beforeChoice(ctx: Ctx, option: number): BeforeChoice {
   const p = ctx.state.pendingEvent;
@@ -98,6 +106,7 @@ export function beforeChoice(ctx: Ctx, option: number): BeforeChoice {
     hero: heroSnapshot(ctx),
     seen: allChronicle(ctx.state).length,
     weighty: isWeighty(ctx, option),
+    choice: chosenLabel(ctx, option),
     backstory: ctx.state.backstory.running,
     page: p ? { eventId: p.eventId, seq: p.seq } : null,
   };
@@ -170,8 +179,7 @@ export function newsOf(ctx: Ctx, before: BeforeChoice): string | null {
   const after = heroSnapshot(ctx);
   const changes = state.day === day && state.playerId === before.hero.id ? diff(ctx.content, before.hero, after) : [];
   const aftermath = aftermathOf(ctx);
-  const line = allChronicle(state).slice(before.seen).find((e) => e.day === day && e.subject === before.hero.id);
-  const story = aftermath ? partsText(aftermath) : line ? entryText(line) : '';
+  const story = aftermath ? partsText(aftermath) : before.choice;
   const words = [story, ...changes.map((c) => changeWords(c, before.hero, after))].filter(Boolean);
   return words.length ? words.join(' · ') : null;
 }

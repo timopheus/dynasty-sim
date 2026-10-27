@@ -8,8 +8,8 @@ describe('news by the clock (D-464)', () => {
     let list: NewsItem[] = [];
     for (let i = 0; i < NEWS_MAX + 2; i += 1) list = pushNews(list, { day: i, text: `word ${i}` });
     const rows = visibleNews(list, NEWS_MAX + 1);
-    expect(rows.map((r) => r.text)).toEqual(['word 5', 'word 4', 'word 3', 'word 2']);
-    expect(rows.map((r) => r.age)).toEqual([0, 1, 2, 3]);
+    expect(rows.map((r) => r.text)).toEqual(['word 4', 'word 3', 'word 2']);
+    expect(rows.map((r) => r.age)).toEqual([0, 1, 2]);
   });
 
   it('lets an old word go', () => {
@@ -32,13 +32,21 @@ describe('tooltip of a variant (D-463, D-465)', () => {
   it('gives the chance with its basis, both outcomes, the price and the risk, one fact a line', () => {
     const tip = optionTip(view({
       chance: { percent: 55, band: 'even' },
-      outcomes: { cost: ['Costs 5 crowns'], result: [], success: ['Become Brave'], failure: ['Wound: Light wound'], chanceBasis: ['Prowess (9) against 6'] },
+      outcomes: { cost: ['Costs 5 crowns'], result: [], success: ['Become Brave'], failure: ['Wound: Light wound'], chanceBasis: ['Prowess (9) against difficulty 6'] },
       risk: 'The bailiff may remember.',
       nature: { lines: ['Against your nature (Brave): happiness −10'], delta: -10 },
     }));
-    expect(tip?.text.split('\n')).toEqual([
-      'Chance: a toss-up, 55%', 'Prowess (9) against 6', 'If it works: Become Brave', 'If it fails: Wound: Light wound', 'Costs 5 crowns', 'Risk: The bailiff may remember.', 'Against your nature (Brave): happiness −10',
+    expect(tip?.text.split('\n\n')).toEqual([
+      'Chance: a toss-up, 55%\nProwess (9) against difficulty 6',
+      'If it works: Become Brave\nIf it fails: Wound: Light wound',
+      'Costs 5 crowns\nRisk: The bailiff may remember.',
+      'Against your nature (Brave): happiness −10',
     ]);
+  });
+
+  it('lists several facts one to a line', () => {
+    const tip = optionTip(view({ outcomes: { cost: [], result: [], success: ['Become Brave', '+1 Martial'], failure: [], chanceBasis: [] } }));
+    expect(tip?.text).toBe('If it works:\n • Become Brave\n • +1 Martial');
   });
 
   it('shows a grey variant its reason and no chance', () => {
