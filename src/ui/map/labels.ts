@@ -1,6 +1,6 @@
-import type { MapModel, Point } from './data';
+import type { MapModel, Point } from './model';
 import { INK } from './palette';
-import type { MapOverlay } from './render';
+import type { MapOverlay } from './types';
 
 /** The face of the names on the map: the serif of the interface (style.css). */
 const SERIF = "Georgia, 'Times New Roman', serif";

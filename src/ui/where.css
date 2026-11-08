@@ -102,3 +102,16 @@
   color: var(--muted);
   font-size: 0.9rem;
 }
+
+/* the map is the background of the whole screen (M.1): the centre lets the pointer through to it, the block takes it */
+.center-slots {
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.center-slots > .where {
+  pointer-events: auto;
+  border: 2px solid var(--fg);
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}

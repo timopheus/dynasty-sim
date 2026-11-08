@@ -129,3 +129,36 @@
   font-size: 0.8rem;
   font-style: italic;
 }
+
+/* on the game screen the map lies under every panel, filling the window (CK3) */
+.game > .map-view {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: auto;
+  height: auto;
+}
+
+/* grid items take a z-index without being positioned: the panels stay above the map, fixed ones stay fixed */
+.game > :not(.map-view) {
+  z-index: 1;
+}
+
+.game > .center {
+  pointer-events: none;
+}
+
+.game > .center > * {
+  pointer-events: auto;
+}
+
+.game > .center > .center-slots {
+  pointer-events: none;
+}
+
+/* the map modes sit at the right edge of the free map, under the header (the bottom belongs to the place block and the clock) */
+.game > .map-view .map-modes {
+  right: calc(19rem + 0.75rem);
+  top: 5.6rem;
+  bottom: auto;
+}

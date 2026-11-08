@@ -5,8 +5,8 @@ import type { WhereView } from './where-model';
 import './where.css';
 
 /**
- * The centre of the screen (D-438, D-443): the map takes all the room the block "where I am" leaves; the block sits at the
- * bottom with the picture of the place (a placeholder until the art bible), the table of the place and what is going on.
+ * The block "where I am" at the bottom of the centre (D-438, D-443), over the map that fills the screen (M.1, D-469): the
+ * picture of the place (a placeholder until the art bible), the table of the place and what is going on.
  * The name of the place and the places the hero can go to are links to their pages in the side panel (S.9).
  */
 export function wherePanel(view: WhereView): HTMLElement {
@@ -22,5 +22,5 @@ export function wherePanel(view: WhereView): HTMLElement {
       el('h2', { tabIndex: -1, id: 'where-heading' }, view.heading),
       ...(view.line ? [el('p', {}, view.line)] : []),
       ...(roads.length > 0 ? [el('p', { className: 'place-roads' }, 'Nearby: ', ...roads)] : [])));
-  return el('div', { className: 'center-slots' }, el('div', { className: 'map-slot' }, 'World map — later'), block);
+  return el('div', { className: 'center-slots' }, block);
 }

@@ -1,31 +1,12 @@
 import type { Camera, Viewport } from './camera';
 import { visibleBox } from './camera';
-import type { MapModel, Point } from './data';
-import { addLine, chain, smooth, type Segment } from './geometry';
+import type { MapModel, Point } from './model';
+import type { MapMode, MapOverlay } from './types';
+export { MAP_MODES } from './types';
+export type { MapMode, MapOverlay, PlaceMark } from './types';
+import { chain, smooth, type Segment } from './geometry';
 import { drawLabels } from './labels';
 import { INK, PAPER, TERRAIN_COLOR, mix, shade } from './palette';
-
-/** Map modes, as the buttons by the clock (CK3): realms, terrain, cultures, faiths, and our roads and places. */
-export const MAP_MODES = ['realms', 'terrain', 'cultures', 'faiths', 'roads'] as const;
-export type MapMode = (typeof MAP_MODES)[number];
-
-/** A place of the game on the map. */
-export interface PlaceMark {
-  id: string;
-  name: string;
-  at: Point;
-  kind: string;
-}
-
-/** What the game puts over the map each frame. */
-export interface MapOverlay {
-  places: PlaceMark[];
-  roads: { a: Point; b: Point; days: number }[];
-  hero: Point | null;
-  journey: { from: Point; to: Point } | null;
-  selected: string | null;
-  hovered: string | null;
-}
 
 type Box = { x0: number; y0: number; x1: number; y1: number };
 
@@ -61,6 +42,12 @@ function curvePath(points: Point[], path = new Path2D()): Path2D {
   const last = points[points.length - 1] as Point;
   path.lineTo(last.x, last.y);
   return path;
+}
+
+/** Adds a line to a path; a closed line is closed. */
+function addLine(path: Path2D, points: Point[], closed: boolean): void {
+  points.forEach((p, k) => (k === 0 ? path.moveTo(p.x, p.y) : path.lineTo(p.x, p.y)));
+  if (closed) path.closePath();
 }
 
 /** Segments joined into smooth lines, all in one path. */
@@ -384,7 +371,7 @@ export class MapRenderer {
     ctx.save();
     ctx.clip(this.landPath, 'evenodd');
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.filter = `blur(${Math.round(1.1 * scale)}px)`;
+    ctx.filter = `blur(${Math.round(1.8 * scale)}px)`;
     ctx.drawImage(raw, 0, 0);
     ctx.filter = 'none';
     ctx.restore();

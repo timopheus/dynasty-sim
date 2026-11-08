@@ -1,5 +1,3 @@
-import raw from './region-map.json?raw';
-
 /** The map of the screen as `tools/map-build.ts` writes it (M.1): coordinates in tenths of a map unit. */
 export interface MapFile {
   v: number;
@@ -154,12 +152,4 @@ export function cellAt(model: MapModel, p: Point): number {
   if (gx < 0 || gy < 0 || gx >= cols || gy >= rows) return -1;
   for (const c of cells[gy * cols + gx] ?? []) if (inside(p, model.polygons[c] as Point[])) return c;
   return -1;
-}
-
-let model: MapModel | null = null;
-
-/** The map of the region, parsed on first use. */
-export function regionModel(): MapModel {
-  if (!model) model = buildModel(JSON.parse(raw) as MapFile);
-  return model;
 }

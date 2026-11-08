@@ -1,26 +1,14 @@
 import { el } from '../dom';
-import { withTip } from '../tooltip';
+import { hideTip, withTip } from '../tooltip';
 import type { Camera, Viewport } from './camera';
 import { clamp, panBy, toMap, toScreen, zoomAt, zoomBounds } from './camera';
-import type { Point } from './data';
-import { regionModel } from './data';
-import type { MapMode, MapOverlay, PlaceMark } from './render';
-import { MAP_MODES, MapRenderer } from './render';
+import type { Point } from './model';
+import { regionModel } from './region';
+import { MapRenderer } from './render';
+import type { MapMode, MapOverlay, MapProps } from './types';
+import { MAP_MODES } from './types';
+export type { MapProps } from './types';
 import './map.css';
-
-/** What the game tells the map on each draw of the screen (M.1). */
-export interface MapProps {
-  places: PlaceMark[];
-  roads: MapOverlay['roads'];
-  hero: Point | null;
-  journey: MapOverlay['journey'];
-  /** One line about a place for its tip: kind, realm, days away. */
-  describe: (id: string) => string;
-  /** The travel the hero can make to a place now: the label of the item, or the reason it is grey. */
-  travel: (id: string) => { label: string; enabled: boolean; reason: string };
-  onOpen: (id: string) => void;
-  onTravel: (id: string) => void;
-}
 
 const MODE_NAMES: Record<MapMode, { label: string; tip: string }> = {
   realms: { label: 'Realms', tip: 'The realms of the land and their borders.' },
@@ -38,11 +26,21 @@ const PAN_KEYS: Record<string, [number, number]> = {
   ArrowDown: [0, -1], s: [0, -1], S: [0, -1],
 };
 
+/** How much of the window the panels cover on each side, in pixels: the map centres things in the rest. */
+export interface Insets {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
 export interface MapView {
   element: HTMLElement;
   update: (props: MapProps) => void;
-  /** Centres the map on the hero (Home). */
-  focusHero: () => void;
+  /** The panels over the map (CK3: the map is under everything); the first update with the hero centres on him. */
+  setInsets: (insets: Insets) => void;
+  /** Centres the map on the hero (Home); `jump` without the easing. */
+  focusHero: (jump?: boolean) => void;
   readonly camera: Camera;
   readonly mode: MapMode;
 }
@@ -76,6 +74,9 @@ export function mapView(): MapView {
   let frame = 0;
   let selected: string | null = null;
   let hovered: string | null = null;
+  let insets: Insets = { left: 0, right: 0, top: 0, bottom: 0 };
+  let lastSign = '';
+  let metHero = false;
   const held = new Set<string>();
 
   const modeButtons = MAP_MODES.map((m) => {
@@ -157,11 +158,12 @@ export function mapView(): MapView {
         b.dataset.place = p.id;
         b.setAttribute('data-focus', `map-place-${p.id}`);
         b.onclick = (e) => { e.stopPropagation(); selected = p.id; closeMenu(); props?.onOpen(p.id); request(); };
-        b.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openMenu(p.id, e.clientX, e.clientY); };
+        b.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); hideTip(); openMenu(p.id, e.clientX, e.clientY); };
         b.onkeydown = (e) => {
           if (e.key === 'ContextMenu' || (e.key === 'F10' && e.shiftKey)) {
             e.preventDefault();
             const r = b.getBoundingClientRect();
+            hideTip();
             openMenu(p.id, r.right, r.bottom);
           }
         };
@@ -286,20 +288,41 @@ export function mapView(): MapView {
       cam = clamp(cam, view, model.width, model.height);
       target = clamp(target, view, model.width, model.height);
     }
+    if (!metHero && props?.hero) {
+      metHero = true;
+      api.focusHero(true);
+    }
     request();
   }).observe(root);
 
   const api: MapView = {
     element: root,
     update(next) {
+      // the screen is drawn every day of the clock; the map is drawn again only when what it shows has changed
+      const sign = JSON.stringify([next.places.map((p) => p.id), next.hero, next.journey, next.places.map((p) => next.describe(p.id))]);
+      const changed = sign !== lastSign;
+      lastSign = sign;
       props = next;
+      if (!changed) return;
       buildHotspots();
+      // CK3 opens on the player's character: the first time the hero is known, the map goes to him
+      if (!metHero && next.hero && fitted) {
+        metHero = true;
+        api.focusHero(true);
+      }
       request();
     },
-    focusHero() {
+    setInsets(next) {
+      insets = next;
+    },
+    focusHero(jump = false) {
       const hero = props?.hero;
       if (!hero) return;
-      target = clamp({ x: hero.x, y: hero.y, zoom: Math.max(target.zoom, 2.4) }, view, model.width, model.height);
+      const zoom = Math.max(target.zoom, 2.2);
+      // the hero goes to the middle of the free part of the screen, not under a panel
+      const dx = (insets.left - insets.right) / 2 / zoom, dy = (insets.top - insets.bottom) / 2 / zoom;
+      target = clamp({ x: hero.x - dx, y: hero.y - dy, zoom }, view, model.width, model.height);
+      if (jump) cam = target;
       request();
     },
     get camera() { return cam; },

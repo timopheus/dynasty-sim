@@ -1,4 +1,4 @@
-import type { Point } from './data';
+import type { Point } from './model';
 
 /** A side of a cell as a segment, by the keys of its two corners. */
 export interface Segment {
@@ -67,10 +67,4 @@ export function smooth(points: Point[], closed: boolean, rounds = 2): Point[] {
     pts = out;
   }
   return pts;
-}
-
-/** Adds a line to a path; a closed line is closed. */
-export function addLine(path: Path2D, points: Point[], closed: boolean): void {
-  points.forEach((p, k) => (k === 0 ? path.moveTo(p.x, p.y) : path.lineTo(p.x, p.y)));
-  if (closed) path.closePath();
 }

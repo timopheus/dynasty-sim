@@ -171,7 +171,7 @@ for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]
     const problems = watch(page);
     await page.setViewportSize(size);
     await page.goto('/?seed=7');
-    for (const selector of ['.topbar', '.sidebar.open', '.center .where', '.center .map-slot', '.avatar', '.clock .date', '.actions-panel']) {
+    for (const selector of ['.topbar', '.sidebar.open', '.center .where', '.map-view .map-canvas', '.avatar', '.clock .date', '.actions-panel']) {
       await expect(page.locator(selector).first(), selector).toBeVisible();
     }
     // the time player (S.8): during the backstory the clock stands, the speeds are there
@@ -198,18 +198,19 @@ for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]
     const first = page.locator('.actions-panel button.action').first();
     await expect(first).toContainText(/\d+(–\d+)? days/);
     for (const name of await page.locator('.actions-panel .action-name').allTextContents()) expect(name).not.toMatch(/^\d/);
-    // no empty space in the centre: the map fills what the block "where I am" leaves, the block ends at the bottom
+    // the map fills the whole window under the panels, as in CK3 (M.1, D-469); the block "where I am" ends at the bottom
     const box = (selector: string) => page.locator(selector).first().evaluate((n) => {
       const r = n.getBoundingClientRect();
       return { top: r.top, bottom: r.bottom, left: r.left, right: r.right };
     });
     const centre = await box('.center');
-    const map = await box('.map-slot');
+    const map = await box('.map-view');
     const where = await box('.where');
-    expect(map.top - centre.top, 'map starts at the top of the centre').toBeLessThan(40);
-    expect(where.top - map.bottom, 'no gap between the map and the block').toBeLessThan(24);
+    expect(map.left, 'the map starts at the left edge').toBeLessThan(2);
+    expect(map.top, 'the map starts at the top edge').toBeLessThan(2);
+    expect(size.width - map.right, 'the map ends at the right edge').toBeLessThan(2);
+    expect(size.height - map.bottom, 'the map ends at the bottom edge').toBeLessThan(2);
     expect(centre.bottom - where.bottom, 'the block ends at the bottom of the centre').toBeLessThan(24);
-    expect(map.bottom - map.top, 'the map is the largest thing of the centre').toBeGreaterThan(where.bottom - where.top);
     // the table of the place has no row with a dash (D-447)
     await expect(page.locator('.place-table')).not.toContainText(/—|–\s*$/);
     await page.screenshot({ path: `out/e2e/layout-${String(size.width)}.png` });

@@ -42,6 +42,9 @@ import { dropOldSave, loadGame, openIndexedDb, saveGame, seedFromSearch, startCh
 import { installTooltips, syncTip } from './tooltip';
 import { whereView } from './where-model';
 import { wherePanel } from './where';
+import { mapProps } from './map/game';
+import { regionModel } from './map/region';
+import { mapView } from './map/view';
 import { willForm } from './will';
 import './style.css';
 
@@ -287,7 +290,20 @@ function render(session: Session): void {
     devNotes: DEV ? [`Seed ${state.seed}`] : [],
   });
 
+  // the map fills the screen behind the panels, as in CK3 (M.1, D-469); made once, it keeps its view across the draws
+  const map = mapView();
+  map.update(mapProps(ctx, regionModel(), {
+    open: (id) => {
+      session.sidebar.open = true;
+      if (location.hash === hrefOf(id)) render(session);
+      else location.hash = hrefOf(id);
+    },
+    travel: (actionId, id) => { void act(session, { type: 'start', actionId, target: id }); },
+  }));
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  map.setInsets({ left: session.sidebar.open ? 22 * rem : 0, right: 19 * rem, top: 5 * rem, bottom: 14 * rem });
   const game = el('div', { className: session.sidebar.open ? 'game' : 'game side-closed' },
+    map.element,
     ...sidebar,
     header,
     el('main', { className: 'center', id: 'center' }, ...notices, centre),

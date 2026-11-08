@@ -1,4 +1,4 @@
-import type { Point } from './data';
+import type { Point } from './model';
 
 /**
  * The view of the map (M.1): the point of the map at the centre of the screen and the zoom, in screen pixels per map
