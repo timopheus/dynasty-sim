@@ -641,17 +641,40 @@
 | ID | Задача | Модуль | Статус |
 |---|---|---|---|
 | CK.0 | **[ведущая]** Карта систем CK3 и план этапа (architect): что берём, как переносим, порядок — `docs/research/2026-11-08-ck3-plan.md` | `docs/research/`, `docs/ROADMAP.md` | ✅ план; задачи CK.1–CK.19 — в плане, решения D-470…D-473 |
-| M.1 | Карта мира в стиле CK3: данные из Azgaar, отрисовка, режимы карты, управление, места S.9 на карте, путь по клику | `tools/map-build.ts`, `src/ui/map/` (новый), монтирование в центр после мержа S.9, `tests/` и `tests/e2e/` своих файлов | 🟡 |
+| M.1 | Карта мира в стиле CK3: данные из Azgaar, отрисовка, режимы карты, управление, места S.9 на карте, путь по клику | `tools/map-build.ts`, `src/ui/map/` (новый), монтирование в центр после мержа S.9, `tests/` и `tests/e2e/` своих файлов | 🟡 готово локально, правки ревью внесены; ждёт доступа к GitHub и мержа S.9 |
+| CK.1 | **[ведущая]** Справочники CK3 по файлам игры 1.11 и сверка плана — `docs/research/ck3/` (README — поправки по задачам) | `docs/research/ck3/` | ✅ справочники; решения D-474. Каталоги в R (поручения, взаимодействия, лестница, фокусы, опасность дорог) — при CK.2a, по справочникам |
+| CK.2a | **[ведущая]** Точки подключения: поручения и взаимодействия (`contracts`, `interact`, `favor`, фаза доски, `HOT_REFS`) | сборочные | ⏳ после CK.1 |
+| CK.3 | Поручения: ядро и 6 видов (Opus) | `src/core/contracts/`, `content/contracts.yaml`, `content/events/contracts.yaml`, `tests/`, `bot.ts` | ⏳ CK.2a, S.9 |
+| CK.4 | Доска поручений: экран | `src/ui/contracts*.ts`, булавки через `src/ui/map/` | ⏳ CK.3, M.1 |
+| CK.5 | Поручения: 14 видов, многошаговые; включает S.12 | `content/events/contracts-*.yaml` | ⏳ CK.3 |
+| CK.6 | Дорога по CK3: опасность, опции пути, планировщик, события пути | `src/core/place/`, `content/places.yaml`, `content/events/road.yaml`, `src/ui/travel.ts`, `src/ui/map/route.ts` | ⏳ S.9, M.1 |
+| CK.7 | Взаимодействия и услуги (Opus); шантаж — девятое | `src/core/interactions/`, `src/core/relations/`, `content/interactions.yaml`, `src/ui/interact.ts` | ⏳ CK.2a |
+| CK.2b | **[ведущая]** Точки подключения: хозяйство, фокус, решения | сборочные | ⏳ CK.1, R.3 |
+| CK.8 | Домашнее хозяйство (угол → дом → лавка → усадьба) | `src/core/household/`, `content/household.yaml`, `src/ui/household.ts` | ⏳ CK.2b |
+| CK.9 | Образ жизни без перков (бывшая L.3, D-470) | `src/core/focus/`, `content/focus.yaml`, `src/ui/lifestyle.ts` | ⏳ CK.2b |
+| CK.10 | Положение: лестница, известность уровнями, окно решений | `src/core/house/`, `src/core/character/`, `content/decisions.yaml`, `src/ui/decisions.ts` | ⏳ CK.8, CK.7 |
+| CK.11 | Окно персонажа по CK3 и вложенные подсказки (включает S.16) | `src/ui/page.ts`, `src/ui/tooltip.ts`, `src/core/pages/` | ⏳ CK.7 |
+| CK.12 | Оповещения и аутлайнер | `src/ui/alerts.ts`, `src/ui/outliner.ts`, `src/core/pages/alerts.ts` | ⏳ CK.3, CK.8 |
+| CK.13 | Окно рода по CK3 | `src/ui/house.ts`, `src/core/house/page.ts` | ⏳ CK.10 |
+| CK.2c | **[ведущая]** Точки подключения: свита, замыслы, мероприятия, истории-циклы (`cycle`), флаги и счётчики | сборочные | ⏳ |
+| CK.14 | Свита (Opus) | `src/core/followers/`, `content/followers.yaml` | ⏳ CK.2c, CK.8 |
+| CK.15 | Личные замыслы по системе 1.11 (Opus) | `src/core/schemes/`, `content/schemes.yaml` | ⏳ CK.2c, CK.7 |
+| CK.16 | Мероприятия: угощение, охота, паломничество, ярмарка, свадьба (Opus) | `src/core/activities/`, `content/activities.yaml` | ⏳ CK.2c |
+| CK.17 | Жизнь мелочей, пакет 1 (content-writer) | `content/events/life-*.yaml` | ⏳ CK.7 |
+| CK.18 | Жизнь мелочей, пакет 2: дом и город | `content/events/home-*.yaml` | ⏳ CK.8 |
+| CK.19 | Эпидемии в городах | `src/core/health/`, `src/core/world/`, `content/health.yaml` | ⏳ CK.6, R.6 |
+
+Критерии готовности, опора и целевая история каждой задачи, порядок по неделям (5′–15′) и что сливается и сдвигается — в плане `docs/research/2026-11-08-ck3-plan.md` §5, поправки по файлам игры — в `docs/research/ck3/README.md`. Последний критерий этапа: в браузере «поручение → путь → итог → взаимодействие → шаг хозяйства → смена фокуса → смерть → наследник с домом»; `npm run gates` зелёный.
 
 ## Этап L. Жизнь от рождения до похорон (D-454…D-459)
-Сразу после среза, после плейтеста сборки среза; идеи I-031, I-034, I-026. Недели 6–8. Последний критерий этапа: в браузере «рождение → 3 решения детства → выход в мир в 16 → … → смерть → сцена → наследник»; `npm run gates` зелёный.
+**Порядок изменён D-471:** L.5 и L.6 (смерть сценой) — неделя 10′, сразу за окном смерти R.1; детство L.1, L.2, L.4 — после ядра CK, недели 14′–15′; L.3 стала CK.9. Идеи I-031, I-034, I-026. Последний критерий этапа: в браузере «рождение → 3 решения детства → выход в мир в 16 → … → смерть → сцена → наследник»; `npm run gates` зелёный.
 
 | ID | Задача | Модуль | Зависит |
 |---|---|---|---|
 | L.0 | **[ведущая]** Точки подключения: рождение как новая игра (возраст 0, день 0 — рождение), часть `focus`, команда и условие `focus`, хук сцены смерти; `SAVE_VERSION`+1 | сборочные | срез |
 | L.1 | Детство в живом времени: рождение; детские действия с 0 лет; выход в мир в 16; основатель не умирает до 5 лет, если Тим примет D-455; у ребёнка нет расходов по статусу (если R.3 ещё не сделала) | `src/core/backstory/`, `content/actions.yaml`, `src/core/economy/`, `src/core/health/` (смертность основателя) | L.0 |
 | L.2 | Темп детства (год ≈ минута на ×1) и «до следующего решения» (D-456) | `src/ui/clock*.ts` | L.0 |
-| L.3 | Фокус жизни (D-458): взрослые и дети, наполнение `live`, `lessons` → фокус, бот | `src/core/focus/` (новый), `content/focus.yaml`, `content/actions.yaml` (`lessons`), `src/core/narrator/`, `src/core/bot.ts`, `src/ui/actions-panel.ts` | L.1 |
+| L.3 | → **CK.9** (D-471). Фокус жизни (D-458): взрослые и дети, наполнение `live`, `lessons` → фокус, бот | `src/core/focus/` (новый), `content/focus.yaml`, `content/actions.yaml` (`lessons`), `src/core/narrator/`, `src/core/bot.ts`, `src/ui/actions-panel.ts` | L.1 |
 | L.4 | Контент детства: сцены предыстории → события с окнами возраста, 8–10 новых, выход в мир | `content/events/childhood.yaml`, удаление `content/backstory/scenes.yaml` | L.1, L.3 |
 | L.5 | Смерть главы как сцена (D-459): моменты, похороны, эпитафия, итог главы, груз наследника, выбор похорон | `src/core/summary/` (запрос), `content/succession.yaml`, `src/ui/farewell.ts` | L.0 |
 | L.6 | Контент похорон и эпитафий по стайлгайду | `content/events/funeral.yaml` | L.5 |
