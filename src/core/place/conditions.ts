@@ -23,6 +23,18 @@ interface PlaceWhen {
   at_place?: string[] | undefined;
 }
 
+/** Texts of unmet reasons by the list of the condition, made once per content: they are asked for every action every day. */
+const REASONS = new WeakMap<object, string>();
+
+function reasonText(list: string[], make: () => string): string {
+  let text = REASONS.get(list);
+  if (text === undefined) {
+    text = make();
+    REASONS.set(list, text);
+  }
+  return text;
+}
+
 export function checkPlaceConditions(ctx: Ctx, c: Character, when: PlaceWhen, _scope: Scope): Unmet[] {
   if (when.at_place_kind === undefined && when.at_place === undefined) return [];
   const { state, content } = ctx;
@@ -32,8 +44,8 @@ export function checkPlaceConditions(ctx: Ctx, c: Character, when: PlaceWhen, _s
   if (when.at_place_kind) {
     const kind = heroPlaceKind(state, content);
     if (kind === null || !when.at_place_kind.includes(kind)) {
-      const names = when.at_place_kind.map((id) => (id === ROAD_KIND ? places.road : (places.kinds.find((k) => k.id === id)?.name ?? id)));
-      out.push({ text: fillReason(places.reasons.kind, { kinds: joinOr(names) }), hidden: false });
+      const names = () => when.at_place_kind?.map((id) => (id === ROAD_KIND ? places.road : (places.kinds.find((k) => k.id === id)?.name ?? id))) ?? [];
+      out.push({ text: reasonText(when.at_place_kind, () => fillReason(places.reasons.kind, { kinds: joinOr(names()) })), hidden: false });
     }
   }
   if (when.at_place) {

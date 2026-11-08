@@ -64,8 +64,10 @@ describe('where I am', () => {
     state.pendingEvent = null;
     state.status = 'awaiting_action';
     expect(whereView(ctx)).toMatchObject({ heading: 'Free to act', ended: false });
-    // only what the core knows: the season from the date, and no row with a dash (D-447)
-    expect(whereView(ctx).table).toEqual([{ label: 'Season', value: expect.stringMatching(/^\w+, January$/) }]);
+    // the table of the place (D-447, S.9), then the season from the date and the weather; no row with a dash
+    const table = whereView(ctx).table;
+    expect(table.map((r) => r.label)).toEqual(['Place', 'Realm', 'People', 'Land', 'Here', 'Season', 'Weather']);
+    expect(table.find((r) => r.label === 'Season')?.value).toMatch(/^\w+, January$/);
     const action = content.actions[0]!;
     state.activeAction = { actionId: action.id, endDay: state.day + 8, target: null };
     expect(whereView(ctx)).toMatchObject({ heading: action.name, line: '8 days left', ended: false });
