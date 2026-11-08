@@ -1,5 +1,6 @@
 import { actionAvailability } from '../../core/actions/actions';
 import { placeDef, position, roadDays, routesFrom, standingIn } from '../../core/place/place';
+import { formatDate } from '../../core/time/calendar';
 import type { Ctx } from '../../core/state';
 import { cellAt, type MapModel, type Point } from './model';
 import { partOf, pointOf, wayBetween } from './roads';
@@ -15,6 +16,13 @@ function placePoints(ctx: Ctx, model: MapModel): Map<string, Point> {
   }
   return out;
 }
+
+/** The land around a place, in a few words, by the map's terrain at its cell. */
+const LAND_WORDS: Record<string, string> = {
+  plains: 'open plains', farmlands: 'farmland', floodplains: 'river meadows', drylands: 'dry country', steppe: 'steppe',
+  desert: 'desert', forest: 'forest', taiga: 'pine forest', jungle: 'thick forest', wetlands: 'marshes', tundra: 'barren land',
+  hills: 'hills', mountains: 'mountains', peaks: 'high mountains', glacier: 'ice',
+};
 
 /**
  * The places of the journey's way, in order, from the point it set out from to the place it leads to: the same
@@ -141,15 +149,21 @@ export function mapProps(ctx: Ctx, model: MapModel, handlers: { open: (id: strin
     hero,
     journey,
     peoples,
+    // the tip of a place in the form of CK3's: what and whose, the land around, then the way there and the arrival
     describe: (id) => {
       const def = placeDef(state, content, id);
       if (!def) return '';
       const kind = kinds.get(def.kind) ?? def.kind;
       const where = def.realm ? `${kind[0]?.toUpperCase() ?? ''}${kind.slice(1)} of ${def.realm}` : kind;
-      if (id === here) return `${where}. You are here.`;
+      const at = points.get(id);
+      const cell = at ? cellAt(model, at) : -1;
+      const land = cell >= 0 ? LAND_WORDS[model.terrains[model.terrain[cell] as number] ?? ''] : undefined;
+      const head = land ? `${where}, ${land}.` : `${where}.`;
+      if (id === here) return `${head} You are here.`;
       const days = routes.get(id);
-      if (id === going && days !== undefined) return `${where}. You are on your way: ${dayWord(days)} left.`;
-      return days === undefined ? `${where}. No road leads there from here.` : `${where}. ${dayWord(days)} of road from here.`;
+      const arrival = (n: number) => `arriving about ${formatDate(state.day + n)}`;
+      if (id === going && days !== undefined) return `${head} On your way: ${dayWord(days)} left, ${arrival(days)}.`;
+      return days === undefined ? `${head} No road leads there from here.` : `${head} ${dayWord(days)} of road, ${arrival(days)}.`;
     },
     travel: (id) => {
       const name = placeDef(state, content, id)?.name ?? id;

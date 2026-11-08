@@ -1,6 +1,7 @@
 import type { MapModel, Point } from './model';
 import { INK } from './palette';
 import type { MapMode, MapOverlay } from './types';
+import { fade, nameAlphas } from './zoom';
 
 /** The face of the names on the map: the serif of the interface (style.css). */
 const SERIF = "Georgia, 'Times New Roman', serif";
@@ -114,8 +115,6 @@ function cultureMarks(m: MapModel): { id: number; name: string; at: Point; span:
   return out;
 }
 
-const fade = (z: number, from: number, to: number) => Math.max(0, Math.min(1, (z - from) / (to - from)));
-
 /**
  * The names on the map, by zoom (CK3): realms and seas from afar, provinces in the middle, towns and the places of the
  * game close up. Sizes are chosen in screen pixels and turned into map units.
@@ -123,7 +122,7 @@ const fade = (z: number, from: number, to: number) => Math.max(0, Math.min(1, (z
 export function drawLabels(ctx: CanvasRenderingContext2D, m: MapModel, zoom: number, paperAlpha: number, overlay: MapOverlay, box: Box, mode: MapMode = 'realms'): void {
   const px = 1 / zoom;
   // realms: big spaced capitals along the shape of the realm, fading as the provinces come in
-  const realmAlpha = 1 - fade(zoom, 2.1, 3.2);
+  const { realm: realmAlpha, province: provAlpha } = nameAlphas(zoom, mode);
   if (mode === 'cultures') {
     // the peoples mode names the peoples, not the realms (CK3)
     ctx.globalAlpha = Math.max(0.35, realmAlpha) * 0.92;
@@ -159,7 +158,6 @@ export function drawLabels(ctx: CanvasRenderingContext2D, m: MapModel, zoom: num
     ctx.globalAlpha = 1;
   }
   // provinces: small capitals at their middle
-  const provAlpha = fade(zoom, 1.7, 2.4) * (1 - fade(zoom, 7, 9));
   if (provAlpha > 0) {
     ctx.globalAlpha = provAlpha * 0.85;
     for (const p of m.provinces.values()) {

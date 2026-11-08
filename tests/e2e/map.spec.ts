@@ -58,6 +58,14 @@ test('the map lies under the panels, opens on the hero, moves and zooms, and a p
   await canvas.focus();
   await page.keyboard.press('Home');
   await page.waitForTimeout(800);
+  // the keys of CK3 change the mode from anywhere on the screen; PgDn and PgUp zoom
+  await page.keyboard.press('g');
+  await expect(page.locator('.map-mode.current')).toHaveText('Terrain');
+  await page.keyboard.press('e');
+  await expect(page.locator('.map-mode.current')).toHaveText('Realms');
+  const zoomed = await transformOf(page, here);
+  await page.keyboard.press('PageDown');
+  await expect.poll(() => transformOf(page, here)).not.toBe(zoomed);
   // the map modes are buttons by the map
   for (const m of ['Terrain', 'Peoples', 'Roads', 'Realms']) {
     await page.locator('.map-mode', { hasText: m }).click();
@@ -77,7 +85,7 @@ test('the map lies under the panels, opens on the hero, moves and zooms, and a p
   const spot = page.locator('.map-place').nth(target);
   await spot.hover();
   await expect(page.locator('#tooltip')).toBeVisible();
-  await expect(page.locator('#tooltip')).toContainText(/of road from here|You are here|No road/);
+  await expect(page.locator('#tooltip')).toContainText(/of road, arriving about \d+ \w+ \d{4}|You are here|No road/);
   await spot.click({ button: 'right' });
   const menu = page.locator('.map-menu');
   await expect(menu).toBeVisible();

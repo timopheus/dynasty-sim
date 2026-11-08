@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { centreOn, clamp, freeCentre, toScreen } from '../src/ui/map/camera';
+import { nameAlphas } from '../src/ui/map/zoom';
 import { partOf, pointOf } from '../src/ui/map/roads';
 
 /** M.1: the camera keeps the map in the part of the screen no panel covers; ways are cut by shares of their length. */
@@ -38,5 +39,15 @@ describe('the map camera (M.1)', () => {
     expect(pointOf(way, 0.25)).toEqual({ x: 5, y: 0 });
     expect(partOf(way, 0.25, 0.75)).toEqual([{ x: 5, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 5 }]);
     expect(partOf(way, 0, 1)).toEqual(way);
+  });
+
+  it('changes realm names for province names at one zoom, never both at more than half; none on the terrain map', () => {
+    for (let z = 0.8; z <= 12; z += 0.05) {
+      const a = nameAlphas(z, 'realms');
+      expect(Math.min(a.realm, a.province), `zoom ${z.toFixed(2)}`).toBeLessThanOrEqual(0.5);
+      expect(nameAlphas(z, 'terrain')).toEqual({ realm: 0, province: 0 });
+    }
+    expect(nameAlphas(1, 'realms').realm).toBe(1);
+    expect(nameAlphas(4, 'realms').province).toBe(1);
   });
 });

@@ -13,11 +13,14 @@ export type { MapProps } from './types';
 import './map.css';
 
 const MODE_NAMES: Record<MapMode, { label: string; tip: string }> = {
-  realms: { label: 'Realms', tip: 'The realms of the land and their borders.' },
-  terrain: { label: 'Terrain', tip: 'Plains, forests, hills and mountains.' },
-  cultures: { label: 'Peoples', tip: 'Where each people lives.' },
-  roads: { label: 'Roads', tip: 'The places you can reach and the days of road between them.' },
+  realms: { label: 'Realms', tip: 'The realms of the land and their borders (E).' },
+  terrain: { label: 'Terrain', tip: 'Plains, forests, hills and mountains (G).' },
+  cultures: { label: 'Peoples', tip: 'Where each people lives (T).' },
+  roads: { label: 'Roads', tip: 'The places you can reach and the days of road between them (R).' },
 };
+
+/** Keys of the map modes, as in CK3 where it can be (E realms, T cultures; terrain on G, as Ctrl+G is the browser's). */
+const MODE_KEYS: Record<string, MapMode> = { e: 'realms', g: 'terrain', t: 'cultures', r: 'roads' };
 
 /** Keys that move the map (CK3: WASD and the arrows), in screen pixels a frame. */
 const PAN_KEYS: Record<string, [number, number]> = {
@@ -303,13 +306,22 @@ export function mapView(): MapView {
   document.addEventListener('click', (e) => { if (menu && !(e.target instanceof Node && menu.contains(e.target))) closeMenu(); });
   document.addEventListener('contextmenu', (e) => { if (menu && !(e.target instanceof Node && (menu.contains(e.target) || hotspots.contains(e.target)))) closeMenu(); });
   window.addEventListener('resize', () => closeMenu());
-  // Home finds the hero from anywhere on the game screen (CK3: the portrait), unless a field or a window has the keys
+  // keys of the whole game screen (CK3), unless a field, a menu or a window has them: Home finds the hero,
+  // E/G/T/R change the mode, PgUp/PgDn zoom
   document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Home' || e.ctrlKey || e.metaKey || e.altKey || !root.isConnected) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || !root.isConnected) return;
     const t = e.target;
     if (t instanceof HTMLElement && (t.closest('input, textarea, select, [contenteditable], .person-menu, [role="dialog"], .modal-layer') || t.isContentEditable)) return;
+    if (document.querySelector('.modal-layer')) return;
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    const m = MODE_KEYS[key];
+    if (key === 'Home') api.focusHero();
+    else if (m) setMode(m);
+    else if (key === 'PageDown' || key === 'PageUp') {
+      target = fix({ ...target, zoom: target.zoom * (key === 'PageDown' ? 1.4 : 1 / 1.4) });
+      request();
+    } else return;
     e.preventDefault();
-    api.focusHero();
   });
 
   new ResizeObserver(() => {
