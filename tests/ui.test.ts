@@ -124,7 +124,7 @@ describe('event screen', () => {
   it('shows a notice with a single Continue, and a second page after choosing; a saved game returns to the same page', () => {
     const { ctx, hero } = eventGame();
     fireEvent(ctx, findEvent(eventContent, 'loud_notice'), hero);
-    expect(eventScreen(ctx)!.options).toEqual([{ index: 0, label: ['Continue'], grey: false, reason: '', chance: null }]);
+    expect(eventScreen(ctx)!.options).toEqual([{ index: 0, label: ['Continue'], grey: false, reason: '', chance: null, icons: { check: false, cost: false, trait: false }, tip: null }]);
     play(ctx.state, eventContent, { type: 'choose', option: 0 });
     expect(eventScreen(ctx)).toBeNull();
 

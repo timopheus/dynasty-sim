@@ -1,0 +1,13 @@
+# expect-error: mind.moods[0].mood /unknown mood/
+mind:
+  happiness: { min: 0, max: 100, base: 50 }
+  words: [{ upTo: 100, word: fine }]
+  moods: [{ upTo: 100, mood: ecstatic }]
+  costs: { small: 5, medium: 10, large: 20, favour: 3 }
+  traits: []
+  pull: { den: 6 }
+  poverty: { money_max: -1, monthly: -3 }
+  breakdown: { at_most: 10, reset: 40, trait: proud, text: "{name} broke down." }
+  acts:
+    - { id: lie, name: a lie }
+  reasons: { happiness_min: "At least {value}", happiness_max: "At most {value}" }

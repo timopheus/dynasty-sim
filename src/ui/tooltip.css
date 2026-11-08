@@ -68,3 +68,8 @@
     stroke-dashoffset: 50;
   }
 }
+
+/* a tip of several facts: one line each */
+.tooltip span {
+  white-space: pre-line;
+}

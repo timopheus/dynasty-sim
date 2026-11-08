@@ -1,5 +1,12 @@
 # expect-error: mind.happiness.max /max must be above min/
 mind:
   happiness: { min: 50, max: 50, base: 50 }
+  words: [{ upTo: 100, word: fine }]
+  moods: [{ upTo: 100, mood: neutral }]
+  costs: { small: 5, medium: 10, large: 20, favour: 3 }
+  traits: []
+  pull: { den: 6 }
+  poverty: { money_max: -1, monthly: -3 }
+  breakdown: { at_most: 10, reset: 40, trait: proud, text: "{name} broke down." }
   acts: []
   reasons: { happiness_min: "At least {value}", happiness_max: "At most {value}" }

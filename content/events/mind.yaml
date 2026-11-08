@@ -1,0 +1,247 @@
+# Small scenes where the choice is a deed of the hero (`acts:`, D-460): what the option does is marked, the traits of the
+# hero decide what it costs in happiness (content/mind.yaml). `happiness: N` is a lift or a loss of the day itself.
+# Light events tied to actions; every scene has an option with no mark. Format: docs/event-format.md.
+events:
+  - id: beggar_at_the_gate
+    weight: 6
+    cooldown_days: 540
+    actions: [rest]
+    roles:
+      beggar: { pick: circle }
+    text: "A thin figure waits at the gate while you mend: {beggar}, hat in hand, who has not eaten since yesterday and does not ask outright."
+    options:
+      - text: Share your bread and a coin
+        acts: [give_away]
+        effects: { money: -6, happiness: 6 }
+        on: { beggar: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} shared bread and a coin with {beggar} at the gate."
+        aftermath: "You watch {beggar} eat at your doorstep, and the house feels lighter for it."
+        mood: joy
+      - text: Send {beggar} off; you have little enough yourself
+        acts: [hoard]
+        on: { beggar: { opinion: [{ toward: hero, reason: slighted }] } }
+        result: "{name} sent {beggar} away from the gate empty-handed."
+        aftermath: "You shut the gate and keep what is yours."
+      - text: Hand over a crust and no more
+        effects: { money: -1 }
+        result: "{name} gave {beggar} a crust at the gate."
+
+  - id: baggage_in_trust
+    weight: 6
+    cooldown_days: 540
+    actions: [travel]
+    roles:
+      companion: { pick: circle }
+    text: "At the inn {companion} offers to watch your baggage through the night, so that you can sleep without one eye open. {companion.He} smiles easily, which proves nothing."
+    options:
+      - text: Leave your baggage in {companion}'s care
+        acts: [take_on_trust]
+        risk: "{companion} may not be as honest as {companion.he} looks."
+        check: { stat: intrigue, difficulty: 5 }
+        success:
+          effects: { happiness: 5 }
+          on: { companion: { opinion: [{ toward: hero, reason: comrade }] } }
+          result: "{name} left the baggage with {companion} for the night and found it untouched."
+          aftermath: "You sleep soundly, and in the morning every strap is as you left it."
+          mood: joy
+        failure:
+          effects: { money: -15, happiness: -5 }
+          on: { companion: { traits: { add: [thief] } } }
+          result: "{name} trusted {companion} with the baggage and woke to a lighter purse."
+          aftermath: "The bed beside yours is empty, and so is the purse."
+          mood: shame
+      - text: Go through {companion}'s pack before you agree
+        acts: [verify]
+        on: { companion: { opinion: [{ toward: hero, reason: slighted }] } }
+        result: "{name} searched the pack of {companion} before trusting {companion.him} with a bag."
+        aftermath: "You find nothing, and {companion} knows you looked."
+      - text: Keep watch yourself
+        result: "{name} kept watch over the baggage alone through the night."
+
+  - id: damp_salt
+    weight: 6
+    cooldown_days: 730
+    actions: [trade]
+    roles:
+      buyer: { pick: circle }
+    text: "{buyer} asks whether your salt is dry. It is not quite: the damp has got into the lower sacks, and the price is good only if {buyer.he} does not look."
+    options:
+      - text: Swear it is dry as dust
+        acts: [deceive]
+        risk: "{buyer} may open a sack before the coin changes hands."
+        check: { stat: intrigue, difficulty: 6, bonus: [{ when: { traits_any: [deceitful] }, add: 1 }] }
+        success:
+          effects: { money: 18 }
+          result: "{name} sold damp salt to {buyer} as dry."
+          aftermath: "The coin is good; the lie sits in your mouth like a stone."
+        failure:
+          effects: { money: -8, happiness: -5 }
+          on: { buyer: { opinion: [{ toward: hero, reason: cheated_me }] } }
+          result: "{name} was caught selling damp salt to {buyer} as dry."
+          aftermath: "{buyer} tips a sack onto the counter and the whole row sees it."
+          mood: shame
+      - text: Tell {buyer} the truth and cut the price
+        effects: { money: 6, happiness: 4 }
+        on: { buyer: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} told {buyer} the salt was damp and sold it at a lower price."
+        aftermath: "{buyer} takes it with a nod, and you will see that nod again."
+      - text: Keep the damp sacks for yourself
+        effects: { money: -3 }
+        result: "{name} kept the damp salt back from {buyer}."
+
+  - id: officers_jibe
+    weight: 6
+    cooldown_days: 540
+    actions: [serve_contract]
+    roles:
+      sergeant: { pick: circle, where: { occupation: [sergeant, soldier] } }
+    mood: anger
+    text: "At the fire, with the whole company listening, {sergeant} calls your last march a dawdle and your pay a charity."
+    options:
+      - text: Knock {sergeant} off the log
+        acts: [lash_out]
+        risk: "{sergeant} may be the better fighter."
+        check: { stat: prowess, difficulty: 6, bonus: [{ when: { traits_any: [duelist] }, add: 2 }] }
+        success:
+          effects: { fame: 1, happiness: 5 }
+          on: { sergeant: { opinion: [{ toward: hero, reason: defeated_me }] } }
+          result: "{name} knocked {sergeant} off a log for a jibe at the fire."
+          aftermath: "The company roars, and nobody calls your march a dawdle again."
+          mood: triumph
+        failure:
+          effects: { wound: light_wound, happiness: -5 }
+          on: { sergeant: { opinion: [{ toward: hero, reason: humiliated }] } }
+          result: "{name} struck {sergeant} at the fire and was thrashed for it."
+          aftermath: "You pick yourself out of the ashes with the company laughing."
+          mood: pain
+      - text: Bite your tongue and say nothing
+        acts: [hold_temper]
+        on: { sergeant: { opinion: [{ toward: hero, reason: no_spine }] } }
+        result: "{name} bore a sergeant's jibe at the fire in silence."
+        aftermath: "You stare into the flames until the talk moves on."
+      - text: Turn it into a joke at {sergeant}'s own expense
+        check: { stat: diplomacy, difficulty: 7 }
+        success:
+          effects: { happiness: 3 }
+          on: { sergeant: { opinion: [{ toward: hero, reason: comrade }] } }
+          result: "{name} laughed off a sergeant's jibe and had the fire laughing with {him}."
+          mood: joy
+        failure:
+          on: { sergeant: { opinion: [{ toward: hero, reason: slighted }] } }
+          result: "{name} tried to laugh off a sergeant's jibe and only made it worse."
+          mood: shame
+
+  - id: long_winter_evenings
+    weight: 7
+    cooldown_days: 540
+    actions: [winter_quarters]
+    roles:
+      master: { pick: circle, where: { occupation: [merchant, craftsman, innkeeper, clerk] } }
+    text: "The nights are long and the purse is short. {master} has piecework for whoever will sit up with it: accounts to copy, sacks to count, a floor to scrub."
+    options:
+      - text: Sit up with the work every night
+        acts: [toil]
+        effects: { money: 22 }
+        on: { master: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} worked the winter nights through for {master} and earned a good sum."
+        aftermath: "By spring your eyes are red and your purse is fatter."
+      - text: Take the work in the daytime only
+        effects: { money: 9 }
+        result: "{name} took daytime piecework from {master} through the winter."
+      - text: Spend the winter by the fire
+        acts: [shirk]
+        effects: { money: -4, happiness: 5 }
+        on: { master: { opinion: [{ toward: hero, reason: slighted }] } }
+        result: "{name} spent the winter nights by the fire and turned down the work of {master}."
+        aftermath: "The fire is warm and the work goes to someone else."
+        mood: joy
+
+  - id: vacant_lieutenancy
+    weight: 4
+    cooldown_days: 1095
+    actions: [serve_contract]
+    roles:
+      captain: { pick: circle, where: { occupation: [sergeant, soldier] } }
+      comrade: { pick: circle, where: { occupation: [soldier, mercenary] } }
+    text: "{captain} lets it be known that a lieutenant's place is vacant. It wants a man with a name or a purse of 30 crowns for the colonel's clerk, and {comrade} has been hoping for it too."
+    options:
+      - text: Put your name forward with 30 crowns
+        when: { money_min: 30 }
+        acts: [reach_higher]
+        risk: "The colonel may take the purse and give the place away."
+        check: { stat: diplomacy, difficulty: 7, bonus: [{ when: { fame_min: 1 }, add: 1 }] }
+        success:
+          effects: { money: -30, fame: 1, happiness: 8 }
+          on: { captain: { opinion: [{ toward: hero, reason: favour }] }, comrade: { opinion: [{ toward: hero, reason: slighted }] } }
+          result: "{name} bought a lieutenant's place with a purse of 30 crowns."
+          aftermath: "The colonel's clerk counts the crowns twice and writes your name."
+          chronicle: true
+          mood: triumph
+        failure:
+          effects: { money: -30, happiness: -6 }
+          result: "{name} paid 30 crowns for a lieutenant's place and saw it go to another."
+          aftermath: "The place goes to a colonel's nephew and the purse is not returned."
+          mood: shame
+      - text: Speak for {comrade} and step aside
+        acts: [settle_for_less]
+        on: { comrade: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} spoke for {comrade} and let the lieutenant's place go."
+        aftermath: "{comrade} grips your hand, and you tell yourself the quiet is worth it."
+      - text: Say nothing and keep your rank
+        result: "{name} let a lieutenant's place pass."
+
+  - id: foe_stuck_on_the_road
+    weight: 5
+    cooldown_days: 900
+    actions: [travel]
+    roles:
+      foe:
+        pick: circle
+        prefer:
+          - { when: { opinion: { toward: hero, max: -10 } }, factor: 5 }
+    text: "A cart sits canted in the ditch ahead, and the man cursing at its wheel is {foe}, who has not forgiven you the old quarrel, nor given you cause to forgive."
+    options:
+      - text: Climb down and put your shoulder to the wheel
+        acts: [forgive]
+        effects: { happiness: 6 }
+        on: { foe: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} put a shoulder to the cart of {foe}, an old foe, and got it out of the ditch."
+        aftermath: "{foe} says nothing, but takes your hand at the end of it."
+        chronicle: true
+        mood: joy
+      - text: Tell {foe} what you think of {foe.him} and drive on
+        acts: [retaliate]
+        on: { foe: { opinion: [{ toward: hero, reason: humiliated }] } }
+        result: "{name} left {foe} cursing in a ditch and rode on."
+        aftermath: "You ride on with {foe}'s curses behind you and a hard satisfaction."
+      - text: Drive past without a look
+        result: "{name} drove past {foe}'s cart without a word."
+
+  - id: flooded_ford
+    weight: 6
+    cooldown_days: 540
+    actions: [travel]
+    when: { fit: true }
+    mood: threat
+    text: "The ford is running brown and high after the rains, and dusk is coming on. The far bank has an inn; this one has only wet grass."
+    options:
+      - text: Spur across at once
+        acts: [risk_life]
+        risk: "The current may take the horse, or the baggage, or you."
+        check: { stat: prowess, difficulty: 7, bonus: [{ when: { traits_any: [horseman] }, add: 2 }] }
+        success:
+          effects: { happiness: 5 }
+          result: "{name} forded a river in flood at dusk and reached the inn."
+          aftermath: "You come up the far bank soaked and laughing."
+          mood: triumph
+        failure:
+          effects: { money: -12, wound: light_wound, happiness: -4 }
+          result: "{name} was swept off the ford in a flooded river and lost baggage to the current."
+          aftermath: "You drag yourself out downstream with half your baggage gone."
+          mood: pain
+      - text: Pay a local boy to lead you across
+        effects: { money: -6 }
+        result: "{name} paid a boy to lead the way across a flooded ford."
+      - text: Wait for morning on the bank
+        effects: { money: -2 }
+        result: "{name} waited out a flooded ford and crossed at dawn."

@@ -27,3 +27,9 @@ const SCORE: Record<Exclude<BotCharacter, 'random'>, (f: Features) => number> = 
 export function scoreOf(character: Exclude<BotCharacter, 'random'>, f: Features): number {
   return SCORE[character](f);
 }
+
+/**
+ * What a point of happiness is worth to a character, in the units of its score (D-457, S.10): the bot weighs the price of
+ * a deed against its nature. The cautious one keeps the nerve of its hero; the others care a little.
+ */
+export const HAPPINESS_WEIGHT: Record<Exclude<BotCharacter, 'random'>, number> = { cautious: 30, greedy: 8, duelist: 8 };
