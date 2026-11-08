@@ -1,7 +1,9 @@
+import { keepInView, personMenuNode } from '../context-menu';
 import { el } from '../dom';
+import type { MenuItem } from '../people-model';
 import { hideTip, withTip } from '../tooltip';
-import type { Camera, Viewport } from './camera';
-import { clamp, panBy, toMap, toScreen, zoomAt, zoomBounds } from './camera';
+import type { Camera, Insets, Viewport } from './camera';
+import { centreOn, clamp, NO_INSETS, panBy, toMap, toScreen, zoomAt, zoomBounds } from './camera';
 import type { Point } from './model';
 import { regionModel } from './region';
 import { MapRenderer } from './render';
@@ -13,8 +15,7 @@ import './map.css';
 const MODE_NAMES: Record<MapMode, { label: string; tip: string }> = {
   realms: { label: 'Realms', tip: 'The realms of the land and their borders.' },
   terrain: { label: 'Terrain', tip: 'Plains, forests, hills and mountains.' },
-  cultures: { label: 'Cultures', tip: 'Where each people lives.' },
-  faiths: { label: 'Faiths', tip: 'What each land believes.' },
+  cultures: { label: 'Peoples', tip: 'Where each people lives.' },
   roads: { label: 'Roads', tip: 'The places you can reach and the days of road between them.' },
 };
 
@@ -26,13 +27,7 @@ const PAN_KEYS: Record<string, [number, number]> = {
   ArrowDown: [0, -1], s: [0, -1], S: [0, -1],
 };
 
-/** How much of the window the panels cover on each side, in pixels: the map centres things in the rest. */
-export interface Insets {
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-}
+export type { Insets } from './camera';
 
 export interface MapView {
   element: HTMLElement;
@@ -59,11 +54,18 @@ export function mapView(): MapView {
   canvas.setAttribute('aria-label', 'Map of the region');
   canvas.tabIndex = 0;
   const hotspots = el('div', { className: 'map-hotspots' });
-  const menu = el('div', { className: 'map-menu', hidden: true });
-  menu.setAttribute('role', 'menu');
+  // the menu of a place is the menu of a person (D-448): above every panel, in the body of the page
+  let menu: HTMLElement | null = null;
+  let menuFrom: HTMLElement | null = null;
   const modes = el('div', { className: 'map-modes', role: 'group' });
   modes.setAttribute('aria-label', 'Map modes');
-  const root = el('div', { className: 'map-view' }, canvas, hotspots, modes, menu);
+  const home = el('button', { className: 'map-mode map-home', type: 'button', onclick: () => api.focusHero() }, 'Me');
+  home.setAttribute('data-focus', 'map-home');
+  withTip(home, { text: 'Show where you are on the map (Home).' });
+  // the key of a mode's colours (CK3 shows one by the mode buttons)
+  const legend = el('div', { className: 'map-legend', hidden: true });
+  legend.setAttribute('aria-label', 'Map key');
+  const root = el('div', { className: 'map-view' }, canvas, hotspots, modes, legend);
 
   let props: MapProps | null = null;
   let mode: MapMode = 'realms';
@@ -74,7 +76,7 @@ export function mapView(): MapView {
   let frame = 0;
   let selected: string | null = null;
   let hovered: string | null = null;
-  let insets: Insets = { left: 0, right: 0, top: 0, bottom: 0 };
+  let insets: Insets = NO_INSETS;
   let lastSign = '';
   let metHero = false;
   const held = new Set<string>();
@@ -87,6 +89,10 @@ export function mapView(): MapView {
     modes.append(b);
     return { m, b };
   });
+  modes.append(home);
+
+  /** The camera kept over the map in the free part of the screen. */
+  const fix = (c: Camera): Camera => clamp(c, view, model.width, model.height, insets);
 
   function setMode(m: MapMode): void {
     mode = m;
@@ -94,7 +100,20 @@ export function mapView(): MapView {
       b.classList.toggle('current', k === m);
       b.setAttribute('aria-pressed', String(k === m));
     }
+    fillLegend();
     request();
+  }
+
+  function fillLegend(): void {
+    if (mode !== 'cultures') { legend.hidden = true; return; }
+    const names = props?.peoples ?? new Map<number, string>();
+    const rows = [...model.cultures.values()].filter((c) => c.id !== 0).map((c) => {
+      const swatch = el('span', { className: 'map-swatch' });
+      swatch.style.background = c.color;
+      return el('div', { className: 'map-legend-row' }, swatch, el('span', {}, names.get(c.id) ?? c.name));
+    });
+    legend.replaceChildren(el('div', { className: 'map-legend-title' }, 'Peoples'), ...rows);
+    legend.hidden = false;
   }
   setMode(mode);
 
@@ -110,6 +129,7 @@ export function mapView(): MapView {
       journey: props?.journey ?? null,
       selected,
       hovered,
+      peoples: props?.peoples ?? new Map(),
     };
   }
 
@@ -128,8 +148,8 @@ export function mapView(): MapView {
     if (held.size > 0) {
       let dx = 0, dy = 0;
       for (const k of held) { const v = PAN_KEYS[k]; if (v) { dx += v[0]; dy += v[1]; } }
-      target = clamp(panBy(target, dx * 14, dy * 14), view, model.width, model.height);
-      cam = clamp(panBy(cam, dx * 14, dy * 14), view, model.width, model.height);
+      target = fix(panBy(target, dx * 14, dy * 14));
+      cam = fix(panBy(cam, dx * 14, dy * 14));
     }
     const ctx = canvas.getContext('2d');
     if (ctx) renderer.draw(ctx, cam, view, window.devicePixelRatio || 1, mode, overlay());
@@ -158,13 +178,12 @@ export function mapView(): MapView {
         b.dataset.place = p.id;
         b.setAttribute('data-focus', `map-place-${p.id}`);
         b.onclick = (e) => { e.stopPropagation(); selected = p.id; closeMenu(); props?.onOpen(p.id); request(); };
-        b.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); hideTip(); openMenu(p.id, e.clientX, e.clientY); };
+        b.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openMenu(p.id, e.clientX, e.clientY, b); };
         b.onkeydown = (e) => {
           if (e.key === 'ContextMenu' || (e.key === 'F10' && e.shiftKey)) {
             e.preventDefault();
             const r = b.getBoundingClientRect();
-            hideTip();
-            openMenu(p.id, r.right, r.bottom);
+            openMenu(p.id, r.right, r.bottom, b);
           }
         };
         b.onmouseenter = () => { hovered = p.id; request(); };
@@ -181,30 +200,50 @@ export function mapView(): MapView {
     }
   }
 
-  function openMenu(id: string, clientX: number, clientY: number): void {
+  function openMenu(id: string, clientX: number, clientY: number, from: HTMLElement): void {
     if (!props) return;
     const p = props.places.find((x) => x.id === id);
     if (!p) return;
+    closeMenu(false);
+    hideTip();
     const travel = props.travel(id);
-    const go = el('button', { className: travel.enabled ? 'menu-item' : 'menu-item grey', type: 'button' }, travel.label);
-    go.setAttribute('role', 'menuitem');
-    if (travel.enabled) go.onclick = () => { closeMenu(); props?.onTravel(id); };
-    else {
-      go.setAttribute('aria-disabled', 'true');
-      go.append(el('span', { className: 'reason' }, travel.reason));
+    const choose = new Map<MenuItem, () => void>();
+    const items: MenuItem[] = [];
+    const add = (item: Omit<MenuItem, 'action'>, run: () => void) => {
+      const full: MenuItem = { ...item, action: { type: 'open', id } };
+      items.push(full);
+      choose.set(full, run);
+    };
+    // the journey is offered only when it is a journey: the place you stand in has nothing to travel to
+    if (travel.reason !== 'You are here') {
+      add({ label: travel.label, note: travel.note, grey: !travel.enabled, reason: travel.reason }, () => props?.onTravel(id));
     }
-    const page = el('button', { className: 'menu-item', type: 'button', onclick: () => { closeMenu(); selected = id; props?.onOpen(id); request(); } }, 'Open the page');
-    page.setAttribute('role', 'menuitem');
-    menu.replaceChildren(el('div', { className: 'map-menu-title' }, p.name), go, page);
-    menu.hidden = false;
-    const r = root.getBoundingClientRect();
-    menu.style.left = `${Math.round(Math.min(clientX - r.left, r.width - 260))}px`;
-    menu.style.top = `${Math.round(Math.min(clientY - r.top, r.height - 120))}px`;
-    (menu.querySelector('.menu-item:not(.grey)') as HTMLElement | null)?.focus();
+    add({ label: 'Open the page', note: '', grey: false, reason: '' }, () => { selected = id; props?.onOpen(id); request(); });
+    const node = personMenuNode({ id, title: p.name, items }, { id, x: Math.round(clientX), y: Math.round(clientY), from: null }, (item) => {
+      const run = choose.get(item);
+      closeMenu(false);
+      run?.();
+    });
+    node.classList.add('map-menu');
+    node.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); e.stopPropagation(); closeMenu(true); }
+    });
+    document.body.append(node);
+    keepInView(node);
+    menu = node;
+    menuFrom = from;
+    root.classList.add('menu-open');
+    (node.querySelector('.menu-item:not(.grey)') as HTMLElement | null)?.focus();
   }
 
-  function closeMenu(): void {
-    menu.hidden = true;
+  /** Closes the menu of a place; `back` returns the focus to the place it was opened from (Esc, D-448). */
+  function closeMenu(back = false): void {
+    if (!menu) return;
+    menu.remove();
+    menu = null;
+    root.classList.remove('menu-open');
+    if (back && menuFrom?.isConnected) menuFrom.focus();
+    menuFrom = null;
   }
 
   // the pointer: drag to move, wheel to zoom toward the cursor
@@ -222,7 +261,7 @@ export function mapView(): MapView {
     drag.moved = true;
     drag.x = e.clientX;
     drag.y = e.clientY;
-    cam = clamp(panBy(cam, dx, dy), view, model.width, model.height);
+    cam = fix(panBy(cam, dx, dy));
     target = cam;
     root.classList.add('dragging');
     request();
@@ -234,41 +273,44 @@ export function mapView(): MapView {
     e.preventDefault();
     const r = canvas.getBoundingClientRect();
     const factor = Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.0016));
-    target = clamp(zoomAt(target, view, { x: e.clientX - r.left, y: e.clientY - r.top }, factor), view, model.width, model.height);
+    target = fix(zoomAt(target, view, { x: e.clientX - r.left, y: e.clientY - r.top }, factor));
     request();
   }, { passive: false });
   canvas.addEventListener('dblclick', (e) => {
     const r = canvas.getBoundingClientRect();
-    target = clamp(zoomAt(target, view, { x: e.clientX - r.left, y: e.clientY - r.top }, 1.8), view, model.width, model.height);
+    target = fix(zoomAt(target, view, { x: e.clientX - r.left, y: e.clientY - r.top }, 1.8));
     request();
   });
   canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
   // the keys move the map while the map has the focus
   root.addEventListener('keydown', (e) => {
-    if (e.target instanceof HTMLElement && e.target.closest('.map-menu')) {
-      if (e.key === 'Escape') { closeMenu(); e.stopPropagation(); }
-      return;
-    }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (PAN_KEYS[e.key] && e.target === canvas) {
       held.add(e.key);
       e.preventDefault();
       request();
-    } else if (e.key === 'Home') {
-      e.preventDefault();
-      api.focusHero();
     } else if ((e.key === '+' || e.key === '=') && e.target === canvas) {
-      target = clamp({ ...target, zoom: target.zoom * 1.4 }, view, model.width, model.height);
+      target = fix({ ...target, zoom: target.zoom * 1.4 });
       request();
     } else if (e.key === '-' && e.target === canvas) {
-      target = clamp({ ...target, zoom: target.zoom / 1.4 }, view, model.width, model.height);
+      target = fix({ ...target, zoom: target.zoom / 1.4 });
       request();
     }
   });
   root.addEventListener('keyup', (e) => { held.delete(e.key); });
   canvas.addEventListener('blur', () => held.clear());
-  document.addEventListener('click', (e) => { if (!menu.hidden && !(e.target instanceof Node && menu.contains(e.target))) closeMenu(); });
+  document.addEventListener('click', (e) => { if (menu && !(e.target instanceof Node && menu.contains(e.target))) closeMenu(); });
+  document.addEventListener('contextmenu', (e) => { if (menu && !(e.target instanceof Node && (menu.contains(e.target) || hotspots.contains(e.target)))) closeMenu(); });
+  window.addEventListener('resize', () => closeMenu());
+  // Home finds the hero from anywhere on the game screen (CK3: the portrait), unless a field or a window has the keys
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Home' || e.ctrlKey || e.metaKey || e.altKey || !root.isConnected) return;
+    const t = e.target;
+    if (t instanceof HTMLElement && (t.closest('input, textarea, select, [contenteditable], .person-menu, [role="dialog"], .modal-layer') || t.isContentEditable)) return;
+    e.preventDefault();
+    api.focusHero();
+  });
 
   new ResizeObserver(() => {
     const r = root.getBoundingClientRect();
@@ -283,10 +325,10 @@ export function mapView(): MapView {
       fitted = true;
       // the first view covers the screen with land and sea, as CK3 opens on the map, not on a framed picture
       const cover = Math.max(view.width / model.width, view.height / model.height);
-      cam = target = clamp({ x: model.width / 2, y: model.height / 2, zoom: Math.max(zoomBounds(view, model.width, model.height).min, cover * 1.02) }, view, model.width, model.height);
+      cam = target = fix({ x: model.width / 2, y: model.height / 2, zoom: Math.max(zoomBounds(view, model.width, model.height).min, cover * 1.02) });
     } else {
-      cam = clamp(cam, view, model.width, model.height);
-      target = clamp(target, view, model.width, model.height);
+      cam = fix(cam);
+      target = fix(target);
     }
     if (!metHero && props?.hero) {
       metHero = true;
@@ -305,6 +347,7 @@ export function mapView(): MapView {
       props = next;
       if (!changed) return;
       buildHotspots();
+      fillLegend();
       // CK3 opens on the player's character: the first time the hero is known, the map goes to him
       if (!metHero && next.hero && fitted) {
         metHero = true;
@@ -313,15 +356,16 @@ export function mapView(): MapView {
       request();
     },
     setInsets(next) {
+      if (next.left === insets.left && next.right === insets.right && next.top === insets.top && next.bottom === insets.bottom) return;
       insets = next;
+      target = fix(target);
+      request();
     },
     focusHero(jump = false) {
       const hero = props?.hero;
       if (!hero) return;
-      const zoom = Math.max(target.zoom, 2.2);
       // the hero goes to the middle of the free part of the screen, not under a panel
-      const dx = (insets.left - insets.right) / 2 / zoom, dy = (insets.top - insets.bottom) / 2 / zoom;
-      target = clamp({ x: hero.x - dx, y: hero.y - dy, zoom }, view, model.width, model.height);
+      target = fix(centreOn(hero, Math.max(target.zoom, 2.2), insets));
       if (jump) cam = target;
       request();
     },

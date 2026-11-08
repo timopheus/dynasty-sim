@@ -75,6 +75,9 @@ function terrainOf(c: AzCell, feature: AzFeature | undefined, farmPop: number, o
 const tenth = (n: number) => Math.round(n * 10);
 const isLive = <T extends { removed?: boolean }>(x: T | number | undefined): x is T => typeof x === 'object' && x !== null && !x.removed;
 
+/** Names the map generator gave that belong to our own world's map, not to the game's (D-469: a made-up world). */
+const RENAMES: Record<string, string> = { Levantine: 'Sahiri' };
+
 /** Principal axis of a set of weighted points: the line a curved name of a realm follows (CK3 writes realms along their shape). */
 function labelLine(points: { x: number; y: number; w: number }[], anchor: [number, number] | undefined): number[] | null {
   const total = points.reduce((s, p) => s + p.w, 0);
@@ -182,7 +185,7 @@ export function buildMap(az: AzMap): unknown {
       id: p.i, name: p.name, fullName: p.fullName ?? p.name, state: p.state, color: p.color ?? '#999999',
       x: tenth((p.pole ?? [0, 0])[0]), y: tenth((p.pole ?? [0, 0])[1]),
     })),
-    cultures: cultures.filter(isLive).map((c) => ({ id: c.i, name: c.name, color: c.color ?? '#9a9a9a' })),
+    cultures: cultures.filter(isLive).map((c) => ({ id: c.i, name: RENAMES[c.name] ?? c.name, color: c.color ?? '#9a9a9a' })),
     religions: religions.filter(isLive).map((r) => ({ id: r.i, name: r.name, color: r.color ?? '#9a9a9a' })),
     seas: zones.filter((z) => z.type === 'Sea' && z.cells.length > 0).map((z) => {
       const pts = z.cells.map((i) => cells[i]).filter((c): c is AzCell => !!c).map((c) => ({ x: c.p[0], y: c.p[1], w: 1 }));

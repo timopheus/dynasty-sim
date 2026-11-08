@@ -4,7 +4,7 @@
   overflow-y: auto;
   padding: 0.25rem 1rem 0.5rem 0.5rem;
   /* the panel lies over the map (M.1): it needs its own ground */
-  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  background: var(--bg);
   border-left: 2px solid var(--fg);
 }
 

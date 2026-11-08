@@ -29,14 +29,46 @@ export function toMap(cam: Camera, view: Viewport, p: Point): Point {
   return { x: (p.x - view.width / 2) / cam.zoom + cam.x, y: (p.y - view.height / 2) / cam.zoom + cam.y };
 }
 
-/** Keeps the centre over the map, with a margin of half a screen of sea at most. */
-export function clamp(cam: Camera, view: Viewport, mapWidth: number, mapHeight: number): Camera {
+/** How much of the window the panels cover on each side, in pixels: the map centres things in the rest. */
+export interface Insets {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+export const NO_INSETS: Insets = { left: 0, right: 0, top: 0, bottom: 0 };
+
+/** How far past its edge the map may go into the free part of the screen, as a share of half of that part. */
+const PAST_EDGE = 0.5;
+
+/** The point of the map at the middle of the free part of the screen (the part no panel covers). */
+export function freeCentre(cam: Camera, insets: Insets): Point {
+  return { x: cam.x + (insets.left - insets.right) / 2 / cam.zoom, y: cam.y + (insets.top - insets.bottom) / 2 / cam.zoom };
+}
+
+/**
+ * Keeps the map in the free part of the screen: any point of the map can be brought into it, even one at the very
+ * edge under a panel, and past the edge only a strip of mist shows (`PAST_EDGE`); a map smaller than the free part
+ * sits in its middle.
+ */
+export function clamp(cam: Camera, view: Viewport, mapWidth: number, mapHeight: number, insets: Insets = NO_INSETS): Camera {
   const { min, max } = zoomBounds(view, mapWidth, mapHeight);
   const zoom = Math.min(max, Math.max(min, cam.zoom));
-  const halfW = view.width / 2 / zoom, halfH = view.height / 2 / zoom;
-  const fitX = (x: number) => (halfW * 2 >= mapWidth ? mapWidth / 2 : Math.min(mapWidth - halfW * 0.6, Math.max(halfW * 0.6, x)));
-  const fitY = (y: number) => (halfH * 2 >= mapHeight ? mapHeight / 2 : Math.min(mapHeight - halfH * 0.6, Math.max(halfH * 0.6, y)));
-  return { x: fitX(cam.x), y: fitY(cam.y), zoom };
+  const halfW = Math.max(1, view.width - insets.left - insets.right) / 2 / zoom;
+  const halfH = Math.max(1, view.height - insets.top - insets.bottom) / 2 / zoom;
+  const fit = (c: number, half: number, size: number) => {
+    const keep = half * (1 - PAST_EDGE);
+    return keep * 2 >= size ? size / 2 : Math.min(size - keep, Math.max(keep, c));
+  };
+  const centre = freeCentre({ ...cam, zoom }, insets);
+  const ox = centre.x - cam.x, oy = centre.y - cam.y;
+  return { x: fit(centre.x, halfW, mapWidth) - ox, y: fit(centre.y, halfH, mapHeight) - oy, zoom };
+}
+
+/** The camera that puts a point of the map at the middle of the free part of the screen. */
+export function centreOn(p: Point, zoom: number, insets: Insets): Camera {
+  return { x: p.x - (insets.left - insets.right) / 2 / zoom, y: p.y - (insets.top - insets.bottom) / 2 / zoom, zoom };
 }
 
 /** Zoom by a factor around a screen point: the point of the map under the cursor stays under it (CK3). */

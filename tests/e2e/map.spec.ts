@@ -59,7 +59,7 @@ test('the map lies under the panels, opens on the hero, moves and zooms, and a p
   await page.keyboard.press('Home');
   await page.waitForTimeout(800);
   // the map modes are buttons by the map
-  for (const m of ['Terrain', 'Cultures', 'Faiths', 'Roads', 'Realms']) {
+  for (const m of ['Terrain', 'Peoples', 'Roads', 'Realms']) {
     await page.locator('.map-mode', { hasText: m }).click();
     await expect(page.locator('.map-mode.current')).toHaveText(m);
     if (m === 'Roads') await page.screenshot({ path: 'out/e2e/map-3-roads-1440.png' });
@@ -82,17 +82,32 @@ test('the map lies under the panels, opens on the hero, moves and zooms, and a p
   const menu = page.locator('.map-menu');
   await expect(menu).toBeVisible();
   await expect(page.locator('#tooltip')).toBeHidden();
-  const go = menu.locator('.menu-item').first();
-  await expect(go).toHaveText(/^(Travel to|Turn toward) /);
+  // the menu is above every panel: the point in its middle belongs to it
+  expect(await page.evaluate(`(() => { const m = document.querySelector('.map-menu'); const r = m.getBoundingClientRect(); return m.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height - 6)); })()`)).toBe(true);
+  // another place under the pointer shows no tip over the open menu
+  await page.mouse.move(5, 5);
+  await expect(page.locator('#tooltip')).toBeHidden();
   await page.screenshot({ path: 'out/e2e/map-4-menu-1440.png' });
-  if (!((await go.getAttribute('class')) ?? '').includes('grey')) {
+  // Esc closes it and gives the focus back to the place (D-448)
+  await page.keyboard.press('Escape');
+  await expect(menu).toHaveCount(0);
+  await expect(spot).toBeFocused();
+  await page.keyboard.press('ContextMenu');
+  await expect(menu).toBeVisible();
+  const go = menu.locator('.menu-item', { hasText: /^(Travel to|Turn toward) / });
+  if ((await go.count()) > 0 && !((await go.getAttribute('class')) ?? '').includes('grey')) {
+    await expect(go).toContainText('costs 5 crowns');
     await go.click();
     await expect(page.locator('#where-heading')).toHaveText(/^Heading for /);
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: 'out/e2e/map-5-journey-1440.png' });
   } else {
-    // the hero's own place: open its page instead
+    // the hero's own place: no journey to it, its page instead
     await menu.locator('.menu-item', { hasText: 'Open the page' }).click();
     await expect(page.locator('.sidebar h1')).toBeVisible();
   }
+  // Home finds the hero from anywhere on the screen, and the "Me" button does too
+  await page.locator('.map-home').click();
   await page.keyboard.press('Escape');
   expect(problems).toEqual([]);
 });

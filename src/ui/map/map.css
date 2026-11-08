@@ -83,51 +83,20 @@
   outline-offset: 1px;
 }
 
-.map-menu {
-  position: absolute;
-  z-index: 40;
+/* the menu of a place is a person menu (context-menu.css) in the body of the page, above every panel */
+.person-menu.map-menu {
+  width: auto;
   min-width: 15rem;
-  padding: 0.35rem 0;
-  background: var(--bg);
-  border: 2px solid var(--fg);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  max-width: 22rem;
 }
 
-.map-menu[hidden] {
-  display: none;
+/* while a menu is open, other places neither answer the pointer nor show their tips over it */
+.map-view.menu-open .map-place {
+  pointer-events: none;
 }
 
-.map-menu-title {
-  padding: 0.2rem 0.75rem 0.35rem;
-  font-weight: bold;
-  border-bottom: 1px solid var(--line);
-}
-
-.map-menu .menu-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
-  padding: 0.35rem 0.75rem;
-  border: 0;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-}
-
-.map-menu .menu-item:hover:not(.grey),
-.map-menu .menu-item:focus-visible {
-  background: var(--line);
-}
-
-.map-menu .menu-item.grey {
-  color: var(--muted);
-  cursor: default;
-}
-
-.map-menu .reason {
-  font-size: 0.8rem;
-  font-style: italic;
+.map-mode.map-home {
+  margin-left: 0.4rem;
 }
 
 /* on the game screen the map lies under every panel, filling the window (CK3) */
@@ -161,4 +130,41 @@
   right: calc(19rem + 0.75rem);
   top: 5.6rem;
   bottom: auto;
+}
+
+/* the key of the peoples mode, under the mode buttons */
+.map-legend {
+  position: absolute;
+  z-index: 2;
+  top: calc(5.6rem + 3.2rem);
+  right: calc(19rem + 0.75rem);
+  padding: 0.4rem 0.6rem;
+  background: var(--bg);
+  border: 2px solid var(--fg);
+  font-size: 0.8rem;
+  max-height: 16rem;
+  overflow: auto;
+}
+
+.map-legend[hidden] {
+  display: none;
+}
+
+.map-legend-title {
+  font-weight: bold;
+  margin-bottom: 0.2rem;
+}
+
+.map-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  line-height: 1.5;
+}
+
+.map-swatch {
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 1px solid var(--fg);
 }

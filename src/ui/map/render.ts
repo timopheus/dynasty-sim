@@ -6,6 +6,7 @@ export { MAP_MODES } from './types';
 export type { MapMode, MapOverlay, PlaceMark } from './types';
 import { chain, smooth, type Segment } from './geometry';
 import { drawLabels } from './labels';
+import { pointOf } from './roads';
 import { INK, PAPER, TERRAIN_COLOR, mix, shade } from './palette';
 
 type Box = { x0: number; y0: number; x1: number; y1: number };
@@ -63,6 +64,14 @@ function canvasOf(width: number, height: number): HTMLCanvasElement {
   c.height = Math.ceil(height);
   return c;
 }
+
+/** Adds a line through points to the current path. */
+function tracePath(ctx: CanvasRenderingContext2D, points: Point[]): void {
+  points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+}
+
+/** Width of the band along the edges of the map where it fades into the mist, in map units. */
+const MIST = 20;
 
 export class MapRenderer {
   readonly model: MapModel;
@@ -142,7 +151,6 @@ export class MapRenderer {
     const m = this.model;
     if (mode === 'realms') return m.states.get(m.state[i] as number)?.color ?? null;
     if (mode === 'cultures') return m.cultures.get(m.culture[i] as number)?.color ?? null;
-    if (mode === 'faiths') return m.religions.get(m.religion[i] as number)?.color ?? null;
     return null;
   }
 
@@ -175,6 +183,36 @@ export class MapRenderer {
     ctx.restore();
   }
 
+  /**
+   * Land cells painted on their own canvas and softened before they go inside the coast: neighbouring cells melt into
+   * each other, so the land reads as painted, not as a mosaic of cells. `scale`: the target's pixels per map unit.
+   */
+  private paintSoftLand(ctx: CanvasRenderingContext2D, fill: (i: number) => string | null, scale: number): void {
+    const m = this.model;
+    const raw = canvasOf(m.width * scale, m.height * scale);
+    const rctx = raw.getContext('2d');
+    if (!rctx) return;
+    rctx.setTransform(scale, 0, 0, scale, 0, 0);
+    this.cellPaths.forEach((path, i) => {
+      // water cells take a land colour: after the blur the coast keeps its colour up to the clip, not a pale rim
+      const color = m.water[i] ? null : fill(i);
+      if (!color) return;
+      rctx.fillStyle = color;
+      rctx.fill(path);
+      rctx.strokeStyle = color;
+      rctx.lineWidth = 1.2;
+      rctx.stroke(path);
+    });
+    ctx.save();
+    ctx.clip(this.landPath, 'evenodd');
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.filter = `blur(${Math.round(1.6 * scale)}px)`;
+    ctx.drawImage(raw, 0, 0);
+    ctx.filter = 'none';
+    ctx.restore();
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  }
+
   /** The whole paper map of a mode, drawn once (CK3 from afar): parchment, a mode's colours, ink lines. */
   private paperCanvas(mode: MapMode): HTMLCanvasElement {
     const cached = this.paper.get(mode);
@@ -187,7 +225,7 @@ export class MapRenderer {
     ctx.fillStyle = PAPER.sea;
     ctx.fillRect(0, 0, m.width, m.height);
     this.drawRipples(ctx, PAPER.ripple, 1);
-    this.paintLand(ctx, (i) => this.paperFill(mode, i));
+    this.paintSoftLand(ctx, (i) => this.paperFill(mode, i), PAPER_SCALE);
     this.drawRelief(ctx, true, null, PAPER_SCALE);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -390,7 +428,7 @@ export class MapRenderer {
 
   /** A map mode's colours over the land (cultures, faiths), drawn once, soft. */
   private tintCanvas(mode: MapMode): HTMLCanvasElement | null {
-    if (mode !== 'cultures' && mode !== 'faiths') return null;
+    if (mode !== 'cultures') return null;
     const cached = this.tints.get(mode);
     if (cached) return cached;
     const m = this.model;
@@ -514,12 +552,12 @@ export class MapRenderer {
     const px = 1 / zoom;
     if (mode === 'roads') {
       ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
       for (const r of overlay.roads) {
         ctx.strokeStyle = 'rgba(70, 40, 18, 0.9)';
         ctx.lineWidth = px * 4;
         ctx.beginPath();
-        ctx.moveTo(r.a.x, r.a.y);
-        ctx.lineTo(r.b.x, r.b.y);
+        tracePath(ctx, r.path);
         ctx.stroke();
         ctx.strokeStyle = 'rgba(240, 220, 170, 0.95)';
         ctx.lineWidth = px * 1.8;
@@ -530,11 +568,28 @@ export class MapRenderer {
       ctx.strokeStyle = 'rgba(150, 30, 20, 0.95)';
       ctx.lineWidth = px * 2.8;
       ctx.setLineDash([px * 9, px * 6]);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      // a pale edge under the dashes keeps the way readable on any ground
+      ctx.strokeStyle = 'rgba(255, 244, 214, 0.75)';
+      ctx.lineWidth = px * 5;
+      ctx.setLineDash([]);
       ctx.beginPath();
-      ctx.moveTo(overlay.journey.from.x, overlay.journey.from.y);
-      ctx.lineTo(overlay.journey.to.x, overlay.journey.to.y);
+      tracePath(ctx, overlay.journey.path);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(150, 30, 20, 0.95)';
+      ctx.lineWidth = px * 2.8;
+      ctx.setLineDash([px * 9, px * 6]);
       ctx.stroke();
       ctx.setLineDash([]);
+      // the end of the way: a ring on the place it leads to
+      const end = overlay.journey.path[overlay.journey.path.length - 1];
+      if (end) {
+        ctx.beginPath();
+        ctx.arc(end.x, end.y, px * 11, 0, Math.PI * 2);
+        ctx.lineWidth = px * 2.2;
+        ctx.stroke();
+      }
     }
     for (const p of overlay.places) {
       const big = p.kind === 'city';
@@ -555,7 +610,8 @@ export class MapRenderer {
     }
     if (overlay.hero) {
       const { x, y } = overlay.hero;
-      const s = 9 * px;
+      // smaller from afar, so the banner does not hide the names of the places around
+      const s = 9 * px * Math.max(0.55, Math.min(1, zoom / 2.2));
       // a banner on a pole: where the hero is
       ctx.strokeStyle = '#1d140c';
       ctx.lineWidth = px * 2;
@@ -578,13 +634,64 @@ export class MapRenderer {
     }
   }
 
+  /** The days of each road of the game, at its middle, in the roads mode. */
+  private drawRoadDays(ctx: CanvasRenderingContext2D, overlay: MapOverlay, zoom: number): void {
+    const px = 1 / zoom;
+    ctx.font = `bold ${11 * px}px Georgia, serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const r of overlay.roads) {
+      const at = pointOf(r.path, 0.5);
+      const text = `${r.days} d`;
+      const w = ctx.measureText(text).width + 8 * px;
+      ctx.fillStyle = 'rgba(240, 225, 185, 0.95)';
+      ctx.strokeStyle = 'rgba(70, 40, 18, 0.9)';
+      ctx.lineWidth = px * 1.2;
+      ctx.beginPath();
+      ctx.rect(at.x - w / 2, at.y - 8 * px, w, 16 * px);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#3a2412';
+      ctx.fillText(text, at.x, at.y + px * 0.5);
+    }
+  }
+
+  /**
+   * Past the edge of the map there is mist, and the map fades into it (CK3's map ends in clouds, not in a cut):
+   * no empty strip and no straight seam when the camera looks past an edge.
+   */
+  private drawMist(ctx: CanvasRenderingContext2D, box: Box, paperAlpha: number): void {
+    const m = this.model;
+    if (box.x0 >= MIST && box.y0 >= MIST && box.x1 <= m.width - MIST && box.y1 <= m.height - MIST) return;
+    // the colour of the open sea of the map: past a sea edge the mist cannot be told from the water
+    const mist = mix(TERRAIN_COLOR.sea ?? '#355670', PAPER.sea, paperAlpha);
+    const clear = `${mist}00`;
+    const band = (x0: number, y0: number, x1: number, y1: number, gx0: number, gy0: number, gx1: number, gy1: number) => {
+      const g = ctx.createLinearGradient(gx0, gy0, gx1, gy1);
+      g.addColorStop(0, mist);
+      g.addColorStop(1, clear);
+      ctx.fillStyle = g;
+      ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+    };
+    band(0, 0, MIST, m.height, 0, 0, MIST, 0);
+    band(m.width - MIST, 0, m.width, m.height, m.width, 0, m.width - MIST, 0);
+    band(0, 0, m.width, MIST, 0, 0, 0, MIST);
+    band(0, m.height - MIST, m.width, m.height, 0, m.height, 0, m.height - MIST);
+    ctx.fillStyle = mist;
+    const far = 1e5;
+    ctx.fillRect(-far, -far, far * 2 + m.width, far);
+    ctx.fillRect(-far, m.height, far * 2 + m.width, far);
+    ctx.fillRect(-far, 0, far, m.height);
+    ctx.fillRect(m.width, 0, far, m.height);
+  }
+
   /** Draws the whole map for the camera into a canvas of the viewport size (device pixel ratio `dpr`). */
   draw(ctx: CanvasRenderingContext2D, cam: Camera, view: Viewport, dpr: number, mode: MapMode, overlay: MapOverlay): void {
     const m = this.model;
+    const z = cam.zoom;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = PAPER.seaDeep;
     ctx.fillRect(0, 0, view.width, view.height);
-    const z = cam.zoom;
     ctx.setTransform(dpr * z, 0, 0, dpr * z, dpr * (view.width / 2 - cam.x * z), dpr * (view.height / 2 - cam.y * z));
     const box = visibleBox(cam, view, 12);
     const paperAlpha = z <= PAPER_FROM ? 1 : z >= PAPER_TO ? 0 : (PAPER_TO - z) / (PAPER_TO - PAPER_FROM);
@@ -599,8 +706,10 @@ export class MapRenderer {
       ctx.globalAlpha = 1;
     }
     this.drawRoutes(ctx, z, paperAlpha);
+    this.drawMist(ctx, box, paperAlpha);
     this.drawBurgs(ctx, z, new Set(overlay.places.map((p) => p.name)), box);
     this.drawOverlay(ctx, mode, overlay, z);
-    drawLabels(ctx, m, z, paperAlpha, overlay, box);
+    if (mode === 'roads') this.drawRoadDays(ctx, overlay, z);
+    drawLabels(ctx, m, z, paperAlpha, overlay, box, mode);
   }
 }

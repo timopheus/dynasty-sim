@@ -1,6 +1,6 @@
 import type { MapModel, Point } from './model';
 import { INK } from './palette';
-import type { MapOverlay } from './types';
+import type { MapMode, MapOverlay } from './types';
 
 /** The face of the names on the map: the serif of the interface (style.css). */
 const SERIF = "Georgia, 'Times New Roman', serif";
@@ -84,17 +84,56 @@ function plainText(ctx: CanvasRenderingContext2D, text: string, x: number, y: nu
   ctx.fillText(text, x, y);
 }
 
+/** Where each people's name goes: the cell of its land nearest the middle of it, and how wide its land is. */
+const CULTURE_MARKS = new WeakMap<MapModel, { id: number; name: string; at: Point; span: number }[]>();
+
+function cultureMarks(m: MapModel): { id: number; name: string; at: Point; span: number }[] {
+  const known = CULTURE_MARKS.get(m);
+  if (known) return known;
+  const out: { id: number; name: string; at: Point; span: number }[] = [];
+  for (const c of m.cultures.values()) {
+    if (c.id === 0) continue;
+    const cells: number[] = [];
+    for (let i = 0; i < m.cellCount; i++) if (!m.water[i] && m.culture[i] === c.id) cells.push(i);
+    if (cells.length < 6) continue;
+    let sx = 0, sy = 0, x0 = Infinity, x1 = -Infinity;
+    for (const i of cells) {
+      const p = m.centers[i] as Point;
+      sx += p.x; sy += p.y; x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x);
+    }
+    const mid = { x: sx / cells.length, y: sy / cells.length };
+    let best = cells[0] as number, bestD = Infinity;
+    for (const i of cells) {
+      const p = m.centers[i] as Point;
+      const d = Math.hypot(p.x - mid.x, p.y - mid.y);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    out.push({ id: c.id, name: c.name, at: m.centers[best] as Point, span: (x1 - x0) * 0.7 });
+  }
+  CULTURE_MARKS.set(m, out);
+  return out;
+}
+
 const fade = (z: number, from: number, to: number) => Math.max(0, Math.min(1, (z - from) / (to - from)));
 
 /**
  * The names on the map, by zoom (CK3): realms and seas from afar, provinces in the middle, towns and the places of the
  * game close up. Sizes are chosen in screen pixels and turned into map units.
  */
-export function drawLabels(ctx: CanvasRenderingContext2D, m: MapModel, zoom: number, paperAlpha: number, overlay: MapOverlay, box: Box): void {
+export function drawLabels(ctx: CanvasRenderingContext2D, m: MapModel, zoom: number, paperAlpha: number, overlay: MapOverlay, box: Box, mode: MapMode = 'realms'): void {
   const px = 1 / zoom;
   // realms: big spaced capitals along the shape of the realm, fading as the provinces come in
   const realmAlpha = 1 - fade(zoom, 2.1, 3.2);
-  if (realmAlpha > 0) {
+  if (mode === 'cultures') {
+    // the peoples mode names the peoples, not the realms (CK3)
+    ctx.globalAlpha = Math.max(0.35, realmAlpha) * 0.92;
+    for (const c of cultureMarks(m)) {
+      const name = (overlay.peoples.get(c.id) ?? c.name).toUpperCase();
+      const size = Math.max(10 * px, Math.min(c.span / (name.length * 1.1), 22 * px));
+      plainText(ctx, name, c.at.x, c.at.y, size, 'rgba(40, 28, 16, 0.9)', 'rgba(240, 228, 200, 0.7)', false, 'bold');
+    }
+    ctx.globalAlpha = 1;
+  } else if (realmAlpha > 0) {
     ctx.globalAlpha = realmAlpha * 0.92;
     for (const s of m.states.values()) {
       if (!s.label) continue;
@@ -140,14 +179,10 @@ export function drawLabels(ctx: CanvasRenderingContext2D, m: MapModel, zoom: num
     }
     ctx.globalAlpha = 1;
   }
-  // the places of the game: always named once the paper map gives way
-  const placeAlpha = Math.max(fade(zoom, 1.1, 1.6), 0.0);
-  if (placeAlpha > 0) {
-    ctx.globalAlpha = placeAlpha;
-    for (const p of overlay.places) {
-      const strong = p.id === overlay.selected || p.id === overlay.hovered;
-      plainText(ctx, p.name, p.at.x, p.at.y + 12 * px, (p.kind === 'city' ? 13.5 : 12) * px, INK.label, INK.labelHalo, false, strong ? 'bold' : '');
-    }
-    ctx.globalAlpha = 1;
+  // the places of the game: always named, smaller from afar (they are where the hero can go)
+  const near = Math.min(1, Math.max(0.8, zoom / 1.6));
+  for (const p of overlay.places) {
+    const strong = p.id === overlay.selected || p.id === overlay.hovered;
+    plainText(ctx, p.name, p.at.x, p.at.y + 12 * px * near, (p.kind === 'city' ? 13.5 : 12) * px * near, INK.label, INK.labelHalo, false, strong ? 'bold' : '');
   }
 }
