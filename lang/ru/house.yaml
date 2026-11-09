@@ -1,0 +1,44 @@
+# Russian translation of content/house.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Commoner
+    text: null
+  - en: Guild house
+    text: null
+  - en: Noble
+    text: null
+  - en: Disgraced
+    text: null
+  - en: Ill-spoken-of
+    text: null
+  - en: Unremarked
+    text: null
+  - en: Respected
+    text: null
+  - en: Renowned
+    text: null
+  - en: Illustrious
+    text: null
+  - en: the Traitor
+    text: null
+  - en: the Thief
+    text: null
+  - en: the Deserter
+    text: null
+  - en: the Coward
+    text: null
+  - en: the Bankrupt
+    text: null
+  - en: Bearslayer
+    text: null
+  - en: the Faithful
+    text: null
+  - en: the Fair
+    text: null
+  - en: the Brawler
+    text: null
+  - en: The {house} house is now counted as {status}.
+    text: null
+  - en: The house must be {status} or higher.
+    text: null
+  - en: The house must be {renown}.
+    text: null

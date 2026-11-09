@@ -1,0 +1,100 @@
+# Russian translation of content/events/family-courtship.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Your path keeps crossing that of {match}, {match.age}. {match.He} laughs easily, and you find you are looking for {match.him} in every crowd.
+    text: null
+  - en: Pay court, one visit after another
+    text: null
+  - en: "{name} began to court {match}."
+    text: null
+  - en: Send a gift of 20 crowns first
+    text: null
+  - en: "{name} began to court {match} with a handsome gift."
+    text: null
+  - en: Keep your distance
+    text: null
+  - en: "{name} kept {his} distance from {match}."
+    text: null
+  - en: The season has been kind to your suit. {match} has stopped looking away when you come, and the family leaves you alone together. It is time to put the question.
+    text: null
+  - en: Ask for the hand of {match}
+    text: null
+  - en: "{name} won the hand of {match} after a season of courtship."
+    text: null
+  - en: "{name} asked for the hand of {match} and was put off."
+    text: null
+  - en: Settle a purse of 30 crowns on the family
+    text: null
+  - en: "{name} won the hand of {match} with a purse settled on the family."
+    text: null
+  - en: Put it off again
+    text: null
+  - en: "{name} put off the question to {match} and let the courtship fade."
+    text: null
+  - en: A season has gone by since you called on {match}. Other suitors have, and the door that stood open is closing.
+    text: null
+  - en: "{name} let the courtship of {match} lapse."
+    text: null
+  - en: "The family of {match}, {match.age}, sends a go-between with sober terms: a dowry of 80 crowns, and your name in the market in return. There is no talk of love."
+    text: null
+  - en: Accept the terms
+    text: null
+  - en: "{name} married {match} by arrangement, with a dowry of 80 crowns."
+    text: null
+  - en: Haggle for a larger dowry
+    text: null
+  - en: "{name} haggled the family of {match} up to a dowry of 140 crowns and married {match.him}."
+    text: null
+  - en: "{name} haggled over the dowry of {match} until the family walked away."
+    text: null
+  - en: Decline the terms
+    text: null
+  - en: "{name} declined a match of calculation with {match}."
+    text: null
+  - en: "{match}, {match.age}, is of a family of standing far above yours. The family would not look at a hero of no name, yet you have been seen, and talked of."
+    text: null
+  - en: Press your suit with all you have
+    text: null
+  - en: "{name} won the hand of {match}, of a family of standing far above {his} own."
+    text: null
+  - en: "{name} sought the hand of {match} and was shown the door for presuming."
+    text: null
+  - en: Send costly gifts to the family, 60 crowns
+    text: null
+  - en: "{name} bought the hand of {match}, of a family of standing above {his} own, with gifts worth 60 crowns."
+    text: null
+  - en: "{name} sent 60 crowns of gifts to the family of {match} and had them returned."
+    text: null
+  - en: Look for a match of your own station
+    text: null
+  - en: "{name} thought better of a match with {match}."
+    text: null
+  - en: "A match is offered for {child}{parent?, through {parent},}: {groom}, {groom.age}. It is a decent house, and {child} has been looking at the door."
+    text: null
+  - en: Agree to the match
+    text: null
+  - en: "{name} gave {child} in marriage to {groom}."
+    text: null
+  - en: Ask for a settlement on {child}
+    text: null
+  - en: "{name} gave {child} in marriage to {groom} and had a settlement of 50 crowns out of the house."
+    text: null
+  - en: "{name} asked too much for {child}, and the family of {groom} withdrew."
+    text: null
+  - en: Refuse; {child} will choose later
+    text: null
+  - en: "{name} refused a match between {child} and {groom}."
+    text: null
+  - en: The banns are read and the day is set. Your friends ask what kind of wedding {spouse} and you will have.
+    text: null
+  - en: A grand feast, 60 crowns
+    text: null
+  - en: "{name} gave a grand wedding feast for {spouse}, and the whole county talked of it."
+    text: null
+  - en: A modest supper with friends, 15 crowns
+    text: null
+  - en: "{name} wed {spouse} in the church and supped modestly with friends."
+    text: null
+  - en: The priest and two witnesses
+    text: null
+  - en: "{name} wed {spouse} quietly before a priest and two witnesses."
+    text: null

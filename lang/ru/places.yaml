@@ -1,0 +1,290 @@
+# Russian translation of content/places.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: a city
+    text: null
+  - en: a town
+    text: null
+  - en: a village
+    text: null
+  - en: on the road
+    text: null
+  - en: Ostmere
+    text: null
+  - en: Haverland
+    text: null
+  - en: Schlilerbach
+    text: null
+  - en: Haverlanders
+    text: null
+  - en: a river mouth among wet meadows
+    text: null
+  - en: river port
+    text: null
+  - en: exchange
+    text: null
+  - en: city walls
+    text: null
+  - en: Canal water slaps the steps of every counting-house, and merchants talk in sums even on the church porch.
+    text: null
+  - en: Rohrbach
+    text: null
+  - en: Schwoberia
+    text: null
+  - en: a sea coast with a river mouth
+    text: null
+  - en: seaport
+    text: null
+  - en: citadel
+    text: null
+  - en: temple
+    text: null
+  - en: market
+    text: null
+  - en: Tar and cold fish at every breath, a ropewalk's long shed, and the Company's red seal on every warehouse door.
+    text: null
+  - en: Mullrosin
+    text: null
+  - en: rolling farmland above a river
+    text: null
+  - en: toll bridge
+    text: null
+  - en: Slate roofs below a hill fort, and carters bawling weights at the toll bridge from first light.
+    text: null
+  - en: Teigach
+    text: null
+  - en: orchards and open fields on a rise
+    text: null
+  - en: mill
+    text: null
+  - en: alehouse
+    text: null
+  - en: common pasture
+    text: null
+  - en: Plum orchards behind low hedges; one mill, one alehouse, and a tally cut in the miller's door-post.
+    text: null
+  - en: Valmont
+    text: null
+  - en: Aurenne
+    text: null
+  - en: Cevillonte
+    text: null
+  - en: Aurennais
+    text: null
+  - en: vine slopes above a wide river
+    text: null
+  - en: royal court
+    text: null
+  - en: Stone the colour of old honey, and a hush on the steps where those who want the king's favour stand and wait.
+    text: null
+  - en: Charoy
+    text: null
+  - en: Chandadonia
+    text: null
+  - en: chalk hills and a river with stone bridges
+    text: null
+  - en: wine cellars
+    text: null
+  - en: Cellar doors stand open on every lane and the smell of must lingers until the garrison drums drown it.
+    text: null
+  - en: Marmant
+    text: null
+  - en: Gaunenia
+    text: null
+  - en: a grey headland over a river
+    text: null
+  - en: abbey
+    text: null
+  - en: Bells from the abbey answer one another over the roofs, and masons chip at blocks in every second yard.
+    text: null
+  - en: Bacres
+    text: null
+  - en: Viendon
+    text: null
+  - en: wooded hills and small fields
+    text: null
+  - en: The square is lined with tanners' stalls, and the intendant's clerk writes down every hide that crosses it.
+    text: null
+  - en: Novomor
+    text: null
+  - en: Borea
+    text: null
+  - en: Levitsk
+    text: null
+  - en: Boreans
+    text: null
+  - en: marshy lowland on a sea inlet
+    text: null
+  - en: palace
+    text: null
+  - en: New timber wharves smell of resin along the whole bank, and every beam of them was cut by decree.
+    text: null
+  - en: Meschevsk
+    text: null
+  - en: Stresia
+    text: null
+  - en: flat forest by a slow river
+    text: null
+  - en: shrine
+    text: null
+  - en: beeswax yard
+    text: null
+  - en: Log houses along a single street; the sledge road is kept up and the beeswax cart goes through twice a year.
+    text: null
+  - en: Kryvan
+    text: null
+  - en: Shigia
+    text: null
+  - en: birch forest at the edge of the steppe
+    text: null
+  - en: timber walls
+    text: null
+  - en: fur sheds
+    text: null
+  - en: Stockade logs gone silver with age, and furs hung in rows from the gallery rails like washing.
+    text: null
+  - en: Ostkala
+    text: null
+  - en: a wide river mouth with low banks
+    text: null
+  - en: Log rafts knock together at the quay, and the customs house smells of wet bark and sealing wax.
+    text: null
+  - en: Sarayhan
+    text: null
+  - en: Izmara
+    text: null
+  - en: Beyka
+    text: null
+  - en: Izmarans
+    text: null
+  - en: a marshy coast with a deep harbour
+    text: null
+  - en: sultan's palace
+    text: null
+  - en: great bazaar
+    text: null
+  - en: minarets
+    text: null
+  - en: From the minarets the call to prayer rolls over the roofs, one voice after another, never quite together.
+    text: null
+  - en: Baharduman
+    text: null
+  - en: a dry plain beside a river
+    text: null
+  - en: covered bazaar
+    text: null
+  - en: caravanserai
+    text: null
+  - en: river crossing
+    text: null
+  - en: Covered lanes smell of cardamom, and a toll-farmer's clerk sits under every arch with his scales.
+    text: null
+  - en: Aykut
+    text: null
+  - en: a dry plain with one river
+    text: null
+  - en: dye works
+    text: null
+  - en: Camels kneel in a caravanserai yard, and the dyers' vats stain the gutter blue by the south gate.
+    text: null
+  - en: Ur Nahlem
+    text: null
+  - en: Evehribia
+    text: null
+  - en: a reed shore beside a slow river
+    text: null
+  - en: landing
+    text: null
+  - en: ferry
+    text: null
+  - en: Reed boats drawn up on the mud, nets drying on the roofs, and a ferry rope that every household takes its turn to haul.
+    text: null
+  - en: Only in {kinds}
+    text: null
+  - en: Only in {places}
+    text: null
+  - en: No road leads anywhere from here
+    text: null
+  - en: small
+    text: null
+  - en: middling
+    text: null
+  - en: large
+    text: null
+  - en: great
+    text: null
+  - en: sleet
+    text: null
+  - en: fog
+    text: null
+  - en: gale
+    text: null
+  - en: cold rain
+    text: null
+  - en: rain
+    text: null
+  - en: mild and bright
+    text: null
+  - en: sea fog
+    text: null
+  - en: warm and bright
+    text: null
+  - en: showers
+    text: null
+  - en: sea haze
+    text: null
+  - en: clear and cool
+    text: null
+  - en: frost
+    text: null
+  - en: grey and damp
+    text: null
+  - en: snow
+    text: null
+  - en: wind
+    text: null
+  - en: hot and clear
+    text: null
+  - en: thunderstorm
+    text: null
+  - en: warm and hazy
+    text: null
+  - en: mist
+    text: null
+  - en: clear and crisp
+    text: null
+  - en: hard frost
+    text: null
+  - en: blizzard
+    text: null
+  - en: thaw and mud
+    text: null
+  - en: cold and bright
+    text: null
+  - en: hot and still
+    text: null
+  - en: first frost
+    text: null
+  - en: mild and dry
+    text: null
+  - en: cool wind
+    text: null
+  - en: warm and dry
+    text: null
+  - en: dust wind
+    text: null
+  - en: scorching
+    text: null
+  - en: dust haze
+    text: null
+  - en: hot and dry
+    text: null
+  - en: first rains
+    text: null
+  - en: "{name} came to {place}."
+    text: null
+  - en: "{name} halted on the road between {from} and {to}."
+    text: null
+  - en: "{name} broke off the journey in {place}."
+    text: null
+  - en: "{name} turned toward {place}."
+    text: null

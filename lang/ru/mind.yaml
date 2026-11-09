@@ -1,0 +1,64 @@
+# Russian translation of content/mind.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Despairing
+    text: null
+  - en: Miserable
+    text: null
+  - en: Unhappy
+    text: null
+  - en: Content
+    text: null
+  - en: Happy
+    text: null
+  - en: Joyful
+    text: null
+  - en: a lie or a swindle
+    text: null
+  - en: running away
+    text: null
+  - en: courting danger
+    text: null
+  - en: betraying a trust
+    text: null
+  - en: giving of your own
+    text: null
+  - en: holding fast to your own
+    text: null
+  - en: lowering yourself
+    text: null
+  - en: demanding your due
+    text: null
+  - en: breaking your word
+    text: null
+  - en: forgiving
+    text: null
+  - en: settling a score
+    text: null
+  - en: lashing out
+    text: null
+  - en: holding your temper
+    text: null
+  - en: shirking
+    text: null
+  - en: working beyond need
+    text: null
+  - en: taking on trust
+    text: null
+  - en: checking up
+    text: null
+  - en: reaching higher
+    text: null
+  - en: settling for less
+    text: null
+  - en: hurting the helpless
+    text: null
+  - en: "{name} broke under the weight of it all and could not be roused for weeks."
+    text: null
+  - en: Requires happiness of at least {value}
+    text: null
+  - en: Requires happiness of at most {value}
+    text: null
+  - en: Despondent
+    text: null
+  - en: "{name} sank into a settled gloom."
+    text: null

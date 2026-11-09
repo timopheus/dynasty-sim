@@ -1,0 +1,94 @@
+# Russian translation of content/health.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Light wound
+    text: null
+  - en: fresh
+    text: null
+  - en: festering
+    text: null
+  - en: "{name}'s wound began to fester."
+    text: null
+  - en: wound fever
+    text: null
+  - en: Wound fever took hold of {name}.
+    text: null
+  - en: "{name} was left with a scar."
+    text: null
+  - en: Severe wound
+    text: null
+  - en: "{name}'s wound festered."
+    text: null
+  - en: "{name}'s wound healed cleanly."
+    text: null
+  - en: "{name}'s wound healed into an ugly scar."
+    text: null
+  - en: "{name}'s wound closed, but never quite healed."
+    text: null
+  - en: "{name} was left lame by the wound."
+    text: null
+  - en: "{name} lost an eye to the wound."
+    text: null
+  - en: "{name} was left with a maimed hand."
+    text: null
+  - en: Old wound
+    text: null
+  - en: closed
+    text: null
+  - en: reopened
+    text: null
+  - en: "{name}'s old wound opened again."
+    text: null
+  - en: Wound fever from the old wound took hold of {name}.
+    text: null
+  - en: Fever
+    text: null
+  - en: feverish
+    text: null
+  - en: crisis
+    text: null
+  - en: "{name}'s fever reached its crisis."
+    text: null
+  - en: Consumption
+    text: null
+  - en: lingering cough
+    text: null
+  - en: wasting
+    text: null
+  - en: Consumption began to waste {name} away.
+    text: null
+  - en: "{name}'s cough faded at last."
+    text: null
+  - en: Frailty
+    text: null
+  - en: frail
+    text: null
+  - en: "{name} came down with a cough that would not go away."
+    text: null
+  - en: "Age caught up with {name}: {he} grew frail."
+    text: null
+  - en: Wound fever had carried {him} off.
+    text: null
+  - en: A fever had carried {him} off.
+    text: null
+  - en: Consumption had wasted {him} away.
+    text: null
+  - en: Old age had worn {him} out.
+    text: null
+  - en: A sudden illness took {him}.
+    text: null
+  - en: "{He} had fallen in a duel."
+    text: null
+  - en: "{He} had been killed."
+    text: null
+  - en: "{He} had died in childbirth."
+    text: null
+  - en: "{He} had been too frail to live."
+    text: null
+  - en: "{name} was too ill to go on and had to take to bed."
+    text: null
+  - en: Too ill or badly hurt
+    text: null
+  - en: "Needs one of: {conditions}"
+    text: null
+  - en: Not while suffering from {conditions}
+    text: null

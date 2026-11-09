@@ -1,0 +1,176 @@
+# Russian translation of content/events/mind.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: "A thin figure waits at the gate while you mend: {beggar}, hat in hand, who has not eaten since yesterday and does not ask outright."
+    text: null
+  - en: Share your bread and a coin
+    text: null
+  - en: "{name} shared bread and a coin with {beggar} at the gate."
+    text: null
+  - en: You watch {beggar} eat at your doorstep, and the house feels lighter for it.
+    text: null
+  - en: Send {beggar} off; you have little enough yourself
+    text: null
+  - en: "{name} sent {beggar} away from the gate empty-handed."
+    text: null
+  - en: You shut the gate and keep what is yours.
+    text: null
+  - en: Hand over a crust and no more
+    text: null
+  - en: "{name} gave {beggar} a crust at the gate."
+    text: null
+  - en: At the inn {companion} offers to watch your baggage through the night, so that you can sleep without one eye open. {companion.He} smiles easily, which proves nothing.
+    text: null
+  - en: Leave your baggage in {companion}'s care
+    text: null
+  - en: "{name} left the baggage with {companion} for the night and found it untouched."
+    text: null
+  - en: You sleep soundly, and in the morning every strap is as you left it.
+    text: null
+  - en: "{name} trusted {companion} with the baggage and woke to a lighter purse."
+    text: null
+  - en: The bed beside yours is empty, and so is the purse.
+    text: null
+  - en: "{companion} may not be as honest as {companion.he} looks."
+    text: null
+  - en: Go through {companion}'s pack before you agree
+    text: null
+  - en: "{name} searched the pack of {companion} before trusting {companion.him} with a bag."
+    text: null
+  - en: You find nothing, and {companion} knows you looked.
+    text: null
+  - en: Keep watch yourself
+    text: null
+  - en: "{name} kept watch over the baggage alone through the night."
+    text: null
+  - en: "{buyer} asks whether your salt is dry. It is not quite: the damp has got into the lower sacks, and the price is good only if {buyer.he} does not look."
+    text: null
+  - en: Swear it is dry as dust
+    text: null
+  - en: "{name} sold damp salt to {buyer} as dry."
+    text: null
+  - en: The coin is good; the lie sits in your mouth like a stone.
+    text: null
+  - en: "{name} was caught selling damp salt to {buyer} as dry."
+    text: null
+  - en: "{buyer} tips a sack onto the counter and the whole row sees it."
+    text: null
+  - en: "{buyer} may open a sack before the coin changes hands."
+    text: null
+  - en: Tell {buyer} the truth and cut the price
+    text: null
+  - en: "{name} told {buyer} the salt was damp and sold it at a lower price."
+    text: null
+  - en: "{buyer} takes it with a nod, and you will see that nod again."
+    text: null
+  - en: Keep the damp sacks for yourself
+    text: null
+  - en: "{name} kept the damp salt back from {buyer}."
+    text: null
+  - en: At the fire, with the whole company listening, {sergeant} calls your last march a dawdle and your pay a charity.
+    text: null
+  - en: Knock {sergeant} off the log
+    text: null
+  - en: "{name} knocked {sergeant} off a log for a jibe at the fire."
+    text: null
+  - en: The company roars, and nobody calls your march a dawdle again.
+    text: null
+  - en: "{name} struck {sergeant} at the fire and was thrashed for it."
+    text: null
+  - en: You pick yourself out of the ashes with the company laughing.
+    text: null
+  - en: "{sergeant} may be the better fighter."
+    text: null
+  - en: Bite your tongue and say nothing
+    text: null
+  - en: "{name} bore a sergeant's jibe at the fire in silence."
+    text: null
+  - en: You stare into the flames until the talk moves on.
+    text: null
+  - en: Turn it into a joke at {sergeant}'s own expense
+    text: null
+  - en: "{name} laughed off a sergeant's jibe and had the fire laughing with {him}."
+    text: null
+  - en: "{name} tried to laugh off a sergeant's jibe and only made it worse."
+    text: null
+  - en: "The nights are long and the purse is short. {master} has piecework for whoever will sit up with it: accounts to copy, sacks to count, a floor to scrub."
+    text: null
+  - en: Sit up with the work every night
+    text: null
+  - en: "{name} worked the winter nights through for {master} and earned a good sum."
+    text: null
+  - en: By spring your eyes are red and your purse is fatter.
+    text: null
+  - en: Take the work in the daytime only
+    text: null
+  - en: "{name} took daytime piecework from {master} through the winter."
+    text: null
+  - en: Spend the winter by the fire
+    text: null
+  - en: "{name} spent the winter nights by the fire and turned down the work of {master}."
+    text: null
+  - en: The fire is warm and the work goes to someone else.
+    text: null
+  - en: "{captain} lets it be known that a lieutenant's place is vacant. It wants a man with a name or a purse of 30 crowns for the colonel's clerk, and {comrade} has been hoping for it too."
+    text: null
+  - en: Put your name forward with 30 crowns
+    text: null
+  - en: "{name} bought a lieutenant's place with a purse of 30 crowns."
+    text: null
+  - en: The colonel's clerk counts the crowns twice and writes your name.
+    text: null
+  - en: "{name} paid 30 crowns for a lieutenant's place and saw it go to another."
+    text: null
+  - en: The place goes to a colonel's nephew and the purse is not returned.
+    text: null
+  - en: The colonel may take the purse and give the place away.
+    text: null
+  - en: Speak for {comrade} and step aside
+    text: null
+  - en: "{name} spoke for {comrade} and let the lieutenant's place go."
+    text: null
+  - en: "{comrade} grips your hand, and you tell yourself the quiet is worth it."
+    text: null
+  - en: Say nothing and keep your rank
+    text: null
+  - en: "{name} let a lieutenant's place pass."
+    text: null
+  - en: A cart sits canted in the ditch ahead, and the man cursing at its wheel is {foe}, who has not forgiven you the old quarrel, nor given you cause to forgive.
+    text: null
+  - en: Climb down and put your shoulder to the wheel
+    text: null
+  - en: "{name} put a shoulder to the cart of {foe}, an old foe, and got it out of the ditch."
+    text: null
+  - en: "{foe} says nothing, but takes your hand at the end of it."
+    text: null
+  - en: Tell {foe} what you think of {foe.him} and drive on
+    text: null
+  - en: "{name} left {foe} cursing in a ditch and rode on."
+    text: null
+  - en: You ride on with {foe}'s curses behind you and a hard satisfaction.
+    text: null
+  - en: Drive past without a look
+    text: null
+  - en: "{name} drove past {foe}'s cart without a word."
+    text: null
+  - en: The ford is running brown and high after the rains, and dusk is coming on. The far bank has an inn; this one has only wet grass.
+    text: null
+  - en: Spur across at once
+    text: null
+  - en: "{name} forded a river in flood at dusk and reached the inn."
+    text: null
+  - en: You come up the far bank soaked and laughing.
+    text: null
+  - en: "{name} was swept off the ford in a flooded river and lost baggage to the current."
+    text: null
+  - en: You drag yourself out downstream with half your baggage gone.
+    text: null
+  - en: The current may take the horse, or the baggage, or you.
+    text: null
+  - en: Pay a local boy to lead you across
+    text: null
+  - en: "{name} paid a boy to lead the way across a flooded ford."
+    text: null
+  - en: Wait for morning on the bank
+    text: null
+  - en: "{name} waited out a flooded ford and crossed at dawn."
+    text: null

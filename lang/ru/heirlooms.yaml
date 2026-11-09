@@ -1,0 +1,24 @@
+# Russian translation of content/heirlooms.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Sword
+    text: null
+  - en: Ring
+    text: null
+  - en: Bill of exchange
+    text: null
+  - en: "{name} came into {heirloom}, a family {kind}."
+    text: null
+  - en: "{name} gave {heirloom}, the family {kind}, to {to}."
+    text: null
+  - en: "{name} sold {heirloom}, the family {kind}."
+    text: null
+  - en: "{name} lost {heirloom}, the family {kind}, for good."
+    text: null
+  - en: "{name} inherited {heirloom}, the family {kind}, from {deceased}."
+    text: null
+  - en: "{name} was left {heirloom}, the family {kind}, by {deceased}."
+    text: null
+  - en: Needs a family {kind}.
+    text: null
+  - en: Needs {n} family heirlooms.
+    text: null

@@ -1,0 +1,260 @@
+# Russian translation of content/events/actions.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Armed men step out of the hedge <road_weather> and bar the road. One of them names a price for your passage.
+    text: null
+  - en: Fight them
+    text: null
+  - en: "{name} fought off highwaymen on the road and took their purse."
+    text: null
+  - en: "{name} was beaten and robbed by highwaymen on the road."
+    text: null
+  - en: Pay them off
+    text: null
+  - en: "{name} paid off highwaymen on the road."
+    text: null
+  - en: A cart wheel cracks on a muddy road{wheelwright?, and {wheelwright} is already looking over the damage}.
+    text: null
+  - en: Pay a wheelwright
+    text: null
+  - en: "{name} paid a wheelwright{wheelwright?, {wheelwright},} to mend a broken wheel."
+    text: null
+  - en: Mend it yourself
+    text: null
+  - en: "{name} mended a broken wheel by hand in the mud."
+    text: null
+  - en: "{name} botched the mending of a broken wheel and paid twice for it."
+    text: null
+  - en: On the road you fall in step with {companion}, who is bound the same way and offers to share the miles and the cost of the inns.
+    text: null
+  - en: Share the road and the cost
+    text: null
+  - en: "{name} shared a long road with {companion}."
+    text: null
+  - en: "{name} fell out with {companion} over the cost of an inn."
+    text: null
+  - en: Go your own way
+    text: null
+  - en: "{name} declined the company of {companion} on the road."
+    text: null
+  - en: "After dark, a lantern winks twice from a barn. {smuggler} steps into the road: there is brandy to move before dawn, and a share for anyone who does not ask questions."
+    text: null
+  - en: Carry a load for the smugglers
+    text: null
+  - en: "{name} ran a load of brandy past the revenue men for {smuggler}."
+    text: null
+  - en: "{name} was caught with smuggled brandy, beaten and fined."
+    text: null
+  - en: Refuse and ride on
+    text: null
+  - en: "{name} refused to carry brandy for {smuggler}."
+    text: null
+  - en: Tell the revenue men
+    text: null
+  - en: "{name} informed on {smuggler} to the revenue men for a reward."
+    text: null
+  - en: "{sergeant} offers a bonus to whoever will take a dangerous night patrol along the river."
+    text: null
+  - en: Volunteer
+    text: null
+  - en: "{name} volunteered for a night patrol and earned a bonus from {sergeant}."
+    text: null
+  - en: "{name} was wounded on a night patrol but earned half a bonus."
+    text: null
+  - en: Stay in camp
+    text: null
+  - en: "{name} stayed in camp while others went on patrol."
+    text: null
+  - en: "{paymaster} is late with the wages again. The men are muttering."
+    text: null
+  - en: Complain loudly
+    text: null
+  - en: "{name} complained to {paymaster} and got part of the wages."
+    text: null
+  - en: "{name} complained to {paymaster} and was sent away with nothing."
+    text: null
+  - en: Wait patiently
+    text: null
+  - en: "{name} waited out a late payday on credit."
+    text: null
+  - en: shots crack from the treeline
+    text: null
+  - en: men rise from the ditch with pistols in their hands
+    text: null
+  - en: a tree comes down across the road
+    text: null
+  - en: At the inn that night, {coward} is already telling the carters how bravely {coward.he} fought.
+    text: null
+  - en: Name {coward} a coward and a liar, before everyone
+    text: null
+  - en: "{He} publicly named {coward} a coward and a liar."
+    text: null
+  - en: Say nothing
+    text: null
+  - en: "{He} kept quiet about {coward}."
+    text: null
+  - en: You are guarding {employer}'s wine wagons when <ambush_opening>. Out of the corner of your eye you see {coward} drop {coward.his} musket and run.
+    text: null
+  - en: Stand and hold the wagons
+    text: null
+  - en: "{name} held {employer}'s wagons against a bandit ambush."
+    text: null
+  - en: "{name} was badly wounded in a bandit ambush while guarding {employer}'s wine."
+    text: null
+  - en: Charge the ambushers alone
+    text: null
+  - en: "{name} charged a bandit ambush alone, broke it and saved {employer}'s wagons."
+    text: null
+  - en: "{name} charged a bandit ambush alone and was cut down."
+    text: null
+  - en: Run with {coward}
+    text: null
+  - en: "{name} fled a bandit ambush with {coward}, leaving {employer}'s wine to the robbers."
+    text: null
+  - en: "<Dawn> {sergeant} shakes you awake: skirmishers are fording the river below the camp, and the officers are nowhere to be seen."
+    text: null
+  - en: Hold the bank with the picket
+    text: null
+  - en: "{name} held the river bank with the picket and drove the skirmishers off."
+    text: null
+  - en: "{name} was beaten back from the river bank and lost kit."
+    text: null
+  - en: Lead a sortie across the ford
+    text: null
+  - en: "{name} led a sortie across a ford and routed the enemy skirmishers."
+    text: null
+  - en: "{name} fell leading a sortie across a ford."
+    text: null
+  - en: Fall back to the camp
+    text: null
+  - en: "{name} fell back from the ford and left the picket to hold it."
+    text: null
+  - en: Three months without pay. {ringleader} climbs onto a wagon and tells the company to stack arms and march home. Half the men are already nodding.
+    text: null
+  - en: Side with the men
+    text: null
+  - en: "{name} sided with {ringleader} in a mutiny over pay, and the back wages were paid."
+    text: null
+  - en: "{name} was flogged as a mutineer when a pay mutiny failed."
+    text: null
+  - en: Draw your sword on the mob
+    text: null
+  - en: "{name} drew on a mutinous mob and broke it up."
+    text: null
+  - en: "{name} was cut down trying to break up a pay mutiny."
+    text: null
+  - en: Keep out of it
+    text: null
+  - en: "{name} kept out of a pay mutiny in the camp."
+    text: null
+  - en: "{seller} offers you a cargo of cloth at a suspiciously low price."
+    text: null
+  - en: Buy it
+    text: null
+  - en: "{name} bought a cheap cargo of cloth from {seller}, found it sound and sold it at a profit."
+    text: null
+  - en: "{name} bought a cheap cargo of cloth from {seller} that turned out to be rotten."
+    text: null
+  - en: Refuse
+    text: null
+  - en: "{name} refused a suspiciously cheap cargo of cloth from {seller}."
+    text: null
+  - en: "{rival} has taken the stall next to yours and is selling the same goods for less."
+    text: null
+  - en: Cut your prices to match
+    text: null
+  - en: "{name} met {rival}'s prices in the market and kept the custom."
+    text: null
+  - en: "{name} cut prices against {rival} and sold at a loss."
+    text: null
+  - en: Spread word that {rival} gives short measure
+    text: null
+  - en: "{name} ruined the custom of {rival} in the market with a whispering campaign."
+    text: null
+  - en: "{name} was caught slandering {rival} in the market."
+    text: null
+  - en: Share the market peaceably
+    text: null
+  - en: "{name} traded beside {rival} without a quarrel."
+    text: null
+  - en: '{patron}, an established merchant, has watched you deal for some weeks. "Someone who deals honestly could go far," {patron.he} says. "Let me back you."'
+    text: null
+  - en: Accept the backing
+    text: null
+  - en: "{name} took the backing of {patron}, a merchant, and went into trade under {patron.his} name."
+    text: null
+  - en: Thank {patron} and stay independent
+    text: null
+  - en: "{name} turned down the backing of {patron}, preferring to be {his} own master."
+    text: null
+  - en: "{lodger}, who has the next room, proposes to share the costs of the winter."
+    text: null
+  - en: Agree
+    text: null
+  - en: "{name} shared winter lodgings with {lodger} and split the costs."
+    text: null
+  - en: "{name} shared winter lodgings with {lodger}, who left in the spring with {his} purse."
+    text: null
+  - en: "{name} kept to a room alone for the winter."
+    text: null
+  - en: The frost holds the town for a week. Firewood and bread cost double, and you pay what is asked.
+    text: null
+  - en: "{name} paid dearly for firewood in a hard frost."
+    text: null
+  - en: You are still weak from the road when {nurse} starts bringing broth to your room without being asked.
+    text: null
+  - en: Accept the broth gratefully
+    text: null
+  - en: "{name} was nursed back to strength by {nurse}."
+    text: null
+  - en: Send {nurse} away, you want no fuss
+    text: null
+  - en: "{name} sent {nurse} away and recovered alone."
+    text: null
+  - en: A wild boar charges you out of the undergrowth.
+    text: null
+  - en: Stand and strike
+    text: null
+  - en: "{name} killed a charging boar and was only scratched."
+    text: null
+  - en: "{name} killed a charging boar but was gored."
+    text: null
+  - en: Climb a tree
+    text: null
+  - en: "{name} waited out a wild boar from the branches of a tree."
+    text: null
+  - en: "The dogs go quiet, then yelp. In the thicket ahead something very large rises on its hind legs: a bear, and it has seen you."
+    text: null
+  - en: Face the bear with a spear
+    text: null
+  - en: "{name} killed a bear with a boar spear, to the wonder of the neighbourhood."
+    text: null
+  - en: "{name} was mauled to death by a bear in a thicket."
+    text: null
+  - en: Fire from the trees
+    text: null
+  - en: "{name} shot a bear from the trees and sold the pelt."
+    text: null
+  - en: "{name} wounded a bear with an arrow and was badly clawed for it."
+    text: null
+  - en: Back away slowly
+    text: null
+  - en: "{name} backed away from a bear and left the dogs to their luck."
+    text: null
+  - en: You are dressing a deer in a wood that belongs to a lord when {warden}, the keeper, steps out between the trees and asks whose deer it is.
+    text: null
+  - en: Pay the fine
+    text: null
+  - en: "{name} paid {warden} a fine for a deer taken in a lord's wood."
+    text: null
+  - en: Slip away through the undergrowth
+    text: null
+  - en: "{name} escaped {warden} with the deer."
+    text: null
+  - en: "{name} was caught by {warden} with a poached deer and fined heavily."
+    text: null
+  - en: Talk your way out of it
+    text: null
+  - en: "{name} talked {warden} out of reporting a poached deer."
+    text: null
+  - en: "{name} tried to talk {warden} round and was fined all the same."
+    text: null

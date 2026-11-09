@@ -1,0 +1,72 @@
+# Russian translation of content/traits/character.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Proud
+    text: null
+  - en: "{name} grew proud and stopped bowing to anyone."
+    text: null
+  - en: Humble
+    text: null
+  - en: "{name} put pride aside and learned to be humble."
+    text: null
+  - en: Brave
+    text: null
+  - en: "{name} found courage that {he} had not known before."
+    text: null
+  - en: Craven
+    text: null
+  - en: "{name} lost {his} nerve and could not shake the fear."
+    text: null
+  - en: Honest
+    text: null
+  - en: "{name} came to value plain dealing above profit."
+    text: null
+  - en: Deceitful
+    text: null
+  - en: "{name} learned that a convenient lie can be worth more than the truth."
+    text: null
+  - en: Generous
+    text: null
+  - en: "{name} became open-handed with {his} purse."
+    text: null
+  - en: Greedy
+    text: null
+  - en: "{name} grew tight-fisted and counted every coin."
+    text: null
+  - en: Vengeful
+    text: null
+  - en: "{name} swore never to forget a wrong."
+    text: null
+  - en: Forgiving
+    text: null
+  - en: "{name} learned to let old wrongs lie."
+    text: null
+  - en: Ambitious
+    text: null
+  - en: "{name} began to look for a place higher than {his} own."
+    text: null
+  - en: "{name} stopped chasing advancement and settled into what {he} had."
+    text: null
+  - en: Wrathful
+    text: null
+  - en: "{name} lost {his} temper once too often and became known for it."
+    text: null
+  - en: Calm
+    text: null
+  - en: "{name} cooled {his} temper and met trouble with a steady head."
+    text: null
+  - en: Diligent
+    text: null
+  - en: "{name} turned to steady work and kept at it."
+    text: null
+  - en: Lazy
+    text: null
+  - en: "{name} fell into idle habits and let work slide."
+    text: null
+  - en: Trusting
+    text: null
+  - en: "{name} began to take people at their word."
+    text: null
+  - en: Suspicious
+    text: null
+  - en: "{name} learned to trust no one without cause."
+    text: null

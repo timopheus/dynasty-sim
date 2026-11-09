@@ -1,0 +1,46 @@
+# Russian translation of content/actions.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Live as you will
+    text: null
+  - en: "{name} lived as {he} pleased."
+    text: null
+  - en: Travel the roads
+    text: null
+  - en: "{name} came to the end of a journey on the roads."
+    text: null
+  - en: Serve under contract
+    text: null
+  - en: "{name} finished a contract of service and was paid off."
+    text: null
+  - en: Take work
+    text: null
+  - en: "{name} took on a job."
+    text: null
+  - en: Winter in quarters
+    text: null
+  - en: "{name} wintered in quiet quarters and recovered strength."
+    text: null
+  - en: Rest and recover
+    text: null
+  - en: "{name} spent a few quiet weeks resting."
+    text: null
+  - en: Try a small trade
+    text: null
+  - en: "{name} wound up a small trading venture with a modest profit."
+    text: null
+  - en: Go hunting
+    text: null
+  - en: "{name} returned from the hunt with game to sell."
+    text: null
+  - en: Draw up a will at the notary
+    text: null
+  - en: "{name} came back from the notary with a will drawn up and sealed."
+    text: null
+  - en: Grow up under guardianship
+    text: null
+  - en: "{name} grew another year older under the care of {his} guardian."
+    text: null
+  - en: Take lessons
+    text: null
+  - en: "{name} spent a season at {his} lessons."
+    text: null

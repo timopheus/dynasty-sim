@@ -1,0 +1,28 @@
+# Russian translation of content/events/family-world.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: "{name} has kept company with {other} for a season; the families are talking."
+    text: null
+  - en: Marry
+    text: null
+  - en: "{name} married {other}."
+    text: null
+  - en: Wait another year
+    text: null
+  - en: "{name} put off marrying {other}."
+    text: null
+  - en: "{name} has been promised to {other}, and a better offer has come."
+    text: null
+  - en: Keep faith and marry {other}
+    text: null
+  - en: "{name} kept faith and married {other}."
+    text: null
+  - en: Break the engagement
+    text: null
+  - en: "{name} broke an engagement with {other} for a better offer."
+    text: null
+  - en: "{name}'s child {child} is a few weeks old, and the priest asks when the christening is to be."
+    text: null
+  - en: Hold a christening feast
+    text: null
+  - en: "{name} held a christening feast for {child}."
+    text: null

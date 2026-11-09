@@ -1,0 +1,28 @@
+# Russian translation of content/family.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: "{name}'s wife {other} gave birth to a {kind}, {child}."
+    text: null
+  - en: "{name} gave birth to a {kind}, {child}."
+    text: null
+  - en: "{name} lost {his} {kind} {other}."
+    text: null
+  - en: "{name} was widowed by the death of {other}."
+    text: null
+  - en: Only for the married
+    text: null
+  - en: Only for the unmarried
+    text: null
+  - en: Only for {name}'s {kind}
+    text: null
+  - en: Needs at least {count} living children
+    text: null
+  - en: Cannot marry {name}
+    text: null
+  - en: spouse
+    text: null
+  - en: child
+    text: null
+  - en: parent
+    text: null
+  - en: brother or sister
+    text: null

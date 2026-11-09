@@ -1,0 +1,42 @@
+# Russian translation of content/traits/education.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Courtly education I
+    text: null
+  - en: Courtly education II
+    text: null
+  - en: Courtly education III
+    text: null
+  - en: Courtly education IV
+    text: null
+  - en: Military education I
+    text: null
+  - en: Military education II
+    text: null
+  - en: Military education III
+    text: null
+  - en: Military education IV
+    text: null
+  - en: Counting-house education I
+    text: null
+  - en: Counting-house education II
+    text: null
+  - en: Counting-house education III
+    text: null
+  - en: Counting-house education IV
+    text: null
+  - en: Street and chancery education I
+    text: null
+  - en: Street and chancery education II
+    text: null
+  - en: Street and chancery education III
+    text: null
+  - en: Street and chancery education IV
+    text: null
+  - en: Learned education I
+    text: null
+  - en: Learned education II
+    text: null
+  - en: Learned education III
+    text: null
+  - en: Learned education IV
+    text: null

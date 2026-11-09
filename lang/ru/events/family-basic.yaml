@@ -1,0 +1,60 @@
+# Russian translation of content/events/family-basic.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Look for a spouse
+    text: null
+  - en: "{name} spent some weeks among matchmakers and families with daughters and sons to marry."
+    text: null
+  - en: A go-between brings word of {match}, {match.age}, who is said to be of a mind to marry, and whose family would hear an offer.
+    text: null
+  - en: Ask for the hand yourself
+    text: null
+  - en: "{name} won the hand of {match}."
+    text: null
+  - en: "{name} asked for the hand of {match} and was refused."
+    text: null
+  - en: Win the family over with a gift of 30 crowns
+    text: null
+  - en: "{name} won over the family of {match} with a handsome gift."
+    text: null
+  - en: Look elsewhere
+    text: null
+  - en: "{name} turned down a match with {match}."
+    text: null
+  - en: At a crowded fair you keep meeting the eyes of {match}. {match.He} does not look away.
+    text: null
+  - en: Seek an introduction
+    text: null
+  - en: "{name} was introduced to {match} at a fair."
+    text: null
+  - en: Court boldly and ask at once
+    text: null
+  - en: "{name} courted {match} in a whirlwind and married within the month."
+    text: null
+  - en: "{name} courted {match} too boldly at a fair and was laughed away."
+    text: null
+  - en: Let it pass
+    text: null
+  - en: "{name} let a glance at the fair come to nothing."
+    text: null
+  - en: a match between {suitor} and {target}
+    text: null
+  - en: your own suit
+    text: null
+  - en: the hand of {target}
+    text: null
+  - en: The family of {target} will hear <offer>. A good word, a known name or a full purse may carry it.
+    text: null
+  - en: Make the offer
+    text: null
+  - en: "{name} sought <sought>, and the offer was accepted."
+    text: null
+  - en: "{name} sought <sought>, and was refused."
+    text: null
+  - en: Settle 50 crowns on the match
+    text: null
+  - en: "{name} sought <sought> with 50 crowns settled on the match, and the offer was accepted."
+    text: null
+  - en: Withdraw the offer
+    text: null
+  - en: "{name} thought better of <sought>."
+    text: null

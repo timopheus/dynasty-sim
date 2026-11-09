@@ -1,0 +1,112 @@
+# Russian forms of the names of people and places in six cases (RU.1, D-476): nom gen dat acc ins prep.
+# A given name has `forms`; a surname has `m` and `f` (a woman's surname on a consonant does not decline);
+# a place has `forms`. Etalon: docs/reference/russian-style.md, section 4.
+declensions:
+  - en: Edmund
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Thomas
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: William
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Henry
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Robert
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Richard
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Hugh
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Walter
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Arthur
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Francis
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Matthew
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Nicholas
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Simon
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Roger
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Anne
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Catherine
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Eleanor
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Margaret
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Isabel
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Joan
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Mary
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Alice
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Susanna
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Judith
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Frances
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Lucy
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Harlow
+    m: { nom: , gen: , dat: , acc: , ins: , prep:  }
+    f: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Ashby
+    m: { nom: , gen: , dat: , acc: , ins: , prep:  }
+    f: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Calder
+    m: { nom: , gen: , dat: , acc: , ins: , prep:  }
+    f: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Dunmore
+    m: { nom: , gen: , dat: , acc: , ins: , prep:  }
+    f: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Fenwick
+    m: { nom: , gen: , dat: , acc: , ins: , prep:  }
+    f: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Holloway
+    m: { nom: , gen: , dat: , acc: , ins: , prep:  }
+    f: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Merrick
+    m: { nom: , gen: , dat: , acc: , ins: , prep:  }
+    f: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Thorne
+    m: { nom: , gen: , dat: , acc: , ins: , prep:  }
+    f: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Ostmere
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Rohrbach
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Mullrosin
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Teigach
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Valmont
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Charoy
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Marmant
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Bacres
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Novomor
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Meschevsk
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Kryvan
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Ostkala
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Sarayhan
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Baharduman
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Aykut
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }
+  - en: Ur Nahlem
+    forms: { nom: , gen: , dat: , acc: , ins: , prep:  }

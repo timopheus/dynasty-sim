@@ -20,6 +20,7 @@ import { checkHealth, HealthContentSchema } from '../health/content';
 import { checkHeirlooms, HeirloomsContentSchema } from '../heirloom/content';
 import { checkHouse, HouseContentSchema } from '../house/content';
 import { checkInteractions, InteractionsContentSchema } from '../interactions/content';
+import { DeclensionSchema, LanguageSchema, makeCheckLanguage, TranslationSchema } from '../lang/content';
 import { checkMind, MindContentSchema } from '../mind/content';
 import { checkNarrator, NarratorContentSchema } from '../narrator/content';
 import { checkPlaces, PlacesContentSchema } from '../place/content';
@@ -68,8 +69,9 @@ export const OPTIONAL_KEYS = [
   'contracts',
   'favors',
   'interactions',
+  'language',
 ] as const;
-export const LIST_KEYS = ['actions', 'events', 'traits'] as const;
+export const LIST_KEYS = ['actions', 'events', 'traits', 'translations', 'declensions'] as const;
 
 export const ContentFileSchema = z.strictObject({
   settings: SettingsSchema.optional(),
@@ -93,9 +95,12 @@ export const ContentFileSchema = z.strictObject({
   contracts: ContractsContentSchema.optional(),
   favors: FavorsContentSchema.optional(),
   interactions: InteractionsContentSchema.optional(),
+  language: LanguageSchema.optional(),
   actions: z.array(ActionSchema).optional(),
   events: z.array(EventSchema).optional(),
   traits: z.array(TraitSchema).optional(),
+  translations: z.array(TranslationSchema).optional(),
+  declensions: z.array(DeclensionSchema).optional(),
 });
 
 export type Settings = z.infer<typeof SettingsSchema>;
@@ -154,4 +159,5 @@ export const CROSS_CHECKS: readonly CrossCheck[] = [
   checkContracts,
   checkFavors,
   checkInteractions,
+  makeCheckLanguage(ContentFileSchema),
 ];

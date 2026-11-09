@@ -1,0 +1,194 @@
+# Russian translation of content/backstory/scenes.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: The house where you were born stood among others like it, and everything you know began under its roof. Whose roof was it?
+    text: null
+  - en: A guild house, where the ledger was read aloud at supper
+    text: null
+  - en: "{name} was born in a guild house and learned early what a ledger was worth."
+    text: null
+  - en: A soldier's family, where a musket hung above the door
+    text: null
+  - en: "{name} was born into a soldier's family and grew up among old campaign stories."
+    text: null
+  - en: A parish house, among prayers and books
+    text: null
+  - en: "{name} was born in a parish house and learned {his} letters from the hymn books."
+    text: null
+  - en: A gentry house, with more name than comfort
+    text: null
+  - en: "{name} was born in a gentry house and was taught from the cradle what the family name was owed."
+    text: null
+  - en: The waterfront, among sailors, smugglers and gulls
+    text: null
+  - en: "{name} was born on the waterfront and grew up among sailors and smugglers."
+    text: null
+  - en: A plain house of plain people, no one of note
+    text: null
+  - en: "{name} was born to plain people and learned early to work for {his} bread."
+    text: null
+  - en: A child from the next yard, {friend}, was always at your door. Together you ran through the lanes and fields.
+    text: null
+  - en: Share everything with {friend}
+    text: null
+  - en: "{name} grew up inseparable from {friend}, a friend of the next yard."
+    text: null
+  - en: Fight {friend} over a stolen toy
+    text: null
+  - en: "{name} fought {friend} over a toy as a child and won, and neither forgot it."
+    text: null
+  - en: Keep to yourself and watch from the doorstep
+    text: null
+  - en: "{name} kept apart as a child and watched the neighbours' games from the doorstep."
+    text: null
+  - en: One winter the stores ran low. The wolves came near the houses, and your household looked to every pair of hands.
+    text: null
+  - en: Go out with the men to set snares
+    text: null
+  - en: "{name} set snares with the men in a hungry winter and brought home meat."
+    text: null
+  - en: "{name} froze in the snow checking snares one hungry winter and came back with nothing."
+    text: null
+  - en: Stay by the fire, mind the little ones and listen to the old people
+    text: null
+  - en: "{name} spent a hungry winter by the fire, minding the little ones and listening to the old people."
+    text: null
+  - en: Carry what little there is to the neighbours, for a coin
+    text: null
+  - en: "{name} sold what little the house could spare to the neighbours in a hungry winter."
+    text: null
+  - en: On the day of the fair the whole district came to town. You were given a few hours and a coin.
+    text: null
+  - en: Watch the jugglers and the bear
+    text: null
+  - en: "{name} spent a fair day watching jugglers and a dancing bear."
+    text: null
+  - en: Slip between the stalls and lift an apple
+    text: null
+  - en: "{name} lifted an apple from a stall at the fair and was not caught."
+    text: null
+  - en: "{name} was caught stealing an apple at the fair and paid for it."
+    text: null
+  - en: Help a stallholder and keep the coin earned
+    text: null
+  - en: "{name} helped at a stall during the fair and earned a few coins."
+    text: null
+  - en: "{rival} had long made a habit of mocking you in front of others. Today it was in front of a crowd."
+    text: null
+  - en: Answer with fists
+    text: null
+  - en: "{name} beat {rival} in a fight before a crowd, and {rival} did not forgive it."
+    text: null
+  - en: "{name} was beaten by {rival} in a fight before a crowd."
+    text: null
+  - en: Answer with a sharp word
+    text: null
+  - en: "{name} silenced {rival} with a single sharp word before a crowd."
+    text: null
+  - en: "{name} could find no answer to {rival}'s mockery and left in silence."
+    text: null
+  - en: Walk away
+    text: null
+  - en: "{name} walked away from the mockery of {rival}."
+    text: null
+  - en: "{teacher} noticed you hanging about the door and offered to show you something of {teacher.his} work, if you would come in the evenings."
+    text: null
+  - en: Come every evening and listen
+    text: null
+  - en: "{name} spent youthful evenings listening to {teacher} and learned much from {teacher.him}."
+    text: null
+  - en: Take a few lessons for the practical use
+    text: null
+  - en: "{name} took a few useful lessons from {teacher} and went on."
+    text: null
+  - en: Decline, there is work to do
+    text: null
+  - en: "{name} declined the lessons of {teacher} and took paid work instead."
+    text: null
+  - en: A bad year, and the creditor came to your household. The family could pay only a part.
+    text: null
+  - en: Take the debt on yourself and work it off
+    text: null
+  - en: "{name} took the family's debt upon {his} own shoulders and worked it off for years."
+    text: null
+  - en: Talk the creditor into waiting
+    text: null
+  - en: "{name} persuaded the family's creditor to wait for the money."
+    text: null
+  - en: "{name} failed to talk the family's creditor into waiting, and the house paid dearly."
+    text: null
+  - en: Let the creditor take what he wants and say nothing
+    text: null
+  - en: "{name} watched a creditor carry off the household's goods and trusted few people after."
+    text: null
+  - en: "{master} agreed to take you as an apprentice, for board and a promise of obedience."
+    text: null
+  - en: Learn the counting and the keeping of books
+    text: null
+  - en: "{name} was apprenticed to {master} for two years and learned to keep accounts."
+    text: null
+  - en: Learn how to read people, and what they will not say
+    text: null
+  - en: "{name} was apprenticed to {master} for two years and learned to read people."
+    text: null
+  - en: Learn letters and the little Latin the master has
+    text: null
+  - en: "{name} spent a year in the house of {master}, learning letters and some Latin."
+    text: null
+  - en: "{sergeant} was gathering recruits, and the pay was better than at home. The drill was hard."
+    text: null
+  - en: Serve the full term and take every lesson
+    text: null
+  - en: "{name} served two years under {sergeant} and learned the soldier's trade."
+    text: null
+  - en: Keep your head down, learn what you must and leave early
+    text: null
+  - en: "{name} served a year under {sergeant} and left early with a few coins."
+    text: null
+  - en: Make a name by volunteering for the worst of the work
+    text: null
+  - en: "{name} volunteered for the worst of the work under {sergeant} and was remembered for it."
+    text: null
+  - en: "{name} volunteered for the worst of the work under {sergeant} and came out broken and poorer."
+    text: null
+  - en: Your people could spare you for a time. There was a school in the town, a court that took servants, and a road.
+    text: null
+  - en: Go to the school and study three years
+    text: null
+  - en: "{name} studied for three years at a town school."
+    text: null
+  - en: Enter the household of a great man as a ward
+    text: null
+  - en: "{name} served two years as a page in a great household and learned its manners."
+    text: null
+  - en: Spend the years on the road and in the taverns
+    text: null
+  - en: "{name} spent a year wandering from tavern to tavern and learned the ways of the road."
+    text: null
+  - en: Nothing held you at home any longer. What drove you out?
+    text: null
+  - en: A hunger to see the world and be worth something in it
+    text: null
+  - en: "{name} set out to see the world and to find a place in it."
+    text: null
+  - en: A quarrel at home that could not be mended
+    text: null
+  - en: "{name} left after a quarrel at home that could not be mended."
+    text: null
+  - en: The wish to repay the family, and the need for money
+    text: null
+  - en: "{name} left home to earn money for the family."
+    text: null
+  - en: On the last evening {patron}, whom everyone in the district knew, took you aside to give you some advice.
+    text: null
+  - en: Listen and take the gift {patron.he} offers
+    text: null
+  - en: "{name} took a farewell gift from {patron}, who promised to keep an eye on {him}."
+    text: null
+  - en: Thank {patron.him} and refuse any gift
+    text: null
+  - en: "{name} refused a farewell gift from {patron} and left with nothing but pride."
+    text: null
+  - en: Leave unseen before dawn
+    text: null
+  - en: "{name} left before dawn and said no farewells."
+    text: null

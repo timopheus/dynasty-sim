@@ -1,0 +1,12 @@
+# Russian translation of content/traits/skills.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Steady hand
+    text: null
+  - en: Sapper
+    text: null
+  - en: Horseman
+    text: null
+  - en: Duelist
+    text: null
+  - en: Linguist
+    text: null

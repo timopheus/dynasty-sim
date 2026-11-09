@@ -1,0 +1,22 @@
+# Russian translation of content/time.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Winter
+    text: null
+  - en: Spring
+    text: null
+  - en: Summer
+    text: null
+  - en: Autumn
+    text: null
+  - en: Only in {seasons}
+    text: null
+  - en: Requires {amount} crowns
+    text: null
+  - en: Only with {amount} crowns or less
+    text: null
+  - en: Requires age {age} or older
+    text: null
+  - en: Requires age {age} or younger
+    text: null
+  - en: "{name} had to break off the course of the day."
+    text: null

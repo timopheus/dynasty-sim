@@ -1,0 +1,14 @@
+# Russian translation of content/economy.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Requires {crowns} crowns
+    text: null
+  - en: "{name} could no longer pay the household bills and sank into debt."
+    text: null
+  - en: Work
+    text: null
+  - en: Living costs
+    text: null
+  - en: Spouse
+    text: null
+  - en: Children
+    text: null

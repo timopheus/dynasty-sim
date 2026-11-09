@@ -1,0 +1,124 @@
+# Russian translation of content/opinions.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Insulted in public
+    text: null
+  - en: Killed kin
+    text: null
+  - en: Heir of my enemy
+    text: null
+  - en: Heir of my kin killer
+    text: null
+  - en: Heir of my debtor
+    text: null
+  - en: Did me wrong
+    text: null
+  - en: Slighted me
+    text: null
+  - en: Gave a gift
+    text: null
+  - en: Did me a service
+    text: null
+  - en: Did good work for me
+    text: null
+  - en: Let me down on a job
+    text: null
+  - en: Saved my life
+    text: null
+  - en: Owes me
+    text: null
+  - en: Shamed me
+    text: null
+  - en: Betrayed me
+    text: null
+  - en: Humiliated me
+    text: null
+  - en: Called me a coward
+    text: null
+  - en: Spared me
+    text: null
+  - en: Taught me
+    text: null
+  - en: Friend since childhood
+    text: null
+  - en: Defeated me
+    text: null
+  - en: Cheated me
+    text: null
+  - en: Stood beside me
+    text: null
+  - en: Nursed me
+    text: null
+  - en: Showed no spine
+    text: null
+  - en: Stood by me when it counted
+    text: null
+  - en: Left me waiting
+    text: null
+  - en: Passed over in the will
+    text: null
+  - en: hatred
+    text: null
+  - en: dislike
+    text: null
+  - en: coolness
+    text: null
+  - en: indifference
+    text: null
+  - en: liking
+    text: null
+  - en: friendship
+    text: null
+  - en: devotion
+    text: null
+  - en: Friend
+    text: null
+  - en: "{name} befriended {other}."
+    text: null
+  - en: "{name} and {other} ceased to be friends."
+    text: null
+  - en: Rival
+    text: null
+  - en: "{name} made a rival of {other}."
+    text: null
+  - en: "{name} and {other} ceased to be rivals."
+    text: null
+  - en: Patron
+    text: null
+  - en: "{name} took {other} under {his} wing."
+    text: null
+  - en: "{name} no longer looked after {other}."
+    text: null
+  - en: "{other} became {name}'s patron."
+    text: null
+  - en: "{other} no longer looked after {name}."
+    text: null
+  - en: Lover
+    text: null
+  - en: "{name} and {other} became lovers."
+    text: null
+  - en: "{name} and {other} parted as lovers."
+    text: null
+  - en: Guardian
+    text: null
+  - en: "{name} became the guardian of {other}."
+    text: null
+  - en: "{name} was no longer the guardian of {other}."
+    text: null
+  - en: "{other} became the guardian of {name}."
+    text: null
+  - en: "{name} came of age and left the guardianship of {other}."
+    text: null
+  - en: "{name} became heir to the feud between {deceased} and {other}."
+    text: null
+  - en: Needs {word} towards {name}
+    text: null
+  - en: Needs no more than {word} towards {name}
+    text: null
+  - en: "Needs a bond with {name}: {kind}"
+    text: null
+  - en: Must not be bound to {name} as {kind}
+    text: null
+  - en: You must know {name}
+    text: null
+  - en: You must be close to {name}
+    text: null

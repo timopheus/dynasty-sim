@@ -1,0 +1,166 @@
+# Russian translation of content/events/family-home.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: The child {child} is a few weeks old, and the priest asks when the christening is to be. The neighbours are already counting the guests.
+    text: null
+  - en: A fine christening, 25 crowns
+    text: null
+  - en: "{name} had {child} christened with a feast{godfather?, with {godfather} standing sponsor,}."
+    text: null
+  - en: Ask a friend to stand sponsor
+    text: null
+  - en: "{name} had {child} christened{godfather?, with {godfather} standing sponsor,} in a plain service."
+    text: null
+  - en: A plain service at the font
+    text: null
+  - en: "{name} had {child} christened at the font without ceremony."
+    text: null
+  - en: Days after the birth of {child}, {mother} is burning with fever and does not know you. The midwife shakes her head.
+    text: null
+  - en: Send for a physician, 15 crowns
+    text: null
+  - en: "{name} paid for a physician{physician?, {physician},} who brought {mother} through the childbed fever."
+    text: null
+  - en: "{name} paid for a physician{physician?, {physician},} in vain: {mother} lay sick for weeks after the birth."
+    text: null
+  - en: Nurse {mother} yourself through the nights
+    text: null
+  - en: "{name} sat up nights with {mother} until the fever broke."
+    text: null
+  - en: "{name} sat up with {mother} through a long childbed fever and could not break it."
+    text: null
+  - en: Leave it to the midwife and to God
+    text: null
+  - en: "{name} left {mother} to the midwife and to God, and the fever broke on the fifth night."
+    text: null
+  - en: "{name} lost {mother} to the childbed fever after the birth of {child}."
+    text: null
+  - en: "{child} woke hot and wheezing, and will not eat. The whole street has heard the cough."
+    text: null
+  - en: Send for a physician, 10 crowns
+    text: null
+  - en: "{name} paid for a physician{physician?, {physician},} and {child} was on {child.his} feet in a week."
+    text: null
+  - en: "{name} paid for a physician{physician?, {physician},} in vain: {child} lay in a fever for weeks."
+    text: null
+  - en: Tend {child} yourself and pray
+    text: null
+  - en: "{name} tended {child} through a fever until it broke."
+    text: null
+  - en: "{name} tended {child} through a bad fever without being able to break it."
+    text: null
+  - en: Leave the child to the will of God
+    text: null
+  - en: "{name} left {child} to God, and the fever passed."
+    text: null
+  - en: "{name} lost {child} to a sudden illness."
+    text: null
+  - en: "{child} reads slowly and counts on {child.his} fingers. The curate says a tutor would do wonders, for a price."
+    text: null
+  - en: Hire a tutor, 30 crowns
+    text: null
+  - en: "{name} hired a tutor for {child}, who took to the books."
+    text: null
+  - en: Teach {child} yourself in the evenings
+    text: null
+  - en: "{name} taught {child} to read and cipher in the evenings."
+    text: null
+  - en: "{name} tried to teach {child} in the evenings and gave up in a temper; {child} learned only to dodge the lessons."
+    text: null
+  - en: Put {child} to work instead
+    text: null
+  - en: "{name} put {child} to work in place of books."
+    text: null
+  - en: "A neighbour brings {child} home by the ear: {child.he} has bloodied a boy twice {child.his} size, and is not sorry in the least."
+    text: null
+  - en: Thrash {child} before the neighbour
+    text: null
+  - en: "{name} thrashed {child} before the neighbour, and {child} took the lesson to heart."
+    text: null
+  - en: "{name} thrashed {child} before the neighbour; {child} learned only to hate the rod."
+    text: null
+  - en: Sit {child} down and talk it through
+    text: null
+  - en: "{name} talked it through with {child} until the temper cooled."
+    text: null
+  - en: "{name} talked to {child} for an hour and was no wiser at the end of it."
+    text: null
+  - en: Children will be children
+    text: null
+  - en: "{name} let {child}'s fight pass, and {child} grew bolder for it."
+    text: null
+  - en: "{child} is growing up and idle. A child must come to a trade, and the road is long; where should {child} be put?"
+    text: null
+  - en: Send {child} to learn arms, 25 crowns
+    text: null
+  - en: "{name} sent {child} to learn arms from an old sergeant."
+    text: null
+  - en: Apprentice {child} to a merchant, 15 crowns
+    text: null
+  - en: "{name} apprenticed {child} to a merchant."
+    text: null
+  - en: Keep {child} at home among the books
+    text: null
+  - en: "{name} kept {child} at home among the books."
+    text: null
+  - en: A clerk lets slip that {guardian} has been drawing on your inheritance for debts that are not yours. The sums are not small.
+    text: null
+  - en: Say nothing; you are a child
+    text: null
+  - en: "{name}, a child, said nothing while {guardian} drew on the inheritance."
+    text: null
+  - en: Tell an elder of the family
+    text: null
+  - en: "{name}, a child, told an elder of the family, who made {guardian} repay part of what was taken."
+    text: null
+  - en: "{name}, a child, told an elder of the family and was not believed; {guardian} took the more."
+    text: null
+  - en: Face {guardian} with what you know
+    text: null
+  - en: "{name}, a child, faced {guardian} with the clerk's books, and the drawing stopped."
+    text: null
+  - en: "{name}, a child, faced {guardian} and was laughed out of the room."
+    text: null
+  - en: "{guardian} calls you into the yard after supper. There is an evening free, and a head of the house must be fit for what it will ask."
+    text: null
+  - en: Learn the ledgers and the law
+    text: null
+  - en: "{name}, a child, learned the ledgers and the law at the knee of {guardian}."
+    text: null
+  - en: Learn to ride and shoot
+    text: null
+  - en: "{name}, a child, learned to ride and shoot under {guardian}."
+    text: null
+  - en: Slip away to the stables
+    text: null
+  - en: "{name}, a child, slipped away from {guardian}'s lessons to the stables."
+    text: null
+  - en: The house is quiet since the funeral. {child} sits at the empty place at the table and asks, for the third time this week, when mother or father will be back.
+    text: null
+  - en: Sit with {child} until sleep comes
+    text: null
+  - en: "{name} sat up with {child} through a long evening of grief."
+    text: null
+  - en: Throw yourself into work
+    text: null
+  - en: "{name} buried {his} grief in work and left {child} to the maid."
+    text: null
+  - en: Send {child} to kin for a season of schooling, 10 crowns
+    text: null
+  - en: "{name} sent {child} to kin for a season of schooling."
+    text: null
+  - en: A friend says the house needs a steady hand and the children a second parent, and names {match}, {match.age}, who is both free and fond of children.
+    text: null
+  - en: Call on {match}
+    text: null
+  - en: "{name} married again, to {match}, for the sake of the house and the children."
+    text: null
+  - en: "{name} called on {match} and was told, kindly, that it was too soon."
+    text: null
+  - en: Not yet
+    text: null
+  - en: "{name} was not ready for a second marriage and let {match} be."
+    text: null
+  - en: "Your notary writes: since the will was drawn, a child has been born or a named heir has died, and the paper no longer says what you meant it to."
+    text: null
+  - en: "{name} was reminded that the will no longer said all it should."
+    text: null

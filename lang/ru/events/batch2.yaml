@@ -1,0 +1,160 @@
+# Russian translation of content/events/batch2.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Laid up in bed, you have little to do but listen. {gossip} sits by the window and lets slip which house in the street keeps a purse of ready money and which one is only keeping up appearances.
+    text: null
+  - en: Listen closely and remember it
+    text: null
+  - en: "{name} picked up a useful piece of gossip from {gossip} while resting and turned it to profit."
+    text: null
+  - en: "{name} acted on bad gossip from {gossip} and lost a few crowns."
+    text: null
+  - en: Change the subject
+    text: null
+  - en: "{name} would hear no gossip from {gossip} while resting."
+    text: null
+  - en: "Meltwater is coming through the ceiling of your room and has soaked the bedding. {landlord} shrugs: mending the roof is the tenant's business, or so the lease says."
+    text: null
+  - en: Hire a man to mend it
+    text: null
+  - en: "{name} paid to have the roof of the winter lodgings mended."
+    text: null
+  - en: Climb up and patch it yourself
+    text: null
+  - en: "{name} patched the roof of the winter lodgings and earned the thanks of {landlord}."
+    text: null
+  - en: "{name} fell from the roof while patching it in the cold."
+    text: null
+  - en: Argue that the landlord must pay
+    text: null
+  - en: "{name} made {landlord} pay for the mending and take a little off the rent."
+    text: null
+  - en: "{name} quarrelled with {landlord} over a leaking roof and got nothing."
+    text: null
+  - en: "A lean hound has been trailing you through the woods since morning, a good one, by the look of the collar. It is plainly lost, and you know whose dog it is: {owner}'s."
+    text: null
+  - en: Take the hound back to {owner}
+    text: null
+  - en: "{name} brought a lost hound home to {owner} and was rewarded with a few coins."
+    text: null
+  - en: Keep it for the hunt
+    text: null
+  - en: "{name} kept {owner}'s hound for the hunt and took a good bag with it."
+    text: null
+  - en: Shoo it off and go on
+    text: null
+  - en: "{name} sent a stray hound away on the hunt."
+    text: null
+  - en: "{inspector} comes down the row of stalls with a bag of brass weights and a ledger, stopping at each and frowning at the scales. Yours is next."
+    text: null
+  - en: Submit to the inspection
+    text: null
+  - en: "{name} passed the inspection of {inspector} and had the seal on the scales as proof of honest dealing."
+    text: null
+  - en: "{name} was fined by {inspector} for a short weight at the market."
+    text: null
+  - en: Slip {inspector} a coin
+    text: null
+  - en: "{name} bought off {inspector} with a coin and went on selling."
+    text: null
+  - en: "{name} was caught trying to bribe {inspector} in front of the whole market."
+    text: null
+  - en: Pack up and leave for the day
+    text: null
+  - en: "{name} packed up the stall rather than face the weights inspector."
+    text: null
+  - en: Making your rounds before dawn, you find {recruit} asleep on the post with a musket across {recruit.his} knees. The officers are not far behind you.
+    text: null
+  - en: Wake {recruit.him} and cover for {recruit.him}
+    text: null
+  - en: "{name} covered for {recruit}, who had fallen asleep on guard, and made a friend of {recruit.him}."
+    text: null
+  - en: "{name} was docked pay along with {recruit} when the officers found the post asleep."
+    text: null
+  - en: Report it
+    text: null
+  - en: "{name} reported {recruit} for sleeping on guard."
+    text: null
+  - en: Walk on and say nothing
+    text: null
+  - en: "{name} walked past {recruit}, asleep on guard, and said nothing."
+    text: null
+  - en: "{sender} presses a sealed letter into your hand. It must reach a house in the next town by the end of the week, and {sender.he} will pay fifteen crowns for it."
+    text: null
+  - en: Carry it faithfully
+    text: null
+  - en: "{name} delivered a sealed letter for {sender}."
+    text: null
+  - en: Break the seal and read it first
+    text: null
+  - en: "{name} read a sealed letter from {sender} unseen and sold what it said."
+    text: null
+  - en: "{name} was caught with the broken seal of a letter from {sender}."
+    text: null
+  - en: Say you have no time
+    text: null
+  - en: "{name} refused to carry a letter for {sender}."
+    text: null
+  - en: Smoke rolls out of a thatched roof along the street and a bell starts to ring. {neighbour} is on the doorstep, shouting for buckets.
+    text: null
+  - en: Join the bucket chain
+    text: null
+  - en: "{name} helped save a burning house in the street, and {neighbour} paid {him} for it."
+    text: null
+  - en: "{name} was burnt on the hand fighting a fire in the street."
+    text: null
+  - en: Bring the parish fire cart
+    text: null
+  - en: "{name} fetched the fire cart in time to save the street."
+    text: null
+  - en: "{name} fetched the fire cart too late to save a house."
+    text: null
+  - en: Keep out of the way
+    text: null
+  - en: "{name} stood back and watched a house in the street burn."
+    text: null
+  - en: '{bailiff} takes you by the sleeve. "There you are," {bailiff.he} says. "The one who owes the tailor thirty crowns, with your height and your coat." The crowd is turning to look.'
+    text: null
+  - en: Prove who you are
+    text: null
+  - en: "{name} talked {bailiff} out of an arrest for someone else's debt."
+    text: null
+  - en: "{name} could not prove who {he} was and paid a debtor's fine to settle it."
+    text: null
+  - en: Play along and talk the tailor down
+    text: null
+  - en: "{name} played the debtor {bailiff} was looking for and haggled the tailor's thirty crowns down to ten."
+    text: null
+  - en: "{name} was exposed by {bailiff} for playing the debtor and was fined for the trick."
+    text: null
+  - en: Slip away through the crowd
+    text: null
+  - en: "{name} slipped away from {bailiff} through the crowd."
+    text: null
+  - en: "{name} meets {creditor}, to whom {name} has owed ten crowns since last harvest."
+    text: null
+  - en: Pay it in full
+    text: null
+  - en: "{name} paid an old debt of ten crowns to {creditor}."
+    text: null
+  - en: Ask for more time
+    text: null
+  - en: "{name} begged {creditor} for more time over a debt."
+    text: null
+  - en: Pretend to have forgotten it
+    text: null
+  - en: "{name} pretended to have forgotten a debt owed to {creditor}."
+    text: null
+  - en: "{name} has been unwell since the cold came, and a neighbour speaks of a shrine three days' walk away where the sick are healed."
+    text: null
+  - en: Walk to the shrine
+    text: null
+  - en: "{name} walked to a distant shrine and came back stronger."
+    text: null
+  - en: Spend the money on wine instead
+    text: null
+  - en: "{name} spent the shrine money on wine."
+    text: null
+  - en: Stay home and wait it out
+    text: null
+  - en: "{name} stayed at home and waited out a sickness."
+    text: null

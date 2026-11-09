@@ -1,0 +1,186 @@
+# Russian translation of content/events/general.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: The shivering began last night, and this morning you cannot stand. The fever has taken hold.
+    text: null
+  - en: "{physician?Send for {physician}}"
+    text: null
+  - en: "{name} paid {physician?{physician}, a physician,} and got over a fever."
+    text: null
+  - en: "{name} paid {physician?{physician}, a physician,} in vain: the fever ran its course for weeks."
+    text: null
+  - en: Buy a remedy from a travelling quack
+    text: null
+  - en: "{name} bought a quack's remedy and got over a fever, more by luck than by the physic."
+    text: null
+  - en: Rest and hope
+    text: null
+  - en: "{name} lay sick with fever for weeks."
+    text: null
+  - en: At <inn_name>, {stranger} sets down a worn deck and invites you to a game of cards.
+    text: null
+  - en: Play for high stakes
+    text: null
+  - en: "{name} caught {stranger} cheating at cards and took 25 crowns off {stranger.him}."
+    text: null
+  - en: "{name} lost heavily at cards to {stranger}."
+    text: null
+  - en: Play a modest hand
+    text: null
+  - en: "{name} won a few coins at cards from {stranger}."
+    text: null
+  - en: Decline
+    text: null
+  - en: "{name} declined a game of cards with {stranger}."
+    text: null
+  - en: "A letter finds you, in a clerk's hand: an old debt owed to your family has been repaid."
+    text: null
+  - en: Buy new clothes
+    text: null
+  - en: "{name} spent a repaid family debt on new clothes."
+    text: null
+  - en: Keep the money
+    text: null
+  - en: "{name} received a repaid family debt and kept it."
+    text: null
+  - en: Your old wound aches in the damp weather, a dull, deep pain.
+    text: null
+  - en: Ignore it
+    text: null
+  - en: "{name} ignored an aching old wound."
+    text: null
+  - en: Rest for a few days
+    text: null
+  - en: "{name} rested an old wound for a few days."
+    text: null
+  - en: At the market you feel a hand slipping into your purse. You turn in time to see {thief} pulling away with it.
+    text: null
+  - en: Give chase
+    text: null
+  - en: "{name} ran down {thief}, a pickpocket, in the market and took the purse back."
+    text: null
+  - en: "{name} chased {thief} through the market in vain and lost a purse."
+    text: null
+  - en: Let it go
+    text: null
+  - en: "{name} was robbed by {thief} at the market."
+    text: null
+  - en: A brawl breaks out in <inn_name>{brawler?, with {brawler} in the middle of it}, and a bench comes flying across the room.
+    text: null
+  - en: Join in
+    text: null
+  - en: "{name} won a tavern brawl{brawler?, fighting at {brawler}'s side}."
+    text: null
+  - en: "{name} was bruised in a tavern brawl."
+    text: null
+  - en: Try to talk the room down
+    text: null
+  - en: "{name} talked a tavern brawl down before blood was drawn."
+    text: null
+  - en: "{name} tried to calm a tavern brawl and was knocked down for it."
+    text: null
+  - en: Slip out
+    text: null
+  - en: "{name} slipped out of a tavern brawl unharmed."
+    text: null
+  - en: At <inn_name>, {rival} says over a cup, loudly enough for the whole room, that you cheat at cards.
+    text: null
+  - en: Throw down your glove
+    text: null
+  - en: "{name} challenged {rival} to a duel over an insult at the inn."
+    text: null
+  - en: Answer with a cutting word
+    text: null
+  - en: "{name} answered {rival}'s insult so sharply that the whole room laughed at {rival.him}."
+    text: null
+  - en: "{name} traded insults with {rival} at the inn and came off worse."
+    text: null
+  - en: Swallow the insult
+    text: null
+  - en: "{name} let {rival}'s insult pass and drank in silence."
+    text: null
+  - en: <Dawn>, in a wet meadow outside the town. {rival} is already there, with a second and a surgeon's bag on the grass.
+    text: null
+  - en: Fight to first blood
+    text: null
+  - en: "{name} wounded {rival} in a duel at dawn."
+    text: null
+  - en: "{name} was wounded by {rival} in a duel at dawn."
+    text: null
+  - en: Fight to the death
+    text: null
+  - en: "{name} killed {rival} in a duel at dawn."
+    text: null
+  - en: "{name} was killed by {rival} in a duel at dawn."
+    text: null
+  - en: Refuse to draw
+    text: null
+  - en: "{name} refused to face {rival} at dawn and went home in shame."
+    text: null
+  - en: "{debtor} takes you aside, hat in hand. A bad season, a bad debt: could you lend 25 crowns for a few weeks?"
+    text: null
+  - en: Lend the 25 crowns
+    text: null
+  - en: "{name} lent {debtor} 25 crowns."
+    text: null
+  - en: "{name} refused to lend {debtor} money."
+    text: null
+  - en: "{debtor} finds you with a purse in hand: the 25 crowns, if the season has been kind enough to {debtor.him}."
+    text: null
+  - en: Ask for the 25 crowns with something over for your patience
+    text: null
+  - en: "{name} was repaid in full, with interest, by {debtor}."
+    text: null
+  - en: "{name} got back only 8 of the 25 crowns lent to {debtor} and let the rest go."
+    text: null
+  - en: Take the 25 and wave the rest away
+    text: null
+  - en: "{name} took back the loan from {debtor} and waved the interest away."
+    text: null
+  - en: "{name} took the 8 crowns {debtor} could spare and forgave the rest."
+    text: null
+  - en: The months have gone by and {debtor} has not come. Someone says {debtor.he} was seen spending coin at a fair two counties away.
+    text: null
+  - en: Write the debt off
+    text: null
+  - en: "{name} wrote off a loan to {debtor} that was never repaid."
+    text: null
+  - en: Go after {debtor} for the money
+    text: null
+  - en: "{name} ran {debtor} to ground and got the 25 crowns back."
+    text: null
+  - en: "{name} hunted {debtor} for a debt and came back with nothing but an enemy."
+    text: null
+  - en: You have not eaten properly in two days. {priest} stops you at the church door and looks at your coat, then at your face.
+    text: null
+  - en: Accept the bread and the coins
+    text: null
+  - en: "{name}, with an empty purse, was given alms by {priest}."
+    text: null
+  - en: Ask for work instead of charity
+    text: null
+  - en: "{name} asked {priest} for work instead of alms and was given a copying job for the parish."
+    text: null
+  - en: "{name} asked {priest} for work and was sent away with a few coins."
+    text: null
+  - en: Pass by with your head up
+    text: null
+  - en: "{name} refused a priest's charity out of pride."
+    text: null
+  - en: "{employer} has heard that you are looking for work. There is a roof to mend, a cellar to clear, a load to carry, and the pay is fair."
+    text: null
+  - en: Take the job
+    text: null
+  - en: "{name} did odd jobs for {employer} and was paid fairly for them."
+    text: null
+  - en: Say that you are above such work
+    text: null
+  - en: "{name} turned down honest work from {employer} and went hungry."
+    text: null
+  - en: Among the stones of a dry ditch you find a purse someone lost. There is no name inside it, only twelve crowns.
+    text: null
+  - en: "{name} found a lost purse by the road."
+    text: null
+  - en: "A carter brings word from {comrade}: {comrade.he} has taken a small inn farther south, and there is always a bed for you."
+    text: null
+  - en: "{name} had word from {comrade}, who has settled at an inn."
+    text: null

@@ -1,0 +1,58 @@
+# Russian translation of content/contracts.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: day labour
+    text: null
+  - en: "{name} did a few days of labour for {employer}."
+    text: null
+  - en: "{name} walked off a job of labour for {employer}."
+    text: null
+  - en: a letter to carry
+    text: null
+  - en: "{name} carried a letter for {employer} and put it in the right hands."
+    text: null
+  - en: "{name} never delivered the letter of {employer}."
+    text: null
+  - en: guarding carts on the road
+    text: null
+  - en: "{name} brought the carts of {employer} through safe."
+    text: null
+  - en: "{name} lost the carts of {employer} on the road."
+    text: null
+  - en: a debt to collect
+    text: null
+  - en: "{name} collected a debt for {employer}."
+    text: null
+  - en: "{name} came back to {employer} without the debt."
+    text: null
+  - en: a watch over a shop
+    text: null
+  - en: "{name} kept watch over the shop of {employer}."
+    text: null
+  - en: "{name} let the shop of {employer} be robbed on {his} watch."
+    text: null
+  - en: papers to copy
+    text: null
+  - en: "{name} copied a stack of papers for {employer}."
+    text: null
+  - en: "{name} left the papers of {employer} half copied."
+    text: null
+  - en: low
+    text: null
+  - en: notable
+    text: null
+  - en: high
+    text: null
+  - en: "{name} left the work for {employer} unfinished."
+    text: null
+  - en: No work on the board here
+    text: null
+  - en: You already have work
+    text: null
+  - en: Only while you have work
+    text: null
+  - en: Only when you have no work
+    text: null
+  - en: Only at {kinds}
+    text: null
+  - en: Only at work of level {level} or higher
+    text: null

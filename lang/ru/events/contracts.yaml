@@ -1,0 +1,164 @@
+# Russian translation of content/events/contracts.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: By the second day another hand of {employer} has worked out that the new one can be leaned on, and your share of the work keeps growing while theirs does not.
+    text: null
+  - en: Have it out behind the shed
+    text: null
+  - en: "{name} settled a quarrel with a shirker at the work of {employer}."
+    text: null
+  - en: The work is shared out fairly after that, and nobody mentions why.
+    text: null
+  - en: "{name} came to blows at the work of {employer} and was sent off."
+    text: null
+  - en: You lose the fight and the job in one afternoon.
+    text: null
+  - en: The other hand has done this before.
+    text: null
+  - en: Do the work of two and say nothing
+    text: null
+  - en: "{name} did the work of two for {employer} without a word."
+    text: null
+  - en: Your back aches, and {employer} notices who carried the load.
+    text: null
+  - en: Leave the job to them
+    text: null
+  - en: "{name} left a job of labour for {employer} half done."
+    text: null
+  - en: You walk off with your hands in your pockets and nothing in them.
+    text: null
+  - en: Two riders have kept pace with you since the ford. At the narrow bend they close in, and one asks, too pleasantly, what the letter of {employer} is worth to you.
+    text: null
+  - en: Spur the horse and ride for it
+    text: null
+  - en: "{name} outrode two riders who were after the letter of {employer}."
+    text: null
+  - en: You lose them in the trees, and the seal is still whole.
+    text: null
+  - en: "{name} was thrown from the saddle and lost the letter of {employer} to riders."
+    text: null
+  - en: You pick yourself out of the ditch. The bag is open and empty.
+    text: null
+  - en: Their horses may be the better ones.
+    text: null
+  - en: Hand the letter over
+    text: null
+  - en: "{name} gave up the letter of {employer} to riders on the road."
+    text: null
+  - en: They ride off with it, and you ride on with nothing to deliver.
+    text: null
+  - en: Name a price for it
+    text: null
+  - en: "{employer} may learn where the letter went."
+    text: null
+  - en: "{name} sold the letter of {employer} to strangers on the road."
+    text: null
+  - en: The coin is heavy. The letter was lighter.
+    text: null
+  - en: "Men with cudgels step out in front of the carts of {employer}. The teamsters look at you: you are what {employer} paid for."
+    text: null
+  - en: Stand in front of the carts
+    text: null
+  - en: "{name} beat off an attack on the carts of {employer}."
+    text: null
+  - en: They scatter into the brush, and the teamsters press a coin on you at the next inn.
+    text: null
+  - en: "{name} was beaten and the carts of {employer} were plundered."
+    text: null
+  - en: You come to on the road. The carts are standing, and they are empty.
+    text: null
+  - en: There are more of them than you.
+    text: null
+  - en: Buy them off out of your own purse
+    text: null
+  - en: "{name} paid off robbers out of {his} own purse to save the carts of {employer}."
+    text: null
+  - en: They take your coin and leave the carts. {employer} will never know what it cost you.
+    text: null
+  - en: Run for the trees
+    text: null
+  - en: "{name} ran and left the carts of {employer} to robbers."
+    text: null
+  - en: From the trees you hear the carts being broken open.
+    text: null
+  - en: "The debtor of {employer} does not deny the debt. Instead a purse slides across the table: it is yours if you tell {employer} the house was empty."
+    text: null
+  - en: Press for the whole debt
+    text: null
+  - en: "{name} collected a debt for {employer} in full."
+    text: null
+  - en: The coins come out of a box under the floor, one by one, but they come.
+    text: null
+  - en: "{name} failed to collect a debt for {employer}."
+    text: null
+  - en: The door shuts on you, and you have nothing to show {employer}.
+    text: null
+  - en: The debtor may simply refuse.
+    text: null
+  - en: Take the purse
+    text: null
+  - en: "{employer} may hear that the house was not empty."
+    text: null
+  - en: "{name} took a bribe from a debtor of {employer}."
+    text: null
+  - en: The purse is lighter than the debt, and heavier than your conscience would like.
+    text: null
+  - en: Take what can be paid and leave the rest
+    text: null
+  - en: "{name} collected part of a debt for {employer}."
+    text: null
+  - en: Half a debt is better than none, though {employer} will not see it that way.
+    text: null
+  - en: Past midnight someone tries the shutters of the shop of {employer}. Through the crack you count two of them, and they have not seen you yet.
+    text: null
+  - en: Raise the alarm
+    text: null
+  - en: "{name} raised the alarm and drove thieves from the shop of {employer}."
+    text: null
+  - en: Lamps come on all along the street, and the two of them are gone.
+    text: null
+  - en: Go out to them
+    text: null
+  - en: "{name} caught a thief at the shop of {employer}."
+    text: null
+  - en: One gets away; the other spends the night tied to the counter.
+    text: null
+  - en: "{name} was knocked down by thieves at the shop of {employer}."
+    text: null
+  - en: When you get up, the till is open and the street is quiet.
+    text: null
+  - en: They may have knives.
+    text: null
+  - en: Let them take a little, for a share
+    text: null
+  - en: "{employer} may count the stock."
+    text: null
+  - en: "{name} let thieves into the shop of {employer} for a share."
+    text: null
+  - en: They are quick and quiet, and your share is waiting at the corner.
+    text: null
+  - en: "Among the papers of {employer} is one that was never meant for a hired hand: a debt, a name and a sum that would interest a good many people."
+    text: null
+  - en: Copy it with the rest and forget it
+    text: null
+  - en: "{name} copied the papers of {employer} and kept {his} eyes on the ink."
+    text: null
+  - en: You copy it word for word and think about it for a week anyway.
+    text: null
+  - en: Tell {employer} the page was in the wrong pile
+    text: null
+  - en: "{name} warned {employer} of a page left among papers for copying."
+    text: null
+  - en: "{employer} goes pale, then takes your hand and holds it a moment too long."
+    text: null
+  - en: Sell a copy to someone who will pay
+    text: null
+  - en: "{name} sold a page from the papers of {employer}."
+    text: null
+  - en: The buyer counts out the coins without asking where it came from.
+    text: null
+  - en: "{name} was caught selling a page from the papers of {employer}."
+    text: null
+  - en: "{employer} holds up the page and asks you to explain your own hand."
+    text: null
+  - en: "{employer} may notice whose hand copied it."
+    text: null
