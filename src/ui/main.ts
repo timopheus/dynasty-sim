@@ -53,11 +53,17 @@ import { mapView } from './map/view';
 import { willForm } from './will';
 import './style.css';
 import './frame.css';
+import { currentLang, savedLang, setLang, tr, useNames, type Lang } from './i18n';
 
 const raw = import.meta.glob<string>('/content/**/*.{yaml,yml}', { query: '?raw', import: 'default', eager: true });
 const files = Object.keys(raw)
   .sort()
   .map((path) => ({ path: path.replace(/^\//, ''), text: raw[path] ?? '' }));
+// the Russian translation of the texts (RU.1, D-476): the same game in a second language
+const rawRu = import.meta.glob<string>('/lang/ru/**/*.{yaml,yml}', { query: '?raw', import: 'default', eager: true });
+const ruFiles = Object.keys(rawRu)
+  .sort()
+  .map((path) => ({ path: path.replace(/^\//, ''), text: rawRu[path] ?? '' }));
 
 const app = document.getElementById('app');
 if (!app) throw new Error('#app not found');
@@ -161,10 +167,10 @@ interface Session {
 
 function saveProblemText(outcome: SaveOutcome): string | null {
   if (outcome.ok) return null;
-  if (outcome.reason === 'conflict') return 'This game was saved from another tab, so this tab no longer saves. Reload to continue from the latest save.';
+  if (outcome.reason === 'conflict') return tr('This game was saved from another tab, so this tab no longer saves. Reload to continue from the latest save.');
   return outcome.reason === 'quota'
-    ? 'Autosave failed: browser storage is full. The game goes on, but progress since the last successful save will be lost if you reload. Starting a new game frees the space.'
-    : 'Autosave is not available in this browser. The game goes on, but it will not survive a reload.';
+    ? tr('Autosave failed: browser storage is full. The game goes on, but progress since the last successful save will be lost if you reload. Starting a new game frees the space.')
+    : tr('Autosave is not available in this browser. The game goes on, but it will not survive a reload.');
 }
 
 /** Offers a journal of commands as a file (D-202): to send with a report or to replay (`npm run replay`). */
@@ -202,7 +208,7 @@ function eventWindow(session: Session, screen: NonNullable<ReturnType<typeof eve
     session.announcedEvent = text;
     session.queue.push(eventAnnouncement(screen.text, controls));
   }
-  return modalFrame({ title: eventTitle(ctx, screen), pinned: true, badge: 'answer to go on', kind: 'event' },
+  return modalFrame({ title: eventTitle(ctx, screen), pinned: true, badge: tr('answer to go on'), kind: 'event' },
     el('p', { className: 'event-text' }, ...partNodes(el, screen.text)),
     el('div', { className: 'choices' }, ...controls.map((c, i) => choiceNode(c, picks[i] ?? null, { icons: screen.options[i]?.icons ?? {check: false, cost: false, trait: false}, tip: screen.options[i]?.tip ?? null }))));
 }
@@ -210,9 +216,9 @@ function eventWindow(session: Session, screen: NonNullable<ReturnType<typeof eve
 function newGameMenu(session: Session): void {
   session.menuOpen = false;
   session.question = {
-    title: 'Start a new game?',
-    text: 'The current dynasty will be lost for good.',
-    yes: 'Start a new game',
+    title: tr('Start a new game?'),
+    text: tr('The current dynasty will be lost for good.'),
+    yes: tr('Start a new game'),
     onYes: () => { if (session.busy) return; session.question = null; void newGameNow(session); },
     onNo: () => { session.question = null; session.focusAfterRender = true; render(session); },
   };
@@ -290,7 +296,12 @@ function render(session: Session): void {
   const menuProps = {
     menuOpen: session.menuOpen,
     onMenuToggle: () => { session.menuOpen = !session.menuOpen; session.refocus = 'menu'; rerender(); },
-    items: [{ label: 'New game', onClick: () => newGameMenu(session) }, ...(DEV ? [{ label: 'Download the command journal', onClick: () => downloadJournal(session.journal) }] : [])],
+    items: [
+      { label: tr('New game'), onClick: () => newGameMenu(session) },
+      // the other language (RU.1): its own name, so whoever cannot read this one finds it
+      ...(contents.ru ? [{ label: currentLang() === 'en' ? 'Русский язык' : 'English', onClick: () => switchLang(session) }] : []),
+      ...(DEV ? [{ label: 'Download the command journal', onClick: () => downloadJournal(session.journal) }] : []),
+    ],
     devNotes: DEV ? [`Seed ${state.seed}`] : [],
   };
 
@@ -380,7 +391,7 @@ function render(session: Session): void {
           canPlay: mode === 'paused' || (mode === 'idle' && idleAction(state, content) !== null),
           onToggle: () => { void togglePause(session); },
           onSpeed: (speed) => setSpeed(session, speed),
-          held: session.boardOpen ? 'Paused while the work board is open' : null,
+          held: session.boardOpen ? tr('Paused while the work board is open') : null,
         }))));
   // the menu stays reachable under a pinned window: "New game" must work whatever is pending
   if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar, .sidebar-toggle, .avatar, .actions-panel')) part.inert = true;
@@ -734,9 +745,9 @@ async function newGameNow(session: Session): Promise<void> {
   }
 }
 
-const DISCARDED: Record<string, string> = {
-  old_version: 'Your saved game is from another version of the game and cannot be continued. A new game has begun.',
-  content_changed: "The game's content has changed and your saved game no longer fits it. A new game has begun.",
+const DISCARDED: Record<string, () => string> = {
+  old_version: () => tr('Your saved game is from another version of the game and cannot be continued. A new game has begun.'),
+  content_changed: () => tr("The game's content has changed and your saved game no longer fits it. A new game has begun."),
 };
 
 async function boot(content: Content, version: string): Promise<void> {
@@ -760,9 +771,9 @@ async function boot(content: Content, version: string): Promise<void> {
     if (choice === 'ask_replace' && requested !== null) {
       // the address asks for another seed than the saved game: ask inside the page, a `confirm()` may not show there
       session.question = {
-        title: 'Replace your dynasty?',
-        text: `The address asks for seed ${String(requested)}, which replaces your saved dynasty.`,
-        yes: 'Replace it',
+        title: tr('Replace your dynasty?'),
+        text: tr('The address asks for seed {seed}, which replaces your saved dynasty.', { seed: requested }),
+        yes: tr('Replace it'),
         onYes: () => { session.question = null; session.busy = true; void startSession(session, requested).finally(() => { session.busy = false; }); },
         onNo: () => { session.question = null; history.replaceState(null, '', bareAddress()); render(session); },
       };
@@ -770,7 +781,7 @@ async function boot(content: Content, version: string): Promise<void> {
     render(session);
   } else {
     if (outcome.kind === 'discarded') {
-      session.notice = DISCARDED[outcome.reason] ?? 'Your saved game could not be read. A new game has begun.';
+      session.notice = DISCARDED[outcome.reason]?.() ?? tr('Your saved game could not be read. A new game has begun.');
       session.lostJournal = outcome.journal;
     }
     await startSession(session, requested ?? pickSeed());
@@ -778,6 +789,12 @@ async function boot(content: Content, version: string): Promise<void> {
 }
 
 const loaded = loadContent(files);
+const loadedRu = loaded.ok ? loadContent([...files, ...ruFiles]) : null;
+// a translation that does not load leaves the game in English, and says why to the developer
+if (loadedRu && !loadedRu.ok) console.warn('Russian is off:', loadedRu.errors.slice(0, 20).map((e) => `${e.file}: ${e.path}: ${e.message}`).join('\n'));
+const contents: Record<Lang, Content | null> = { en: loaded.ok ? loaded.content : null, ru: loadedRu?.ok ? loadedRu.content : null };
+if (contents.ru) useNames(contents.ru);
+setLang(savedLang() === 'ru' && contents.ru ? 'ru' : 'en');
 let current: Session | null = null;
 window.addEventListener('hashchange', () => {
   if (!current) return;
@@ -793,7 +810,22 @@ if (!loaded.ok) {
     el('pre', { className: 'errors' }, loaded.errors.map((e) => `${e.file}: ${e.path}: ${e.message}`).join('\n')),
   );
 } else {
-  void boot(loaded.content, contentVersion(files));
+  void boot(contents[currentLang()] ?? loaded.content, contentVersion(files));
+}
+
+/**
+ * The other language (RU.1, D-476): the screen and every new line in it at once; the world is the same, the lines already
+ * written stay in the language they were written in.
+ */
+function switchLang(session: Session): void {
+  const next: Lang = currentLang() === 'en' ? 'ru' : 'en';
+  const content = contents[next];
+  if (!content) return;
+  setLang(next);
+  session.content = content;
+  session.menuOpen = false;
+  session.refocus = 'menu';
+  render(session);
 }
 
 window.addEventListener('keydown', (e) => {

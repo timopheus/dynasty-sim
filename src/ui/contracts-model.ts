@@ -4,10 +4,9 @@ import { fullName } from '../core/character/character';
 import { placesInReach } from '../core/contracts/board';
 import { contractReasons, type Contract } from '../core/contracts/contracts';
 import { findCharacter, getPlayer } from '../core/helpers';
-import { daysWord } from '../core/pages/place';
 import { placeDef, routesFrom, standingIn } from '../core/place/place';
 import type { Ctx } from '../core/state';
-import { formatDate } from '../core/time/calendar';
+import { crownsText, dateText, daysText, localName, tr } from './i18n';
 
 /**
  * The board of work (CK.4; the contract board of RtP in the form of CK3, D-469, D-472): on the left the offers of the
@@ -89,14 +88,14 @@ function placeName(ctx: Ctx, id: string): string {
 }
 
 function whereText(ctx: Ctx, o: Contract): string {
-  return o.to === null ? `In ${placeName(ctx, o.place)}, ${daysWord(o.days)}` : `To ${placeName(ctx, o.to)}, ${daysWord(o.days)}`;
+  return o.to === null ? tr('In {place}, {days}', { place: localName(placeName(ctx, o.place), 'prep'), days: daysText(o.days) }) : tr('To {place}, {days}', { place: localName(placeName(ctx, o.to), 'acc'), days: daysText(o.days) });
 }
 
 function rowOf(ctx: Ctx, o: Contract): OfferRow {
   const kind = ctx.content.contracts?.kinds.find((k) => k.id === o.kind);
   const employer = findCharacter(ctx.state, o.employer);
   const risk = riskOf(ctx, o);
-  return { id: o.id, title: capital(kind?.name ?? o.kind), level: o.level, pay: o.pay, where: whereText(ctx, o), employer: employer ? fullName(employer) : 'someone', risk: `${risk.word} (${risk.chance}%)` };
+  return { id: o.id, title: capital(kind?.name ?? o.kind), level: o.level, pay: o.pay, where: whereText(ctx, o), employer: employer ? localName(fullName(employer)) : tr('someone'), risk: `${risk.word} (${risk.chance}%)` };
 }
 
 /** The work under way, as the board and the block "where I am" say it: "A letter to carry for John Calder". */
@@ -106,7 +105,7 @@ export function workLine(ctx: Ctx): string | null {
   if (!current || state.activeAction?.contract !== current.id) return null;
   const kind = content.contracts?.kinds.find((k) => k.id === current.kind);
   const employer = findCharacter(state, current.employer);
-  return `${capital(kind?.name ?? current.kind)} for ${employer ? fullName(employer) : 'someone'}`;
+  return tr('{work} for {employer}', { work: capital(kind?.name ?? current.kind), employer: employer ? localName(fullName(employer), 'gen') : tr('someone') });
 }
 
 function details(ctx: Ctx, o: Contract, distance: number): OfferDetails {
@@ -114,36 +113,38 @@ function details(ctx: Ctx, o: Contract, distance: number): OfferDetails {
   const contracts = content.contracts;
   const kind = contracts?.kinds.find((k) => k.id === o.kind);
   const employer = findCharacter(state, o.employer);
-  const name = employer ? fullName(employer) : 'someone';
+  const english = employer ? fullName(employer) : null;
+  const name = english ? localName(english) : tr('someone');
   const occupation = content.population?.occupations.find((x) => x.id === employer?.occupation)?.name ?? '';
   const here = standingIn(state, content) === o.place;
   const risk = riskOf(ctx, o);
   const favor = contracts?.favorLevel !== undefined && o.level >= contracts.favorLevel;
   const strong = favor && kind?.offer?.strongFavor === true && o.level >= 3;
-  const success = [`${o.pay} crowns`, `${name} will think better of you`, ...(favor ? [`${name} will owe you ${strong ? 'a great favor' : 'a favor'}`] : [])];
-  const failure = ['No pay', `${name} will think worse of you`];
-  const work = o.to === null ? `${daysWord(o.days)} of work in ${placeName(ctx, o.place)}` : `${daysWord(o.days)} on the road from ${placeName(ctx, o.place)} to ${placeName(ctx, o.to)}`;
-  const board = here ? `On the board here, in ${placeName(ctx, o.place)}` : `On the board in ${placeName(ctx, o.place)}, ${daysWord(distance)} away`;
+  const success = [crownsText(o.pay), tr('{name} will think better of you', { name }), ...(favor ? [strong ? tr('{name} will owe you a great favor', { name }) : tr('{name} will owe you a favor', { name })] : [])];
+  const failure = [tr('No pay'), tr('{name} will think worse of you', { name })];
+  const at = (id: string, kase: 'prep' | 'gen' | 'acc') => localName(placeName(ctx, id), kase);
+  const work = o.to === null ? tr('{days} of work in {place}', { days: daysText(o.days), place: at(o.place, 'prep') }) : tr('{days} on the road from {from} to {to}', { days: daysText(o.days), from: at(o.place, 'gen'), to: at(o.to, 'acc') });
+  const board = here ? tr('On the board here, in {place}', { place: at(o.place, 'prep') }) : tr('On the board in {place}, {days} away', { place: at(o.place, 'prep'), days: daysText(distance) });
 
   const serve = content.actions.find((a) => a.target === 'contract');
   const free = (state.status === 'awaiting_action' || state.status === 'running') && state.pendingEvent === null;
   // work under way comes first: no second job, and no way to another board that would leave this one half done
   const busy = state.contracts.current !== null;
   let take: OfferDetails['take'];
-  if (!free) take = { enabled: false, reason: 'Answer the window first' };
-  else if (busy) take = { enabled: false, reason: contractReasons(state, content).join('; ') || 'You already have work' };
-  else if (!here) take = { enabled: false, reason: `Go to ${placeName(ctx, o.place)} first` };
+  if (!free) take = { enabled: false, reason: tr('Answer the window first') };
+  else if (busy) take = { enabled: false, reason: contractReasons(state, content).join('; ') || tr('You already have work') };
+  else if (!here) take = { enabled: false, reason: tr('Go to {place} first', { place: at(o.place, 'gen') }) };
   else {
     const reasons = contractReasons(state, content);
     const unmet = serve ? (actionAvailability(ctx).find((a) => a.action.id === serve.id)?.unmet ?? []) : [];
     const usable = serve !== undefined && availableActions(ctx).includes(serve);
-    take = reasons.length > 0 ? { enabled: false, reason: reasons.join('; ') } : usable ? { enabled: true, reason: '' } : { enabled: false, reason: unmet.join('; ') || 'Not now' };
+    take = reasons.length > 0 ? { enabled: false, reason: reasons.join('; ') } : usable ? { enabled: true, reason: '' } : { enabled: false, reason: unmet.join('; ') || tr('Not now') };
   }
   const journey = content.actions.find((a) => a.target === 'place');
   const canTravel = !here && !busy && free && journey !== undefined && availableActions(ctx).includes(journey) && state.activeAction?.target !== o.place;
   // the way there says its days and its price, as on the panel and the page of the place (D-443)
   const cost = journey ? (journey.effects?.pay !== undefined ? priceCrowns(content, state, getPlayer(state), journey.effects.pay) : 0) + Math.max(0, -(journey.effects?.money ?? 0)) : 0;
-  const travel = canTravel && journey ? { actionId: journey.id, target: o.place, label: `Travel to ${placeName(ctx, o.place)} (${daysWord(distance)}${cost > 0 ? ` · ${cost} crowns` : ''})` } : null;
+  const travel = canTravel && journey ? { actionId: journey.id, target: o.place, label: `${tr('Travel to {place}', { place: at(o.place, 'acc') })} (${daysText(distance)}${cost > 0 ? ` · ${crownsText(cost)}` : ''})` } : null;
   return {
     id: o.id,
     title: capital(kind?.name ?? o.kind),
@@ -152,10 +153,10 @@ function details(ctx: Ctx, o: Contract, distance: number): OfferDetails {
     board,
     work,
     pay: o.pay,
-    risk: `${capital(risk.word)}: ${risk.chance}% chance of trouble`,
+    risk: tr('{risk}: {chance}% chance of trouble', { risk: capital(risk.word), chance: risk.chance }),
     success,
     failure,
-    until: `Offered until ${formatDate(o.expires)}`,
+    until: tr('Offered until {date}', { date: dateText(o.expires) }),
     take,
     travel,
   };
@@ -181,7 +182,7 @@ export function boardView(ctx: Ctx, selected: string | null): BoardView {
     places,
     selected: offer && chosen ? details(ctx, offer, chosen.p.days) : null,
     current: workLine(ctx),
-    empty: places.length === 0 ? 'No work on the boards within reach. New offers come every month.' : null,
+    empty: places.length === 0 ? tr('No work on the boards within reach. New offers come every month.') : null,
   };
 }
 

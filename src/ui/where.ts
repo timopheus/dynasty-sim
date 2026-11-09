@@ -1,8 +1,8 @@
-import { daysWord } from '../core/pages/place';
 import { hrefOf } from './address';
 import { el } from './dom';
 import type { WhereView } from './where-model';
 import './where.css';
+import { daysText, tr } from './i18n';
 
 /**
  * The block "where I am" at the bottom of the centre (D-438, D-443), over the map that fills the screen (M.1, D-469): the
@@ -12,15 +12,15 @@ import './where.css';
 export function wherePanel(view: WhereView): HTMLElement {
   const table = el('dl', { className: 'place-table' }, ...view.table.map((r) => el('div', {}, el('dt', {}, r.label), el('dd', {}, r.value))));
   const title = view.place ? el('a', { href: hrefOf(view.place.id), className: 'place-name' }, view.title) : el('span', { className: 'place-name' }, view.title);
-  const roads: (Node | string)[] = view.goTo.flatMap((g, i) => [i > 0 ? ' · ' : '', el('a', { href: hrefOf(g.id), className: 'place-link' }, g.name), ` ${daysWord(g.days).replace(' ', '\u00a0')}`]);
-  const block = el('section', { className: 'where', ariaLabel: 'Where you are' },
-    el('div', { className: 'place-picture', ariaHidden: 'true' }, 'picture of the place'),
+  const roads: (Node | string)[] = view.goTo.flatMap((g, i) => [i > 0 ? ' · ' : '', el('a', { href: hrefOf(g.id), className: 'place-link' }, g.name), ` ${daysText(g.days).replace(' ', '\u00a0')}`]);
+  const block = el('section', { className: 'where', ariaLabel: tr('Where you are') },
+    el('div', { className: 'place-picture', ariaHidden: 'true' }, tr('picture of the place')),
     el('div', { className: 'where-text' },
       ...(view.title ? [el('p', { className: 'place-head' }, title, el('span', { className: 'place-status' }, ` — ${view.status}`))] : []),
       table,
       ...(view.description ? [el('p', { className: 'place-line' }, view.description)] : []),
       el('h2', { tabIndex: -1, id: 'where-heading' }, view.heading),
       ...(view.line ? [el('p', {}, view.line)] : []),
-      ...(roads.length > 0 ? [el('p', { className: 'place-roads' }, 'Nearby: ', ...roads)] : [])));
+      ...(roads.length > 0 ? [el('p', { className: 'place-roads' }, tr('Nearby: '), ...roads)] : [])));
   return el('div', { className: 'center-slots' }, block);
 }

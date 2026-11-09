@@ -5,6 +5,7 @@ import { getPlayer } from '../core/helpers';
 import { houseOf, renownWord, statusName } from '../core/house/house';
 import type { GameState } from '../core/state';
 import { withNumber } from './access';
+import { crownsText, tr } from './i18n';
 
 /** One figure of the header: the value on top, what it is below. */
 export interface Figure {
@@ -26,19 +27,19 @@ export function headerFigures(state: GameState, content: Content): Figure[] {
   const hero = getPlayer(state);
   const house = houseOf(state, hero);
   const balance = content.economy ? monthlyBalance({ state, content }, hero) : null;
-  const money: Figure = { value: `${hero.money} crowns`, label: 'money' };
+  const money: Figure = { value: crownsText(hero.money), label: tr('money') };
   if (balance) {
-    money.note = `${signed(balance.total)} / month`;
+    money.note = tr('{sum} / month', { sum: signed(balance.total) });
     money.breakdown = balance.lines.map((l) => `${l.label} ${signed(l.amount)}`);
   }
   const figures: Figure[] = [
     money,
-    { value: withNumber(fameWord(content, hero) || 'Unknown', hero.fame), label: 'fame' },
+    { value: withNumber(fameWord(content, hero) || tr('Unknown'), hero.fame), label: tr('fame') },
   ];
   if (house) {
     figures.push(
-      { value: withNumber(renownWord(content, house.renown) || 'Unknown', house.renown), label: 'house renown' },
-      { value: statusName(content, house.status) || 'None', label: 'house status' },
+      { value: withNumber(renownWord(content, house.renown) || tr('Unknown'), house.renown), label: tr('house renown') },
+      { value: statusName(content, house.status) || tr('None'), label: tr('house status') },
     );
   }
   return figures;
