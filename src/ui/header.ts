@@ -18,7 +18,8 @@ export interface HeaderProps {
   devNotes: string[];
 }
 
-function menuNode({ menuOpen, onMenuToggle, items, devNotes }: HeaderProps): HTMLElement {
+/** The menu of the game (New game…), also on screens without the header (the early years). */
+export function menuNode({ menuOpen, onMenuToggle, items, devNotes }: Pick<HeaderProps, 'menuOpen' | 'onMenuToggle' | 'items' | 'devNotes'>): HTMLElement {
   const button = el('button', { className: 'menu-button', type: 'button', onclick: onMenuToggle }, 'Menu ▾');
   button.setAttribute('aria-expanded', String(menuOpen));
   button.setAttribute('aria-controls', 'menu-list');

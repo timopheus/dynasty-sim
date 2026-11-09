@@ -5,6 +5,8 @@ import type { Content } from '../core/content/schema';
 import { eventView } from '../core/events/view';
 import { newGame, type Command } from '../core/game';
 import { getPlayer } from '../core/helpers';
+import { fullName } from '../core/character/character';
+import { houseOf } from '../core/house/house';
 import { isValidSeed } from '../core/rng';
 import { contentVersion } from '../core/save/content-version';
 import { applyRecorded, newJournal, type Journal } from '../core/save/journal';
@@ -23,7 +25,8 @@ import { confirmWindow, willWindow } from './dialogs';
 import { el } from './dom';
 import { headIds } from './entry';
 import { eventAnnouncement, eventPageKey, eventScreen, eventTitle, optionControl } from './event';
-import { headerPanel } from './header';
+import { backstoryScreen } from './backstory-screen';
+import { headerPanel, menuNode } from './header';
 import { headerFigures } from './header-model';
 import { modalFrame, modalHeading } from './modal';
 import { beforeChoice, newsOf, outcomeOf, type Outcome } from './outcome-model';
@@ -251,6 +254,32 @@ function render(session: Session): void {
   if (!screen) session.announcedEvent = '';
   if (!(session.willOpen && form)) session.willOpen = false;
 
+  const menuProps = {
+    menuOpen: session.menuOpen,
+    onMenuToggle: () => { session.menuOpen = !session.menuOpen; session.refocus = 'menu'; rerender(); },
+    items: [{ label: 'New game', onClick: () => newGameMenu(session) }, ...(DEV ? [{ label: 'Download the command journal', onClick: () => downloadJournal(session.journal) }] : [])],
+    devNotes: DEV ? [`Seed ${state.seed}`] : [],
+  };
+
+  // the early years are a screen of their own (playtest 09.11): no panels, no map, no profile of a grown man behind them
+  if (state.backstory.running) {
+    session.windowOpen = true;
+    const stages = content.backstory?.stages ?? [];
+    const stage = Math.min(state.backstory.stage, Math.max(0, stages.length - 1));
+    const page = backstoryScreen({
+      name: fullName(hero),
+      house: houseOf(state, hero)?.name ?? hero.surname,
+      step: stage + 1,
+      steps: stages.length,
+      scene: modal ?? el('div', { className: 'modal-layer' }),
+      menu: menuNode(menuProps),
+    });
+    if (DEV) page.setAttribute('data-seed', String(state.seed));
+    app?.replaceChildren(page);
+    afterDraw(session, modal);
+    return;
+  }
+
   const centre = wherePanel(whereView(ctx));
   const actions = actionsPanel({
     panel: actionShelves(ctx, form),
@@ -282,13 +311,7 @@ function render(session: Session): void {
     },
   });
 
-  const header = headerPanel({
-    figures: headerFigures(state, content),
-    menuOpen: session.menuOpen,
-    onMenuToggle: () => { session.menuOpen = !session.menuOpen; session.refocus = 'menu'; rerender(); },
-    items: [{ label: 'New game', onClick: () => newGameMenu(session) }, ...(DEV ? [{ label: 'Download the command journal', onClick: () => downloadJournal(session.journal) }] : [])],
-    devNotes: DEV ? [`Seed ${state.seed}`] : [],
-  });
+  const header = headerPanel({ figures: headerFigures(state, content), ...menuProps });
 
   // the map fills the screen behind the panels, as in CK3 (M.1, D-469); made once, it keeps its view across the draws
   const map = mapView();
@@ -321,6 +344,8 @@ function render(session: Session): void {
     avatarPanel(ctx, () => openProfile(session)));
   // the menu stays reachable under a pinned window: "New game" must work whatever is pending
   if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar, .avatar, .actions-panel')) part.inert = true;
+  // the map is kept across draws: it is closed under a window and open again without one
+  map.element.inert = modal !== null;
   const menu = menuNodeFor(session);
   app?.replaceChildren(game, ...(modal ? [modal] : []), ...(menu ? [menu] : []));
   if (menu) keepInView(menu);
@@ -328,6 +353,11 @@ function render(session: Session): void {
   if (modal && window.matchMedia(NARROW).matches) modal.style.paddingTop = `${Math.ceil(header.getBoundingClientRect().bottom) + 8}px`;
   if (DEV) game.setAttribute('data-seed', String(state.seed));
 
+  afterDraw(session, modal);
+}
+
+/** What every draw ends with: words for the screen reader, the focus, the tip under the pointer, the clock. */
+function afterDraw(session: Session, modal: HTMLElement | null): void {
   announce(session.queue.splice(0).filter(Boolean).join(' '));
   if (session.refocus) {
     app?.querySelector<HTMLElement>(`[data-focus="${session.refocus}"]`)?.focus();
