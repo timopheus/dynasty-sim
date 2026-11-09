@@ -1,0 +1,15 @@
+# expect-error: events[0].roles.friend /handed over only its employer/
+contracts:
+  kinds:
+    - id: letter
+      name: a letter
+      success: { text: "{name} carried a letter." }
+      failure: { text: "{name} lost a letter." }
+  reasons: { none: None, busy: Busy, taken: Taken, free: Free, kind: "Only at {kinds}", level: "Level {level}" }
+events:
+  - id: thief
+    weight: 1
+    contract: [letter]
+    roles:
+      friend: { pick: given }
+    text: A thief eyes the letter.

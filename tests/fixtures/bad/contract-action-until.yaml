@@ -1,0 +1,16 @@
+# expect-error: actions[0].until /ends with its work, not by a goal/
+contracts:
+  kinds:
+    - id: letter
+      name: a letter
+      success: { text: "{name} carried a letter." }
+      failure: { text: "{name} lost a letter." }
+  reasons: { none: None, busy: Busy, taken: Taken, free: Free, kind: "Only at {kinds}", level: "Level {level}" }
+actions:
+  - id: work
+    name: Work
+    category: livelihood
+    duration: { min: 5, max: 5 }
+    target: contract
+    until: { when: { contract_taken: false } }
+    text: "{name} worked."

@@ -1,0 +1,8 @@
+# expect-error: contracts.kinds[0].failure.text /unknown placeholder \{patron\}/
+contracts:
+  kinds:
+    - id: letter
+      name: a letter
+      success: { text: "{name} carried a letter for {employer}." }
+      failure: { text: "{name} lost the letter of {patron}." }
+  reasons: { none: None, busy: Busy, taken: Taken, free: Free, kind: "Only at {kinds}", level: "Level {level}" }

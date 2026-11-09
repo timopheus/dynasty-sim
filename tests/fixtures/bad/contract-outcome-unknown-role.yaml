@@ -1,0 +1,8 @@
+# expect-error: contracts.kinds[0].success.effects /unknown role "friend"/
+contracts:
+  kinds:
+    - id: letter
+      name: a letter
+      success: { text: "{name} carried a letter.", effects: { opinion: [{ toward: friend, reason: slight }] } }
+      failure: { text: "{name} lost a letter." }
+  reasons: { none: None, busy: Busy, taken: Taken, free: Free, kind: "Only at {kinds}", level: "Level {level}" }
