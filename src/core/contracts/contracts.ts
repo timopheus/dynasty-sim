@@ -38,6 +38,10 @@ export type ContractOutcome = 'success' | 'failure';
 
 export interface CurrentContract extends Contract {
   outcome: ContractOutcome | null;
+  /** Day the hero took it. */
+  start: number;
+  /** The complication of its kind has been rolled for (CK.3): it comes at most once, halfway through the work. */
+  rolled: boolean;
 }
 
 export interface ContractsState {
@@ -46,13 +50,15 @@ export interface ContractsState {
     offers: Contract[];
     /** The contract the hero has taken and serves now; null when he has none. */
     current: CurrentContract | null;
-    /** Month number (year × 12 + month − 1) of the last refresh of the boards; null before the first. */
+    /** Month number (year × 12 + month − 1) the boards were last refreshed in; null before the first. */
     month: number | null;
+    /** Record ids of the places whose boards were refreshed in that month, in the order refreshed (CK.3). */
+    posted: string[];
   };
 }
 
 export function initContractsState(): ContractsState {
-  return { contracts: { offers: [], current: null, month: null } };
+  return { contracts: { offers: [], current: null, month: null, posted: [] } };
 }
 
 /** The highest level of a contract (D-474: levels 0–3). */
@@ -110,7 +116,7 @@ export function takeContract(state: GameState, id: string): CurrentContract {
   const index = state.contracts.offers.findIndex((o) => o.id === id);
   if (index < 0) throw new Error(`No offer "${id}"`);
   const [offer] = state.contracts.offers.splice(index, 1) as [Contract];
-  const current: CurrentContract = { ...offer, outcome: null };
+  const current: CurrentContract = { ...offer, outcome: null, start: state.day, rolled: false };
   state.contracts.current = current;
   return current;
 }
@@ -174,5 +180,9 @@ export const contractsInvariants: Invariant = ({ state, content }) => {
   const serving = state.activeAction?.contract ?? null;
   if (serving !== null && current?.id !== serving) problems.push(`the action serves ${serving}, which is not the hero's contract`);
   if (month !== null && !isInt(month)) problems.push(`contracts: month is not a whole number: ${String(month)}`);
+  const places = new Set(state.place.places.map((p) => p.id));
+  const posted = state.contracts.posted;
+  if (new Set(posted).size !== posted.length || posted.some((id) => !places.has(id))) problems.push(`contracts: boards refreshed ${posted.join(', ')}`);
+  if (current && (!isInt(current.start) || current.start > state.day || typeof current.rolled !== 'boolean')) problems.push(`contract ${current.id}: start ${String(current.start)}, rolled ${String(current.rolled)}`);
   return problems;
 };

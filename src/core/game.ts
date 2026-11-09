@@ -9,7 +9,7 @@ import { archivePhase } from './archive/phases';
 import { backstoryAfterChoice, backstoryOnNewGame } from './backstory/phases';
 import { log } from './chronicle/log';
 import type { Content } from './content/schema';
-import { contractsPhase, settleContract } from './contracts/phases';
+import { contractsOnNewGame, contractsPhase, settleContract } from './contracts/phases';
 import { chooseOption } from './events/events';
 import { familyOnNewGame, familyPhase, proposeCommand, type ProposeOrder } from './family/phases';
 import { economyPhase } from './economy/phases';
@@ -72,9 +72,10 @@ export const DAY_PHASES: readonly DayPhase[] = [
 
 /**
  * New game, after the founder and the `start` line (D-167): the circle, the house and the living kin of the founder
- * (stage 4), the places and the hero's happiness (S.9a), then the backstory of the founder.
+ * (stage 4), the places and the hero's happiness (S.9a), then the backstory of the founder; the boards within reach go
+ * last (CK.3): they draw from a stream of their own, not from the world's.
  */
-const NEW_GAME_HOOKS: readonly NewGameHook[] = [worldOnNewGame, houseOnNewGame, familyOnNewGame, placeOnNewGame, mindOnNewGame, backstoryOnNewGame];
+const NEW_GAME_HOOKS: readonly NewGameHook[] = [worldOnNewGame, houseOnNewGame, familyOnNewGame, placeOnNewGame, mindOnNewGame, backstoryOnNewGame, contractsOnNewGame];
 
 /** After a choice that left no event waiting: the next scene of the backstory (3.11). */
 const AFTER_CHOICE_HOOKS: readonly AfterChoiceHook[] = [backstoryAfterChoice];

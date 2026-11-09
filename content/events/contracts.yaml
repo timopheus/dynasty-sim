@@ -1,0 +1,202 @@
+# The complications of contracts (CK.3, D-474; the hunt of CK3: the start, a complication, the end). Each comes once,
+# halfway through the work, with the chance of the risk of its kind (content/contracts.yaml); never from the deck. The
+# employer is handed over. A failure is a choice in a window, never a silent roll (D-463). Format: docs/event-format.md.
+events:
+  - id: labour_quarrel
+    weight: 1
+    followup_only: true
+    contract: [day_labour]
+    roles:
+      employer: { pick: given }
+    mood: anger
+    text: "By the second day another hand of {employer} has worked out that the new one can be leaned on, and your share of the work keeps growing while theirs does not."
+    options:
+      - text: Have it out behind the shed
+        acts: [lash_out]
+        risk: "The other hand has done this before."
+        check: { stat: prowess, difficulty: 5 }
+        success:
+          effects: { happiness: 4 }
+          result: "{name} settled a quarrel with a shirker at the work of {employer}."
+          aftermath: "The work is shared out fairly after that, and nobody mentions why."
+          mood: triumph
+        failure:
+          effects: { wound: light_wound, contract_outcome: failure, end_action: true }
+          result: "{name} came to blows at the work of {employer} and was sent off."
+          aftermath: "You lose the fight and the job in one afternoon."
+          mood: pain
+      - text: Do the work of two and say nothing
+        acts: [toil]
+        effects: { happiness: -3 }
+        result: "{name} did the work of two for {employer} without a word."
+        aftermath: "Your back aches, and {employer} notices who carried the load."
+      - text: Leave the job to them
+        acts: [shirk]
+        effects: { contract_outcome: failure, end_action: true }
+        result: "{name} left a job of labour for {employer} half done."
+        aftermath: "You walk off with your hands in your pockets and nothing in them."
+
+  - id: letter_riders
+    weight: 1
+    followup_only: true
+    contract: [letter]
+    roles:
+      employer: { pick: given }
+    mood: threat
+    text: "Two riders have kept pace with you since the ford. At the narrow bend they close in, and one asks, too pleasantly, what the letter of {employer} is worth to you."
+    options:
+      - text: Spur the horse and ride for it
+        acts: [flee]
+        risk: "Their horses may be the better ones."
+        check: { stat: prowess, difficulty: 6, bonus: [{ when: { traits_any: [horseman] }, add: 2 }] }
+        success:
+          result: "{name} outrode two riders who were after the letter of {employer}."
+          aftermath: "You lose them in the trees, and the seal is still whole."
+          mood: triumph
+        failure:
+          effects: { wound: light_wound, contract_outcome: failure }
+          result: "{name} was thrown from the saddle and lost the letter of {employer} to riders."
+          aftermath: "You pick yourself out of the ditch. The bag is open and empty."
+          mood: pain
+      - text: Hand the letter over
+        acts: [humble_self]
+        effects: { contract_outcome: failure }
+        result: "{name} gave up the letter of {employer} to riders on the road."
+        aftermath: "They ride off with it, and you ride on with nothing to deliver."
+      - text: Name a price for it
+        acts: [betray]
+        risk: "{employer} may learn where the letter went."
+        effects: { gain: notable, contract_outcome: failure }
+        on: { employer: { opinion: [{ toward: hero, reason: cheated_me }] } }
+        result: "{name} sold the letter of {employer} to strangers on the road."
+        aftermath: "The coin is heavy. The letter was lighter."
+
+  - id: carts_ambush
+    weight: 1
+    followup_only: true
+    contract: [escort]
+    roles:
+      employer: { pick: given }
+    mood: threat
+    text: "Men with cudgels step out in front of the carts of {employer}. The teamsters look at you: you are what {employer} paid for."
+    options:
+      - text: Stand in front of the carts
+        acts: [risk_life]
+        risk: "There are more of them than you."
+        check: { stat: prowess, difficulty: 6, bonus: [{ when: { traits_any: [duelist, brave] }, add: 1 }] }
+        success:
+          effects: { gain: minor, happiness: 4 }
+          result: "{name} beat off an attack on the carts of {employer}."
+          aftermath: "They scatter into the brush, and the teamsters press a coin on you at the next inn."
+          mood: triumph
+        failure:
+          effects: { wound: light_wound, contract_outcome: failure }
+          result: "{name} was beaten and the carts of {employer} were plundered."
+          aftermath: "You come to on the road. The carts are standing, and they are empty."
+          mood: pain
+      - text: Buy them off out of your own purse
+        acts: [give_away]
+        effects: { pay: minor }
+        result: "{name} paid off robbers out of {his} own purse to save the carts of {employer}."
+        aftermath: "They take your coin and leave the carts. {employer} will never know what it cost you."
+      - text: Run for the trees
+        acts: [flee]
+        effects: { contract_outcome: failure, end_action: true }
+        result: "{name} ran and left the carts of {employer} to robbers."
+        aftermath: "From the trees you hear the carts being broken open."
+        mood: shame
+
+  - id: debtor_purse
+    weight: 1
+    followup_only: true
+    contract: [debt]
+    roles:
+      employer: { pick: given }
+    text: "The debtor of {employer} does not deny the debt. Instead a purse slides across the table: it is yours if you tell {employer} the house was empty."
+    options:
+      - text: Press for the whole debt
+        acts: [assert_rank]
+        risk: "The debtor may simply refuse."
+        check: { stat: diplomacy, difficulty: 6 }
+        success:
+          result: "{name} collected a debt for {employer} in full."
+          aftermath: "The coins come out of a box under the floor, one by one, but they come."
+        failure:
+          effects: { contract_outcome: failure }
+          result: "{name} failed to collect a debt for {employer}."
+          aftermath: "The door shuts on you, and you have nothing to show {employer}."
+          mood: shame
+      - text: Take the purse
+        acts: [betray]
+        risk: "{employer} may hear that the house was not empty."
+        effects: { gain: minor, contract_outcome: failure }
+        result: "{name} took a bribe from a debtor of {employer}."
+        aftermath: "The purse is lighter than the debt, and heavier than your conscience would like."
+      - text: Take what can be paid and leave the rest
+        acts: [settle_for_less]
+        on: { employer: { opinion: [{ toward: hero, reason: slighted }] } }
+        result: "{name} collected part of a debt for {employer}."
+        aftermath: "Half a debt is better than none, though {employer} will not see it that way."
+
+  - id: shutters_at_night
+    weight: 1
+    followup_only: true
+    contract: [watch]
+    roles:
+      employer: { pick: given }
+    text: "Past midnight someone tries the shutters of the shop of {employer}. Through the crack you count two of them, and they have not seen you yet."
+    options:
+      - text: Raise the alarm
+        result: "{name} raised the alarm and drove thieves from the shop of {employer}."
+        aftermath: "Lamps come on all along the street, and the two of them are gone."
+      - text: Go out to them
+        acts: [risk_life]
+        risk: "They may have knives."
+        check: { stat: prowess, difficulty: 5 }
+        success:
+          on: { employer: { opinion: [{ toward: hero, reason: favour }] } }
+          result: "{name} caught a thief at the shop of {employer}."
+          aftermath: "One gets away; the other spends the night tied to the counter."
+          mood: triumph
+        failure:
+          effects: { wound: light_wound, contract_outcome: failure }
+          result: "{name} was knocked down by thieves at the shop of {employer}."
+          aftermath: "When you get up, the till is open and the street is quiet."
+          mood: pain
+      - text: Let them take a little, for a share
+        acts: [betray]
+        risk: "{employer} may count the stock."
+        effects: { gain: minor, contract_outcome: failure }
+        result: "{name} let thieves into the shop of {employer} for a share."
+        aftermath: "They are quick and quiet, and your share is waiting at the corner."
+
+  - id: page_not_for_you
+    weight: 1
+    followup_only: true
+    contract: [copy]
+    roles:
+      employer: { pick: given }
+    text: "Among the papers of {employer} is one that was never meant for a hired hand: a debt, a name and a sum that would interest a good many people."
+    options:
+      - text: Copy it with the rest and forget it
+        result: "{name} copied the papers of {employer} and kept {his} eyes on the ink."
+        aftermath: "You copy it word for word and think about it for a week anyway."
+      - text: Tell {employer} the page was in the wrong pile
+        acts: [verify]
+        on: { employer: { opinion: [{ toward: hero, reason: favour }] } }
+        result: "{name} warned {employer} of a page left among papers for copying."
+        aftermath: "{employer} goes pale, then takes your hand and holds it a moment too long."
+      - text: Sell a copy to someone who will pay
+        acts: [betray]
+        risk: "{employer} may notice whose hand copied it."
+        check: { stat: intrigue, difficulty: 5 }
+        success:
+          effects: { gain: notable }
+          result: "{name} sold a page from the papers of {employer}."
+          aftermath: "The buyer counts out the coins without asking where it came from."
+        failure:
+          effects: { contract_outcome: failure }
+          on: { employer: { opinion: [{ toward: hero, reason: cheated_me }] } }
+          result: "{name} was caught selling a page from the papers of {employer}."
+          aftermath: "{employer} holds up the page and asks you to explain your own hand."
+          mood: shame

@@ -81,7 +81,7 @@ describe('CK.2a: contracts', () => {
     const day = state.day;
     apply(state, content, { type: 'start', actionId: 'work', target: offer.id });
     expect(state.activeAction).toEqual({ actionId: 'work', endDay: day + 4, target: null, contract: offer.id });
-    expect(state.contracts.current).toEqual({ ...offer, outcome: null });
+    expect(state.contracts.current).toEqual({ ...offer, outcome: null, start: day, rolled: false });
     expect(state.contracts.offers.map((o) => o.id)).not.toContain(offer.id);
     // one contract at a time
     post(state, employer);

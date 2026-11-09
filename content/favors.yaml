@@ -1,0 +1,9 @@
+# Favors (CK.2a, D-474): the hooks of CK3. A weak favor is called in once and lapses in 10 years; a strong one rests 5 years
+# after it is called in. The heir takes the favors of the dead head as weak ones, for one generation (D-375).
+favors:
+  weakDays: 3652
+  strongRestDays: 1826
+  inheritedDays: 1826
+  reasons:
+    none: "{name} owes you no favor"
+    strong: "{name} owes you no great favor"

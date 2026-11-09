@@ -13,6 +13,8 @@ opinions:
     - { id: slighted, name: Slighted me, value: -15, kind: harm, decay: { kind: fade, days: 365 } }
     - { id: gift, name: Gave a gift, value: 20, kind: benefit, decay: { kind: fade, days: 365 } }
     - { id: favour, name: Did me a service, value: 35, kind: benefit, decay: { kind: fade, days: 1460 } }
+    - { id: contract_done, name: Did good work for me, value: 20, kind: benefit, decay: { kind: fade, days: 730 } }
+    - { id: contract_failed, name: Let me down on a job, value: -25, kind: harm, decay: { kind: fade, days: 1095 } }
     - { id: saved_life, name: Saved my life, value: 70, kind: benefit, decay: { kind: never } }
     - { id: owes_me, name: Owes me, value: 15, kind: benefit, decay: { kind: held, until: debt_repaid }, inherits_as: owed_my_father }
     - { id: shamed_me, name: Shamed me, value: -40, kind: harm, decay: { kind: held, until: debt_repaid }, inherits_as: father_enemy }

@@ -267,6 +267,21 @@ export function routesFrom(state: GameState, content: Content): { to: string; da
 }
 
 /**
+ * Places reached from the place `from` (a record id) with the days of the shortest way (D-462), the place itself left out,
+ * in the order of the content: the work a board offers elsewhere (CK.3). Pure.
+ */
+export function routesFromPlace(state: GameState, content: Content, from: string): { to: string; days: number }[] {
+  if (!content.places || !state.place.places.some((p) => p.id === from)) return [];
+  const { dist } = computeWays(state, content, { place: from });
+  const out: { to: string; days: number }[] = [];
+  for (const { id } of state.place.places) {
+    const days = dist.get(id);
+    if (days !== undefined && days > 0) out.push({ to: id, days });
+  }
+  return out;
+}
+
+/**
  * What the journal says when a journey stops (S.9): `stopped` — another occupation, an illness, a window broke it off,
  * and the hero stands where it left him; `{ turn }` — he turns toward another place without stopping (D-462), the
  * line of a turn, not of a break. `null` writes nothing: a goal reached on the way (D-466), the death of the hero.
