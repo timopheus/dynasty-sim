@@ -28,6 +28,21 @@ async function freePlace(page: Page): Promise<number> {
   })`);
 }
 
+/** A point of the bare map (no panel, no place within 40 px), to drag and wheel from. */
+async function bareMap(page: Page): Promise<{ x: number; y: number }> {
+  return page.evaluate<{ x: number; y: number }>(`(() => {
+    const canvas = document.querySelector('.map-canvas');
+    const spots = [...document.querySelectorAll('.map-place')].filter((b) => !b.hidden).map((b) => { const r = b.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+    for (let y = 160; y < innerHeight - 100; y += 20) for (let x = 200; x < innerWidth - 200; x += 20) {
+      if (document.elementFromPoint(x, y) !== canvas) continue;
+      if (document.elementFromPoint(x + 100, y + 40) !== canvas) continue;
+      if (spots.some((s) => Math.hypot(s.x - x, s.y - y) < 40 || Math.hypot(s.x - x - 100, s.y - y - 40) < 40)) continue;
+      return { x, y };
+    }
+    return { x: innerWidth / 2, y: innerHeight / 3 };
+  })()`);
+}
+
 const transformOf = (page: Page, i: number) => page.locator('.map-place').nth(i).getAttribute('style');
 
 test('the map lies under the panels, opens on the hero, moves and zooms, and a place takes a journey', async ({ page }) => {
@@ -44,13 +59,14 @@ test('the map lies under the panels, opens on the hero, moves and zooms, and a p
   await page.screenshot({ path: 'out/e2e/map-1-opens-on-hero-1440.png' });
   // dragging the map moves the places with it; the wheel zooms
   const before = await transformOf(page, here);
-  await page.mouse.move(760, 300);
+  const bare = await bareMap(page);
+  await page.mouse.move(bare.x, bare.y);
   await page.mouse.down();
-  await page.mouse.move(860, 340, { steps: 5 });
+  await page.mouse.move(bare.x + 100, bare.y + 40, { steps: 5 });
   await page.mouse.up();
   await expect.poll(() => transformOf(page, here)).not.toBe(before);
   const dragged = await transformOf(page, here);
-  await page.mouse.move(760, 300);
+  await page.mouse.move(bare.x, bare.y);
   for (let i = 0; i < 3; i++) await page.mouse.wheel(0, 400);
   await expect.poll(() => transformOf(page, here)).not.toBe(dragged);
   await page.screenshot({ path: 'out/e2e/map-2-zoomed-out-1440.png' });
