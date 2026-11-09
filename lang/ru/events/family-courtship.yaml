@@ -1,100 +1,100 @@
 # Russian translation of content/events/family-courtship.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: Your path keeps crossing that of {match}, {match.age}. {match.He} laughs easily, and you find you are looking for {match.him} in every crowd.
-    text: null
+    text: "Твои дороги всё время пересекаются с дорогами {match:gen}, {match.age}. {match~Он|Она} легко смеётся, и ты замечаешь, что ищешь {match:acc} в любой толпе."
   - en: Pay court, one visit after another
-    text: null
+    text: "Ухаживать, визит за визитом"
   - en: "{name} began to court {match}."
-    text: null
+    text: "{name} {~начал|начала} ухаживать за {match:ins}."
   - en: Send a gift of 20 crowns first
-    text: null
+    text: "Сначала послать подарок в 20 крон"
   - en: "{name} began to court {match} with a handsome gift."
-    text: null
+    text: "{name} {~начал|начала} ухаживать за {match:ins}, послав щедрый подарок."
   - en: Keep your distance
-    text: null
+    text: "Держаться на расстоянии"
   - en: "{name} kept {his} distance from {match}."
-    text: null
+    text: "{name} {~держался|держалась} от {match:gen} на расстоянии."
   - en: The season has been kind to your suit. {match} has stopped looking away when you come, and the family leaves you alone together. It is time to put the question.
-    text: null
+    text: "Сезон был добр к твоему сватовству. {match} больше не отводит глаз при твоём приходе, и семья оставляет вас наедине. Пора задать вопрос."
   - en: Ask for the hand of {match}
-    text: null
+    text: "Просить руки {match:gen}"
   - en: "{name} won the hand of {match} after a season of courtship."
-    text: null
+    text: "{name} после сезона ухаживаний {~добился|добилась} руки {match:gen}."
   - en: "{name} asked for the hand of {match} and was put off."
-    text: null
+    text: "{name} {~просил|просила} руки {match:gen}, но {~получил|получила} уклончивый ответ."
   - en: Settle a purse of 30 crowns on the family
-    text: null
+    text: "Назначить семье кошелёк в 30 крон"
   - en: "{name} won the hand of {match} with a purse settled on the family."
-    text: null
+    text: "{name} {~добился|добилась} руки {match:gen}, назначив семье кошелёк."
   - en: Put it off again
-    text: null
+    text: "Опять отложить"
   - en: "{name} put off the question to {match} and let the courtship fade."
-    text: null
+    text: "{name} {~отложил|отложила} вопрос к {match:dat} и {~дал|дала} ухаживанию угаснуть."
   - en: A season has gone by since you called on {match}. Other suitors have, and the door that stood open is closing.
-    text: null
+    text: "Прошёл сезон с тех пор, как ты {~навещал|навещала} {match:acc}. Другие женихи навещали, и дверь, что стояла открытой, закрывается."
   - en: "{name} let the courtship of {match} lapse."
-    text: null
+    text: "{name} {~дал|дала} ухаживанию за {match:ins} заглохнуть."
   - en: "The family of {match}, {match.age}, sends a go-between with sober terms: a dowry of 80 crowns, and your name in the market in return. There is no talk of love."
-    text: null
+    text: "Семья {match:gen}, {match.age}, присылает свата с трезвыми условиями: приданое в 80 крон и твоё имя на рынке взамен. О любви речи нет."
   - en: Accept the terms
-    text: null
+    text: "Принять условия"
   - en: "{name} married {match} by arrangement, with a dowry of 80 crowns."
-    text: null
+    text: "{name} {~вступил|вступила} в брак с {match:ins} по уговору, с приданым в 80 крон."
   - en: Haggle for a larger dowry
-    text: null
+    text: "Поторговаться за большее приданое"
   - en: "{name} haggled the family of {match} up to a dowry of 140 crowns and married {match.him}."
-    text: null
+    text: "{name} {~выторговал|выторговала} у семьи {match:gen} приданое в 140 крон и {~вступил|вступила} в брак с {match:ins}."
   - en: "{name} haggled over the dowry of {match} until the family walked away."
-    text: null
+    text: "{name} так {~торговался|торговалась} о приданом {match:gen}, что семья ушла."
   - en: Decline the terms
-    text: null
+    text: "Отклонить условия"
   - en: "{name} declined a match of calculation with {match}."
-    text: null
+    text: "{name} {~отклонил|отклонила} брак по расчёту с {match:ins}."
   - en: "{match}, {match.age}, is of a family of standing far above yours. The family would not look at a hero of no name, yet you have been seen, and talked of."
-    text: null
+    text: "{match}, {match.age}, из семьи, стоящей куда выше твоей. Эта семья не взглянула бы на безвестного героя, но о тебе слышали и говорили."
   - en: Press your suit with all you have
-    text: null
+    text: "Добиваться изо всех сил"
   - en: "{name} won the hand of {match}, of a family of standing far above {his} own."
-    text: null
+    text: "{name} {~добился|добилась} руки {match:gen}, из семьи, стоящей куда выше {~его|её} собственной."
   - en: "{name} sought the hand of {match} and was shown the door for presuming."
-    text: null
+    text: "{name} {~просил|просила} руки {match:gen} и {~получил|получила} от ворот поворот за самонадеянность."
   - en: Send costly gifts to the family, 60 crowns
-    text: null
+    text: "Послать семье дорогие подарки на 60 крон"
   - en: "{name} bought the hand of {match}, of a family of standing above {his} own, with gifts worth 60 crowns."
-    text: null
+    text: "{name} {~купил|купила} руку {match:gen}, из семьи выше {~его|её} собственной, подарками на 60 крон."
   - en: "{name} sent 60 crowns of gifts to the family of {match} and had them returned."
-    text: null
+    text: "{name} {~послал|послала} семье {match:gen} подарки на 60 крон, и их вернули."
   - en: Look for a match of your own station
-    text: null
+    text: "Поискать пару своего круга"
   - en: "{name} thought better of a match with {match}."
-    text: null
+    text: "{name} {~передумал|передумала} насчёт брака с {match:ins}."
   - en: "A match is offered for {child}{parent?, through {parent},}: {groom}, {groom.age}. It is a decent house, and {child} has been looking at the door."
-    text: null
+    text: "Предлагают брак для {child:gen}{parent?, через {parent:acc},}: {groom}, {groom.age}. Дом приличный, а {child} уже поглядывает на дверь."
   - en: Agree to the match
-    text: null
+    text: "Согласиться на брак"
   - en: "{name} gave {child} in marriage to {groom}."
-    text: null
+    text: "{name} {~выдал|выдала} {child:acc} замуж за {groom:acc}."
   - en: Ask for a settlement on {child}
-    text: null
+    text: "Попросить отступное за {child:acc}"
   - en: "{name} gave {child} in marriage to {groom} and had a settlement of 50 crowns out of the house."
-    text: null
+    text: "{name} {~выдал|выдала} {child:acc} за {groom:acc} и {~получил|получила} из дома отступное в 50 крон."
   - en: "{name} asked too much for {child}, and the family of {groom} withdrew."
-    text: null
+    text: "{name} {~запросил|запросила} за {child:acc} слишком много, и семья {groom:gen} отступилась."
   - en: Refuse; {child} will choose later
-    text: null
+    text: "Отказать: {child} выберет позже"
   - en: "{name} refused a match between {child} and {groom}."
-    text: null
+    text: "{name} {~отказал|отказала} в браке {child:dat} и {groom:dat}."
   - en: The banns are read and the day is set. Your friends ask what kind of wedding {spouse} and you will have.
-    text: null
+    text: "Оглашение прочитано, день назначен. Друзья спрашивают, какой свадьбы ждать от тебя и {spouse:gen}."
   - en: A grand feast, 60 crowns
-    text: null
+    text: "Большой пир, 60 крон"
   - en: "{name} gave a grand wedding feast for {spouse}, and the whole county talked of it."
-    text: null
+    text: "{name} {~устроил|устроила} для {spouse:gen} большой свадебный пир, и о нём говорил весь уезд."
   - en: A modest supper with friends, 15 crowns
-    text: null
+    text: "Скромный ужин с друзьями, 15 крон"
   - en: "{name} wed {spouse} in the church and supped modestly with friends."
-    text: null
+    text: "{name} {~венчался|венчалась} с {spouse:ins} в церкви и скромно {~поужинал|поужинала} с друзьями."
   - en: The priest and two witnesses
-    text: null
+    text: "Священник и двое свидетелей"
   - en: "{name} wed {spouse} quietly before a priest and two witnesses."
-    text: null
+    text: "{name} {~обвенчался|обвенчалась} с {spouse:ins} тихо, перед священником и двумя свидетелями."

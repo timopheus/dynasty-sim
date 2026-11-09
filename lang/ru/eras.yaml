@@ -1,10 +1,10 @@
 # Russian translation of content/eras.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: The Age of Reason
-    text: null
+    text: "Век Разума"
   - en: Not before the year {year}
-    text: null
+    text: "Не раньше {year} года"
   - en: Not after the year {year}
-    text: null
+    text: "Не позже {year} года"
   - en: Only in {eras}
-    text: null
+    text: "Только: {eras}"

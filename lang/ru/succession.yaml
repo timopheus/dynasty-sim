@@ -1,16 +1,16 @@
 # Russian translation of content/succession.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: "{name}, aged {age}, took up the house by law after {deceased}."
-    text: null
+    text: "{name}, {age} лет, {~принял|приняла} род по закону после {deceased:gen}."
   - en: "{name}, aged {age}, took up the house by the will of {deceased}."
-    text: null
+    text: "{name}, {age} лет, {~принял|приняла} род по воле {deceased:gen}."
   - en: With {name} the house of {house} came to an end.
-    text: null
+    text: "С {name:ins} род {house} пресёкся."
   - en: "{name} named {heir} heir in a will."
-    text: null
+    text: "{name} {~назвал|назвала} наследником {heir:acc} в завещании."
   - en: "{name} made a will and left the choice of the heir to the law."
-    text: null
+    text: "{name} {~составил|составила} завещание и {~оставил|оставила} выбор наследника закону."
   - en: With a child born since, the will of {name} no longer said all it should.
-    text: null
+    text: "После рождения ребёнка завещание {name:gen} уже не говорило всего, что нужно."
   - en: With {other} dead, the will of {name} was out of date.
-    text: null
+    text: "Со смертью {other:gen} завещание {name:gen} устарело."

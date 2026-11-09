@@ -1,290 +1,290 @@
 # Russian translation of content/places.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: a city
-    text: null
+    text: "город"
   - en: a town
-    text: null
+    text: "городок"
   - en: a village
-    text: null
+    text: "деревня"
   - en: on the road
-    text: null
+    text: "в пути"
   - en: Ostmere
-    text: null
+    text: "Остмер"
   - en: Haverland
-    text: null
+    text: "Хаверланд"
   - en: Schlilerbach
-    text: null
+    text: "Шлилербах"
   - en: Haverlanders
-    text: null
+    text: "хаверландцы"
   - en: a river mouth among wet meadows
-    text: null
+    text: "устье реки среди сырых лугов"
   - en: river port
-    text: null
+    text: "речной порт"
   - en: exchange
-    text: null
+    text: "биржа"
   - en: city walls
-    text: null
+    text: "городские стены"
   - en: Canal water slaps the steps of every counting-house, and merchants talk in sums even on the church porch.
-    text: null
+    text: "Вода каналов плещет о ступени каждой конторы, и купцы говорят суммами даже на церковной паперти."
   - en: Rohrbach
-    text: null
+    text: "Рорбах"
   - en: Schwoberia
-    text: null
+    text: "Швоберия"
   - en: a sea coast with a river mouth
-    text: null
+    text: "морской берег с устьем реки"
   - en: seaport
-    text: null
+    text: "морской порт"
   - en: citadel
-    text: null
+    text: "цитадель"
   - en: temple
-    text: null
+    text: "храм"
   - en: market
-    text: null
+    text: "рынок"
   - en: Tar and cold fish at every breath, a ropewalk's long shed, and the Company's red seal on every warehouse door.
-    text: null
+    text: "Дёготь и холодная рыба на каждом вдохе, длинный навес канатной мастерской и красная печать Компании на каждой двери склада."
   - en: Mullrosin
-    text: null
+    text: "Муллросин"
   - en: rolling farmland above a river
-    text: null
+    text: "холмистые поля над рекой"
   - en: toll bridge
-    text: null
+    text: "мытный мост"
   - en: Slate roofs below a hill fort, and carters bawling weights at the toll bridge from first light.
-    text: null
+    text: "Шиферные крыши под холмовым фортом, и с первым светом возчики орут вес на мытном мосту."
   - en: Teigach
-    text: null
+    text: "Тейгах"
   - en: orchards and open fields on a rise
-    text: null
+    text: "сады и открытые поля на возвышенности"
   - en: mill
-    text: null
+    text: "мельница"
   - en: alehouse
-    text: null
+    text: "пивная"
   - en: common pasture
-    text: null
+    text: "общий выгон"
   - en: Plum orchards behind low hedges; one mill, one alehouse, and a tally cut in the miller's door-post.
-    text: null
+    text: "Сливовые сады за низкими изгородями; одна мельница, одна пивная и счётные зарубки на косяке мельника."
   - en: Valmont
-    text: null
+    text: "Вальмон"
   - en: Aurenne
-    text: null
+    text: "Оренн"
   - en: Cevillonte
-    text: null
+    text: "Севийонт"
   - en: Aurennais
-    text: null
+    text: "оренцы"
   - en: vine slopes above a wide river
-    text: null
+    text: "виноградные склоны над широкой рекой"
   - en: royal court
-    text: null
+    text: "королевский двор"
   - en: Stone the colour of old honey, and a hush on the steps where those who want the king's favour stand and wait.
-    text: null
+    text: "Камень цвета старого мёда и тишина на ступенях, где стоят и ждут те, кто просит милости короля."
   - en: Charoy
-    text: null
+    text: "Шарой"
   - en: Chandadonia
-    text: null
+    text: "Шандадония"
   - en: chalk hills and a river with stone bridges
-    text: null
+    text: "меловые холмы и река с каменными мостами"
   - en: wine cellars
-    text: null
+    text: "винные погреба"
   - en: Cellar doors stand open on every lane and the smell of must lingers until the garrison drums drown it.
-    text: null
+    text: "Двери погребов открыты на каждой улице, и запах сусла держится, пока его не заглушат гарнизонные барабаны."
   - en: Marmant
-    text: null
+    text: "Мармант"
   - en: Gaunenia
-    text: null
+    text: "Гаунения"
   - en: a grey headland over a river
-    text: null
+    text: "серый мыс над рекой"
   - en: abbey
-    text: null
+    text: "аббатство"
   - en: Bells from the abbey answer one another over the roofs, and masons chip at blocks in every second yard.
-    text: null
+    text: "Колокола аббатства перекликаются над крышами, и каменотёсы тешут глыбы чуть ли не в каждом втором дворе."
   - en: Bacres
-    text: null
+    text: "Бакр"
   - en: Viendon
-    text: null
+    text: "Вьендон"
   - en: wooded hills and small fields
-    text: null
+    text: "лесистые холмы и небольшие поля"
   - en: The square is lined with tanners' stalls, and the intendant's clerk writes down every hide that crosses it.
-    text: null
+    text: "Площадь окружена лавками кожевников, и писарь интенданта записывает каждую шкуру, что её пересекает."
   - en: Novomor
-    text: null
+    text: "Новомор"
   - en: Borea
-    text: null
+    text: "Борея"
   - en: Levitsk
-    text: null
+    text: "Левицк"
   - en: Boreans
-    text: null
+    text: "борейцы"
   - en: marshy lowland on a sea inlet
-    text: null
+    text: "болотистая низина у морского залива"
   - en: palace
-    text: null
+    text: "дворец"
   - en: New timber wharves smell of resin along the whole bank, and every beam of them was cut by decree.
-    text: null
+    text: "Новые бревенчатые пристани пахнут смолой по всему берегу, и каждое бревно в них срублено по указу."
   - en: Meschevsk
-    text: null
+    text: "Мещевск"
   - en: Stresia
-    text: null
+    text: "Стрезия"
   - en: flat forest by a slow river
-    text: null
+    text: "ровный лес у медленной реки"
   - en: shrine
-    text: null
+    text: "часовня"
   - en: beeswax yard
-    text: null
+    text: "восковой двор"
   - en: Log houses along a single street; the sledge road is kept up and the beeswax cart goes through twice a year.
-    text: null
+    text: "Бревенчатые дома вдоль единственной улицы; санный путь держат в порядке, и воз с воском проходит дважды в год."
   - en: Kryvan
-    text: null
+    text: "Криван"
   - en: Shigia
-    text: null
+    text: "Шигия"
   - en: birch forest at the edge of the steppe
-    text: null
+    text: "берёзовый лес на краю степи"
   - en: timber walls
-    text: null
+    text: "деревянные стены"
   - en: fur sheds
-    text: null
+    text: "меховые амбары"
   - en: Stockade logs gone silver with age, and furs hung in rows from the gallery rails like washing.
-    text: null
+    text: "Брёвна частокола посеребрены временем, а меха висят рядами на перилах галереи, как бельё."
   - en: Ostkala
-    text: null
+    text: "Осткала"
   - en: a wide river mouth with low banks
-    text: null
+    text: "широкое устье с низкими берегами"
   - en: Log rafts knock together at the quay, and the customs house smells of wet bark and sealing wax.
-    text: null
+    text: "Брёвна плотов стукаются друг о друга у причала, а таможня пахнет мокрой корой и сургучом."
   - en: Sarayhan
-    text: null
+    text: "Сарайхан"
   - en: Izmara
-    text: null
+    text: "Измара"
   - en: Beyka
-    text: null
+    text: "Бейка"
   - en: Izmarans
-    text: null
+    text: "измарцы"
   - en: a marshy coast with a deep harbour
-    text: null
+    text: "болотистый берег с глубокой гаванью"
   - en: sultan's palace
-    text: null
+    text: "дворец султана"
   - en: great bazaar
-    text: null
+    text: "великий базар"
   - en: minarets
-    text: null
+    text: "минареты"
   - en: From the minarets the call to prayer rolls over the roofs, one voice after another, never quite together.
-    text: null
+    text: "С минаретов призыв к молитве катится над крышами, голос за голосом, и никогда не в лад."
   - en: Baharduman
-    text: null
+    text: "Бахардуман"
   - en: a dry plain beside a river
-    text: null
+    text: "сухая равнина у реки"
   - en: covered bazaar
-    text: null
+    text: "крытый базар"
   - en: caravanserai
-    text: null
+    text: "караван-сарай"
   - en: river crossing
-    text: null
+    text: "речная переправа"
   - en: Covered lanes smell of cardamom, and a toll-farmer's clerk sits under every arch with his scales.
-    text: null
+    text: "Крытые ряды пахнут кардамоном, а под каждой аркой сидит писарь откупщика с весами."
   - en: Aykut
-    text: null
+    text: "Айкут"
   - en: a dry plain with one river
-    text: null
+    text: "сухая равнина с единственной рекой"
   - en: dye works
-    text: null
+    text: "красильни"
   - en: Camels kneel in a caravanserai yard, and the dyers' vats stain the gutter blue by the south gate.
-    text: null
+    text: "Верблюды стоят на коленях во дворе караван-сарая, а чаны красильщиков красят сток синим у южных ворот."
   - en: Ur Nahlem
-    text: null
+    text: "Ур-Нахлем"
   - en: Evehribia
-    text: null
+    text: "Эвехрибия"
   - en: a reed shore beside a slow river
-    text: null
+    text: "тростниковый берег у медленной реки"
   - en: landing
-    text: null
+    text: "пристань"
   - en: ferry
-    text: null
+    text: "паром"
   - en: Reed boats drawn up on the mud, nets drying on the roofs, and a ferry rope that every household takes its turn to haul.
-    text: null
+    text: "Тростниковые лодки вытащены на ил, сети сохнут на крышах, а канат парома по очереди тянет каждый двор."
   - en: Only in {kinds}
-    text: null
+    text: "Только: {kinds}"
   - en: Only in {places}
-    text: null
+    text: "Только: {places}"
   - en: No road leads anywhere from here
-    text: null
+    text: "Отсюда никуда не ведёт дорога"
   - en: small
-    text: null
+    text: "малый"
   - en: middling
-    text: null
+    text: "средний"
   - en: large
-    text: null
+    text: "крупный"
   - en: great
-    text: null
+    text: "великий"
   - en: sleet
-    text: null
+    text: "мокрый снег"
   - en: fog
-    text: null
+    text: "туман"
   - en: gale
-    text: null
+    text: "шторм"
   - en: cold rain
-    text: null
+    text: "холодный дождь"
   - en: rain
-    text: null
+    text: "дождь"
   - en: mild and bright
-    text: null
+    text: "мягко и ясно"
   - en: sea fog
-    text: null
+    text: "морской туман"
   - en: warm and bright
-    text: null
+    text: "тепло и ясно"
   - en: showers
-    text: null
+    text: "ливни"
   - en: sea haze
-    text: null
+    text: "морская дымка"
   - en: clear and cool
-    text: null
+    text: "ясно и прохладно"
   - en: frost
-    text: null
+    text: "заморозки"
   - en: grey and damp
-    text: null
+    text: "серо и сыро"
   - en: snow
-    text: null
+    text: "снег"
   - en: wind
-    text: null
+    text: "ветер"
   - en: hot and clear
-    text: null
+    text: "жарко и ясно"
   - en: thunderstorm
-    text: null
+    text: "гроза"
   - en: warm and hazy
-    text: null
+    text: "тепло, дымка"
   - en: mist
-    text: null
+    text: "лёгкий туман"
   - en: clear and crisp
-    text: null
+    text: "ясно и свежо"
   - en: hard frost
-    text: null
+    text: "сильный мороз"
   - en: blizzard
-    text: null
+    text: "метель"
   - en: thaw and mud
-    text: null
+    text: "оттепель и грязь"
   - en: cold and bright
-    text: null
+    text: "холодно и ясно"
   - en: hot and still
-    text: null
+    text: "жарко и тихо"
   - en: first frost
-    text: null
+    text: "первые заморозки"
   - en: mild and dry
-    text: null
+    text: "мягко и сухо"
   - en: cool wind
-    text: null
+    text: "прохладный ветер"
   - en: warm and dry
-    text: null
+    text: "тепло и сухо"
   - en: dust wind
-    text: null
+    text: "пыльный ветер"
   - en: scorching
-    text: null
+    text: "зной"
   - en: dust haze
-    text: null
+    text: "пыльная мгла"
   - en: hot and dry
-    text: null
+    text: "жарко и сухо"
   - en: first rains
-    text: null
+    text: "первые дожди"
   - en: "{name} came to {place}."
-    text: null
+    text: "{name} {~прибыл|прибыла} в {place:acc}."
   - en: "{name} halted on the road between {from} and {to}."
-    text: null
+    text: "{name} {~остановился|остановилась} в пути между {from:ins} и {to:ins}."
   - en: "{name} broke off the journey in {place}."
-    text: null
+    text: "{name} {~прервал|прервала} путь в {place:prep}."
   - en: "{name} turned toward {place}."
-    text: null
+    text: "{name} {~повернул|повернула} к {place:dat}."

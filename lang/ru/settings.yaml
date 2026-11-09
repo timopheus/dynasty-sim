@@ -1,8 +1,8 @@
 # Russian translation of content/settings.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: The life of {name} begins.
-    text: null
+    text: "Начинается жизнь {name:gen}."
   - en: "{name} died at the age of {age}."
-    text: null
+    text: "{name} {~умер|умерла} в возрасте {age} лет."
   - en: "{name}, aged {age}, took up the name and the fortunes of the house."
-    text: null
+    text: "{name}, {age} лет, {~принял|приняла} имя и судьбу рода."

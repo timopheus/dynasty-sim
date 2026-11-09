@@ -1,42 +1,42 @@
 # Russian translation of content/events/world.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: "{name} and {other} fall to quarrelling over a debt of a few crowns."
-    text: null
+    text: "{name} и {other} ссорятся из-за долга в несколько крон."
   - en: Trade insults
-    text: null
+    text: "Обменяться оскорблениями"
   - en: "{name} traded insults with {other} over a debt."
-    text: null
+    text: "{name} и {other} обменялись оскорблениями из-за долга."
   - en: Draw knives
-    text: null
+    text: "Достать ножи"
   - en: "{name} and {other} cut each other with knives over a debt and became bitter rivals."
-    text: null
+    text: "{name} и {other} порезали друг друга ножами из-за долга и стали заклятыми соперниками."
   - en: "{name} walked away from a quarrel with {other}."
-    text: null
+    text: "{name} {~ушёл|ушла} от ссоры с {other:ins}."
   - en: "{name} sees that {other} has not eaten properly in days."
-    text: null
+    text: "{name} видит, что {other} уже несколько дней не ел как следует."
   - en: Help {other} quietly
-    text: null
+    text: "Тихо помочь {other:dat}"
   - en: "{name} helped {other} with a few crowns, and the two became friends."
-    text: null
+    text: "{name} {~помог|помогла} {other:dat} несколькими кронами, и они подружились."
   - en: Look the other way
-    text: null
+    text: "Отвернуться"
   - en: "{name} looked the other way while {other} went hungry."
-    text: null
+    text: "{name} {~отвернулся|отвернулась}, пока {other} {other~голодал|голодала}."
   - en: A fever takes {name}.
-    text: null
+    text: "У {name:gen} начинается горячка."
   - en: Send for a physician
-    text: null
+    text: "Позвать лекаря"
   - en: "{name} paid for a physician{physician?, {physician},} and got over a fever."
-    text: null
+    text: "{name} {~заплатил|заплатила} лекарю{physician?, {physician:dat},} и {~оправился|оправилась} от горячки."
   - en: "{name} paid for a physician{physician?, {physician},} in vain: the fever ran its course for weeks."
-    text: null
+    text: "{name} {~заплатил|заплатила} лекарю{physician?, {physician:dat},} напрасно: горячка шла своим чередом несколько недель."
   - en: Sweat it out
-    text: null
+    text: "Перележать"
   - en: "{name} is hungry, and {victim} has left a coat with a heavy purse hanging on a peg."
-    text: null
+    text: "{name} {~голоден|голодна}, а {victim} оставил на гвозде кафтан с тяжёлым кошельком."
   - en: "{name} stole a purse from {victim} and was marked a thief."
-    text: null
+    text: "{name} {~украл|украла} кошелёк у {victim:gen} и {~получил|получила} славу вора."
   - en: Leave it hanging
-    text: null
+    text: "Оставить висеть"
   - en: "{name} left {victim}'s purse untouched."
-    text: null
+    text: "{name} {~не тронул|не тронула} кошелёк {victim:gen}."

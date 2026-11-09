@@ -1,58 +1,58 @@
 # Russian translation of content/contracts.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: day labour
-    text: null
+    text: "поденная работа"
   - en: "{name} did a few days of labour for {employer}."
-    text: null
+    text: "{name} {~отработал|отработала} несколько дней для {employer:gen}."
   - en: "{name} walked off a job of labour for {employer}."
-    text: null
+    text: "{name} {~бросил|бросила} поденную работу у {employer:gen}."
   - en: a letter to carry
-    text: null
+    text: "письмо для доставки"
   - en: "{name} carried a letter for {employer} and put it in the right hands."
-    text: null
+    text: "{name} {~доставил|доставила} письмо {employer:gen} в нужные руки."
   - en: "{name} never delivered the letter of {employer}."
-    text: null
+    text: "{name} так и не {~доставил|доставила} письмо {employer:gen}."
   - en: guarding carts on the road
-    text: null
+    text: "охрана подвод в дороге"
   - en: "{name} brought the carts of {employer} through safe."
-    text: null
+    text: "{name} {~благополучно провёл|благополучно провела} подводы {employer:gen}."
   - en: "{name} lost the carts of {employer} on the road."
-    text: null
+    text: "{name} {~потерял|потеряла} подводы {employer:gen} в дороге."
   - en: a debt to collect
-    text: null
+    text: "долг для взыскания"
   - en: "{name} collected a debt for {employer}."
-    text: null
+    text: "{name} {~взыскал|взыскала} долг для {employer:gen}."
   - en: "{name} came back to {employer} without the debt."
-    text: null
+    text: "{name} {~вернулся|вернулась} к {employer:dat} без долга."
   - en: a watch over a shop
-    text: null
+    text: "присмотр за лавкой"
   - en: "{name} kept watch over the shop of {employer}."
-    text: null
+    text: "{name} {~сторожил|сторожила} лавку {employer:gen}."
   - en: "{name} let the shop of {employer} be robbed on {his} watch."
-    text: null
+    text: "{name} {~дал|дала} ограбить лавку {employer:gen} в свой караул."
   - en: papers to copy
-    text: null
+    text: "бумаги для переписки"
   - en: "{name} copied a stack of papers for {employer}."
-    text: null
+    text: "{name} {~переписал|переписала} для {employer:gen} стопку бумаг."
   - en: "{name} left the papers of {employer} half copied."
-    text: null
+    text: "{name} {~бросил|бросила} бумаги {employer:gen} недописанными."
   - en: low
-    text: null
+    text: "низкий"
   - en: notable
-    text: null
+    text: "заметный"
   - en: high
-    text: null
+    text: "высокий"
   - en: "{name} left the work for {employer} unfinished."
-    text: null
+    text: "{name} {~оставил|оставила} работу для {employer:gen} недоделанной."
   - en: No work on the board here
-    text: null
+    text: "На доске здесь нет работы"
   - en: You already have work
-    text: null
+    text: "У тебя уже есть работа"
   - en: Only while you have work
-    text: null
+    text: "Только пока есть работа"
   - en: Only when you have no work
-    text: null
+    text: "Только когда нет работы"
   - en: Only at {kinds}
-    text: null
+    text: "Только: {kinds}"
   - en: Only at work of level {level} or higher
-    text: null
+    text: "Только от уровня {level}"

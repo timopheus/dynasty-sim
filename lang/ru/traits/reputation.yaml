@@ -1,20 +1,20 @@
 # Russian translation of content/traits/reputation.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: Coward
-    text: null
+    text: "Трус"
   - en: Bankrupt
-    text: null
+    text: "Банкрот"
   - en: Traitor
-    text: null
+    text: "Предатель"
   - en: Thief
-    text: null
+    text: "Вор"
   - en: Brawler
-    text: null
+    text: "Драчун"
   - en: Fair dealer
-    text: null
+    text: "Честный делец"
   - en: Bear-slayer
-    text: null
+    text: "Убийца медведя"
   - en: Keeper of oaths
-    text: null
+    text: "Верный слову"
   - en: Deserter
-    text: null
+    text: "Дезертир"

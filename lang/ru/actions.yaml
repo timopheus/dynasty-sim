@@ -1,46 +1,46 @@
 # Russian translation of content/actions.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: Live as you will
-    text: null
+    text: "Жить как хочется"
   - en: "{name} lived as {he} pleased."
-    text: null
+    text: "{name} {~жил|жила}, как {~хотел|хотела}."
   - en: Travel the roads
-    text: null
+    text: "Странствовать по дорогам"
   - en: "{name} came to the end of a journey on the roads."
-    text: null
+    text: "{name} {~закончил|закончила} странствие по дорогам."
   - en: Serve under contract
-    text: null
+    text: "Служить по найму"
   - en: "{name} finished a contract of service and was paid off."
-    text: null
+    text: "{name} {~отслужил|отслужила} срок по найму и {~получил|получила} расчёт."
   - en: Take work
-    text: null
+    text: "Взять работу"
   - en: "{name} took on a job."
-    text: null
+    text: "{name} {~взялся|взялась} за работу."
   - en: Winter in quarters
-    text: null
+    text: "Зимовать на квартирах"
   - en: "{name} wintered in quiet quarters and recovered strength."
-    text: null
+    text: "{name} {~перезимовал|перезимовала} на тихих квартирах и {~набрался|набралась} сил."
   - en: Rest and recover
-    text: null
+    text: "Отдохнуть и поправиться"
   - en: "{name} spent a few quiet weeks resting."
-    text: null
+    text: "{name} {~провёл|провела} несколько тихих недель за отдыхом."
   - en: Try a small trade
-    text: null
+    text: "Попробовать мелкую торговлю"
   - en: "{name} wound up a small trading venture with a modest profit."
-    text: null
+    text: "{name} {~свернул|свернула} небольшое торговое дело со скромной прибылью."
   - en: Go hunting
-    text: null
+    text: "Пойти на охоту"
   - en: "{name} returned from the hunt with game to sell."
-    text: null
+    text: "{name} {~вернулся|вернулась} с охоты с дичью на продажу."
   - en: Draw up a will at the notary
-    text: null
+    text: "Составить завещание у нотариуса"
   - en: "{name} came back from the notary with a will drawn up and sealed."
-    text: null
+    text: "{name} {~вернулся|вернулась} от нотариуса с составленным и запечатанным завещанием."
   - en: Grow up under guardianship
-    text: null
+    text: "Расти под опекой"
   - en: "{name} grew another year older under the care of {his} guardian."
-    text: null
+    text: "{name} {~стал|стала} на год старше под присмотром опекуна."
   - en: Take lessons
-    text: null
+    text: "Брать уроки"
   - en: "{name} spent a season at {his} lessons."
-    text: null
+    text: "{name} {~провёл|провела} сезон за уроками."

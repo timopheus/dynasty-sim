@@ -1,72 +1,72 @@
 # Russian translation of content/traits/character.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: Proud
-    text: null
+    text: "Гордый"
   - en: "{name} grew proud and stopped bowing to anyone."
-    text: null
+    text: "{name} {~возгордился|возгордилась} и перестал{~|а} кому-либо кланяться."
   - en: Humble
-    text: null
+    text: "Смирный"
   - en: "{name} put pride aside and learned to be humble."
-    text: null
+    text: "{name} {~оставил|оставила} гордость и {~научился|научилась} смирению."
   - en: Brave
-    text: null
+    text: "Храбрый"
   - en: "{name} found courage that {he} had not known before."
-    text: null
+    text: "{name} {~обрёл|обрела} мужество, которого прежде в себе не знал{~|а}."
   - en: Craven
-    text: null
+    text: "Трусливый"
   - en: "{name} lost {his} nerve and could not shake the fear."
-    text: null
+    text: "{name} {~потерял|потеряла} присутствие духа и не {~смог|смогла} избавиться от страха."
   - en: Honest
-    text: null
+    text: "Честный"
   - en: "{name} came to value plain dealing above profit."
-    text: null
+    text: "{name} {~стал|стала} ценить прямоту выше выгоды."
   - en: Deceitful
-    text: null
+    text: "Лживый"
   - en: "{name} learned that a convenient lie can be worth more than the truth."
-    text: null
+    text: "{name} {~понял|поняла}, что удобная ложь порой стоит дороже правды."
   - en: Generous
-    text: null
+    text: "Щедрый"
   - en: "{name} became open-handed with {his} purse."
-    text: null
+    text: "{name} {~стал щедр|стала щедра} на кошелёк."
   - en: Greedy
-    text: null
+    text: "Жадный"
   - en: "{name} grew tight-fisted and counted every coin."
-    text: null
+    text: "{name} {~стал прижимист|стала прижимиста} и {~считал|считала} каждую монету."
   - en: Vengeful
-    text: null
+    text: "Мстительный"
   - en: "{name} swore never to forget a wrong."
-    text: null
+    text: "{name} {~поклялся|поклялась} не забывать обид."
   - en: Forgiving
-    text: null
+    text: "Отходчивый"
   - en: "{name} learned to let old wrongs lie."
-    text: null
+    text: "{name} {~научился|научилась} оставлять старые обиды в покое."
   - en: Ambitious
-    text: null
+    text: "Честолюбивый"
   - en: "{name} began to look for a place higher than {his} own."
-    text: null
+    text: "{name} {~стал|стала} искать место повыше своего."
   - en: "{name} stopped chasing advancement and settled into what {he} had."
-    text: null
+    text: "{name} {~перестал|перестала} гнаться за возвышением и {~смирился|смирилась} с тем, что имеет."
   - en: Wrathful
-    text: null
+    text: "Вспыльчивый"
   - en: "{name} lost {his} temper once too often and became known for it."
-    text: null
+    text: "{name} {~вышел|вышла} из себя в очередной раз, и за {~ним|ней} закрепилась слава вспыльчивого."
   - en: Calm
-    text: null
+    text: "Спокойный"
   - en: "{name} cooled {his} temper and met trouble with a steady head."
-    text: null
+    text: "{name} {~остудил|остудила} нрав и {~встречал|встречала} беды с ясной головой."
   - en: Diligent
-    text: null
+    text: "Усердный"
   - en: "{name} turned to steady work and kept at it."
-    text: null
+    text: "{name} {~взялся|взялась} за упорный труд и не {~бросал|бросала} его."
   - en: Lazy
-    text: null
+    text: "Ленивый"
   - en: "{name} fell into idle habits and let work slide."
-    text: null
+    text: "{name} {~впал|впала} в праздность и {~забросил|забросила} дела."
   - en: Trusting
-    text: null
+    text: "Доверчивый"
   - en: "{name} began to take people at their word."
-    text: null
+    text: "{name} {~стал|стала} верить людям на слово."
   - en: Suspicious
-    text: null
+    text: "Подозрительный"
   - en: "{name} learned to trust no one without cause."
-    text: null
+    text: "{name} {~научился|научилась} никому не верить без причины."

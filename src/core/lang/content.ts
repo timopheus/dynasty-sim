@@ -198,7 +198,9 @@ export function comparePlaceholders(en: string, text: string): string | null {
   const want = strip(source.names);
   const got = strip(target.names);
   const missing = want.filter((n) => !got.includes(n));
-  const extra = got.filter((n) => !want.includes(n));
+  // a role the text names only by a pronoun (`{patron.him}`) may be named in the translation (`{patron:acc}`)
+  const byPronoun = new Set(source.names.filter((n) => PRONOUNS.some((p) => n.endsWith(`.${p}`))).map((n) => n.split('.')[0] ?? ''));
+  const extra = got.filter((n) => !want.includes(n) && !byPronoun.has(n));
   if (missing.length > 0) return `the translation leaves out ${missing.map((n) => `{${n}}`).join(', ')}`;
   if (extra.length > 0) return `the translation names ${extra.map((n) => `{${n}}`).join(', ')}, which the text does not`;
   const roles = new Set(['', 'name', ...source.names.map((n) => n.split('.')[0] ?? '')]);

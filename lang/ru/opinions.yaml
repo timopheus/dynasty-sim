@@ -1,124 +1,124 @@
 # Russian translation of content/opinions.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: Insulted in public
-    text: null
+    text: "Оскорбление при всех"
   - en: Killed kin
-    text: null
+    text: "Убийство родича"
   - en: Heir of my enemy
-    text: null
+    text: "Наследник моего врага"
   - en: Heir of my kin killer
-    text: null
+    text: "Наследник убийцы моей родни"
   - en: Heir of my debtor
-    text: null
+    text: "Наследник моего должника"
   - en: Did me wrong
-    text: null
+    text: "Обида"
   - en: Slighted me
-    text: null
+    text: "Пренебрежение"
   - en: Gave a gift
-    text: null
+    text: "Подарок"
   - en: Did me a service
-    text: null
+    text: "Услуга"
   - en: Did good work for me
-    text: null
+    text: "Хорошая работа"
   - en: Let me down on a job
-    text: null
+    text: "Подвёл в работе"
   - en: Saved my life
-    text: null
+    text: "Спасение жизни"
   - en: Owes me
-    text: null
+    text: "Должен мне"
   - en: Shamed me
-    text: null
+    text: "Позор"
   - en: Betrayed me
-    text: null
+    text: "Предательство"
   - en: Humiliated me
-    text: null
+    text: "Унижение"
   - en: Called me a coward
-    text: null
+    text: "Обвинение в трусости"
   - en: Spared me
-    text: null
+    text: "Пощада"
   - en: Taught me
-    text: null
+    text: "Учение"
   - en: Friend since childhood
-    text: null
+    text: "Друг детства"
   - en: Defeated me
-    text: null
+    text: "Поражение от него"
   - en: Cheated me
-    text: null
+    text: "Обман"
   - en: Stood beside me
-    text: null
+    text: "Плечом к плечу"
   - en: Nursed me
-    text: null
+    text: "Уход за мной"
   - en: Showed no spine
-    text: null
+    text: "Малодушие"
   - en: Stood by me when it counted
-    text: null
+    text: "Поддержка в трудный час"
   - en: Left me waiting
-    text: null
+    text: "Долгое ожидание"
   - en: Passed over in the will
-    text: null
+    text: "Обойдён в завещании"
   - en: hatred
-    text: null
+    text: "ненависть"
   - en: dislike
-    text: null
+    text: "неприязнь"
   - en: coolness
-    text: null
+    text: "холодок"
   - en: indifference
-    text: null
+    text: "безразличие"
   - en: liking
-    text: null
+    text: "симпатия"
   - en: friendship
-    text: null
+    text: "дружба"
   - en: devotion
-    text: null
+    text: "преданность"
   - en: Friend
-    text: null
+    text: "Друг"
   - en: "{name} befriended {other}."
-    text: null
+    text: "{name} {~подружился|подружилась} с {other:ins}."
   - en: "{name} and {other} ceased to be friends."
-    text: null
+    text: "{name} и {other} больше не друзья."
   - en: Rival
-    text: null
+    text: "Соперник"
   - en: "{name} made a rival of {other}."
-    text: null
+    text: "{name} {~нажил|нажила} в {other:prep} соперника."
   - en: "{name} and {other} ceased to be rivals."
-    text: null
+    text: "{name} и {other} перестали быть соперниками."
   - en: Patron
-    text: null
+    text: "Покровитель"
   - en: "{name} took {other} under {his} wing."
-    text: null
+    text: "{name} {~взял|взяла} {other:acc} под своё крыло."
   - en: "{name} no longer looked after {other}."
-    text: null
+    text: "{name} больше не {~опекал|опекала} {other:acc}."
   - en: "{other} became {name}'s patron."
-    text: null
+    text: "{other} {other~взял|взяла} {name:acc} под своё крыло."
   - en: "{other} no longer looked after {name}."
-    text: null
+    text: "{other} больше не {other~опекал|опекала} {name:acc}."
   - en: Lover
-    text: null
+    text: "Любовник"
   - en: "{name} and {other} became lovers."
-    text: null
+    text: "{name} и {other} стали любовниками."
   - en: "{name} and {other} parted as lovers."
-    text: null
+    text: "{name} и {other} расстались."
   - en: Guardian
-    text: null
+    text: "Опекун"
   - en: "{name} became the guardian of {other}."
-    text: null
+    text: "{name} {~стал опекуном|стала опекуншей} {other:gen}."
   - en: "{name} was no longer the guardian of {other}."
-    text: null
+    text: "{name} больше не {~был опекуном|была опекуншей} {other:gen}."
   - en: "{other} became the guardian of {name}."
-    text: null
+    text: "{other} {other~стал опекуном|стала опекуншей} {name:gen}."
   - en: "{name} came of age and left the guardianship of {other}."
-    text: null
+    text: "{name} {~достиг|достигла} совершеннолетия и {~вышел|вышла} из-под опеки {other:gen}."
   - en: "{name} became heir to the feud between {deceased} and {other}."
-    text: null
+    text: "{name} {~унаследовал|унаследовала} вражду между {deceased:ins} и {other:ins}."
   - en: Needs {word} towards {name}
-    text: null
+    text: "К {name}: нужна {word}"
   - en: Needs no more than {word} towards {name}
-    text: null
+    text: "К {name}: не больше, чем {word}"
   - en: "Needs a bond with {name}: {kind}"
-    text: null
+    text: "Нужна связь с {name}: {kind}"
   - en: Must not be bound to {name} as {kind}
-    text: null
+    text: "Нет связи с {name}: {kind}"
   - en: You must know {name}
-    text: null
+    text: "Нужно знакомство: {name}"
   - en: You must be close to {name}
-    text: null
+    text: "Нужна близость: {name}"

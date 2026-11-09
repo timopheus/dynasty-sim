@@ -1,64 +1,64 @@
 # Russian translation of content/mind.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: Despairing
-    text: null
+    text: "Отчаяние"
   - en: Miserable
-    text: null
+    text: "Горе"
   - en: Unhappy
-    text: null
+    text: "Тоска"
   - en: Content
-    text: null
+    text: "Довольство"
   - en: Happy
-    text: null
+    text: "Счастье"
   - en: Joyful
-    text: null
+    text: "Ликование"
   - en: a lie or a swindle
-    text: null
+    text: "ложь или обман"
   - en: running away
-    text: null
+    text: "бегство"
   - en: courting danger
-    text: null
+    text: "игра с опасностью"
   - en: betraying a trust
-    text: null
+    text: "предательство доверия"
   - en: giving of your own
-    text: null
+    text: "щедрость за свой счёт"
   - en: holding fast to your own
-    text: null
+    text: "упорство в своём"
   - en: lowering yourself
-    text: null
+    text: "унижение себя"
   - en: demanding your due
-    text: null
+    text: "требование своего"
   - en: breaking your word
-    text: null
+    text: "нарушенное слово"
   - en: forgiving
-    text: null
+    text: "прощение"
   - en: settling a score
-    text: null
+    text: "сведение счётов"
   - en: lashing out
-    text: null
+    text: "срыв на других"
   - en: holding your temper
-    text: null
+    text: "обузданный гнев"
   - en: shirking
-    text: null
+    text: "уклонение от дела"
   - en: working beyond need
-    text: null
+    text: "работа сверх нужды"
   - en: taking on trust
-    text: null
+    text: "вера на слово"
   - en: checking up
-    text: null
+    text: "проверка"
   - en: reaching higher
-    text: null
+    text: "стремление выше"
   - en: settling for less
-    text: null
+    text: "согласие на меньшее"
   - en: hurting the helpless
-    text: null
+    text: "обида беззащитных"
   - en: "{name} broke under the weight of it all and could not be roused for weeks."
-    text: null
+    text: "{name} {~сломился|сломилась} под тяжестью всего и несколько недель не {~приходил|приходила} в себя."
   - en: Requires happiness of at least {value}
-    text: null
+    text: "Нужно счастье не ниже {value}"
   - en: Requires happiness of at most {value}
-    text: null
+    text: "Нужно счастье не выше {value}"
   - en: Despondent
-    text: null
+    text: "Уныние"
   - en: "{name} sank into a settled gloom."
-    text: null
+    text: "{name} {~погрузился|погрузилась} в беспросветную тоску."

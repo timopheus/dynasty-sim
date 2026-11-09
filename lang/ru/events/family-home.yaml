@@ -1,166 +1,166 @@
 # Russian translation of content/events/family-home.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: The child {child} is a few weeks old, and the priest asks when the christening is to be. The neighbours are already counting the guests.
-    text: null
+    text: "Малышу {child} несколько недель, и священник спрашивает, когда крестины. Соседи уже считают гостей."
   - en: A fine christening, 25 crowns
-    text: null
+    text: "Богатые крестины, 25 крон"
   - en: "{name} had {child} christened with a feast{godfather?, with {godfather} standing sponsor,}."
-    text: null
+    text: "{name} {~устроил|устроила} {child:dat} крестины с пиром{godfather?, а {godfather} {godfather~стал|стала} восприемником,}."
   - en: Ask a friend to stand sponsor
-    text: null
+    text: "Попросить друга стать восприемником"
   - en: "{name} had {child} christened{godfather?, with {godfather} standing sponsor,} in a plain service."
-    text: null
+    text: "{name} {~окрестил|окрестила} {child:acc}{godfather?, с {godfather:ins} в восприемниках,} на скромной службе."
   - en: A plain service at the font
-    text: null
+    text: "Простая служба у купели"
   - en: "{name} had {child} christened at the font without ceremony."
-    text: null
+    text: "{name} {~окрестил|окрестила} {child:acc} у купели без церемоний."
   - en: Days after the birth of {child}, {mother} is burning with fever and does not know you. The midwife shakes her head.
-    text: null
+    text: "Через несколько дней после рождения {child:gen} {mother} горит в лихорадке и не узнаёт тебя. Повитуха качает головой."
   - en: Send for a physician, 15 crowns
-    text: null
+    text: "Послать за лекарем, 15 крон"
   - en: "{name} paid for a physician{physician?, {physician},} who brought {mother} through the childbed fever."
-    text: null
+    text: "{name} {~заплатил|заплатила} лекарю{physician?, {physician:dat},} и тот вытащил {mother:acc} из родильной горячки."
   - en: "{name} paid for a physician{physician?, {physician},} in vain: {mother} lay sick for weeks after the birth."
-    text: null
+    text: "{name} {~заплатил|заплатила} лекарю{physician?, {physician:dat},} напрасно: {mother} проболела после родов несколько недель."
   - en: Nurse {mother} yourself through the nights
-    text: null
+    text: "Ходить за {mother:ins} самому ночи напролёт"
   - en: "{name} sat up nights with {mother} until the fever broke."
-    text: null
+    text: "{name} {~просидел|просидела} ночи у постели {mother:gen}, пока не спал жар."
   - en: "{name} sat up with {mother} through a long childbed fever and could not break it."
-    text: null
+    text: "{name} {~просидел|просидела} у постели {mother:gen} всю долгую родильную горячку, но сбить её {~не смог|не смогла}."
   - en: Leave it to the midwife and to God
-    text: null
+    text: "Положиться на повитуху и на Бога"
   - en: "{name} left {mother} to the midwife and to God, and the fever broke on the fifth night."
-    text: null
+    text: "{name} {~оставил|оставила} {mother:acc} на повитуху и на Бога, и на пятую ночь жар спал."
   - en: "{name} lost {mother} to the childbed fever after the birth of {child}."
-    text: null
+    text: "{name} {~потерял|потеряла} {mother:acc} от родильной горячки после рождения {child:gen}."
   - en: "{child} woke hot and wheezing, and will not eat. The whole street has heard the cough."
-    text: null
+    text: "{child} {child~проснулся|проснулась} в жару, дышит со свистом и не ест. Кашель слышала вся улица."
   - en: Send for a physician, 10 crowns
-    text: null
+    text: "Послать за лекарем, 10 крон"
   - en: "{name} paid for a physician{physician?, {physician},} and {child} was on {child.his} feet in a week."
-    text: null
+    text: "{name} {~заплатил|заплатила} лекарю{physician?, {physician:dat},} и {child} через неделю {child~был|была} на ногах."
   - en: "{name} paid for a physician{physician?, {physician},} in vain: {child} lay in a fever for weeks."
-    text: null
+    text: "{name} {~заплатил|заплатила} лекарю{physician?, {physician:dat},} напрасно: {child} неделями {child~лежал|лежала} в жару."
   - en: Tend {child} yourself and pray
-    text: null
+    text: "Выхаживать {child:acc} самому и молиться"
   - en: "{name} tended {child} through a fever until it broke."
-    text: null
+    text: "{name} {~выходил|выходила} {child:acc} в лихорадке, пока она не отступила."
   - en: "{name} tended {child} through a bad fever without being able to break it."
-    text: null
+    text: "{name} {~выхаживал|выхаживала} {child:acc} в тяжёлой лихорадке, но сбить её {~не смог|не смогла}."
   - en: Leave the child to the will of God
-    text: null
+    text: "Оставить ребёнка на волю Божью"
   - en: "{name} left {child} to God, and the fever passed."
-    text: null
+    text: "{name} {~оставил|оставила} {child:acc} на волю Божью, и лихорадка прошла."
   - en: "{name} lost {child} to a sudden illness."
-    text: null
+    text: "{name} {~потерял|потеряла} {child:acc} от внезапной болезни."
   - en: "{child} reads slowly and counts on {child.his} fingers. The curate says a tutor would do wonders, for a price."
-    text: null
+    text: "{child} читает медленно и считает по пальцам. Кюре говорит, что учитель сотворил бы чудеса, но за плату."
   - en: Hire a tutor, 30 crowns
-    text: null
+    text: "Нанять учителя, 30 крон"
   - en: "{name} hired a tutor for {child}, who took to the books."
-    text: null
+    text: "{name} {~нанял|наняла} учителя для {child:gen}, и {child} {child~увлёкся|увлеклась} книгами."
   - en: Teach {child} yourself in the evenings
-    text: null
+    text: "Учить {child:acc} самому по вечерам"
   - en: "{name} taught {child} to read and cipher in the evenings."
-    text: null
+    text: "{name} по вечерам {~учил|учила} {child:acc} читать и считать."
   - en: "{name} tried to teach {child} in the evenings and gave up in a temper; {child} learned only to dodge the lessons."
-    text: null
+    text: "{name} по вечерам {~пытался|пыталась} учить {child:acc}, в сердцах {~бросил|бросила}, и {child} {child~научился|научилась} лишь увиливать от уроков."
   - en: Put {child} to work instead
-    text: null
+    text: "Отдать {child:acc} в работу вместо книг"
   - en: "{name} put {child} to work in place of books."
-    text: null
+    text: "{name} {~отдал|отдала} {child:acc} в работу вместо книг."
   - en: "A neighbour brings {child} home by the ear: {child.he} has bloodied a boy twice {child.his} size, and is not sorry in the least."
-    text: null
+    text: "Сосед приводит {child:acc} домой за ухо: {child~он|она} {child~разбил|разбила} нос мальчишке вдвое больше себя и ничуть не раскаивается."
   - en: Thrash {child} before the neighbour
-    text: null
+    text: "Выпороть {child:acc} при соседе"
   - en: "{name} thrashed {child} before the neighbour, and {child} took the lesson to heart."
-    text: null
+    text: "{name} {~выпорол|выпорола} {child:acc} при соседе, и {child} {child~принял|приняла} урок к сердцу."
   - en: "{name} thrashed {child} before the neighbour; {child} learned only to hate the rod."
-    text: null
+    text: "{name} {~выпорол|выпорола} {child:acc} при соседе, и {child} {child~научился|научилась} лишь ненавидеть розгу."
   - en: Sit {child} down and talk it through
-    text: null
+    text: "Усадить {child:acc} и поговорить по душам"
   - en: "{name} talked it through with {child} until the temper cooled."
-    text: null
+    text: "{name} {~говорил|говорила} с {child:ins} по душам, пока гнев не остыл."
   - en: "{name} talked to {child} for an hour and was no wiser at the end of it."
-    text: null
+    text: "{name} час {~говорил|говорила} с {child:ins} и к концу {~не стал|не стала} мудрее."
   - en: Children will be children
-    text: null
+    text: "Дети есть дети"
   - en: "{name} let {child}'s fight pass, and {child} grew bolder for it."
-    text: null
+    text: "{name} {~оставил|оставила} драку {child:gen} без последствий, и {child} от этого {child~стал|стала} смелее."
   - en: "{child} is growing up and idle. A child must come to a trade, and the road is long; where should {child} be put?"
-    text: null
+    text: "{child} растёт и бездельничает. Ребёнку надо приходить к ремеслу, а путь долог; куда его определить?"
   - en: Send {child} to learn arms, 25 crowns
-    text: null
+    text: "Отправить {child:acc} учиться воинскому делу, 25 крон"
   - en: "{name} sent {child} to learn arms from an old sergeant."
-    text: null
+    text: "{name} {~отправил|отправила} {child:acc} учиться воинскому делу к старому сержанту."
   - en: Apprentice {child} to a merchant, 15 crowns
-    text: null
+    text: "Отдать {child:acc} в ученики к купцу, 15 крон"
   - en: "{name} apprenticed {child} to a merchant."
-    text: null
+    text: "{name} {~отдал|отдала} {child:acc} в ученики к купцу."
   - en: Keep {child} at home among the books
-    text: null
+    text: "Оставить {child:acc} дома среди книг"
   - en: "{name} kept {child} at home among the books."
-    text: null
+    text: "{name} {~оставил|оставила} {child:acc} дома среди книг."
   - en: A clerk lets slip that {guardian} has been drawing on your inheritance for debts that are not yours. The sums are not small.
-    text: null
+    text: "Писарь проговаривается, что {guardian} {guardian~брал|брала} из твоего наследства на долги, которые не твои. Суммы немалые."
   - en: Say nothing; you are a child
-    text: null
+    text: "Промолчать: ты ещё ребёнок"
   - en: "{name}, a child, said nothing while {guardian} drew on the inheritance."
-    text: null
+    text: "{name}, ещё ребёнок, {~молчал|молчала}, пока {guardian} {guardian~брал|брала} из наследства."
   - en: Tell an elder of the family
-    text: null
+    text: "Рассказать старшему в семье"
   - en: "{name}, a child, told an elder of the family, who made {guardian} repay part of what was taken."
-    text: null
+    text: "{name}, ещё ребёнок, {~рассказал|рассказала} старшему в семье, и тот заставил {guardian:acc} вернуть часть взятого."
   - en: "{name}, a child, told an elder of the family and was not believed; {guardian} took the more."
-    text: null
+    text: "{name}, ещё ребёнок, {~рассказал|рассказала} старшему в семье, но {~ему|ей} не поверили; {guardian} {guardian~взял|взяла} ещё больше."
   - en: Face {guardian} with what you know
-    text: null
+    text: "Выложить {guardian:dat} всё, что знаешь"
   - en: "{name}, a child, faced {guardian} with the clerk's books, and the drawing stopped."
-    text: null
+    text: "{name}, ещё ребёнок, {~предъявил|предъявила} {guardian:dat} книги писаря, и растрата прекратилась."
   - en: "{name}, a child, faced {guardian} and was laughed out of the room."
-    text: null
+    text: "{name}, ещё ребёнок, {~высказал|высказала} всё {guardian:dat}, и {~его|её} со смехом выставили из комнаты."
   - en: "{guardian} calls you into the yard after supper. There is an evening free, and a head of the house must be fit for what it will ask."
-    text: null
+    text: "{guardian} зовёт тебя после ужина во двор. Есть свободный вечер, а глава рода должен быть готов к тому, чего от него потребуют."
   - en: Learn the ledgers and the law
-    text: null
+    text: "Учить счётные книги и закон"
   - en: "{name}, a child, learned the ledgers and the law at the knee of {guardian}."
-    text: null
+    text: "{name}, ещё ребёнок, {~выучил|выучила} счётные книги и закон у колен {guardian:gen}."
   - en: Learn to ride and shoot
-    text: null
+    text: "Учиться ездить верхом и стрелять"
   - en: "{name}, a child, learned to ride and shoot under {guardian}."
-    text: null
+    text: "{name}, ещё ребёнок, {~учился|училась} ездить верхом и стрелять у {guardian:gen}."
   - en: Slip away to the stables
-    text: null
+    text: "Улизнуть на конюшню"
   - en: "{name}, a child, slipped away from {guardian}'s lessons to the stables."
-    text: null
+    text: "{name}, ещё ребёнок, {~улизнул|улизнула} с уроков {guardian:gen} на конюшню."
   - en: The house is quiet since the funeral. {child} sits at the empty place at the table and asks, for the third time this week, when mother or father will be back.
-    text: null
+    text: "В доме тихо после похорон. {child} сидит у пустого места за столом и в третий раз за неделю спрашивает, когда вернётся мама или папа."
   - en: Sit with {child} until sleep comes
-    text: null
+    text: "Посидеть с {child:ins}, пока не придёт сон"
   - en: "{name} sat up with {child} through a long evening of grief."
-    text: null
+    text: "{name} {~просидел|просидела} с {child:ins} долгий вечер горя."
   - en: Throw yourself into work
-    text: null
+    text: "Уйти с головой в работу"
   - en: "{name} buried {his} grief in work and left {child} to the maid."
-    text: null
+    text: "{name} {~зарыл|зарыла} горе в работу и {~оставил|оставила} {child:acc} на служанку."
   - en: Send {child} to kin for a season of schooling, 10 crowns
-    text: null
+    text: "Отправить {child:acc} к родне на сезон учения, 10 крон"
   - en: "{name} sent {child} to kin for a season of schooling."
-    text: null
+    text: "{name} {~отправил|отправила} {child:acc} к родне на сезон учения."
   - en: A friend says the house needs a steady hand and the children a second parent, and names {match}, {match.age}, who is both free and fond of children.
-    text: null
+    text: "Друг говорит, что дому нужна твёрдая рука, а детям второй родитель, и называет {match:acc}, {match.age}: {match~он|она} и {match~свободен|свободна}, и любит детей."
   - en: Call on {match}
-    text: null
+    text: "Нанести визит {match:dat}"
   - en: "{name} married again, to {match}, for the sake of the house and the children."
-    text: null
+    text: "{name} {~вступил|вступила} во второй брак с {match:ins} ради дома и детей."
   - en: "{name} called on {match} and was told, kindly, that it was too soon."
-    text: null
+    text: "{name} {~нанёс|нанесла} визит {match:dat} и {~услышал|услышала} мягкий ответ, что слишком рано."
   - en: Not yet
-    text: null
+    text: "Пока нет"
   - en: "{name} was not ready for a second marriage and let {match} be."
-    text: null
+    text: "{name} {~не был готов|не была готова} ко второму браку и {~оставил|оставила} {match:acc} в покое."
   - en: "Your notary writes: since the will was drawn, a child has been born or a named heir has died, and the paper no longer says what you meant it to."
-    text: null
+    text: "Нотариус пишет: после составления завещания родился ребёнок или умер названный наследник, и бумага больше не говорит того, что ты хотел."
   - en: "{name} was reminded that the will no longer said all it should."
-    text: null
+    text: "{name} {~получил|получила} напоминание: завещание больше не говорит всего, что должно."

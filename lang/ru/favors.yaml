@@ -1,6 +1,6 @@
 # Russian translation of content/favors.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: "{name} owes you no favor"
-    text: null
+    text: "{name} не обязан тебе услугой"
   - en: "{name} owes you no great favor"
-    text: null
+    text: "{name} не обязан тебе большой услугой"

@@ -1,164 +1,164 @@
 # Russian translation of content/events/contracts.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: By the second day another hand of {employer} has worked out that the new one can be leaned on, and your share of the work keeps growing while theirs does not.
-    text: null
+    text: "Ко второму дню другой работник {employer:gen} понимает, что с новичком можно не церемониться, и твоя доля работы растёт, а его нет."
   - en: Have it out behind the shed
-    text: null
+    text: "Выяснить отношения за сараем"
   - en: "{name} settled a quarrel with a shirker at the work of {employer}."
-    text: null
+    text: "{name} {~уладил|уладила} ссору с лентяем на работе у {employer:gen}."
   - en: The work is shared out fairly after that, and nobody mentions why.
-    text: null
+    text: "После этого работу делят по-честному, и никто не говорит почему."
   - en: "{name} came to blows at the work of {employer} and was sent off."
-    text: null
+    text: "{name} {~подрался|подралась} на работе у {employer:gen} и {~был отослан|была отослана}."
   - en: You lose the fight and the job in one afternoon.
-    text: null
+    text: "За один день ты теряешь и драку, и место."
   - en: The other hand has done this before.
-    text: null
+    text: "Тот работник такое уже проходил."
   - en: Do the work of two and say nothing
-    text: null
+    text: "Делать за двоих и молчать"
   - en: "{name} did the work of two for {employer} without a word."
-    text: null
+    text: "{name} молча {~делал|делала} за двоих у {employer:gen}."
   - en: Your back aches, and {employer} notices who carried the load.
-    text: null
+    text: "Спина ноет, но {employer} замечает, кто тянул воз."
   - en: Leave the job to them
-    text: null
+    text: "Оставить работу им"
   - en: "{name} left a job of labour for {employer} half done."
-    text: null
+    text: "{name} {~бросил|бросила} работу у {employer:gen} на полпути."
   - en: You walk off with your hands in your pockets and nothing in them.
-    text: null
+    text: "Ты уходишь, засунув руки в карманы, и в них пусто."
   - en: Two riders have kept pace with you since the ford. At the narrow bend they close in, and one asks, too pleasantly, what the letter of {employer} is worth to you.
-    text: null
+    text: "Двое всадников держатся рядом с самого брода. На узком повороте они сходятся ближе, и один слишком любезно спрашивает, во сколько ты ценишь письмо {employer:gen}."
   - en: Spur the horse and ride for it
-    text: null
+    text: "Пришпорить коня и уйти"
   - en: "{name} outrode two riders who were after the letter of {employer}."
-    text: null
+    text: "{name} {~ушёл|ушла} от двух всадников, которым нужно было письмо {employer:gen}."
   - en: You lose them in the trees, and the seal is still whole.
-    text: null
+    text: "Ты отрываешься от них в лесу, и печать цела."
   - en: "{name} was thrown from the saddle and lost the letter of {employer} to riders."
-    text: null
+    text: "{name} {~был выбит|была выбита} из седла и {~лишился|лишилась} письма {employer:gen}: его забрали всадники."
   - en: You pick yourself out of the ditch. The bag is open and empty.
-    text: null
+    text: "Ты поднимаешься из канавы. Сумка раскрыта и пуста."
   - en: Their horses may be the better ones.
-    text: null
+    text: "У них лошади могут быть лучше."
   - en: Hand the letter over
-    text: null
+    text: "Отдать письмо"
   - en: "{name} gave up the letter of {employer} to riders on the road."
-    text: null
+    text: "{name} {~отдал|отдала} письмо {employer:gen} всадникам на дороге."
   - en: They ride off with it, and you ride on with nothing to deliver.
-    text: null
+    text: "Они уезжают с письмом, а ты едешь дальше, и тебе нечего доставлять."
   - en: Name a price for it
-    text: null
+    text: "Назвать цену"
   - en: "{employer} may learn where the letter went."
-    text: null
+    text: "{employer} может узнать, куда делось письмо."
   - en: "{name} sold the letter of {employer} to strangers on the road."
-    text: null
+    text: "{name} {~продал|продала} письмо {employer:gen} незнакомцам на дороге."
   - en: The coin is heavy. The letter was lighter.
-    text: null
+    text: "Монета тяжела, а письмо было легче."
   - en: "Men with cudgels step out in front of the carts of {employer}. The teamsters look at you: you are what {employer} paid for."
-    text: null
+    text: "Люди с дубинами выходят перед повозками {employer:gen}. Возчики смотрят на тебя: ради этого {employer} тебе и {employer~платил|платила}."
   - en: Stand in front of the carts
-    text: null
+    text: "Встать перед повозками"
   - en: "{name} beat off an attack on the carts of {employer}."
-    text: null
+    text: "{name} {~отбил|отбила} нападение на повозки {employer:gen}."
   - en: They scatter into the brush, and the teamsters press a coin on you at the next inn.
-    text: null
+    text: "Они разбегаются по кустам, а на ближнем постоялом дворе возчики суют тебе монету."
   - en: "{name} was beaten and the carts of {employer} were plundered."
-    text: null
+    text: "{name} {~был избит|была избита}, а повозки {employer:gen} разграбили."
   - en: You come to on the road. The carts are standing, and they are empty.
-    text: null
+    text: "Ты приходишь в себя на дороге. Повозки стоят, и они пусты."
   - en: There are more of them than you.
-    text: null
+    text: "Их больше, чем тебя."
   - en: Buy them off out of your own purse
-    text: null
+    text: "Откупиться из собственного кошелька"
   - en: "{name} paid off robbers out of {his} own purse to save the carts of {employer}."
-    text: null
+    text: "{name} {~откупился|откупилась} от разбойников из собственного кошелька, спасая повозки {employer:gen}."
   - en: They take your coin and leave the carts. {employer} will never know what it cost you.
-    text: null
+    text: "Они берут твои деньги и оставляют повозки. {employer} никогда не узнает, чего это тебе стоило."
   - en: Run for the trees
-    text: null
+    text: "Бежать в лес"
   - en: "{name} ran and left the carts of {employer} to robbers."
-    text: null
+    text: "{name} {~убежал|убежала} и {~оставил|оставила} повозки {employer:gen} разбойникам."
   - en: From the trees you hear the carts being broken open.
-    text: null
+    text: "Из леса ты слышишь, как вскрывают повозки."
   - en: "The debtor of {employer} does not deny the debt. Instead a purse slides across the table: it is yours if you tell {employer} the house was empty."
-    text: null
+    text: "Должник {employer:gen} долга не отрицает. Вместо этого через стол ползёт кошелёк: он твой, если скажешь {employer:dat}, что дом был пуст."
   - en: Press for the whole debt
-    text: null
+    text: "Требовать весь долг"
   - en: "{name} collected a debt for {employer} in full."
-    text: null
+    text: "{name} {~взыскал|взыскала} долг для {employer:gen} сполна."
   - en: The coins come out of a box under the floor, one by one, but they come.
-    text: null
+    text: "Монеты достаются из ящика под полом, по одной, но достаются."
   - en: "{name} failed to collect a debt for {employer}."
-    text: null
+    text: "{name} {~не смог|не смогла} взыскать долг для {employer:gen}."
   - en: The door shuts on you, and you have nothing to show {employer}.
-    text: null
+    text: "Дверь закрывается перед тобой, и показать {employer:dat} нечего."
   - en: The debtor may simply refuse.
-    text: null
+    text: "Должник может просто отказать."
   - en: Take the purse
-    text: null
+    text: "Взять кошелёк"
   - en: "{employer} may hear that the house was not empty."
-    text: null
+    text: "{employer} может услышать, что дом не был пуст."
   - en: "{name} took a bribe from a debtor of {employer}."
-    text: null
+    text: "{name} {~взял|взяла} взятку у должника {employer:gen}."
   - en: The purse is lighter than the debt, and heavier than your conscience would like.
-    text: null
+    text: "Кошелёк легче долга и тяжелее, чем хотелось бы совести."
   - en: Take what can be paid and leave the rest
-    text: null
+    text: "Взять сколько заплатят, остальное оставить"
   - en: "{name} collected part of a debt for {employer}."
-    text: null
+    text: "{name} {~взыскал|взыскала} часть долга для {employer:gen}."
   - en: Half a debt is better than none, though {employer} will not see it that way.
-    text: null
+    text: "Половина долга лучше, чем ничего, хоть {employer} так и не считает."
   - en: Past midnight someone tries the shutters of the shop of {employer}. Through the crack you count two of them, and they have not seen you yet.
-    text: null
+    text: "Заполночь кто-то пробует ставни лавки {employer:gen}. Через щель ты насчитываешь двоих, и тебя они пока не видели."
   - en: Raise the alarm
-    text: null
+    text: "Поднять тревогу"
   - en: "{name} raised the alarm and drove thieves from the shop of {employer}."
-    text: null
+    text: "{name} {~поднял|подняла} тревогу и {~прогнал|прогнала} воров от лавки {employer:gen}."
   - en: Lamps come on all along the street, and the two of them are gone.
-    text: null
+    text: "Вдоль улицы зажигаются лампы, и обоих как не бывало."
   - en: Go out to them
-    text: null
+    text: "Выйти к ним"
   - en: "{name} caught a thief at the shop of {employer}."
-    text: null
+    text: "{name} {~поймал|поймала} вора у лавки {employer:gen}."
   - en: One gets away; the other spends the night tied to the counter.
-    text: null
+    text: "Один уходит, второй проводит ночь привязанным к прилавку."
   - en: "{name} was knocked down by thieves at the shop of {employer}."
-    text: null
+    text: "{name} {~был сбит|была сбита} с ног ворами у лавки {employer:gen}."
   - en: When you get up, the till is open and the street is quiet.
-    text: null
+    text: "Когда ты встаёшь, касса открыта, а на улице тихо."
   - en: They may have knives.
-    text: null
+    text: "У них могут быть ножи."
   - en: Let them take a little, for a share
-    text: null
+    text: "Дать им взять немного, за долю"
   - en: "{employer} may count the stock."
-    text: null
+    text: "{employer} может пересчитать товар."
   - en: "{name} let thieves into the shop of {employer} for a share."
-    text: null
+    text: "{name} {~впустил|впустила} воров в лавку {employer:gen} за долю."
   - en: They are quick and quiet, and your share is waiting at the corner.
-    text: null
+    text: "Они быстры и тихи, а твоя доля ждёт на углу."
   - en: "Among the papers of {employer} is one that was never meant for a hired hand: a debt, a name and a sum that would interest a good many people."
-    text: null
+    text: "Среди бумаг {employer:gen} есть одна, не предназначенная для наёмного работника: долг, имя и сумма, которые заинтересуют многих."
   - en: Copy it with the rest and forget it
-    text: null
+    text: "Переписать вместе с остальными и забыть"
   - en: "{name} copied the papers of {employer} and kept {his} eyes on the ink."
-    text: null
+    text: "{name} {~переписал|переписала} бумаги {employer:gen}, не поднимая глаз от чернил."
   - en: You copy it word for word and think about it for a week anyway.
-    text: null
+    text: "Ты переписываешь её слово в слово и всё равно думаешь о ней неделю."
   - en: Tell {employer} the page was in the wrong pile
-    text: null
+    text: "Сказать {employer:dat}, что лист попал не в ту стопку"
   - en: "{name} warned {employer} of a page left among papers for copying."
-    text: null
+    text: "{name} {~предупредил|предупредила} {employer:acc} о листе, оставленном среди бумаг для переписки."
   - en: "{employer} goes pale, then takes your hand and holds it a moment too long."
-    text: null
+    text: "{employer} бледнеет, потом берёт твою руку и держит её чуть дольше, чем нужно."
   - en: Sell a copy to someone who will pay
-    text: null
+    text: "Продать копию тому, кто заплатит"
   - en: "{name} sold a page from the papers of {employer}."
-    text: null
+    text: "{name} {~продал|продала} лист из бумаг {employer:gen}."
   - en: The buyer counts out the coins without asking where it came from.
-    text: null
+    text: "Покупатель отсчитывает монеты и не спрашивает, откуда это."
   - en: "{name} was caught selling a page from the papers of {employer}."
-    text: null
+    text: "{name} {~был пойман|была поймана} на продаже листа из бумаг {employer:gen}."
   - en: "{employer} holds up the page and asks you to explain your own hand."
-    text: null
+    text: "{employer} поднимает лист и просит тебя объяснить твой собственный почерк."
   - en: "{employer} may notice whose hand copied it."
-    text: null
+    text: "{employer} может заметить, чья рука это переписала."

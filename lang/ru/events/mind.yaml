@@ -1,176 +1,176 @@
 # Russian translation of content/events/mind.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: "A thin figure waits at the gate while you mend: {beggar}, hat in hand, who has not eaten since yesterday and does not ask outright."
-    text: null
+    text: "Пока ты чинишь ворота, у калитки ждёт тощая фигура: {beggar} с шапкой в руке не ел со вчерашнего дня и прямо не просит."
   - en: Share your bread and a coin
-    text: null
+    text: "Поделиться хлебом и монетой"
   - en: "{name} shared bread and a coin with {beggar} at the gate."
-    text: null
+    text: "{name} {~поделился|поделилась} хлебом и монетой с {beggar:ins} у ворот."
   - en: You watch {beggar} eat at your doorstep, and the house feels lighter for it.
-    text: null
+    text: "Ты смотришь, как {beggar} ест на твоём пороге, и в доме становится как будто легче."
   - en: Send {beggar} off; you have little enough yourself
-    text: null
+    text: "Прогнать {beggar:acc}: у самого мало"
   - en: "{name} sent {beggar} away from the gate empty-handed."
-    text: null
+    text: "{name} {~прогнал|прогнала} {beggar:acc} от ворот ни с чем."
   - en: You shut the gate and keep what is yours.
-    text: null
+    text: "Ты запираешь калитку и оставляешь своё при себе."
   - en: Hand over a crust and no more
-    text: null
+    text: "Дать корку и только"
   - en: "{name} gave {beggar} a crust at the gate."
-    text: null
+    text: "{name} {~дал|дала} {beggar:dat} у ворот корку хлеба."
   - en: At the inn {companion} offers to watch your baggage through the night, so that you can sleep without one eye open. {companion.He} smiles easily, which proves nothing.
-    text: null
+    text: "На постоялом дворе {companion} предлагает присмотреть за твоей поклажей, чтобы ты спал спокойно. {companion~Он|Она} легко улыбается, а это ничего не доказывает."
   - en: Leave your baggage in {companion}'s care
-    text: null
+    text: "Оставить поклажу на попечение {companion:gen}"
   - en: "{name} left the baggage with {companion} for the night and found it untouched."
-    text: null
+    text: "{name} {~оставил|оставила} поклажу на ночь {companion:dat} и {~нашёл|нашла} её нетронутой."
   - en: You sleep soundly, and in the morning every strap is as you left it.
-    text: null
+    text: "Ты спишь крепко, а утром каждый ремень на месте."
   - en: "{name} trusted {companion} with the baggage and woke to a lighter purse."
-    text: null
+    text: "{name} {~доверил|доверила} поклажу {companion:dat} и {~проснулся|проснулась} с похудевшим кошельком."
   - en: The bed beside yours is empty, and so is the purse.
-    text: null
+    text: "Соседняя постель пуста, и кошелёк тоже."
   - en: "{companion} may not be as honest as {companion.he} looks."
-    text: null
+    text: "{companion} может оказаться нечестнее, чем выглядит."
   - en: Go through {companion}'s pack before you agree
-    text: null
+    text: "Проверить вещи {companion:gen}, прежде чем соглашаться"
   - en: "{name} searched the pack of {companion} before trusting {companion.him} with a bag."
-    text: null
+    text: "{name} {~обшарил|обшарила} вещи {companion:gen}, прежде чем доверить {companion~ему|ей} поклажу."
   - en: You find nothing, and {companion} knows you looked.
-    text: null
+    text: "Ты ничего не находишь, а {companion} знает, что ты искал."
   - en: Keep watch yourself
-    text: null
+    text: "Караулить самому"
   - en: "{name} kept watch over the baggage alone through the night."
-    text: null
+    text: "{name} всю ночь {~сторожил|сторожила} поклажу в одиночку."
   - en: "{buyer} asks whether your salt is dry. It is not quite: the damp has got into the lower sacks, and the price is good only if {buyer.he} does not look."
-    text: null
+    text: "{buyer} спрашивает, сухая ли твоя соль. Не совсем: сырость добралась до нижних мешков, и цена хороша, только если {buyer~он|она} не заглянет внутрь."
   - en: Swear it is dry as dust
-    text: null
+    text: "Поклясться, что суха как пыль"
   - en: "{name} sold damp salt to {buyer} as dry."
-    text: null
+    text: "{name} {~продал|продала} {buyer:dat} сырую соль под видом сухой."
   - en: The coin is good; the lie sits in your mouth like a stone.
-    text: null
+    text: "Монета хороша, а ложь лежит во рту как камень."
   - en: "{name} was caught selling damp salt to {buyer} as dry."
-    text: null
+    text: "{name} {~был уличён|была уличена} в продаже {buyer:dat} сырой соли под видом сухой."
   - en: "{buyer} tips a sack onto the counter and the whole row sees it."
-    text: null
+    text: "{buyer} высыпает мешок на прилавок, и весь ряд это видит."
   - en: "{buyer} may open a sack before the coin changes hands."
-    text: null
+    text: "{buyer} может вскрыть мешок до того, как монеты сменят руки."
   - en: Tell {buyer} the truth and cut the price
-    text: null
+    text: "Сказать {buyer:dat} правду и сбавить цену"
   - en: "{name} told {buyer} the salt was damp and sold it at a lower price."
-    text: null
+    text: "{name} {~сказал|сказала} {buyer:dat}, что соль сырая, и {~продал|продала} её дешевле."
   - en: "{buyer} takes it with a nod, and you will see that nod again."
-    text: null
+    text: "{buyer} кивает и берёт соль, и этот кивок ты ещё вспомнишь."
   - en: Keep the damp sacks for yourself
-    text: null
+    text: "Оставить сырые мешки себе"
   - en: "{name} kept the damp salt back from {buyer}."
-    text: null
+    text: "{name} {~не стал|не стала} продавать {buyer:dat} сырую соль."
   - en: At the fire, with the whole company listening, {sergeant} calls your last march a dawdle and your pay a charity.
-    text: null
+    text: "У костра, на глазах всей роты, {sergeant} называет твой последний переход прогулкой, а твоё жалованье подачкой."
   - en: Knock {sergeant} off the log
-    text: null
+    text: "Столкнуть {sergeant:acc} с бревна"
   - en: "{name} knocked {sergeant} off a log for a jibe at the fire."
-    text: null
+    text: "{name} за насмешку у костра {~столкнул|столкнула} {sergeant:acc} с бревна."
   - en: The company roars, and nobody calls your march a dawdle again.
-    text: null
+    text: "Рота хохочет, и больше никто не назовёт твой переход прогулкой."
   - en: "{name} struck {sergeant} at the fire and was thrashed for it."
-    text: null
+    text: "{name} {~ударил|ударила} {sergeant:acc} у костра, и {~его|её} за это отделали."
   - en: You pick yourself out of the ashes with the company laughing.
-    text: null
+    text: "Ты поднимаешься из золы под смех роты."
   - en: "{sergeant} may be the better fighter."
-    text: null
+    text: "{sergeant} может драться лучше."
   - en: Bite your tongue and say nothing
-    text: null
+    text: "Прикусить язык и промолчать"
   - en: "{name} bore a sergeant's jibe at the fire in silence."
-    text: null
+    text: "{name} молча {~стерпел|стерпела} насмешку сержанта у костра."
   - en: You stare into the flames until the talk moves on.
-    text: null
+    text: "Ты смотришь в огонь, пока разговор не уходит в сторону."
   - en: Turn it into a joke at {sergeant}'s own expense
-    text: null
+    text: "Обратить всё в шутку над самим {sergeant:ins}"
   - en: "{name} laughed off a sergeant's jibe and had the fire laughing with {him}."
-    text: null
+    text: "{name} {~отшутился|отшутилась} от насмешки сержанта, и смеялся весь костёр."
   - en: "{name} tried to laugh off a sergeant's jibe and only made it worse."
-    text: null
+    text: "{name} {~попытался|попыталась} отшутиться от насмешки сержанта, но только {~испортил|испортила} дело."
   - en: "The nights are long and the purse is short. {master} has piecework for whoever will sit up with it: accounts to copy, sacks to count, a floor to scrub."
-    text: null
+    text: "Ночи длинны, а кошелёк тощ. У {master:gen} есть сдельная работа для того, кто засидится за ней: переписать счета, пересчитать мешки, выдраить пол."
   - en: Sit up with the work every night
-    text: null
+    text: "Сидеть над работой каждую ночь"
   - en: "{name} worked the winter nights through for {master} and earned a good sum."
-    text: null
+    text: "{name} всю зиму {~работал|работала} ночами на {master:acc} и {~заработал|заработала} хорошие деньги."
   - en: By spring your eyes are red and your purse is fatter.
-    text: null
+    text: "К весне глаза у тебя красные, а кошелёк толще."
   - en: Take the work in the daytime only
-    text: null
+    text: "Брать работу только днём"
   - en: "{name} took daytime piecework from {master} through the winter."
-    text: null
+    text: "{name} всю зиму {~брал|брала} у {master:gen} дневную сдельную работу."
   - en: Spend the winter by the fire
-    text: null
+    text: "Провести зиму у огня"
   - en: "{name} spent the winter nights by the fire and turned down the work of {master}."
-    text: null
+    text: "{name} {~провёл|провела} зимние ночи у огня и {~отказался|отказалась} от работы {master:gen}."
   - en: The fire is warm and the work goes to someone else.
-    text: null
+    text: "У огня тепло, а работа достаётся другому."
   - en: "{captain} lets it be known that a lieutenant's place is vacant. It wants a man with a name or a purse of 30 crowns for the colonel's clerk, and {comrade} has been hoping for it too."
-    text: null
+    text: "{captain} даёт понять, что место лейтенанта свободно. Нужен человек с именем или кошелёк в 30 крон для полковничьего писаря, и {comrade} тоже {comrade~надеялся|надеялась} на него."
   - en: Put your name forward with 30 crowns
-    text: null
+    text: "Выдвинуться и дать 30 крон"
   - en: "{name} bought a lieutenant's place with a purse of 30 crowns."
-    text: null
+    text: "{name} {~купил|купила} место лейтенанта за кошелёк в 30 крон."
   - en: The colonel's clerk counts the crowns twice and writes your name.
-    text: null
+    text: "Полковничий писарь дважды пересчитывает кроны и вписывает твоё имя."
   - en: "{name} paid 30 crowns for a lieutenant's place and saw it go to another."
-    text: null
+    text: "{name} {~заплатил|заплатила} 30 крон за место лейтенанта, но оно досталось другому."
   - en: The place goes to a colonel's nephew and the purse is not returned.
-    text: null
+    text: "Место достаётся племяннику полковника, а кошелёк не возвращают."
   - en: The colonel may take the purse and give the place away.
-    text: null
+    text: "Полковник может взять кошелёк и отдать место другому."
   - en: Speak for {comrade} and step aside
-    text: null
+    text: "Замолвить слово за {comrade:acc} и отступить"
   - en: "{name} spoke for {comrade} and let the lieutenant's place go."
-    text: null
+    text: "{name} {~замолвил|замолвила} слово за {comrade:acc} и {~уступил|уступила} место лейтенанта."
   - en: "{comrade} grips your hand, and you tell yourself the quiet is worth it."
-    text: null
+    text: "{comrade} жмёт тебе руку, а ты убеждаешь себя, что молчание того стоит."
   - en: Say nothing and keep your rank
-    text: null
+    text: "Промолчать и сохранить свой чин"
   - en: "{name} let a lieutenant's place pass."
-    text: null
+    text: "{name} {~дал|дала} месту лейтенанта уйти мимо."
   - en: A cart sits canted in the ditch ahead, and the man cursing at its wheel is {foe}, who has not forgiven you the old quarrel, nor given you cause to forgive.
-    text: null
+    text: "Впереди в канаве накренилась телега, и человек, ругающийся у колеса, — {foe}: ты так и не {~простил|простила} старой ссоры, но и нового повода {foe~он|она} {foe~не дал|не дала}."
   - en: Climb down and put your shoulder to the wheel
-    text: null
+    text: "Слезть и подставить плечо под колесо"
   - en: "{name} put a shoulder to the cart of {foe}, an old foe, and got it out of the ditch."
-    text: null
+    text: "{name} {~подставил|подставила} плечо под телегу {foe:gen}, старого недруга, и {~вытащил|вытащила} её из канавы."
   - en: "{foe} says nothing, but takes your hand at the end of it."
-    text: null
+    text: "{foe} ничего не говорит, но под конец пожимает тебе руку."
   - en: Tell {foe} what you think of {foe.him} and drive on
-    text: null
+    text: "Сказать {foe:dat}, что ты о нём думаешь, и ехать дальше"
   - en: "{name} left {foe} cursing in a ditch and rode on."
-    text: null
+    text: "{name} {~оставил|оставила} {foe:acc} ругаться в канаве и {~поехал|поехала} дальше."
   - en: You ride on with {foe}'s curses behind you and a hard satisfaction.
-    text: null
+    text: "Ты едешь дальше под брань {foe:gen} с жёстким удовлетворением."
   - en: Drive past without a look
-    text: null
+    text: "Проехать, не глядя"
   - en: "{name} drove past {foe}'s cart without a word."
-    text: null
+    text: "{name} {~проехал|проехала} мимо телеги {foe:gen} молча."
   - en: The ford is running brown and high after the rains, and dusk is coming on. The far bank has an inn; this one has only wet grass.
-    text: null
+    text: "После дождей брод бурый и высокий, надвигаются сумерки. На том берегу постоялый двор, а на этом только мокрая трава."
   - en: Spur across at once
-    text: null
+    text: "Сразу пришпорить коня"
   - en: "{name} forded a river in flood at dusk and reached the inn."
-    text: null
+    text: "{name} {~переправился|переправилась} вброд через разлившуюся реку в сумерках и {~добрался|добралась} до постоялого двора."
   - en: You come up the far bank soaked and laughing.
-    text: null
+    text: "Ты выбираешься на тот берег промокший и смеющийся."
   - en: "{name} was swept off the ford in a flooded river and lost baggage to the current."
-    text: null
+    text: "{name} {~был сбит|была сбита} течением с брода в разлившейся реке и {~потерял|потеряла} поклажу."
   - en: You drag yourself out downstream with half your baggage gone.
-    text: null
+    text: "Ты выползаешь ниже по течению, и половины поклажи нет."
   - en: The current may take the horse, or the baggage, or you.
-    text: null
+    text: "Течение может унести коня, или поклажу, или тебя."
   - en: Pay a local boy to lead you across
-    text: null
+    text: "Заплатить местному мальчишке, чтобы провёл"
   - en: "{name} paid a boy to lead the way across a flooded ford."
-    text: null
+    text: "{name} {~заплатил|заплатила} мальчишке, чтобы тот провёл через разлившийся брод."
   - en: Wait for morning on the bank
-    text: null
+    text: "Дождаться утра на берегу"
   - en: "{name} waited out a flooded ford and crossed at dawn."
-    text: null
+    text: "{name} {~переждал|переждала} разлив у брода и {~переправился|переправилась} на рассвете."

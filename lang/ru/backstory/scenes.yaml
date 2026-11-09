@@ -1,194 +1,194 @@
 # Russian translation of content/backstory/scenes.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: The house where you were born stood among others like it, and everything you know began under its roof. Whose roof was it?
-    text: null
+    text: "Дом, где ты родился, стоял среди таких же, и всё, что ты знаешь, началось под его крышей. Чья это была крыша?"
   - en: A guild house, where the ledger was read aloud at supper
-    text: null
+    text: "Цеховой дом, где за ужином вслух читали счётную книгу"
   - en: "{name} was born in a guild house and learned early what a ledger was worth."
-    text: null
+    text: "{name} {~родился|родилась} в цеховом доме и рано {~узнал|узнала}, чего стоит счётная книга."
   - en: A soldier's family, where a musket hung above the door
-    text: null
+    text: "Семья солдата, где над дверью висел мушкет"
   - en: "{name} was born into a soldier's family and grew up among old campaign stories."
-    text: null
+    text: "{name} {~родился|родилась} в семье солдата и {~вырос|выросла} среди рассказов о старых походах."
   - en: A parish house, among prayers and books
-    text: null
+    text: "Дом священника, среди молитв и книг"
   - en: "{name} was born in a parish house and learned {his} letters from the hymn books."
-    text: null
+    text: "{name} {~родился|родилась} в доме священника и {~учился|училась} грамоте по псалтырям."
   - en: A gentry house, with more name than comfort
-    text: null
+    text: "Дом мелкого дворянства, где было больше имени, чем достатка"
   - en: "{name} was born in a gentry house and was taught from the cradle what the family name was owed."
-    text: null
+    text: "{name} {~родился|родилась} в дворянском доме, и с колыбели {~ему|ей} внушали, чего требует фамилия."
   - en: The waterfront, among sailors, smugglers and gulls
-    text: null
+    text: "Портовая набережная, среди моряков, контрабандистов и чаек"
   - en: "{name} was born on the waterfront and grew up among sailors and smugglers."
-    text: null
+    text: "{name} {~родился|родилась} на портовой набережной и {~вырос|выросла} среди моряков и контрабандистов."
   - en: A plain house of plain people, no one of note
-    text: null
+    text: "Простой дом простых людей, ничем не примечательных"
   - en: "{name} was born to plain people and learned early to work for {his} bread."
-    text: null
+    text: "{name} {~родился|родилась} у простых людей и рано {~привык|привыкла} зарабатывать свой хлеб."
   - en: A child from the next yard, {friend}, was always at your door. Together you ran through the lanes and fields.
-    text: null
+    text: "Ребёнок с соседнего двора, {friend}, постоянно стучался в твою дверь. Вместе вы носились по переулкам и полям."
   - en: Share everything with {friend}
-    text: null
+    text: "Делить с {friend:ins} всё"
   - en: "{name} grew up inseparable from {friend}, a friend of the next yard."
-    text: null
+    text: "{name} {~рос|росла} неразлучно с {friend:ins}, другом с соседнего двора."
   - en: Fight {friend} over a stolen toy
-    text: null
+    text: "Подраться с {friend:ins} из-за украденной игрушки"
   - en: "{name} fought {friend} over a toy as a child and won, and neither forgot it."
-    text: null
+    text: "{name} в детстве {~подрался|подралась} с {friend:ins} из-за игрушки и {~победил|победила}, и ни один из них этого не забыл."
   - en: Keep to yourself and watch from the doorstep
-    text: null
+    text: "Держаться особняком и смотреть с порога"
   - en: "{name} kept apart as a child and watched the neighbours' games from the doorstep."
-    text: null
+    text: "{name} в детстве {~держался|держалась} особняком и {~смотрел|смотрела} с порога на игры соседских детей."
   - en: One winter the stores ran low. The wolves came near the houses, and your household looked to every pair of hands.
-    text: null
+    text: "Одной зимой кончились запасы. Волки подходили к самым домам, и в твоём доме берегли каждую пару рук."
   - en: Go out with the men to set snares
-    text: null
+    text: "Выйти с мужчинами ставить силки"
   - en: "{name} set snares with the men in a hungry winter and brought home meat."
-    text: null
+    text: "{name} в голодную зиму {~ставил|ставила} силки вместе с мужчинами и {~принёс|принесла} домой мясо."
   - en: "{name} froze in the snow checking snares one hungry winter and came back with nothing."
-    text: null
+    text: "{name} в одну голодную зиму {~замёрз|замёрзла} в снегу над силками и {~вернулся|вернулась} ни с чем."
   - en: Stay by the fire, mind the little ones and listen to the old people
-    text: null
+    text: "Остаться у огня, нянчить малышей и слушать стариков"
   - en: "{name} spent a hungry winter by the fire, minding the little ones and listening to the old people."
-    text: null
+    text: "{name} {~провёл|провела} голодную зиму у огня: {~нянчил|нянчила} малышей и {~слушал|слушала} стариков."
   - en: Carry what little there is to the neighbours, for a coin
-    text: null
+    text: "Отнести соседям те крохи, что есть, за монету"
   - en: "{name} sold what little the house could spare to the neighbours in a hungry winter."
-    text: null
+    text: "{name} в голодную зиму {~продал|продала} соседям то немногое, что дом мог уделить."
   - en: On the day of the fair the whole district came to town. You were given a few hours and a coin.
-    text: null
+    text: "В ярмарочный день на городскую площадь съехался весь округ. Тебе дали несколько часов и монету."
   - en: Watch the jugglers and the bear
-    text: null
+    text: "Смотреть на скоморохов и медведя"
   - en: "{name} spent a fair day watching jugglers and a dancing bear."
-    text: null
+    text: "{name} {~провёл|провела} ярмарочный день, глядя на скоморохов и пляшущего медведя."
   - en: Slip between the stalls and lift an apple
-    text: null
+    text: "Проскользнуть между лотками и стянуть яблоко"
   - en: "{name} lifted an apple from a stall at the fair and was not caught."
-    text: null
+    text: "{name} {~стянул|стянула} яблоко с лотка на ярмарке, и {~его|её} не поймали."
   - en: "{name} was caught stealing an apple at the fair and paid for it."
-    text: null
+    text: "{name} {~попался|попалась} на краже яблока на ярмарке и за это {~поплатился|поплатилась}."
   - en: Help a stallholder and keep the coin earned
-    text: null
+    text: "Помочь торговцу и оставить заработанную монету себе"
   - en: "{name} helped at a stall during the fair and earned a few coins."
-    text: null
+    text: "{name} {~помог|помогла} у лотка на ярмарке и {~заработал|заработала} несколько монет."
   - en: "{rival} had long made a habit of mocking you in front of others. Today it was in front of a crowd."
-    text: null
+    text: "{rival} давно взял за обыкновение смеяться над тобой при людях. Сегодня это случилось на глазах у толпы."
   - en: Answer with fists
-    text: null
+    text: "Ответить кулаками"
   - en: "{name} beat {rival} in a fight before a crowd, and {rival} did not forgive it."
-    text: null
+    text: "{name} {~побил|побила} {rival:acc} в драке на глазах у толпы, и {rival} этого не {rival~простил|простила}."
   - en: "{name} was beaten by {rival} in a fight before a crowd."
-    text: null
+    text: "{name} {~проиграл|проиграла} {rival:dat} драку на глазах у толпы."
   - en: Answer with a sharp word
-    text: null
+    text: "Ответить острым словом"
   - en: "{name} silenced {rival} with a single sharp word before a crowd."
-    text: null
+    text: "{name} одним острым словом {~заставил|заставила} {rival:acc} замолчать на глазах у толпы."
   - en: "{name} could find no answer to {rival}'s mockery and left in silence."
-    text: null
+    text: "{name} не {~нашёл|нашла}, что ответить на насмешки {rival:gen}, и молча {~ушёл|ушла}."
   - en: Walk away
-    text: null
+    text: "Уйти прочь"
   - en: "{name} walked away from the mockery of {rival}."
-    text: null
+    text: "{name} {~ушёл|ушла} прочь от насмешек {rival:gen}."
   - en: "{teacher} noticed you hanging about the door and offered to show you something of {teacher.his} work, if you would come in the evenings."
-    text: null
+    text: "{teacher} {teacher~заметил|заметила}, как ты торчишь у двери, и {teacher~предложил|предложила} показать кое-что из своего дела, если станешь приходить по вечерам."
   - en: Come every evening and listen
-    text: null
+    text: "Приходить каждый вечер и слушать"
   - en: "{name} spent youthful evenings listening to {teacher} and learned much from {teacher.him}."
-    text: null
+    text: "{name} {~проводил|проводила} юные вечера, слушая {teacher:acc}, и многому у {teacher:gen} {~научился|научилась}."
   - en: Take a few lessons for the practical use
-    text: null
+    text: "Взять несколько уроков для пользы дела"
   - en: "{name} took a few useful lessons from {teacher} and went on."
-    text: null
+    text: "{name} {~взял|взяла} у {teacher:gen} несколько полезных уроков и {~пошёл|пошла} дальше."
   - en: Decline, there is work to do
-    text: null
+    text: "Отказаться: есть работа"
   - en: "{name} declined the lessons of {teacher} and took paid work instead."
-    text: null
+    text: "{name} {~отказался|отказалась} от уроков {teacher:gen} и {~взялся|взялась} за оплачиваемую работу."
   - en: A bad year, and the creditor came to your household. The family could pay only a part.
-    text: null
+    text: "Год выдался плохой, и в твой дом пришёл кредитор. Семья смогла заплатить лишь часть."
   - en: Take the debt on yourself and work it off
-    text: null
+    text: "Взять долг на себя и отрабатывать его"
   - en: "{name} took the family's debt upon {his} own shoulders and worked it off for years."
-    text: null
+    text: "{name} {~взвалил|взвалила} семейный долг на свои плечи и годами {~отрабатывал|отрабатывала} его."
   - en: Talk the creditor into waiting
-    text: null
+    text: "Уговорить кредитора подождать"
   - en: "{name} persuaded the family's creditor to wait for the money."
-    text: null
+    text: "{name} {~уговорил|уговорила} семейного кредитора подождать с деньгами."
   - en: "{name} failed to talk the family's creditor into waiting, and the house paid dearly."
-    text: null
+    text: "{name} не {~сумел|сумела} уговорить семейного кредитора подождать, и дом дорого за это заплатил."
   - en: Let the creditor take what he wants and say nothing
-    text: null
+    text: "Пусть кредитор берёт что хочет, а ты промолчи"
   - en: "{name} watched a creditor carry off the household's goods and trusted few people after."
-    text: null
+    text: "{name} {~смотрел|смотрела}, как кредитор уносит добро из дома, и после этого мало кому {~доверял|доверяла}."
   - en: "{master} agreed to take you as an apprentice, for board and a promise of obedience."
-    text: null
+    text: "{master} {master~согласился|согласилась} взять тебя в ученики за стол и обещание послушания."
   - en: Learn the counting and the keeping of books
-    text: null
+    text: "Учиться счёту и ведению книг"
   - en: "{name} was apprenticed to {master} for two years and learned to keep accounts."
-    text: null
+    text: "{name} два года {~был|была} в учении у {master:gen} и {~выучился|выучилась} вести счета."
   - en: Learn how to read people, and what they will not say
-    text: null
+    text: "Учиться читать людей и то, о чём они молчат"
   - en: "{name} was apprenticed to {master} for two years and learned to read people."
-    text: null
+    text: "{name} два года {~был|была} в учении у {master:gen} и {~научился|научилась} читать людей."
   - en: Learn letters and the little Latin the master has
-    text: null
+    text: "Учиться грамоте и той латыни, что знает мастер"
   - en: "{name} spent a year in the house of {master}, learning letters and some Latin."
-    text: null
+    text: "{name} год {~прожил|прожила} в доме {master:gen}, изучая грамоту и немного латыни."
   - en: "{sergeant} was gathering recruits, and the pay was better than at home. The drill was hard."
-    text: null
+    text: "{sergeant} {sergeant~набирал|набирала} рекрутов, и платили там лучше, чем дома. Муштра была тяжёлая."
   - en: Serve the full term and take every lesson
-    text: null
+    text: "Отслужить весь срок и взять от службы всё"
   - en: "{name} served two years under {sergeant} and learned the soldier's trade."
-    text: null
+    text: "{name} два года {~прослужил|прослужила} под началом {sergeant:gen} и {~выучился|выучилась} солдатскому ремеслу."
   - en: Keep your head down, learn what you must and leave early
-    text: null
+    text: "Не высовываться, взять нужное и уйти пораньше"
   - en: "{name} served a year under {sergeant} and left early with a few coins."
-    text: null
+    text: "{name} год {~прослужил|прослужила} под началом {sergeant:gen} и {~ушёл|ушла} раньше срока, прихватив пару монет."
   - en: Make a name by volunteering for the worst of the work
-    text: null
+    text: "Сделать себе имя, вызвавшись на самую скверную работу"
   - en: "{name} volunteered for the worst of the work under {sergeant} and was remembered for it."
-    text: null
+    text: "{name} {~вызвался|вызвалась} на самую скверную работу под началом {sergeant:gen}, и это запомнили."
   - en: "{name} volunteered for the worst of the work under {sergeant} and came out broken and poorer."
-    text: null
+    text: "{name} {~вызвался|вызвалась} на самую скверную работу под началом {sergeant:gen} и {~вышел|вышла} из неё сломленным и ещё беднее."
   - en: Your people could spare you for a time. There was a school in the town, a court that took servants, and a road.
-    text: null
+    text: "Твои близкие могли обойтись без тебя какое-то время. В городе была школа, был двор, куда брали слуг, и была дорога."
   - en: Go to the school and study three years
-    text: null
+    text: "Пойти в школу и учиться три года"
   - en: "{name} studied for three years at a town school."
-    text: null
+    text: "{name} три года {~учился|училась} в городской школе."
   - en: Enter the household of a great man as a ward
-    text: null
+    text: "Войти в дом знатного человека воспитанником"
   - en: "{name} served two years as a page in a great household and learned its manners."
-    text: null
+    text: "{name} два года {~был|была} пажом в большом доме и {~усвоил|усвоила} его манеры."
   - en: Spend the years on the road and in the taverns
-    text: null
+    text: "Провести эти годы в дороге и по трактирам"
   - en: "{name} spent a year wandering from tavern to tavern and learned the ways of the road."
-    text: null
+    text: "{name} год {~бродил|бродила} из трактира в трактир и {~узнал|узнала} повадки дороги."
   - en: Nothing held you at home any longer. What drove you out?
-    text: null
+    text: "Больше ничто не держало тебя дома. Что гнало тебя прочь?"
   - en: A hunger to see the world and be worth something in it
-    text: null
+    text: "Жажда увидеть мир и чего-то стоить в нём"
   - en: "{name} set out to see the world and to find a place in it."
-    text: null
+    text: "{name} {~отправился|отправилась} посмотреть мир и найти в нём своё место."
   - en: A quarrel at home that could not be mended
-    text: null
+    text: "Ссора дома, которую не загладить"
   - en: "{name} left after a quarrel at home that could not be mended."
-    text: null
+    text: "{name} {~ушёл|ушла} после ссоры дома, которую не загладить."
   - en: The wish to repay the family, and the need for money
-    text: null
+    text: "Желание отплатить семье и нужда в деньгах"
   - en: "{name} left home to earn money for the family."
-    text: null
+    text: "{name} {~ушёл|ушла} из дома заработать денег для семьи."
   - en: On the last evening {patron}, whom everyone in the district knew, took you aside to give you some advice.
-    text: null
+    text: "В последний вечер {patron}, которого знал весь округ, {patron~отвёл|отвела} тебя в сторону, чтобы дать совет."
   - en: Listen and take the gift {patron.he} offers
-    text: null
+    text: "Выслушать и принять дар, который {patron~он|она} предлагает"
   - en: "{name} took a farewell gift from {patron}, who promised to keep an eye on {him}."
-    text: null
+    text: "{name} {~принял|приняла} прощальный дар от {patron:gen}, {patron~пообещавший|пообещавшая} присматривать за {~ним|ней}."
   - en: Thank {patron.him} and refuse any gift
-    text: null
+    text: "Поблагодарить {patron~его|её} и отказаться от любого дара"
   - en: "{name} refused a farewell gift from {patron} and left with nothing but pride."
-    text: null
+    text: "{name} {~отказался|отказалась} от прощального дара {patron:gen} и {~ушёл|ушла} ни с чем, кроме гордости."
   - en: Leave unseen before dawn
-    text: null
+    text: "Уйти незамеченным до рассвета"
   - en: "{name} left before dawn and said no farewells."
-    text: null
+    text: "{name} {~ушёл|ушла} до рассвета, не прощаясь."

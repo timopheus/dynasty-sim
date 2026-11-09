@@ -1,16 +1,16 @@
 # Russian translation of content/traits/heredity.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: Quick-witted
-    text: null
+    text: "Сообразительный"
   - en: Clever
-    text: null
+    text: "Умный"
   - en: Brilliant
-    text: null
+    text: "Блестящий ум"
   - en: Robust
-    text: null
+    text: "Крепкий"
   - en: Long-lived
-    text: null
+    text: "Долгожитель"
   - en: Delicate
-    text: null
+    text: "Хрупкий"
   - en: Sickly
-    text: null
+    text: "Болезненный"

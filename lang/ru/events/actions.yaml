@@ -1,260 +1,260 @@
 # Russian translation of content/events/actions.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: Armed men step out of the hedge <road_weather> and bar the road. One of them names a price for your passage.
-    text: null
+    text: "Вооружённые люди выходят из-за живой изгороди <road_weather> и перегораживают дорогу. Один из них называет цену за проезд."
   - en: Fight them
-    text: null
+    text: "Драться"
   - en: "{name} fought off highwaymen on the road and took their purse."
-    text: null
+    text: "{name} {~отбился|отбилась} от разбойников на дороге и {~забрал|забрала} их кошелёк."
   - en: "{name} was beaten and robbed by highwaymen on the road."
-    text: null
+    text: "{name} {~был избит и ограблен|была избита и ограблена} разбойниками на дороге."
   - en: Pay them off
-    text: null
+    text: "Откупиться"
   - en: "{name} paid off highwaymen on the road."
-    text: null
+    text: "{name} {~откупился|откупилась} от разбойников на дороге."
   - en: A cart wheel cracks on a muddy road{wheelwright?, and {wheelwright} is already looking over the damage}.
-    text: null
+    text: "На грязной дороге трескается колесо телеги{wheelwright?, и {wheelwright} уже осматривает поломку}."
   - en: Pay a wheelwright
-    text: null
+    text: "Заплатить колёснику"
   - en: "{name} paid a wheelwright{wheelwright?, {wheelwright},} to mend a broken wheel."
-    text: null
+    text: "{name} {~заплатил|заплатила} колёснику{wheelwright?, {wheelwright:dat},} за починку сломанного колеса."
   - en: Mend it yourself
-    text: null
+    text: "Чинить самому"
   - en: "{name} mended a broken wheel by hand in the mud."
-    text: null
+    text: "{name} {~починил|починила} колесо своими руками в грязи."
   - en: "{name} botched the mending of a broken wheel and paid twice for it."
-    text: null
+    text: "{name} {~испортил|испортила} починку колеса и {~заплатил|заплатила} за него дважды."
   - en: On the road you fall in step with {companion}, who is bound the same way and offers to share the miles and the cost of the inns.
-    text: null
+    text: "В дороге ты оказываешься в одном шаге с {companion:ins}: тот идёт туда же и предлагает делить и вёрсты, и расходы на постоялые дворы."
   - en: Share the road and the cost
-    text: null
+    text: "Делить дорогу и расходы"
   - en: "{name} shared a long road with {companion}."
-    text: null
+    text: "{name} {~прошёл|прошла} долгий путь вместе с {companion:ins}."
   - en: "{name} fell out with {companion} over the cost of an inn."
-    text: null
+    text: "{name} {~поссорился|поссорилась} с {companion:ins} из-за платы за ночлег."
   - en: Go your own way
-    text: null
+    text: "Идти своей дорогой"
   - en: "{name} declined the company of {companion} on the road."
-    text: null
+    text: "{name} {~отказался|отказалась} от компании {companion:gen} в дороге."
   - en: "After dark, a lantern winks twice from a barn. {smuggler} steps into the road: there is brandy to move before dawn, and a share for anyone who does not ask questions."
-    text: null
+    text: "После наступления темноты в амбаре дважды мигает фонарь. {smuggler} выходит на дорогу: до рассвета нужно переправить бренди, и доля найдётся любому, кто не задаёт вопросов."
   - en: Carry a load for the smugglers
-    text: null
+    text: "Взять груз у контрабандистов"
   - en: "{name} ran a load of brandy past the revenue men for {smuggler}."
-    text: null
+    text: "{name} {~провёз|провезла} для {smuggler:gen} партию бренди мимо таможенников."
   - en: "{name} was caught with smuggled brandy, beaten and fined."
-    text: null
+    text: "{name} {~попался|попалась} с контрабандным бренди, {~был избит|была избита} и {~оштрафован|оштрафована}."
   - en: Refuse and ride on
-    text: null
+    text: "Отказаться и ехать дальше"
   - en: "{name} refused to carry brandy for {smuggler}."
-    text: null
+    text: "{name} {~отказался|отказалась} возить бренди для {smuggler:gen}."
   - en: Tell the revenue men
-    text: null
+    text: "Выдать таможенникам"
   - en: "{name} informed on {smuggler} to the revenue men for a reward."
-    text: null
+    text: "{name} {~донёс|донесла} таможенникам на {smuggler:acc} за награду."
   - en: "{sergeant} offers a bonus to whoever will take a dangerous night patrol along the river."
-    text: null
+    text: "{sergeant} обещает награду тому, кто возьмётся за опасный ночной дозор вдоль реки."
   - en: Volunteer
-    text: null
+    text: "Вызваться"
   - en: "{name} volunteered for a night patrol and earned a bonus from {sergeant}."
-    text: null
+    text: "{name} {~вызвался|вызвалась} в ночной дозор и {~получил|получила} награду от {sergeant:gen}."
   - en: "{name} was wounded on a night patrol but earned half a bonus."
-    text: null
+    text: "{name} {~был ранен|была ранена} в ночном дозоре, но {~получил|получила} половину награды."
   - en: Stay in camp
-    text: null
+    text: "Остаться в лагере"
   - en: "{name} stayed in camp while others went on patrol."
-    text: null
+    text: "{name} {~остался|осталась} в лагере, пока другие ушли в дозор."
   - en: "{paymaster} is late with the wages again. The men are muttering."
-    text: null
+    text: "{paymaster} опять задерживает жалованье. Солдаты ропщут."
   - en: Complain loudly
-    text: null
+    text: "Жаловаться вслух"
   - en: "{name} complained to {paymaster} and got part of the wages."
-    text: null
+    text: "{name} {~пожаловался|пожаловалась} {paymaster:dat} и {~получил|получила} часть жалованья."
   - en: "{name} complained to {paymaster} and was sent away with nothing."
-    text: null
+    text: "{name} {~пожаловался|пожаловалась} {paymaster:dat} и {~ушёл|ушла} ни с чем."
   - en: Wait patiently
-    text: null
+    text: "Ждать терпеливо"
   - en: "{name} waited out a late payday on credit."
-    text: null
+    text: "{name} {~переждал|переждала} задержку жалованья в долг."
   - en: shots crack from the treeline
-    text: null
+    text: "из-за деревьев трещат выстрелы"
   - en: men rise from the ditch with pistols in their hands
-    text: null
+    text: "люди поднимаются из канавы с пистолетами в руках"
   - en: a tree comes down across the road
-    text: null
+    text: "поперёк дороги падает дерево"
   - en: At the inn that night, {coward} is already telling the carters how bravely {coward.he} fought.
-    text: null
+    text: "Вечером на постоялом дворе {coward} уже рассказывает возчикам, как храбро {coward~он|она} {coward~сражался|сражалась}."
   - en: Name {coward} a coward and a liar, before everyone
-    text: null
+    text: "Назвать {coward:acc} трусом и лжецом при всех"
   - en: "{He} publicly named {coward} a coward and a liar."
-    text: null
+    text: "{~Он|Она} прилюдно {~назвал|назвала} {coward:acc} трусом и лжецом."
   - en: Say nothing
-    text: null
+    text: "Промолчать"
   - en: "{He} kept quiet about {coward}."
-    text: null
+    text: "{~Он|Она} {~промолчал|промолчала} о {coward:prep}."
   - en: You are guarding {employer}'s wine wagons when <ambush_opening>. Out of the corner of your eye you see {coward} drop {coward.his} musket and run.
-    text: null
+    text: "Ты охраняешь винные повозки {employer:gen}, когда <ambush_opening>. Краем глаза ты видишь, как {coward} бросает мушкет и бежит."
   - en: Stand and hold the wagons
-    text: null
+    text: "Стоять и держать повозки"
   - en: "{name} held {employer}'s wagons against a bandit ambush."
-    text: null
+    text: "{name} {~отстоял|отстояла} повозки {employer:gen} от засады разбойников."
   - en: "{name} was badly wounded in a bandit ambush while guarding {employer}'s wine."
-    text: null
+    text: "{name} {~был тяжело ранен|была тяжело ранена} в засаде разбойников, охраняя вино {employer:gen}."
   - en: Charge the ambushers alone
-    text: null
+    text: "Броситься на засаду в одиночку"
   - en: "{name} charged a bandit ambush alone, broke it and saved {employer}'s wagons."
-    text: null
+    text: "{name} в одиночку {~бросился|бросилась} на засаду разбойников, {~разогнал|разогнала} её и {~спас|спасла} повозки {employer:gen}."
   - en: "{name} charged a bandit ambush alone and was cut down."
-    text: null
+    text: "{name} в одиночку {~бросился|бросилась} на засаду разбойников и {~был изрублен|была изрублена}."
   - en: Run with {coward}
-    text: null
+    text: "Бежать с {coward:ins}"
   - en: "{name} fled a bandit ambush with {coward}, leaving {employer}'s wine to the robbers."
-    text: null
+    text: "{name} {~бежал|бежала} из засады вместе с {coward:ins}, оставив вино {employer:gen} разбойникам."
   - en: "<Dawn> {sergeant} shakes you awake: skirmishers are fording the river below the camp, and the officers are nowhere to be seen."
-    text: null
+    text: "<Dawn> {sergeant} трясёт тебя за плечо: стрелки переходят реку вброд ниже лагеря, а офицеров нигде не видно."
   - en: Hold the bank with the picket
-    text: null
+    text: "Держать берег с пикетом"
   - en: "{name} held the river bank with the picket and drove the skirmishers off."
-    text: null
+    text: "{name} {~удержал|удержала} берег реки с пикетом и {~отогнал|отогнала} стрелков."
   - en: "{name} was beaten back from the river bank and lost kit."
-    text: null
+    text: "{name} {~был отбит|была отбита} от берега реки и {~потерял|потеряла} снаряжение."
   - en: Lead a sortie across the ford
-    text: null
+    text: "Повести вылазку через брод"
   - en: "{name} led a sortie across a ford and routed the enemy skirmishers."
-    text: null
+    text: "{name} {~повёл|повела} вылазку через брод и {~разбил|разбила} вражеских стрелков."
   - en: "{name} fell leading a sortie across a ford."
-    text: null
+    text: "{name} {~пал|пала}, ведя вылазку через брод."
   - en: Fall back to the camp
-    text: null
+    text: "Отойти к лагерю"
   - en: "{name} fell back from the ford and left the picket to hold it."
-    text: null
+    text: "{name} {~отошёл|отошла} от брода, оставив пикет его удерживать."
   - en: Three months without pay. {ringleader} climbs onto a wagon and tells the company to stack arms and march home. Half the men are already nodding.
-    text: null
+    text: "Три месяца без жалованья. {ringleader} взбирается на повозку и велит роте сложить оружие и идти по домам. Половина людей уже кивает."
   - en: Side with the men
-    text: null
+    text: "Встать на сторону людей"
   - en: "{name} sided with {ringleader} in a mutiny over pay, and the back wages were paid."
-    text: null
+    text: "{name} {~поддержал|поддержала} {ringleader:acc} в бунте из-за жалованья, и задолженность выплатили."
   - en: "{name} was flogged as a mutineer when a pay mutiny failed."
-    text: null
+    text: "{name} {~был выпорот|была выпорота} как бунтовщик, когда бунт из-за жалованья провалился."
   - en: Draw your sword on the mob
-    text: null
+    text: "Обнажить меч против толпы"
   - en: "{name} drew on a mutinous mob and broke it up."
-    text: null
+    text: "{name} {~обнажил|обнажила} оружие против бунтующей толпы и {~разогнал|разогнала} её."
   - en: "{name} was cut down trying to break up a pay mutiny."
-    text: null
+    text: "{name} {~был изрублен|была изрублена}, пытаясь разогнать бунт из-за жалованья."
   - en: Keep out of it
-    text: null
+    text: "Остаться в стороне"
   - en: "{name} kept out of a pay mutiny in the camp."
-    text: null
+    text: "{name} {~остался|осталась} в стороне от бунта из-за жалованья в лагере."
   - en: "{seller} offers you a cargo of cloth at a suspiciously low price."
-    text: null
+    text: "{seller} предлагает тебе партию сукна по подозрительно низкой цене."
   - en: Buy it
-    text: null
+    text: "Купить"
   - en: "{name} bought a cheap cargo of cloth from {seller}, found it sound and sold it at a profit."
-    text: null
+    text: "{name} {~купил|купила} у {seller:gen} дешёвую партию сукна, {~нашёл|нашла} её добротной и {~продал|продала} с выгодой."
   - en: "{name} bought a cheap cargo of cloth from {seller} that turned out to be rotten."
-    text: null
+    text: "{name} {~купил|купила} у {seller:gen} дешёвую партию сукна, и она оказалась гнилой."
   - en: Refuse
-    text: null
+    text: "Отказаться"
   - en: "{name} refused a suspiciously cheap cargo of cloth from {seller}."
-    text: null
+    text: "{name} {~отказался|отказалась} от подозрительно дешёвого сукна {seller:gen}."
   - en: "{rival} has taken the stall next to yours and is selling the same goods for less."
-    text: null
+    text: "{rival} занял место рядом с твоим и продаёт тот же товар дешевле."
   - en: Cut your prices to match
-    text: null
+    text: "Сбить цены до его уровня"
   - en: "{name} met {rival}'s prices in the market and kept the custom."
-    text: null
+    text: "{name} {~сравнялся|сравнялась} на рынке в ценах с {rival:ins} и {~сохранил|сохранила} покупателей."
   - en: "{name} cut prices against {rival} and sold at a loss."
-    text: null
+    text: "{name} {~сбил|сбила} цены, тягаясь с {rival:ins}, и {~торговал|торговала} в убыток."
   - en: Spread word that {rival} gives short measure
-    text: null
+    text: "Пустить слух, что {rival} обвешивает"
   - en: "{name} ruined the custom of {rival} in the market with a whispering campaign."
-    text: null
+    text: "{name} {~отбил|отбила} на рынке покупателей у {rival:gen} слухами."
   - en: "{name} was caught slandering {rival} in the market."
-    text: null
+    text: "{name} {~был уличён|была уличена} в клевете на {rival:acc} на рынке."
   - en: Share the market peaceably
-    text: null
+    text: "Поделить рынок миром"
   - en: "{name} traded beside {rival} without a quarrel."
-    text: null
+    text: "{name} {~торговал|торговала} рядом с {rival:ins} без ссор."
   - en: '{patron}, an established merchant, has watched you deal for some weeks. "Someone who deals honestly could go far," {patron.he} says. "Let me back you."'
-    text: null
+    text: "{patron}, известный купец, уже несколько недель присматривается к твоей торговле. «Кто торгует честно, может многого добиться, — говорит {patron~он|она}. — Позволь мне поддержать тебя»."
   - en: Accept the backing
-    text: null
+    text: "Принять поддержку"
   - en: "{name} took the backing of {patron}, a merchant, and went into trade under {patron.his} name."
-    text: null
+    text: "{name} {~принял|приняла} поддержку {patron:gen}, купца, и {~занялся|занялась} торговлей под {patron~его|её} именем."
   - en: Thank {patron} and stay independent
-    text: null
+    text: "Поблагодарить {patron:acc} и остаться независимым"
   - en: "{name} turned down the backing of {patron}, preferring to be {his} own master."
-    text: null
+    text: "{name} {~отклонил|отклонила} поддержку {patron:gen}, решив остаться {~сам|сама} себе хозяином."
   - en: "{lodger}, who has the next room, proposes to share the costs of the winter."
-    text: null
+    text: "{lodger}, живущий в соседней комнате, предлагает вместе нести расходы на зиму."
   - en: Agree
-    text: null
+    text: "Согласиться"
   - en: "{name} shared winter lodgings with {lodger} and split the costs."
-    text: null
+    text: "{name} {~делил|делила} зимнее жильё с {lodger:ins} и {~поделил|поделила} расходы."
   - en: "{name} shared winter lodgings with {lodger}, who left in the spring with {his} purse."
-    text: null
+    text: "{name} {~делил|делила} зимнее жильё с {lodger:ins}, который весной ушёл с {lodger~его|её} кошельком."
   - en: "{name} kept to a room alone for the winter."
-    text: null
+    text: "{name} {~прожил|прожила} зиму в комнате один."
   - en: The frost holds the town for a week. Firewood and bread cost double, and you pay what is asked.
-    text: null
+    text: "Мороз сковал город на неделю. Дрова и хлеб подорожали вдвое, и ты платишь, сколько просят."
   - en: "{name} paid dearly for firewood in a hard frost."
-    text: null
+    text: "{name} {~дорого заплатил|дорого заплатила} за дрова в лютый мороз."
   - en: You are still weak from the road when {nurse} starts bringing broth to your room without being asked.
-    text: null
+    text: "Ты ещё слаб после дороги, когда {nurse} без просьбы начинает носить тебе в комнату бульон."
   - en: Accept the broth gratefully
-    text: null
+    text: "Принять бульон с благодарностью"
   - en: "{name} was nursed back to strength by {nurse}."
-    text: null
+    text: "{name} {~был выхожен|была выхожена} {nurse:ins}."
   - en: Send {nurse} away, you want no fuss
-    text: null
+    text: "Отослать {nurse:acc}: тебе не нужна возня"
   - en: "{name} sent {nurse} away and recovered alone."
-    text: null
+    text: "{name} {~отослал|отослала} {nurse:acc} и {~оправился|оправилась} сам."
   - en: A wild boar charges you out of the undergrowth.
-    text: null
+    text: "Из подлеска на тебя несётся дикий кабан."
   - en: Stand and strike
-    text: null
+    text: "Встретить ударом"
   - en: "{name} killed a charging boar and was only scratched."
-    text: null
+    text: "{name} {~убил|убила} бросившегося кабана и {~отделался|отделалась} царапиной."
   - en: "{name} killed a charging boar but was gored."
-    text: null
+    text: "{name} {~убил|убила} бросившегося кабана, но {~был ранен|была ранена} клыками."
   - en: Climb a tree
-    text: null
+    text: "Залезть на дерево"
   - en: "{name} waited out a wild boar from the branches of a tree."
-    text: null
+    text: "{name} {~пересидел|пересидела} дикого кабана на ветвях дерева."
   - en: "The dogs go quiet, then yelp. In the thicket ahead something very large rises on its hind legs: a bear, and it has seen you."
-    text: null
+    text: "Собаки замолкают, потом взвизгивают. В чаще впереди поднимается на задние лапы нечто огромное: медведь, и он тебя заметил."
   - en: Face the bear with a spear
-    text: null
+    text: "Выйти на медведя с копьём"
   - en: "{name} killed a bear with a boar spear, to the wonder of the neighbourhood."
-    text: null
+    text: "{name} {~убил|убила} медведя кабаньим копьём на удивление всей округе."
   - en: "{name} was mauled to death by a bear in a thicket."
-    text: null
+    text: "{name} {~был задран|была задрана} медведем в чаще."
   - en: Fire from the trees
-    text: null
+    text: "Стрелять с деревьев"
   - en: "{name} shot a bear from the trees and sold the pelt."
-    text: null
+    text: "{name} {~застрелил|застрелила} медведя с дерева и {~продал|продала} шкуру."
   - en: "{name} wounded a bear with an arrow and was badly clawed for it."
-    text: null
+    text: "{name} {~ранил|ранила} медведя стрелой и {~был тяжело изодран|была тяжело изодрана} им."
   - en: Back away slowly
-    text: null
+    text: "Медленно отступить"
   - en: "{name} backed away from a bear and left the dogs to their luck."
-    text: null
+    text: "{name} {~отступил|отступила} от медведя, оставив собак на их судьбу."
   - en: You are dressing a deer in a wood that belongs to a lord when {warden}, the keeper, steps out between the trees and asks whose deer it is.
-    text: null
+    text: "Ты свежуешь оленя в лесу, принадлежащем лорду, когда меж деревьев выходит {warden}, лесничий, и спрашивает, чей это олень."
   - en: Pay the fine
-    text: null
+    text: "Заплатить штраф"
   - en: "{name} paid {warden} a fine for a deer taken in a lord's wood."
-    text: null
+    text: "{name} {~заплатил|заплатила} {warden:dat} штраф за оленя, взятого в лордовом лесу."
   - en: Slip away through the undergrowth
-    text: null
+    text: "Скрыться в подлеске"
   - en: "{name} escaped {warden} with the deer."
-    text: null
+    text: "{name} {~ушёл|ушла} от {warden:gen} с оленем."
   - en: "{name} was caught by {warden} with a poached deer and fined heavily."
-    text: null
+    text: "{name} {~был пойман|была поймана} {warden:ins} с браконьерским оленем и {~тяжело оштрафован|тяжело оштрафована}."
   - en: Talk your way out of it
-    text: null
+    text: "Заговорить зубы"
   - en: "{name} talked {warden} out of reporting a poached deer."
-    text: null
+    text: "{name} {~уговорил|уговорила} {warden:acc} не доносить о браконьерском олене."
   - en: "{name} tried to talk {warden} round and was fined all the same."
-    text: null
+    text: "{name} {~пытался|пыталась} уговорить {warden:acc}, но всё равно {~был оштрафован|была оштрафована}."

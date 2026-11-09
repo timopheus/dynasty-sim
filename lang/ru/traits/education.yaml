@@ -1,42 +1,42 @@
 # Russian translation of content/traits/education.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: Courtly education I
-    text: null
+    text: "Придворное образование I"
   - en: Courtly education II
-    text: null
+    text: "Придворное образование II"
   - en: Courtly education III
-    text: null
+    text: "Придворное образование III"
   - en: Courtly education IV
-    text: null
+    text: "Придворное образование IV"
   - en: Military education I
-    text: null
+    text: "Военное образование I"
   - en: Military education II
-    text: null
+    text: "Военное образование II"
   - en: Military education III
-    text: null
+    text: "Военное образование III"
   - en: Military education IV
-    text: null
+    text: "Военное образование IV"
   - en: Counting-house education I
-    text: null
+    text: "Образование счётной конторы I"
   - en: Counting-house education II
-    text: null
+    text: "Образование счётной конторы II"
   - en: Counting-house education III
-    text: null
+    text: "Образование счётной конторы III"
   - en: Counting-house education IV
-    text: null
+    text: "Образование счётной конторы IV"
   - en: Street and chancery education I
-    text: null
+    text: "Образование улицы и канцелярии I"
   - en: Street and chancery education II
-    text: null
+    text: "Образование улицы и канцелярии II"
   - en: Street and chancery education III
-    text: null
+    text: "Образование улицы и канцелярии III"
   - en: Street and chancery education IV
-    text: null
+    text: "Образование улицы и канцелярии IV"
   - en: Learned education I
-    text: null
+    text: "Учёное образование I"
   - en: Learned education II
-    text: null
+    text: "Учёное образование II"
   - en: Learned education III
-    text: null
+    text: "Учёное образование III"
   - en: Learned education IV
-    text: null
+    text: "Учёное образование IV"

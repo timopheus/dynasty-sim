@@ -1,94 +1,94 @@
 # Russian translation of content/health.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: Light wound
-    text: null
+    text: "Лёгкая рана"
   - en: fresh
-    text: null
+    text: "свежая"
   - en: festering
-    text: null
+    text: "гноится"
   - en: "{name}'s wound began to fester."
-    text: null
+    text: "{name} {~заметил|заметила}, что рана начала гноиться."
   - en: wound fever
-    text: null
+    text: "раневая горячка"
   - en: Wound fever took hold of {name}.
-    text: null
+    text: "{name} {~слёг|слегла} в раневой горячке."
   - en: "{name} was left with a scar."
-    text: null
+    text: "{name} {~остался|осталась} со шрамом."
   - en: Severe wound
-    text: null
+    text: "Тяжёлая рана"
   - en: "{name}'s wound festered."
-    text: null
+    text: "{name} {~увидел|увидела}, что рана загноилась."
   - en: "{name}'s wound healed cleanly."
-    text: null
+    text: "{name} {~оправился|оправилась}: рана зажила чисто."
   - en: "{name}'s wound healed into an ugly scar."
-    text: null
+    text: "{name} {~остался|осталась} с уродливым шрамом на месте раны."
   - en: "{name}'s wound closed, but never quite healed."
-    text: null
+    text: "{name}: рана закрылась, но так и не зажила до конца."
   - en: "{name} was left lame by the wound."
-    text: null
+    text: "{name} {~остался хромым|осталась хромой} после раны."
   - en: "{name} lost an eye to the wound."
-    text: null
+    text: "{name} {~потерял|потеряла} глаз из-за раны."
   - en: "{name} was left with a maimed hand."
-    text: null
+    text: "{name} {~остался|осталась} с изувеченной рукой."
   - en: Old wound
-    text: null
+    text: "Старая рана"
   - en: closed
-    text: null
+    text: "закрыта"
   - en: reopened
-    text: null
+    text: "открылась вновь"
   - en: "{name}'s old wound opened again."
-    text: null
+    text: "{name} {~почувствовал|почувствовала}, как старая рана открылась снова."
   - en: Wound fever from the old wound took hold of {name}.
-    text: null
+    text: "{name} {~слёг|слегла} в горячке от старой раны."
   - en: Fever
-    text: null
+    text: "Лихорадка"
   - en: feverish
-    text: null
+    text: "в жару"
   - en: crisis
-    text: null
+    text: "кризис"
   - en: "{name}'s fever reached its crisis."
-    text: null
+    text: "{name} {~дошёл|дошла} до кризиса лихорадки."
   - en: Consumption
-    text: null
+    text: "Чахотка"
   - en: lingering cough
-    text: null
+    text: "затяжной кашель"
   - en: wasting
-    text: null
+    text: "упадок сил"
   - en: Consumption began to waste {name} away.
-    text: null
+    text: "{name} {~начал|начала} чахнуть."
   - en: "{name}'s cough faded at last."
-    text: null
+    text: "{name} {~перестал|перестала} наконец кашлять."
   - en: Frailty
-    text: null
+    text: "Немощь"
   - en: frail
-    text: null
+    text: "немощь"
   - en: "{name} came down with a cough that would not go away."
-    text: null
+    text: "{name} {~подхватил|подхватила} кашель, который не проходил."
   - en: "Age caught up with {name}: {he} grew frail."
-    text: null
+    text: "Годы взяли своё: {name} {~одряхлел|одряхлела} и {~ослаб|ослабла}."
   - en: Wound fever had carried {him} off.
-    text: null
+    text: "Раневая горячка унесла {~его|её}."
   - en: A fever had carried {him} off.
-    text: null
+    text: "Лихорадка унесла {~его|её}."
   - en: Consumption had wasted {him} away.
-    text: null
+    text: "Чахотка сгубила {~его|её}."
   - en: Old age had worn {him} out.
-    text: null
+    text: "Старость источила {~его|её}."
   - en: A sudden illness took {him}.
-    text: null
+    text: "Внезапная болезнь забрала {~его|её}."
   - en: "{He} had fallen in a duel."
-    text: null
+    text: "{~Он пал|Она пала} на дуэли."
   - en: "{He} had been killed."
-    text: null
+    text: "{~Он был убит|Она была убита}."
   - en: "{He} had died in childbirth."
-    text: null
+    text: "{~Он умер|Она умерла} при родах."
   - en: "{He} had been too frail to live."
-    text: null
+    text: "{~Он был слишком слаб|Она была слишком слаба} для жизни."
   - en: "{name} was too ill to go on and had to take to bed."
-    text: null
+    text: "{name} {~был слишком болен|была слишком больна}, чтобы идти дальше, и {~слёг|слегла} в постель."
   - en: Too ill or badly hurt
-    text: null
+    text: "Болезнь или тяжёлая рана"
   - en: "Needs one of: {conditions}"
-    text: null
+    text: "Нужно одно из: {conditions}"
   - en: Not while suffering from {conditions}
-    text: null
+    text: "Не при недуге: {conditions}"

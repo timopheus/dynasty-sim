@@ -1,36 +1,36 @@
 # Russian translation of content/population.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: Only for {occupations}
-    text: null
+    text: "Только для: {occupations}"
   - en: Soldier
-    text: null
+    text: "Солдат"
   - en: Sergeant
-    text: null
+    text: "Сержант"
   - en: Mercenary
-    text: null
+    text: "Наёмник"
   - en: Teamster
-    text: null
+    text: "Возчик"
   - en: Farmhand
-    text: null
+    text: "Батрак"
   - en: Craftsman
-    text: null
+    text: "Ремесленник"
   - en: Merchant
-    text: null
+    text: "Купец"
   - en: Sailor
-    text: null
+    text: "Матрос"
   - en: Innkeeper
-    text: null
+    text: "Трактирщик"
   - en: Clerk
-    text: null
+    text: "Писарь"
   - en: Servant
-    text: null
+    text: "Слуга"
   - en: Scout
-    text: null
+    text: "Разведчик"
   - en: Physician
-    text: null
+    text: "Лекарь"
   - en: Priest
-    text: null
+    text: "Священник"
   - en: "{name} left old companions behind and fell in with new people along the road."
-    text: null
+    text: "{name} {~оставил|оставила} старых товарищей и {~сошёлся|сошлась} с новыми людьми в пути."
   - en: "{name} parted with some of the company when the contract ended, and others took their place."
-    text: null
+    text: "{name} {~расстался|рассталась} с частью спутников, когда кончилась работа, и на их место пришли другие."
