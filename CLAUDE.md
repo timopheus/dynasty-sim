@@ -12,7 +12,7 @@
 ## Где что
 - `src/core/` — симуляция без DOM и Node. Модули-папки: у каждого своя часть состояния, контент, хуки, фазы, инварианты: `character`, `health`, `time`, `actions`, `conditions`, `events`, `narrator`, `roles`, `stories`, `backstory`, `world`, `relations`, `chronicle`, `archive`, `entities`, `family`, `succession`, `house`, `heirloom`, `era`, `economy`, `place`, `mind`, `looks`, `summary`, `save`, `metrics`, `pages`, `text`, `bots`.
 - Сборочные файлы `src/core/`: `game.ts`, `state.ts`, `hooks.ts`, `lifecycle.ts`, `refs.ts`, `invariants.ts`, `effects.ts`, `condition-keys.ts`, `modifiers.ts`, `helpers.ts`, `content/schema.ts`, `content/load.ts`, `content/types.ts`.
-- `src/ui/` — браузерный интерфейс. `content/` — YAML, тексты на английском. `tools/` — валидатор, прогон, ворота, replay. `tests/` — vitest и фикстуры. `map/` — исходники карты.
+- `src/ui/` — браузерный интерфейс. `content/` — YAML, тексты на английском; `lang/ru/` — русский перевод всех текстов игры (D-476). `tools/` — валидатор, прогон, ворота, replay. `tests/` — vitest и фикстуры. `map/` — исходники карты.
 
 ## Команды
 ```
