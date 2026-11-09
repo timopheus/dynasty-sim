@@ -607,6 +607,23 @@ export class MapRenderer {
         ctx.fillStyle = '#2a2017';
         ctx.fillRect(p.at.x - r * 0.35, p.at.y - r * 0.35, r * 0.7, r * 0.7);
       }
+      // work on the board of the place (CK.4): a pin with the number of offers, up and to the left of the mark
+      if (p.work > 0) {
+        const pr = 6.5 * px * Math.max(1, Math.min(1.4, zoom / 2));
+        const cx = p.at.x - r - pr * 0.6, cy = p.at.y - r - pr * 0.6;
+        ctx.beginPath();
+        ctx.arc(cx, cy, pr, 0, Math.PI * 2);
+        ctx.fillStyle = '#7a3b1d';
+        ctx.fill();
+        ctx.strokeStyle = '#f1e7cf';
+        ctx.lineWidth = px * 1.4;
+        ctx.stroke();
+        ctx.fillStyle = '#f7f1e3';
+        ctx.font = `bold ${pr * 1.25}px Georgia, serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(p.work), cx, cy + px * 0.5);
+      }
     }
     if (overlay.hero) {
       const { x, y } = overlay.hero;

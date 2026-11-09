@@ -1,4 +1,5 @@
 import { actionAvailability } from '../core/actions/actions';
+import { offersByPlace } from './contracts-model';
 import type { ActionCategory, ActionDef } from '../core/actions/content';
 import { getPlayer } from '../core/helpers';
 import { priceCrowns, workCrowns } from '../core/economy/economy';
@@ -49,6 +50,15 @@ export const SHELVES: { category: ActionCategory; title: string }[] = [
 
 export const WILL_ID = 'will';
 
+/** The button of the board of work (CK.4): opens the window, takes no time. */
+export const BOARD_ID = 'board';
+
+/** What the button of the board says: offers on the boards within reach, and on the board where the hero stands. */
+export interface BoardCount {
+  offers: number;
+  here: number;
+}
+
 /** Reasons side by side: the full stops of the texts are cut so that they do not read ".;". */
 function joinReasons(reasons: string[]): string {
   return reasons.map((r) => r.replace(/\.$/, '')).join('; ');
@@ -98,7 +108,7 @@ export interface Panel {
  * The right panel (D-443): the actions of the hero by shelf. The will is a button of the interface (4.6); it stands on
  * the shelf "Family & house". While a window holds the hero, the buttons are grey and `note` says why. Pure.
  */
-export function actionShelves(ctx: Ctx, will: WillForm | null): Panel {
+export function actionShelves(ctx: Ctx, will: WillForm | null, board: BoardCount | null = null): Panel {
   const { state } = ctx;
   if (state.status === 'ended') return { shelves: [], note: 'The house has come to an end.' };
   if (state.backstory.running) return { shelves: [], note: 'Nothing to do until you have grown up.' };
@@ -118,6 +128,11 @@ export function actionShelves(ctx: Ctx, will: WillForm | null): Panel {
     const button: ActionButton = { id: action.id, name: action.name, info: [...(turnable ? [] : [daysText(action)]), ...moneyInfo(ctx, action)], grey, reason: joinReasons(reasons) };
     if (turnable && !grey) button.destinations = destinations(ctx);
     shelf?.buttons.push(button);
+  }
+  if (board) {
+    // the board of work (CK.4) heads the shelf of livelihood: it is how the hero finds work
+    const info = board.offers === 0 ? ['nothing within reach'] : [`${board.offers} within reach`, ...(board.here > 0 ? [`${board.here} here`] : [])];
+    shelves.find((s) => s.category === 'livelihood')?.buttons.unshift({ id: BOARD_ID, name: 'Work board (J)', info, grey: held !== '', reason: '' });
   }
   if (will) {
     const atNotary = underWay !== null && underWay === ctx.content.succession?.willAction;
@@ -140,11 +155,18 @@ export interface PlaceActions {
   buttons: ActionButton[];
   /** Elsewhere: the names of what one can do in a place of that kind. */
   there: string[];
+  /** Offers on the board of the place, when it is within reach (CK.4); 0 for none. */
+  work: number;
 }
 
 /** The actions done in a place: those the content binds to kinds of places, not the journey itself. */
 function placeBound(ctx: Ctx): ActionDef[] {
   return ctx.content.actions.filter((a) => a.target === undefined && (a.when?.at_place_kind?.some((k) => k !== 'road') ?? false));
+}
+
+/** Offers on the board of a place within reach (CK.4). */
+function workAt(ctx: Ctx, placeId: string): number {
+  return offersByPlace(ctx).get(placeId) ?? 0;
 }
 
 /** What a place offers the hero now (playtest 09.11). Pure. */
@@ -157,11 +179,11 @@ export function placeActions(ctx: Ctx, placeId: string): PlaceActions | null {
     // what this kind of place never allows is left off, as the panel leaves off what is outgrown (D-443)
     const ids = new Set(bound.filter((a) => a.when?.at_place_kind?.includes(def.kind)).map((a) => a.id));
     const buttons = actionShelves(ctx, null).shelves.flatMap((s) => s.buttons).filter((b) => ids.has(b.id));
-    return { here: true, travel: null, buttons, there: [] };
+    return { here: true, travel: null, buttons, there: [], work: workAt(ctx, placeId) };
   }
   const there = bound.filter((a) => a.when?.at_place_kind?.includes(def.kind)).map((a) => a.name);
   const journey = content.actions.find((a) => a.target === 'place') ?? null;
-  if (!journey) return { here: false, travel: null, buttons: [], there };
+  if (!journey) return { here: false, travel: null, buttons: [], there, work: workAt(ctx, placeId) };
   const going = state.activeAction?.target ?? null;
   const days = routesFrom(state, content).find((r) => r.to === placeId)?.days;
   const name = `${going !== null && going !== placeId ? 'Turn toward' : 'Travel to'} ${def.name}`;
@@ -172,5 +194,5 @@ export function placeActions(ctx: Ctx, placeId: string): PlaceActions | null {
     : going === placeId ? ['you are going there']
     : days === undefined ? ['no road leads there from here']
     : availability?.hidden ? ['not now'] : (availability?.unmet ?? []);
-  return { here: false, travel: { id: journey.id, target: placeId, name, info, grey: reasons.length > 0, reason: joinReasons(reasons) }, buttons: [], there };
+  return { here: false, travel: { id: journey.id, target: placeId, name, info, grey: reasons.length > 0, reason: joinReasons(reasons) }, buttons: [], there, work: workAt(ctx, placeId) };
 }

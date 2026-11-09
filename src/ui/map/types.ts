@@ -13,6 +13,8 @@ export interface PlaceMark {
   name: string;
   at: Point;
   kind: string;
+  /** Offers on the board of the place within reach of the hero (CK.4): a pin on the map; 0 for none. */
+  work: number;
 }
 
 /** What the game puts over the map each frame. */

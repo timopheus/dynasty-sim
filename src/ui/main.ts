@@ -14,7 +14,9 @@ import type { GameState } from '../core/state';
 import { formatDate } from '../core/time/calendar';
 import { chronicleAnnouncement, pickableAt, shortcutPosition } from './access';
 import { entityIdFromHash, hrefOf } from './address';
-import { actionShelves, WILL_ID } from './actions-model';
+import { actionShelves, BOARD_ID, WILL_ID } from './actions-model';
+import { boardWindow } from './contracts';
+import { boardView, offersByPlace } from './contracts-model';
 import { actionsPanel } from './actions-panel';
 import { avatarPanel } from './avatar';
 import { choiceNode } from './choice';
@@ -141,6 +143,9 @@ interface Session {
   refocus: string | null;
   /** The will window is open (4.6). */
   willOpen: boolean;
+  /** The board of work is open (CK.4), with the offer chosen in it (null: the first one here). */
+  boardOpen: boolean;
+  boardSelected: string | null;
   /** The unpinned window on screen can be closed with Escape: what that does. */
   dismiss: (() => void) | null;
   /** A window is on screen: the clock stands and the digits answer it (D-448). */
@@ -249,7 +254,20 @@ function render(session: Session): void {
     const close = () => { session.willOpen = false; session.focusAfterRender = true; rerender(); };
     modal = willWindow(form, (cmd) => { session.willOpen = false; void act(session, cmd); }, close);
     session.dismiss = close;
+  } else if (session.boardOpen && content.contracts && (state.status === 'awaiting_action' || state.status === 'running')) {
+    const close = () => { session.boardOpen = false; session.focusAfterRender = true; rerender(); };
+    const serve = content.actions.find((a) => a.target === 'contract');
+    modal = boardWindow({
+      view: boardView(ctx, session.boardSelected),
+      onSelect: (id) => { session.boardSelected = id; session.refocus = `offer-${id}`; rerender(); },
+      onTake: (id) => { if (!serve) return; session.boardOpen = false; void act(session, { type: 'start', actionId: serve.id, target: id }); },
+      onTravel: (actionId, target) => { session.boardOpen = false; void act(session, { type: 'start', actionId, target }); },
+      onClose: close,
+    });
+    session.dismiss = close;
   }
+  // a window of the game (an event, an outcome, a question) closes the board: it is opened again by hand
+  if (session.boardOpen && (session.question || session.outcome || screen)) session.boardOpen = false;
   // on a phone the panel and a window do not share the screen: the window wins
   if (modal && window.matchMedia(NARROW).matches) session.sidebar.open = false;
   if (!screen) session.announcedEvent = '';
@@ -283,8 +301,9 @@ function render(session: Session): void {
 
   const centre = wherePanel(whereView(ctx));
   const actions = actionsPanel({
-    panel: actionShelves(ctx, form),
+    panel: actionShelves(ctx, form, boardCount(ctx)),
     onStart: (id, target) => {
+      if (id === BOARD_ID) { openBoard(session, null); return; }
       if (id !== WILL_ID) { void act(session, target === undefined ? { type: 'start', actionId: id } : { type: 'start', actionId: id, target }); return; }
       session.willOpen = true;
       session.focusAfterRender = true;
@@ -311,6 +330,7 @@ function render(session: Session): void {
       openPersonMenu(session, { id, x: Math.round(r.left), y: Math.round(r.bottom + 4), from: 'interact' });
     },
     onAct: (id, target) => { void act(session, target === undefined ? { type: 'start', actionId: id } : { type: 'start', actionId: id, target }); },
+    onBoard: (placeId) => { openBoard(session, state.contracts.offers.find((o) => o.place === placeId)?.id ?? null); },
   });
 
   const header = headerPanel({ figures: headerFigures(state, content), ...menuProps });
@@ -360,6 +380,25 @@ function render(session: Session): void {
   if (DEV) game.setAttribute('data-seed', String(state.seed));
 
   afterDraw(session, modal);
+}
+
+/** What the button of the board says (CK.4); null without contracts in the content. */
+function boardCount(ctx: { state: GameState; content: Content }): { offers: number; here: number } | null {
+  if (!ctx.content.contracts?.board) return null;
+  const byPlace = offersByPlace(ctx);
+  const here = ctx.state.place.here;
+  let offers = 0;
+  for (const n of byPlace.values()) offers += n;
+  return { offers, here: here !== null && !ctx.state.activeAction?.target ? (byPlace.get(here) ?? 0) : 0 };
+}
+
+/** Opens the board of work on an offer (null: the first one here), unless another window holds the hero. */
+function openBoard(session: Session, offer: string | null): void {
+  if (session.windowOpen && !session.boardOpen) return;
+  session.boardOpen = true;
+  session.boardSelected = offer;
+  session.focusAfterRender = true;
+  render(session);
 }
 
 /** The height of the block at the bottom at the last draw: the next draw starts from it. */
@@ -675,7 +714,7 @@ async function boot(content: Content, version: string): Promise<void> {
     state, content, contentVersion: version, store,
     journal: loadedGame?.journal ?? newJournal(state.seed, version), saved: loadedGame?.saved ?? { game: '', chunks: 0, commands: 0 }, busy: false, lostJournal: null,
     notice: null, saveProblem: null, sidebar: newSidebarState(!window.matchMedia(NARROW).matches || entityIdFromHash(location.hash) !== null),
-    menuOpen: false, personMenu: null, actionStart: null, news: [], outcome: null, question: null, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false, dismiss: null,
+    menuOpen: false, personMenu: null, actionStart: null, news: [], outcome: null, question: null, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false, boardOpen: false, boardSelected: null, dismiss: null,
     // a game continued after a reload starts paused: the player picks it up himself
     windowOpen: false, clock: newClock(loadedGame !== null), timer: null,
   };
@@ -738,6 +777,22 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   const target = (e.target as HTMLElement | null)?.tagName;
+  // J opens and closes the board of work (D-474: letters, not the keys the browser takes)
+  if ((e.key === 'j' || e.key === 'J') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat && target !== 'INPUT' && target !== 'TEXTAREA' && target !== 'SELECT' && current.content.contracts?.board) {
+    const s = current;
+    if (s.boardOpen) {
+      e.preventDefault();
+      s.boardOpen = false;
+      s.focusAfterRender = true;
+      render(s);
+      return;
+    }
+    if (!s.windowOpen && !s.state.backstory.running && (s.state.status === 'awaiting_action' || s.state.status === 'running')) {
+      e.preventDefault();
+      openBoard(s, null);
+      return;
+    }
+  }
   if (isPauseKey({ key: e.key, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey, repeat: e.repeat, target })) {
     e.preventDefault();
     void togglePause(current);

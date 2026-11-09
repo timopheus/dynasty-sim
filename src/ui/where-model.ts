@@ -4,6 +4,7 @@ import { placeFacts, weatherAt } from '../core/place/table';
 import type { Ctx } from '../core/state';
 import { toYmd } from '../core/time/calendar';
 import { seasonAt } from '../core/time/seasons';
+import { workLine } from './contracts-model';
 
 /**
  * The "where I am" block (D-438, D-447): the place the hero is in or the road he is on, the table of the place and what
@@ -99,7 +100,11 @@ export function whereView(ctx: Ctx): WhereView {
   const active = state.activeAction;
   if (active) {
     const action = content.actions.find((a) => a.id === active.actionId);
-    return { ...base, goTo, heading: where?.heading ?? action?.name ?? active.actionId, line: daysLeft(Math.max(0, active.endDay - state.day)), ended: false };
+    const left = daysLeft(Math.max(0, active.endDay - state.day));
+    // work on a contract (CK.4): what the work is and for whom; a journey to it says where it leads
+    const work = workLine(ctx);
+    if (work) return { ...base, goTo, heading: `Work: ${work}`, line: where?.heading ? `${where.heading} · ${left}` : left, ended: false };
+    return { ...base, goTo, heading: where?.heading ?? action?.name ?? active.actionId, line: left, ended: false };
   }
   const free = state.status === 'awaiting_action' && !state.pendingEvent;
   const onRoad = where !== null && where.place === null;

@@ -1,4 +1,5 @@
 import { actionAvailability } from '../../core/actions/actions';
+import { offersByPlace } from '../contracts-model';
 import { placeDef, position, roadDays, routesFrom, standingIn } from '../../core/place/place';
 import { formatDate } from '../../core/time/calendar';
 import type { Ctx } from '../../core/state';
@@ -75,10 +76,11 @@ export function mapProps(ctx: Ctx, model: MapModel, handlers: { open: (id: strin
   const { state, content } = ctx;
   const points = placePoints(ctx, model);
   const kinds = new Map((content.places?.kinds ?? []).map((k) => [k.id, k.name]));
+  const work = offersByPlace(ctx);
   const places = state.place.places.flatMap((record) => {
     const def = placeDef(state, content, record.id);
     const at = points.get(record.id);
-    return def && at ? [{ id: record.id, name: def.name, at, kind: def.kind }] : [];
+    return def && at ? [{ id: record.id, name: def.name, at, kind: def.kind, work: work.get(record.id) ?? 0 }] : [];
   });
   const idOf = (key: string) => state.place.places.find((p) => p.key === key)?.id ?? null;
   const roadWay = (a: string, b: string): Point[] | null => {
@@ -158,7 +160,8 @@ export function mapProps(ctx: Ctx, model: MapModel, handlers: { open: (id: strin
       const at = points.get(id);
       const cell = at ? cellAt(model, at) : -1;
       const land = cell >= 0 ? LAND_WORDS[model.terrains[model.terrain[cell] as number] ?? ''] : undefined;
-      const head = land ? `${where}, ${land}.` : `${where}.`;
+      const offers = work.get(id) ?? 0;
+      const head = `${land ? `${where}, ${land}.` : `${where}.`}${offers > 0 ? ` Work on the board: ${offers === 1 ? '1 offer' : `${offers} offers`}.` : ''}`;
       if (id === here) return `${head} You are here.`;
       const days = routes.get(id);
       const arrival = (n: number) => `arriving about ${formatDate(state.day + n)}`;

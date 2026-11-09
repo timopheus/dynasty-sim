@@ -35,6 +35,8 @@ export interface SidebarProps {
   onInteract: (id: string, button: HTMLElement) => void;
   /** A button of an action on the page of a place: start it (`target` — the place of a journey). */
   onAct: (id: string, target?: string) => void;
+  /** The board of work, open on the offers of a place (CK.4). */
+  onBoard: (placeId: string) => void;
 }
 
 function entryList(entries: ChronicleEntry[], own: string | null, heads: ReadonlySet<string>): HTMLElement {
@@ -61,8 +63,16 @@ function blockNodes(block: Block, props: SidebarProps, page: SidebarPage): (Node
       const out: (Node | string)[] = [];
       if (place.travel) out.push(buttonNode(place.travel, props.onAct, place.travel.target));
       out.push(...place.buttons.map((b) => buttonNode(b, props.onAct)));
-      if (place.here && place.buttons.length === 0) out.push(el('p', { className: 'meta' }, 'Nothing to do in this place for now.'));
+      if (place.here && place.buttons.length === 0 && place.work === 0) out.push(el('p', { className: 'meta' }, 'Nothing to do in this place for now.'));
       if (!place.here && place.there.length > 0) out.push(el('p', { className: 'meta' }, `There: ${place.there.join(', ').toLowerCase()}.`));
+      if (place.work > 0) {
+        // the board of the place (D-475: "later the board of work lies here")
+        const board = el('button', { className: 'action', type: 'button', onclick: () => props.onBoard(page.id) },
+          el('span', { className: 'action-name' }, 'Work on the board'),
+          el('span', { className: 'note' }, place.work === 1 ? '1 offer' : `${place.work} offers`));
+        board.setAttribute('data-focus', 'place-board');
+        out.push(board);
+      }
       return [el('div', { className: 'place-actions' }, ...out)];
     }
     case 'whole':
