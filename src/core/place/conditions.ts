@@ -45,7 +45,7 @@ export function checkPlaceConditions(ctx: Ctx, c: Character, when: PlaceWhen, _s
     const kind = heroPlaceKind(state, content);
     if (kind === null || !when.at_place_kind.includes(kind)) {
       const names = () => when.at_place_kind?.map((id) => (id === ROAD_KIND ? places.road : (places.kinds.find((k) => k.id === id)?.name ?? id))) ?? [];
-      out.push({ text: reasonText(when.at_place_kind, () => fillReason(places.reasons.kind, { kinds: joinOr(names()) })), hidden: false });
+      out.push({ text: reasonText(when.at_place_kind, () => fillReason(places.reasons.kind, { kinds: joinOr(names(), content) })), hidden: false });
     }
   }
   if (when.at_place) {
@@ -53,7 +53,7 @@ export function checkPlaceConditions(ctx: Ctx, c: Character, when: PlaceWhen, _s
     const key = at === null ? null : placeKeyOf(state, at);
     if (key === null || !when.at_place.includes(key)) {
       const names = when.at_place.map((id) => places.list.find((p) => p.id === id)?.name ?? id);
-      out.push({ text: fillReason(places.reasons.place, { places: joinOr(names) }), hidden: false });
+      out.push({ text: fillReason(places.reasons.place, { places: joinOr(names, content) }), hidden: false });
     }
   }
   return out;

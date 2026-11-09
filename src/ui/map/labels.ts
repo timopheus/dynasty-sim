@@ -1,3 +1,4 @@
+import { mapName } from '../i18n';
 import type { MapModel, Point } from './model';
 import { INK } from './palette';
 import type { MapMode, MapOverlay } from './types';
@@ -127,7 +128,7 @@ export function drawLabels(ctx: CanvasRenderingContext2D, m: MapModel, zoom: num
     // the peoples mode names the peoples, not the realms (CK3)
     ctx.globalAlpha = Math.max(0.35, realmAlpha) * 0.92;
     for (const c of cultureMarks(m)) {
-      const name = (overlay.peoples.get(c.id) ?? c.name).toUpperCase();
+      const name = (overlay.peoples.get(c.id) ?? mapName(c.name)).toUpperCase();
       const size = Math.max(10 * px, Math.min(c.span / (name.length * 1.1), 22 * px));
       plainText(ctx, name, c.at.x, c.at.y, size, 'rgba(40, 28, 16, 0.9)', 'rgba(240, 228, 200, 0.7)', false, 'bold');
     }
@@ -138,7 +139,7 @@ export function drawLabels(ctx: CanvasRenderingContext2D, m: MapModel, zoom: num
       if (!s.label) continue;
       const [x0, y0, , , x1, y1] = s.label as [number, number, number, number, number, number];
       const len = Math.hypot(x1 - x0, y1 - y0);
-      const name = s.name.toUpperCase();
+      const name = mapName(s.name).toUpperCase();
       const size = Math.max(11 * px, Math.min(len / (name.length * 1.15), 34 * px));
       curvedText(ctx, name, s.label, size, 0.35, 'rgba(40, 28, 16, 0.9)', 'rgba(240, 228, 200, 0.55)', 2.2);
     }
@@ -152,8 +153,9 @@ export function drawLabels(ctx: CanvasRenderingContext2D, m: MapModel, zoom: num
       if (!s.label) continue;
       const [x0, y0, , , x1, y1] = s.label as [number, number, number, number, number, number];
       const len = Math.hypot(x1 - x0, y1 - y0);
-      const size = Math.max(9 * px, Math.min(len / (s.name.length * 1.3), 18 * px));
-      curvedText(ctx, s.name, s.label, size, 0.3, paperAlpha > 0.5 ? 'rgba(50, 70, 72, 0.85)' : INK.seaLabel, null, 0.9, true);
+      const name = mapName(s.name);
+      const size = Math.max(9 * px, Math.min(len / (name.length * 1.3), 18 * px));
+      curvedText(ctx, name, s.label, size, 0.3, paperAlpha > 0.5 ? 'rgba(50, 70, 72, 0.85)' : INK.seaLabel, null, 0.9, true);
     }
     ctx.globalAlpha = 1;
   }
@@ -162,7 +164,7 @@ export function drawLabels(ctx: CanvasRenderingContext2D, m: MapModel, zoom: num
     ctx.globalAlpha = provAlpha * 0.85;
     for (const p of m.provinces.values()) {
       if (p.x < box.x0 || p.x > box.x1 || p.y < box.y0 || p.y > box.y1) continue;
-      plainText(ctx, p.name.toUpperCase(), p.x, p.y, 10.5 * px, 'rgba(40, 30, 18, 0.85)', 'rgba(235, 225, 200, 0.6)');
+      plainText(ctx, mapName(p.name).toUpperCase(), p.x, p.y, 10.5 * px, 'rgba(40, 30, 18, 0.85)', 'rgba(235, 225, 200, 0.6)');
     }
     ctx.globalAlpha = 1;
   }
@@ -173,7 +175,7 @@ export function drawLabels(ctx: CanvasRenderingContext2D, m: MapModel, zoom: num
     const places = new Set(overlay.places.map((p) => p.name));
     for (const b of m.burgs) {
       if (places.has(b.name) || b.x < box.x0 || b.x > box.x1 || b.y < box.y0 || b.y > box.y1) continue;
-      plainText(ctx, b.name, b.x, b.y + 9 * px, 11 * px, INK.label, INK.labelHalo);
+      plainText(ctx, mapName(b.name), b.x, b.y + 9 * px, 11 * px, INK.label, INK.labelHalo);
     }
     ctx.globalAlpha = 1;
   }
@@ -181,6 +183,6 @@ export function drawLabels(ctx: CanvasRenderingContext2D, m: MapModel, zoom: num
   const near = Math.min(1, Math.max(0.8, zoom / 1.6));
   for (const p of overlay.places) {
     const strong = p.id === overlay.selected || p.id === overlay.hovered;
-    plainText(ctx, p.name, p.at.x, p.at.y + 12 * px * near, (p.kind === 'city' ? 13.5 : 12) * px * near, INK.label, INK.labelHalo, false, strong ? 'bold' : '');
+    plainText(ctx, mapName(p.name), p.at.x, p.at.y + 12 * px * near, (p.kind === 'city' ? 13.5 : 12) * px * near, INK.label, INK.labelHalo, false, strong ? 'bold' : '');
   }
 }

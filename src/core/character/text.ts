@@ -24,3 +24,8 @@ export function placeholderValues(c: CharacterBase, day: number): Record<string,
     [SEX_MARK]: c.sex === 'male' ? 'm' : 'f',
   };
 }
+
+/** The values of a template for another person in a role: the name, and the sex for the forms `{role~…|…}` (RU.1). */
+export function personValues(role: string, c: CharacterBase): Record<string, TextPart> {
+  return { [role]: { id: c.id, name: fullName(c) }, [`${role}${SEX_MARK}`]: c.sex === 'male' ? 'm' : 'f' };
+}

@@ -78,7 +78,7 @@ export function whereView(ctx: Ctx): WhereView {
   const { state, content } = ctx;
   const where = whereIs(ctx);
   const rows = [...(where?.rows ?? [])];
-  rows.push({ label: tr('Season'), value: `${seasonAt(content, state.day).name}, ${monthText(toYmd(state.day).month).toLowerCase()}` });
+  rows.push({ label: tr('Season'), value: `${seasonAt(content, state.day).name}, ${monthText(toYmd(state.day).month, true)}` });
   const weather = where ? weatherAt(state, content, where.weatherOf, state.day) : null;
   if (weather) rows.push({ label: tr('Weather'), value: weather });
   const base = {

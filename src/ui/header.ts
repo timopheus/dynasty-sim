@@ -71,7 +71,7 @@ function figureNode(f: Figure): HTMLElement {
 /** The header at the top right (D-438): the coat of arms slot, the shared figures, the menu. */
 export function headerPanel(props: HeaderProps): HTMLElement {
   return el('header', { className: 'topbar' },
-    el('div', { className: 'arms' }, 'arms'),
+    el('div', { className: 'arms' }, tr('arms')),
     ...props.figures.map(figureNode),
     menuNode(props));
 }

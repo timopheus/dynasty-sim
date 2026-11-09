@@ -10,7 +10,7 @@ import { dirname } from 'node:path';
 import { parseDocument, stringify } from 'yaml';
 import { loadContent } from '../src/core/content/load';
 import { ContentFileSchema } from '../src/core/content/schema';
-import { UNTRANSLATED_KEYS, walkTexts } from '../src/core/lang/content';
+import { walkKeyTexts } from '../src/core/lang/content';
 import { readContentFiles } from './content-files';
 
 const [command = 'check', id = 'ru', ...only] = process.argv.slice(2);
@@ -19,11 +19,7 @@ const dir = `lang/${id}`;
 function textsOf(text: string): string[] {
   const data = (parseDocument(text).toJS() ?? {}) as Record<string, unknown>;
   const out: string[] = [];
-  for (const [key, value] of Object.entries(data)) {
-    if ((UNTRANSLATED_KEYS as readonly string[]).includes(key)) continue;
-    const schema = (ContentFileSchema.shape as Record<string, unknown>)[key];
-    if (schema) walkTexts(schema, value, (t) => out.push(t));
-  }
+  for (const [key, value] of Object.entries(data)) walkKeyTexts(ContentFileSchema as { shape: Record<string, unknown> }, key, value, (t) => out.push(t));
   return [...new Set(out)];
 }
 

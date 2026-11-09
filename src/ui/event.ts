@@ -7,8 +7,8 @@ import { control, plainLabel, type Control } from './access';
 import type { Tip } from './tips';
 import { daysRangeText, tr } from './i18n';
 
-/** Words of the chance bands (D-042, D-175): the core gives ids, the screen words them. */
-const CHANCE_EN: Record<ChanceBand, string> = {
+/** Words of the chance bands (D-042, D-175), in English: the core gives ids, the screen words them (`chanceWord`). */
+export const CHANCE_WORDS: Record<ChanceBand, string> = {
   hopeless: 'almost hopeless',
   risky: 'risky',
   even: 'a toss-up',
@@ -18,7 +18,7 @@ const CHANCE_EN: Record<ChanceBand, string> = {
 
 /** The word of a chance band in the language chosen. */
 export function chanceWord(band: ChanceBand): string {
-  return tr(CHANCE_EN[band]);
+  return tr(CHANCE_WORDS[band]);
 }
 
 export const CONTINUE_LABEL = 'Continue';

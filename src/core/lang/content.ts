@@ -27,8 +27,11 @@ export type TranslationDef = z.infer<typeof TranslationSchema>;
 export type DeclensionDef = z.infer<typeof DeclensionSchema>;
 export type Forms = z.infer<typeof FormsSchema>;
 
-/** Keys of the content that are not translated: the language itself, and the names of people (declined on screen). */
-export const UNTRANSLATED_KEYS = ['language', 'translations', 'declensions', 'names'] as const;
+/** Keys of the content that are not translated: the language itself. */
+export const UNTRANSLATED_KEYS = ['language', 'translations', 'declensions'] as const;
+
+/** Fields of a key that hold the names of people: they are declined on screen (`declensions`), not translated. */
+const NAME_FIELDS: Record<string, readonly string[]> = { names: ['given', 'surnames'] };
 
 /** A zod schema as its internals show it: what kind it is and what it wraps. */
 interface Def {
@@ -131,16 +134,35 @@ function unionAllowsText(schema: unknown): boolean {
   return def.type === 'union' && (def.options ?? []).some((o) => isTextSchema(unwrap(o)));
 }
 
+/**
+ * Calls `visit` for every text of the value of a top-level key of a content file (or of one item of it, when the key is a
+ * list and `item` is set): the keys of the language and the names of people are left out.
+ */
+export function walkKeyTexts(fileSchema: { shape: Record<string, unknown> }, key: string, value: unknown, visit: (text: string, set: (to: string) => void) => void, item = false): void {
+  if ((UNTRANSLATED_KEYS as readonly string[]).includes(key) || value === null || value === undefined) return;
+  const schema = fileSchema.shape[key];
+  if (!schema) return;
+  const element = item && defOf(unwrap(schema)).type === 'array' ? defOf(unwrap(schema)).element : schema;
+  const names = NAME_FIELDS[key];
+  if (!names || typeof value !== 'object' || Array.isArray(value)) {
+    walkTexts(element, value, visit);
+    return;
+  }
+  // the other fields of the key are texts: walk a view without the names, and keep what was set
+  const rest = Object.fromEntries(Object.entries(value as Record<string, unknown>).filter(([field]) => !names.includes(field)));
+  walkTexts(element, rest, visit);
+  Object.assign(value as Record<string, unknown>, rest);
+}
+
 /** Every text of every item of the content sources, with where it is: what the language must translate. */
 export function contentTexts(sources: ContentSources, fileSchema: { shape: Record<string, unknown> }): { text: string; file: string; path: string }[] {
   const out: { text: string; file: string; path: string }[] = [];
   for (const [key, items] of Object.entries(sources) as [string, { file: string; index: number; item: unknown }[]][]) {
-    if ((UNTRANSLATED_KEYS as readonly string[]).includes(key)) continue;
     const schema = fileSchema.shape[key];
     if (!schema) continue;
-    const element = defOf(unwrap(schema)).type === 'array' ? defOf(unwrap(schema)).element : schema;
+    const list = defOf(unwrap(schema)).type === 'array';
     for (const { file, index, item } of items) {
-      walkTexts(element, item, (text) => out.push({ text, file, path: defOf(unwrap(schema)).type === 'array' ? `${key}[${index}]` : key }));
+      walkKeyTexts(fileSchema, key, item, (text) => out.push({ text, file, path: list ? `${key}[${index}]` : key }), true);
     }
   }
   return out;

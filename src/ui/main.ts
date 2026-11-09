@@ -11,7 +11,6 @@ import { isValidSeed } from '../core/rng';
 import { contentVersion } from '../core/save/content-version';
 import { applyRecorded, newJournal, type Journal } from '../core/save/journal';
 import type { GameState } from '../core/state';
-import { formatDate } from '../core/time/calendar';
 import { chronicleAnnouncement, pickableAt, shortcutPosition } from './access';
 import { entityIdFromHash, hrefOf } from './address';
 import { actionShelves, BOARD_ID, WILL_ID } from './actions-model';
@@ -53,7 +52,7 @@ import { mapView } from './map/view';
 import { willForm } from './will';
 import './style.css';
 import './frame.css';
-import { currentLang, savedLang, setLang, tr, useNames, type Lang } from './i18n';
+import { currentLang, dateText, savedLang, setLang, tr, useNames, type Lang } from './i18n';
 
 const raw = import.meta.glob<string>('/content/**/*.{yaml,yml}', { query: '?raw', import: 'default', eager: true });
 const files = Object.keys(raw)
@@ -385,7 +384,7 @@ function render(session: Session): void {
       el('div', { className: 'clock-stack' },
         newsPanel(visibleNews(session.news, state.day)),
         clockPanel({
-          date: formatDate(state.day),
+          date: dateText(state.day),
           mode,
           speed: session.clock.speed,
           canPlay: mode === 'paused' || (mode === 'idle' && idleAction(state, content) !== null),
@@ -815,16 +814,22 @@ if (!loaded.ok) {
 
 /**
  * The other language (RU.1, D-476): the screen and every new line in it at once; the world is the same, the lines already
- * written stay in the language they were written in.
+ * written stay in the language they were written in. Before the first choice of a game nothing is lost by beginning it
+ * anew: the same seed gives the same world (a test checks it), and its first lines are in the new language too.
  */
 function switchLang(session: Session): void {
   const next: Lang = currentLang() === 'en' ? 'ru' : 'en';
   const content = contents[next];
-  if (!content) return;
+  if (!content || session.busy) return;
   setLang(next);
   session.content = content;
   session.menuOpen = false;
   session.refocus = 'menu';
+  if (session.journal.commands.length === 0) {
+    session.busy = true;
+    void startSession(session, session.state.seed).finally(() => { session.busy = false; });
+    return;
+  }
   render(session);
 }
 

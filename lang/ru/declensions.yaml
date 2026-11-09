@@ -1,0 +1,112 @@
+# Russian forms of the names of people and places in six cases (RU.1, D-476): nom gen dat acc ins prep.
+# A given name has `forms`; a surname has `m` and `f` (a woman's surname on a consonant does not decline);
+# a place has `forms`. Etalon: docs/reference/russian-style.md, section 4.
+declensions:
+  - en: Edmund
+    forms: { nom: Эдмунд, gen: Эдмунда, dat: Эдмунду, acc: Эдмунда, ins: Эдмундом, prep: Эдмунде }
+  - en: Thomas
+    forms: { nom: Томас, gen: Томаса, dat: Томасу, acc: Томаса, ins: Томасом, prep: Томасе }
+  - en: William
+    forms: { nom: Уильям, gen: Уильяма, dat: Уильяму, acc: Уильяма, ins: Уильямом, prep: Уильяме }
+  - en: Henry
+    forms: { nom: Генри, gen: Генри, dat: Генри, acc: Генри, ins: Генри, prep: Генри }
+  - en: Robert
+    forms: { nom: Роберт, gen: Роберта, dat: Роберту, acc: Роберта, ins: Робертом, prep: Роберте }
+  - en: Richard
+    forms: { nom: Ричард, gen: Ричарда, dat: Ричарду, acc: Ричарда, ins: Ричардом, prep: Ричарде }
+  - en: Hugh
+    forms: { nom: Хью, gen: Хью, dat: Хью, acc: Хью, ins: Хью, prep: Хью }
+  - en: Walter
+    forms: { nom: Уолтер, gen: Уолтера, dat: Уолтеру, acc: Уолтера, ins: Уолтером, prep: Уолтере }
+  - en: Arthur
+    forms: { nom: Артур, gen: Артура, dat: Артуру, acc: Артура, ins: Артуром, prep: Артуре }
+  - en: Francis
+    forms: { nom: Фрэнсис, gen: Фрэнсиса, dat: Фрэнсису, acc: Фрэнсиса, ins: Фрэнсисом, prep: Фрэнсисе }
+  - en: Matthew
+    forms: { nom: Мэтью, gen: Мэтью, dat: Мэтью, acc: Мэтью, ins: Мэтью, prep: Мэтью }
+  - en: Nicholas
+    forms: { nom: Николас, gen: Николаса, dat: Николасу, acc: Николаса, ins: Николасом, prep: Николасе }
+  - en: Simon
+    forms: { nom: Саймон, gen: Саймона, dat: Саймону, acc: Саймона, ins: Саймоном, prep: Саймоне }
+  - en: Roger
+    forms: { nom: Роджер, gen: Роджера, dat: Роджеру, acc: Роджера, ins: Роджером, prep: Роджере }
+  - en: Anne
+    forms: { nom: Энн, gen: Энн, dat: Энн, acc: Энн, ins: Энн, prep: Энн }
+  - en: Catherine
+    forms: { nom: Кэтрин, gen: Кэтрин, dat: Кэтрин, acc: Кэтрин, ins: Кэтрин, prep: Кэтрин }
+  - en: Eleanor
+    forms: { nom: Элинор, gen: Элинор, dat: Элинор, acc: Элинор, ins: Элинор, prep: Элинор }
+  - en: Margaret
+    forms: { nom: Маргарет, gen: Маргарет, dat: Маргарет, acc: Маргарет, ins: Маргарет, prep: Маргарет }
+  - en: Isabel
+    forms: { nom: Изабель, gen: Изабель, dat: Изабель, acc: Изабель, ins: Изабель, prep: Изабель }
+  - en: Joan
+    forms: { nom: Джоан, gen: Джоан, dat: Джоан, acc: Джоан, ins: Джоан, prep: Джоан }
+  - en: Mary
+    forms: { nom: Мэри, gen: Мэри, dat: Мэри, acc: Мэри, ins: Мэри, prep: Мэри }
+  - en: Alice
+    forms: { nom: Элис, gen: Элис, dat: Элис, acc: Элис, ins: Элис, prep: Элис }
+  - en: Susanna
+    forms: { nom: Сюзанна, gen: Сюзанны, dat: Сюзанне, acc: Сюзанну, ins: Сюзанной, prep: Сюзанне }
+  - en: Judith
+    forms: { nom: Джудит, gen: Джудит, dat: Джудит, acc: Джудит, ins: Джудит, prep: Джудит }
+  - en: Frances
+    forms: { nom: Фрэнсис, gen: Фрэнсис, dat: Фрэнсис, acc: Фрэнсис, ins: Фрэнсис, prep: Фрэнсис }
+  - en: Lucy
+    forms: { nom: Люси, gen: Люси, dat: Люси, acc: Люси, ins: Люси, prep: Люси }
+  - en: Harlow
+    m: { nom: Харлоу, gen: Харлоу, dat: Харлоу, acc: Харлоу, ins: Харлоу, prep: Харлоу }
+    f: { nom: Харлоу, gen: Харлоу, dat: Харлоу, acc: Харлоу, ins: Харлоу, prep: Харлоу }
+  - en: Ashby
+    m: { nom: Эшби, gen: Эшби, dat: Эшби, acc: Эшби, ins: Эшби, prep: Эшби }
+    f: { nom: Эшби, gen: Эшби, dat: Эшби, acc: Эшби, ins: Эшби, prep: Эшби }
+  - en: Calder
+    m: { nom: Колдер, gen: Колдера, dat: Колдеру, acc: Колдера, ins: Колдером, prep: Колдере }
+    f: { nom: Колдер, gen: Колдер, dat: Колдер, acc: Колдер, ins: Колдер, prep: Колдер }
+  - en: Dunmore
+    m: { nom: Данмор, gen: Данмора, dat: Данмору, acc: Данмора, ins: Данмором, prep: Данморе }
+    f: { nom: Данмор, gen: Данмор, dat: Данмор, acc: Данмор, ins: Данмор, prep: Данмор }
+  - en: Fenwick
+    m: { nom: Фенвик, gen: Фенвика, dat: Фенвику, acc: Фенвика, ins: Фенвиком, prep: Фенвике }
+    f: { nom: Фенвик, gen: Фенвик, dat: Фенвик, acc: Фенвик, ins: Фенвик, prep: Фенвик }
+  - en: Holloway
+    m: { nom: Холлоуэй, gen: Холлоуэя, dat: Холлоуэю, acc: Холлоуэя, ins: Холлоуэем, prep: Холлоуэе }
+    f: { nom: Холлоуэй, gen: Холлоуэй, dat: Холлоуэй, acc: Холлоуэй, ins: Холлоуэй, prep: Холлоуэй }
+  - en: Merrick
+    m: { nom: Мэррик, gen: Мэррика, dat: Мэррику, acc: Мэррика, ins: Мэрриком, prep: Мэррике }
+    f: { nom: Мэррик, gen: Мэррик, dat: Мэррик, acc: Мэррик, ins: Мэррик, prep: Мэррик }
+  - en: Thorne
+    m: { nom: Торн, gen: Торна, dat: Торну, acc: Торна, ins: Торном, prep: Торне }
+    f: { nom: Торн, gen: Торн, dat: Торн, acc: Торн, ins: Торн, prep: Торн }
+  - en: Ostmere
+    forms: { nom: Остмер, gen: Остмера, dat: Остмеру, acc: Остмера, ins: Остмером, prep: Остмере }
+  - en: Rohrbach
+    forms: { nom: Рорбах, gen: Рорбаха, dat: Рорбаху, acc: Рорбаха, ins: Рорбахом, prep: Рорбахе }
+  - en: Mullrosin
+    forms: { nom: Муллросин, gen: Муллросина, dat: Муллросину, acc: Муллросин, ins: Муллросином, prep: Муллросине }
+  - en: Teigach
+    forms: { nom: Тейгах, gen: Тейгаха, dat: Тейгаху, acc: Тейгах, ins: Тейгахом, prep: Тейгахе }
+  - en: Valmont
+    forms: { nom: Вальмон, gen: Вальмон, dat: Вальмон, acc: Вальмон, ins: Вальмон, prep: Вальмон }
+  - en: Charoy
+    forms: { nom: Шарой, gen: Шароя, dat: Шарою, acc: Шарой, ins: Шароем, prep: Шарое }
+  - en: Marmant
+    forms: { nom: Мармант, gen: Марманта, dat: Марманту, acc: Мармант, ins: Мармантом, prep: Марманте }
+  - en: Bacres
+    forms: { nom: Бакр, gen: Бакра, dat: Бакру, acc: Бакра, ins: Бакром, prep: Бакре }
+  - en: Novomor
+    forms: { nom: Новомор, gen: Новомора, dat: Новомору, acc: Новомора, ins: Новомором, prep: Новоморе }
+  - en: Meschevsk
+    forms: { nom: Мещевск, gen: Мещевска, dat: Мещевску, acc: Мещевска, ins: Мещевском, prep: Мещевске }
+  - en: Kryvan
+    forms: { nom: Криван, gen: Кривана, dat: Кривану, acc: Криван, ins: Криваном, prep: Криване }
+  - en: Ostkala
+    forms: { nom: Осткала, gen: Осткалы, dat: Осткале, acc: Осткалу, ins: Осткалой, prep: Осткале }
+  - en: Sarayhan
+    forms: { nom: Сарайхан, gen: Сарайхана, dat: Сарайхану, acc: Сарайхана, ins: Сарайханом, prep: Сарайхане }
+  - en: Baharduman
+    forms: { nom: Бахардуман, gen: Бахардумана, dat: Бахардуману, acc: Бахардумана, ins: Бахардуманом, prep: Бахардумане }
+  - en: Aykut
+    forms: { nom: Айкут, gen: Айкута, dat: Айкуту, acc: Айкута, ins: Айкутом, prep: Айкуте }
+  - en: Ur Nahlem
+    forms: { nom: Ур-Нахлем, gen: Ур-Нахлема, dat: Ур-Нахлему, acc: Ур-Нахлем, ins: Ур-Нахлемом, prep: Ур-Нахлеме }

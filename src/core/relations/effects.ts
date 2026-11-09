@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { fullName } from '../character/character';
-import { placeholderValues } from '../character/text';
+import { personValues, placeholderValues } from '../character/text';
 import { Id, Int } from '../content/types';
 import { log } from '../chronicle/log';
 import type { Character, Ctx, Scope } from '../state';
@@ -67,7 +67,7 @@ function logTie(ctx: Ctx, kindId: string, change: 'starts' | 'ends', patron: str
   const asProtege = !kind.symmetric && patron !== heroId;
   const template = asProtege ? (change === 'starts' ? kind.startsAsProtege : kind.endsAsProtege) : kind[change];
   if (template === undefined) return;
-  const parts = fillTemplate(template, { ...placeholderValues(hero, state.day), other: { id: friend.id, name: fullName(friend) } });
+  const parts = fillTemplate(template, { ...placeholderValues(hero, state.day), ...personValues('other', friend) });
   log(ctx, { subject: hero, kind: 'relation', level: 'chronicle', parts });
 }
 

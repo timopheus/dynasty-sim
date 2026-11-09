@@ -1,3 +1,6 @@
+import type { Content } from '../content/schema';
+import { phrase } from '../lang/phrases';
+
 /** Reason texts for unmet conditions come from content (`time.reasons`, D-043); this fills their placeholders. */
 export type ReasonVars = Record<string, string>;
 
@@ -17,8 +20,8 @@ export function fillReason(template: string, vars: ReasonVars): string {
   return template.replace(VAR_RE, (_m, name: string) => vars[name] ?? '');
 }
 
-/** "a", "a or b", "a, b or c". */
-export function joinOr(items: readonly string[]): string {
+/** "a", "a or b", "a, b or c"; "or" in the language of the content (RU.1). */
+export function joinOr(items: readonly string[], content: Content): string {
   if (items.length <= 1) return items.join('');
-  return `${items.slice(0, -1).join(', ')} or ${items.at(-1) ?? ''}`;
+  return `${items.slice(0, -1).join(', ')} ${phrase(content, 'or')} ${items.at(-1) ?? ''}`;
 }

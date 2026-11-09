@@ -1,5 +1,5 @@
 import { fullName } from '../character/character';
-import { placeholderValues } from '../character/text';
+import { personValues, placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
 import { findCharacter, isInt } from '../helpers';
 import type { Character, CreateHook, Ctx, DeathHook, Invariant, RefsFn } from '../state';
@@ -78,7 +78,7 @@ export function logAboutHero(ctx: Ctx, kind: string, template: string, values: R
   const { state } = ctx;
   const hero = findCharacter(state, state.playerId);
   if (!hero || hero.deathDay !== null) return;
-  const filled = Object.fromEntries(Object.entries(values).map(([k, v]) => [k, typeof v === 'string' ? v : { id: v.id, name: fullName(v) }]));
+  const filled = Object.fromEntries(Object.entries(values).flatMap(([k, v]) => (typeof v === 'string' ? [[k, v]] : Object.entries(personValues(k, v)))));
   log(ctx, { subject: hero, kind, level: 'chronicle', parts: fillTemplate(template, { ...placeholderValues(hero, state.day), ...filled }) });
 }
 

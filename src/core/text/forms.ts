@@ -17,13 +17,23 @@ export const SEX_MARK = '~';
 const FORM_RE = /^([a-z][a-z0-9_]*)?~([^|]*)\|(.*)$/s;
 const CASE_RE = /^([a-z][a-z0-9_.]*):([a-z]+)$/;
 
+/**
+ * Strict forms: a form whose person the values do not give is an error, not the first form. Tests turn it on to find a
+ * line that names a person without the sex (`personValues`); the game keeps it off, so such a line still reads.
+ */
+let strictForms = false;
+
+export function setStrictForms(on: boolean): void {
+  strictForms = on;
+}
+
 /** The value of a placeholder, a form or a case of a template; undefined when the values do not give it. */
 export function resolvePlaceholder(name: string, values: Record<string, TextPart>): TextPart | undefined {
   const form = FORM_RE.exec(name);
   if (form) {
     const role = form[1] ?? '';
     const sex = role === '' || role === 'name' ? values[SEX_MARK] : values[`${role}${SEX_MARK}`];
-    if (sex === undefined) return undefined;
+    if (sex === undefined && strictForms) return undefined;
     return sex === 'f' ? (form[3] ?? '') : (form[2] ?? '');
   }
   const kase = CASE_RE.exec(name);

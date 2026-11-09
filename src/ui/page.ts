@@ -1,5 +1,4 @@
 import type { TextPart } from '../core/text/text';
-import { formatDate } from '../core/time/calendar';
 import { hrefOf } from './address';
 import type { EntryView } from './entry';
 import type { Make } from './dom';

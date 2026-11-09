@@ -81,7 +81,7 @@ function blockNodes(block: Block, props: SidebarProps, page: SidebarPage): (Node
       return [el('div', { className: 'place-actions' }, ...out)];
     }
     case 'whole':
-      return [el('p', {}, withTip(el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(page.id) }, 'Whole chronicle →'), { text: 'Every line written about this page, the small events too.' }))];
+      return [el('p', {}, withTip(el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(page.id) }, tr('Whole chronicle →')), { text: tr('Every line written about this page, the small events too.') }))];
   }
 }
 

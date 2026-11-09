@@ -1,4 +1,4 @@
-import { UNTRANSLATED_KEYS, walkTexts } from './content';
+import { walkKeyTexts } from './content';
 
 /**
  * The content in the language it carries (RU.1, D-476): a copy with every text replaced by its translation (`translations`,
@@ -12,10 +12,7 @@ export function translateContent<T extends Record<string, unknown>>(content: T, 
   // the content is plain data read from YAML: a JSON copy is a full one
   const out = JSON.parse(JSON.stringify(content)) as Record<string, unknown>;
   for (const [key, value] of Object.entries(out)) {
-    if ((UNTRANSLATED_KEYS as readonly string[]).includes(key) || value === null || value === undefined) continue;
-    const schema = fileSchema.shape[key];
-    if (!schema) continue;
-    walkTexts(schema, value, (text, set) => {
+    walkKeyTexts(fileSchema, key, value, (text, set) => {
       const to = map.get(text);
       if (to !== undefined) set(to);
     });

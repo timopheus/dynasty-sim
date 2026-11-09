@@ -1,5 +1,5 @@
 import { fullName } from '../character/character';
-import { placeholderValues } from '../character/text';
+import { personValues, placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
 import { applyEffects } from '../effects';
 import { findEvent, fireEvent } from '../events/events';
@@ -108,7 +108,7 @@ function settle(ctx: Ctx, outcome: ContractOutcome, left = false): void {
   applyEffects(ctx, hero, end.effects, scope);
   if (employer && alive) applyEffects(ctx, employer, end.on?.employer, scope);
   const text = left && contracts.texts ? contracts.texts.left : end.text;
-  const parts = fillTemplate(text, { ...placeholderValues(hero, state.day), employer: employer ? { id: employer.id, name: fullName(employer) } : current.employer });
+  const parts = fillTemplate(text, { ...placeholderValues(hero, state.day), ...(employer ? personValues('employer', employer) : { employer: current.employer }) });
   const from = contracts.chronicle?.[outcome];
   const chronicle = from !== undefined && current.level >= from;
   log(ctx, { subject: hero, kind: 'contract', level: chronicle ? 'chronicle' : 'journal', parts, money: hero.money - before });

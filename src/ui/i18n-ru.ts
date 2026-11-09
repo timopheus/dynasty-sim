@@ -1,6 +1,6 @@
 /**
  * The Russian texts of the interface (RU.1, D-476), keyed by the English text that `tr()` is called with. A test checks
- * that every `tr('…')` of `src/ui` has its entry here. Etalon of the tone: docs/reference/russian-style.md.
+ * that every call of `tr` in `src/ui` with a literal text has its entry here. Etalon of the tone: docs/reference/russian-style.md.
  */
 export const RU: Record<string, string> = {
   // main.ts
@@ -220,7 +220,7 @@ export const RU: Record<string, string> = {
   "An acquaintance": "Знакомый",
   "A stranger to you": "Тебе незнаком",
   "aged {age}": "лет: {age}",
-  "dead": "умер(ла)",
+  "dead": "нет в живых",
   "one of you is too young to marry": "кто-то из вас слишком юн для брака",
   "the customs of the time forbid it": "обычаи времени это запрещают",
   "one of you is married": "кто-то из вас в браке",
@@ -343,4 +343,19 @@ export const RU: Record<string, string> = {
   "mountains": "горы",
   "high mountains": "высокие горы",
   "ice": "льды",
+  "Time": "Время",
+  "Space: pause · 1 2 3: speed": "Пробел: пауза · 1 2 3: скорость",
+  "Whole chronicle →": "Вся хроника →",
+  "Every line written about this page, the small events too.": "Каждая строка об этом, мелкие события тоже.",
+  "arms": "герб",
+};
+
+/** The names of the map that are words, not names (RU.1): the seas, the wild lands. The other names are declined or spelt in Russian letters (`mapName`). */
+export const RU_MAP_NAMES: Record<string, string> = {
+  "Western Ocean": "Западный океан",
+  "The Strait": "Пролив",
+  "Inner Sea (west)": "Внутреннее море (запад)",
+  "Inner Sea (east)": "Внутреннее море (восток)",
+  "Northern Sea": "Северное море",
+  "Wildlands": "Дикие земли",
 };

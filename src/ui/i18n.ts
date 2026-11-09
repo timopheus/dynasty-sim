@@ -2,7 +2,7 @@ import type { Content } from '../core/content/schema';
 import { localName as coreLocalName } from '../core/lang/phrases';
 import type { Case } from '../core/text/forms';
 import { toYmd } from '../core/time/calendar';
-import { RU } from './i18n-ru';
+import { RU, RU_MAP_NAMES } from './i18n-ru';
 
 /**
  * The language of the interface (RU.1, D-476). Texts of the interface are written in English in the code and wrapped in
@@ -85,9 +85,10 @@ export function dateText(day: number): string {
   return lang === 'ru' ? `${d} ${MONTHS_RU[month - 1] ?? ''} ${year}` : `${d} ${MONTHS_EN[month - 1] ?? ''} ${year}`;
 }
 
-/** The name of a month alone: "January" / "Январь". */
-export function monthText(month: number): string {
-  return (lang === 'ru' ? MONTHS_RU_NOM : MONTHS_EN)[month - 1] ?? '';
+/** The name of a month alone: "January" / "Январь"; inside a phrase the Russian one is small: "январь". */
+export function monthText(month: number, inPhrase = false): string {
+  const name = (lang === 'ru' ? MONTHS_RU_NOM : MONTHS_EN)[month - 1] ?? '';
+  return lang === 'ru' && inPhrase ? name.toLowerCase() : name;
 }
 
 /** The content of the Russian language, whose forms of names `localName` uses. */
@@ -101,4 +102,53 @@ export function useNames(content: Content): void {
 /** A name in the language chosen and in a case (RU.1), by the forms of the language (`core/lang/phrases.ts`). */
 export function localName(name: string, kase: Case = 'nom'): string {
   return lang === 'ru' && russian ? coreLocalName(russian, name, kase) : name;
+}
+
+/** Two or three Latin letters read as one Russian sound; the longest first. */
+const DIGRAPHS: [string, string][] = [
+  ['shch', 'щ'], ['sch', 'ш'], ['sh', 'ш'], ['ch', 'ч'], ['zh', 'ж'], ['kh', 'х'], ['ts', 'ц'], ['tz', 'ц'], ['th', 'т'], ['ph', 'ф'],
+  ['ck', 'к'], ['qu', 'кв'], ['gh', 'г'], ['ee', 'и'], ['oo', 'у'], ['ou', 'у'], ['ya', 'я'], ['yu', 'ю'], ['yo', 'ё'], ['ye', 'е'],
+  ['sz', 'с'], ['cs', 'ч'], ['zs', 'ж'],
+];
+
+const LETTERS: Record<string, string> = {
+  a: 'а', b: 'б', d: 'д', f: 'ф', g: 'г', h: 'х', i: 'и', j: 'й', k: 'к', l: 'л', m: 'м', n: 'н', o: 'о', p: 'п', q: 'к', r: 'р',
+  s: 'с', t: 'т', u: 'у', v: 'в', w: 'в', x: 'кс', z: 'з',
+};
+
+/** A name of the map in Russian letters, by sound: "Garvasota" — "Гарвасота". For names the language does not decline. */
+export function transliterate(name: string): string {
+  return name.replace(/[A-Za-z]+/g, (word) => {
+    // a German -ach at the end is "ах": Herbach — Хербах
+    const lower = word.toLowerCase().replace(/ach$/, 'akh');
+    let out = '';
+    for (let i = 0; i < lower.length; ) {
+      const pair = DIGRAPHS.find(([from]) => lower.startsWith(from, i));
+      if (pair) {
+        out += pair[1];
+        i += pair[0].length;
+        continue;
+      }
+      const ch = lower[i] ?? '';
+      const next = lower[i + 1] ?? '';
+      if (ch === 'c') out += 'eiy'.includes(next) && next !== '' ? 'с' : 'к';
+      else if (ch === 'e') out += i === 0 ? 'э' : 'е';
+      else if (ch === 'y') out += i > 0 && 'аеиоуэяюё'.includes(out.at(-1) ?? '') ? 'й' : 'и';
+      else out += LETTERS[ch] ?? ch;
+      i++;
+    }
+    return word[0] === word[0]?.toUpperCase() ? (out[0] ?? '').toUpperCase() + out.slice(1) : out;
+  });
+}
+
+/**
+ * A name drawn on the map in the language chosen (RU.1): a sea or a land by its Russian name, a name the language
+ * declines by its form, any other name of the map in Russian letters.
+ */
+export function mapName(name: string): string {
+  if (lang !== 'ru') return name;
+  const fixed = RU_MAP_NAMES[name];
+  if (fixed !== undefined) return fixed;
+  const declined = localName(name);
+  return declined !== name || !/[A-Za-z]/.test(name) ? declined : transliterate(name);
 }

@@ -38,7 +38,7 @@ export function checkContractsConditions(ctx: Ctx, c: Character, when: Contracts
   if (when.contract_taken === false && current !== null) out.push({ text: reasons.free, hidden: false });
   if (when.contract_kind && (current === null || !when.contract_kind.includes(current.kind))) {
     const names = when.contract_kind.map((id) => contracts.kinds.find((k) => k.id === id)?.name ?? id);
-    out.push({ text: fillReason(reasons.kind, { kinds: joinOr(names) }), hidden: false });
+    out.push({ text: fillReason(reasons.kind, { kinds: joinOr(names, content) }), hidden: false });
   }
   if (when.contract_level_min !== undefined && (current === null || current.level < when.contract_level_min)) {
     out.push({ text: fillReason(reasons.level, { level: String(when.contract_level_min) }), hidden: false });
