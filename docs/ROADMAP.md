@@ -645,8 +645,8 @@
 | M.2 | Художественный проход по карте (I-036): по арт-библии карты — палитра, линии, значки местности, подписи; сначала эталон | `src/ui/map/`, `docs/reference/map-art.md` | ⏳ после ядра CK; эталон — до кода |
 | CK.1 | **[ведущая]** Справочники CK3 по файлам игры 1.11 и сверка плана — `docs/research/ck3/` (README — поправки по задачам) | `docs/research/ck3/` | ✅ справочники; решения D-474. Каталоги в R (поручения, взаимодействия, лестница, фокусы, опасность дорог) — при CK.2a, по справочникам |
 | CK.2a | **[ведущая]** Точки подключения: поручения и взаимодействия (`contracts`, `interact`, `favor`, фаза доски, `HOT_REFS`) | сборочные | ✅ локально, ветка `ck2a` (ждёт GitHub): модули `contracts/`, `favors/`, `interactions/`, ключи в `event-format.md`, эталон `docs/reference/contracts.md` |
-| CK.3 | Поручения: ядро и 6 видов (Opus) | `src/core/contracts/`, `content/contracts.yaml`, `content/events/contracts.yaml`, `tests/`, `bot.ts` | ⏳ CK.2a, S.9 |
-| CK.4 | Доска поручений: экран | `src/ui/contracts*.ts`, булавки через `src/ui/map/` | ⏳ CK.3, M.1 |
+| CK.3 | Поручения: ядро и 6 видов (Opus) | `src/core/contracts/`, `content/contracts.yaml`, `content/events/contracts.yaml`, `tests/`, `bot.ts` | ✅ локально, ветка `ck3` (ждёт GitHub): доски в 8 днях от героя, 6 видов с осложнениями, хроника — уровень 2+ и провалы, услуга с уровня 2; горячая часть самой доски ≤ 2 КБ |
+| CK.4 | Доска поручений: экран | `src/ui/contracts*.ts`, булавки через `src/ui/map/` | ✅ локально, ветка `ck4` (ждёт GitHub): окно доски по форме CK3, кнопка и клавиша J, доска на странице места, значки на карте, работа в блоке «где я» и в вестях |
 | CK.5 | Поручения: 14 видов, многошаговые; включает S.12 | `content/events/contracts-*.yaml` | ⏳ CK.3 |
 | CK.6 | Дорога по CK3: опасность, опции пути, планировщик, события пути | `src/core/place/`, `content/places.yaml`, `content/events/road.yaml`, `src/ui/travel.ts`, `src/ui/map/route.ts` | ⏳ S.9, M.1 |
 | CK.7 | Взаимодействия и услуги (Opus); шантаж — девятое | `src/core/interactions/`, `src/core/relations/`, `content/interactions.yaml`, `src/ui/interact.ts` | ⏳ CK.2a |
