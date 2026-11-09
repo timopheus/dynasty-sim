@@ -13,6 +13,8 @@ import { boardOfferId, postOffer } from './contracts';
 const BOARD_STREAM = 0x6b000000;
 /** Places have a row of their own in the stream of a month, 64 at most (as the weather). */
 const PLACES_PER_MONTH = 64;
+/** A board offers one kind of work at most this many times at once: three carts to guard on one board read as a list. */
+const SAME_KIND = 2;
 
 /** Month number of a day: year × 12 + month − 1. */
 export function monthOf(day: number): number {
@@ -80,7 +82,8 @@ function freeEmployers(ctx: Ctx): Character[] {
 /**
  * The board of a place gets up to its size of the month (`board.sizes` by the kind of the place): each offer is a kind
  * the place offers and some free person of the circle can, weighted; an employer of that kind; a level and its pay; the
- * days of work, or a place the right number of days away; the days it stays. One person offers one job at a time.
+ * days of work, or a place the right number of days away; the days it stays. One person offers one job at a time, and a
+ * board one kind at most twice.
  */
 function fillBoard(ctx: Ctx, placeId: string, month: number): void {
   const { state, content } = ctx;
@@ -96,12 +99,15 @@ function fillBoard(ctx: Ctx, placeId: string, month: number): void {
   let have = state.contracts.offers.filter((o) => o.place === placeId).length;
   let people = freeEmployers(ctx);
   let slot = 0;
-  const ways = routesFromPlace(state, content, placeId);
   const kinds = contracts.kinds.filter((k) => k.offer?.places.includes(def.kind));
+  // the ways from the place, only if some kind sends the hero elsewhere: the board is filled on every new game
+  const ways = kinds.some((k) => k.offer?.to) ? routesFromPlace(state, content, placeId) : [];
+  const posted = new Map<string, number>();
+  for (const o of state.contracts.offers) if (o.place === placeId) posted.set(o.kind, (posted.get(o.kind) ?? 0) + 1);
   while (have < want) {
     const fit = kinds.filter((k) => {
       const offer = k.offer;
-      if (!offer || !people.some((p) => offer.employers.includes(p.occupation as string))) return false;
+      if (!offer || (posted.get(k.id) ?? 0) >= SAME_KIND || !people.some((p) => offer.employers.includes(p.occupation as string))) return false;
       return offer.to === undefined || ways.some((w) => w.days >= (offer.to?.min ?? 0) && w.days <= (offer.to?.max ?? 0));
     });
     if (fit.length === 0) return;
@@ -122,6 +128,7 @@ function fillBoard(ctx: Ctx, placeId: string, month: number): void {
     postOffer(state, { kind: kind.id, place: placeId, employer: employer.id, level, pay: board.pay[level] ?? 0, to, days, expires: state.day + stay }, boardOfferId(month, index, slot));
     slot += 1;
     people = people.filter((p) => p !== employer);
+    posted.set(kind.id, (posted.get(kind.id) ?? 0) + 1);
     have += 1;
   }
 }

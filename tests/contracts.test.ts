@@ -96,7 +96,10 @@ describe('CK.3: the boards', () => {
       }
       for (const id of reach) {
         const size = board.sizes.find((s) => s.kind === placeDef(state, content, id)?.kind)?.size;
-        expect(state.contracts.offers.filter((o) => o.place === id).length).toBeLessThanOrEqual(size?.max ?? 0);
+        const here = state.contracts.offers.filter((o) => o.place === id);
+        expect(here.length).toBeLessThanOrEqual(size?.max ?? 0);
+        // one kind at most twice on a board
+        for (const o of here) expect(here.filter((x) => x.kind === o.kind).length).toBeLessThanOrEqual(2);
       }
       clean(state);
     }
