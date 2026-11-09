@@ -147,8 +147,14 @@ export function transliterate(name: string): string {
  */
 export function mapName(name: string): string {
   if (lang !== 'ru') return name;
-  const fixed = RU_MAP_NAMES[name];
-  if (fixed !== undefined) return fixed;
-  const declined = localName(name);
-  return declined !== name || !/[A-Za-z]/.test(name) ? declined : transliterate(name);
+  let drawn = MAP_NAMES.get(name);
+  if (drawn === undefined) {
+    const declined = RU_MAP_NAMES[name] ?? localName(name);
+    drawn = declined !== name || !/[A-Za-z]/.test(name) ? declined : transliterate(name);
+    MAP_NAMES.set(name, drawn);
+  }
+  return drawn;
 }
+
+/** The Russian names of the map once made: the map draws them every frame. */
+const MAP_NAMES = new Map<string, string>();

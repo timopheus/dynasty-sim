@@ -172,9 +172,10 @@ export function drawLabels(ctx: CanvasRenderingContext2D, m: MapModel, zoom: num
   const townAlpha = fade(zoom, 3.2, 4.2);
   if (townAlpha > 0) {
     ctx.globalAlpha = townAlpha;
-    const places = new Set(overlay.places.map((p) => p.name));
+    // a place of the game is named once: its name may be translated (RU.1), so the two are compared as drawn
+    const places = new Set(overlay.places.map((p) => mapName(p.name)));
     for (const b of m.burgs) {
-      if (places.has(b.name) || b.x < box.x0 || b.x > box.x1 || b.y < box.y0 || b.y > box.y1) continue;
+      if (places.has(mapName(b.name)) || b.x < box.x0 || b.x > box.x1 || b.y < box.y0 || b.y > box.y1) continue;
       plainText(ctx, mapName(b.name), b.x, b.y + 9 * px, 11 * px, INK.label, INK.labelHalo);
     }
     ctx.globalAlpha = 1;
