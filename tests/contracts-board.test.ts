@@ -52,7 +52,8 @@ describe('CK.4: the work board', () => {
     expect(whereView(ctx).heading).toBe(`Work: ${line}`);
     const after = boardView(ctx, null);
     expect(after.current).toBe(line);
-    if (after.selected) expect(after.selected.take.enabled).toBe(false);
+    if (after.selected) expect(after.selected.take).toEqual({ enabled: false, reason: 'You already have work' });
+    for (const p of after.places) for (const o of p.offers) expect(boardView(ctx, o.id).selected?.travel).toBeNull();
   });
 
   it('the panel has the board button with the offers within reach; the map pins count the offers of each board', () => {

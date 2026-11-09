@@ -1,8 +1,9 @@
-import { availableActions } from '../core/actions/actions';
+import { actionAvailability, availableActions } from '../core/actions/actions';
+import { priceCrowns } from '../core/economy/economy';
 import { fullName } from '../core/character/character';
 import { placesInReach } from '../core/contracts/board';
 import { contractReasons, type Contract } from '../core/contracts/contracts';
-import { findCharacter } from '../core/helpers';
+import { findCharacter, getPlayer } from '../core/helpers';
 import { daysWord } from '../core/pages/place';
 import { placeDef, routesFrom, standingIn } from '../core/place/place';
 import type { Ctx } from '../core/state';
@@ -20,8 +21,11 @@ export interface OfferRow {
   title: string;
   level: number;
   pay: number;
-  /** "Here, 6 days" or "To Valmont, 9 days". */
+  /** "In Ostmere, 6 days" or "To Valmont, 9 days". */
   where: string;
+  /** Who offers it: two offers of one kind differ by their employers. */
+  employer: string;
+  /** "low (25%)". */
   risk: string;
 }
 
@@ -85,12 +89,14 @@ function placeName(ctx: Ctx, id: string): string {
 }
 
 function whereText(ctx: Ctx, o: Contract): string {
-  return o.to === null ? `Here, ${daysWord(o.days)}` : `To ${placeName(ctx, o.to)}, ${daysWord(o.days)}`;
+  return o.to === null ? `In ${placeName(ctx, o.place)}, ${daysWord(o.days)}` : `To ${placeName(ctx, o.to)}, ${daysWord(o.days)}`;
 }
 
 function rowOf(ctx: Ctx, o: Contract): OfferRow {
   const kind = ctx.content.contracts?.kinds.find((k) => k.id === o.kind);
-  return { id: o.id, title: capital(kind?.name ?? o.kind), level: o.level, pay: o.pay, where: whereText(ctx, o), risk: riskOf(ctx, o).word };
+  const employer = findCharacter(ctx.state, o.employer);
+  const risk = riskOf(ctx, o);
+  return { id: o.id, title: capital(kind?.name ?? o.kind), level: o.level, pay: o.pay, where: whereText(ctx, o), employer: employer ? fullName(employer) : 'someone', risk: `${risk.word} (${risk.chance}%)` };
 }
 
 /** The work under way, as the board and the block "where I am" say it: "A letter to carry for John Calder". */
@@ -115,23 +121,29 @@ function details(ctx: Ctx, o: Contract, distance: number): OfferDetails {
   const favor = contracts?.favorLevel !== undefined && o.level >= contracts.favorLevel;
   const strong = favor && kind?.offer?.strongFavor === true && o.level >= 3;
   const success = [`${o.pay} crowns`, `${name} will think better of you`, ...(favor ? [`${name} will owe you ${strong ? 'a great favor' : 'a favor'}`] : [])];
-  const failure = [`no pay`, `${name} will think worse of you`];
+  const failure = ['No pay', `${name} will think worse of you`];
   const work = o.to === null ? `${daysWord(o.days)} of work in ${placeName(ctx, o.place)}` : `${daysWord(o.days)} on the road from ${placeName(ctx, o.place)} to ${placeName(ctx, o.to)}`;
   const board = here ? `On the board here, in ${placeName(ctx, o.place)}` : `On the board in ${placeName(ctx, o.place)}, ${daysWord(distance)} away`;
 
   const serve = content.actions.find((a) => a.target === 'contract');
   const free = (state.status === 'awaiting_action' || state.status === 'running') && state.pendingEvent === null;
+  // work under way comes first: no second job, and no way to another board that would leave this one half done
+  const busy = state.contracts.current !== null;
   let take: OfferDetails['take'];
   if (!free) take = { enabled: false, reason: 'Answer the window first' };
+  else if (busy) take = { enabled: false, reason: contractReasons(state, content).join('; ') || 'You already have work' };
   else if (!here) take = { enabled: false, reason: `Go to ${placeName(ctx, o.place)} first` };
   else {
     const reasons = contractReasons(state, content);
+    const unmet = serve ? (actionAvailability(ctx).find((a) => a.action.id === serve.id)?.unmet ?? []) : [];
     const usable = serve !== undefined && availableActions(ctx).includes(serve);
-    take = reasons.length > 0 ? { enabled: false, reason: reasons.join('; ') } : usable ? { enabled: true, reason: '' } : { enabled: false, reason: 'You cannot take work now' };
+    take = reasons.length > 0 ? { enabled: false, reason: reasons.join('; ') } : usable ? { enabled: true, reason: '' } : { enabled: false, reason: unmet.join('; ') || 'Not now' };
   }
   const journey = content.actions.find((a) => a.target === 'place');
-  const canTravel = !here && free && journey !== undefined && availableActions(ctx).includes(journey) && state.activeAction?.target !== o.place;
-  const travel = canTravel && journey ? { actionId: journey.id, target: o.place, label: `Travel to ${placeName(ctx, o.place)} (${daysWord(distance)})` } : null;
+  const canTravel = !here && !busy && free && journey !== undefined && availableActions(ctx).includes(journey) && state.activeAction?.target !== o.place;
+  // the way there says its days and its price, as on the panel and the page of the place (D-443)
+  const cost = journey ? (journey.effects?.pay !== undefined ? priceCrowns(content, state, getPlayer(state), journey.effects.pay) : 0) + Math.max(0, -(journey.effects?.money ?? 0)) : 0;
+  const travel = canTravel && journey ? { actionId: journey.id, target: o.place, label: `Travel to ${placeName(ctx, o.place)} (${daysWord(distance)}${cost > 0 ? ` · ${cost} crowns` : ''})` } : null;
   return {
     id: o.id,
     title: capital(kind?.name ?? o.kind),

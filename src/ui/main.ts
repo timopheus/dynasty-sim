@@ -146,6 +146,10 @@ interface Session {
   /** The board of work is open (CK.4), with the offer chosen in it (null: the first one here). */
   boardOpen: boolean;
   boardSelected: string | null;
+  /** `data-focus` of the control that opened the board: the focus goes back there when it closes. */
+  boardFrom: string | null;
+  /** The board was just opened: the focus goes to the offer chosen, so the arrows work at once. */
+  boardFocus: boolean;
   /** The unpinned window on screen can be closed with Escape: what that does. */
   dismiss: (() => void) | null;
   /** A window is on screen: the clock stands and the digits answer it (D-448). */
@@ -255,10 +259,20 @@ function render(session: Session): void {
     modal = willWindow(form, (cmd) => { session.willOpen = false; void act(session, cmd); }, close);
     session.dismiss = close;
   } else if (session.boardOpen && content.contracts && (state.status === 'awaiting_action' || state.status === 'running')) {
-    const close = () => { session.boardOpen = false; session.focusAfterRender = true; rerender(); };
+    const close = () => {
+      session.boardOpen = false;
+      if (session.boardFrom) session.refocus = session.boardFrom;
+      else session.focusAfterRender = true;
+      rerender();
+    };
     const serve = content.actions.find((a) => a.target === 'contract');
+    const view = boardView(ctx, session.boardSelected);
+    if (session.boardFocus) {
+      session.boardFocus = false;
+      session.refocus = view.selected ? `offer-${view.selected.id}` : null;
+    }
     modal = boardWindow({
-      view: boardView(ctx, session.boardSelected),
+      view,
       onSelect: (id) => { session.boardSelected = id; session.refocus = `offer-${id}`; rerender(); },
       onTake: (id) => { if (!serve) return; session.boardOpen = false; void act(session, { type: 'start', actionId: serve.id, target: id }); },
       onTravel: (actionId, target) => { session.boardOpen = false; void act(session, { type: 'start', actionId, target }); },
@@ -303,7 +317,7 @@ function render(session: Session): void {
   const actions = actionsPanel({
     panel: actionShelves(ctx, form, boardCount(ctx)),
     onStart: (id, target) => {
-      if (id === BOARD_ID) { openBoard(session, null); return; }
+      if (id === BOARD_ID) { openBoard(session, null, `action-${BOARD_ID}`); return; }
       if (id !== WILL_ID) { void act(session, target === undefined ? { type: 'start', actionId: id } : { type: 'start', actionId: id, target }); return; }
       session.willOpen = true;
       session.focusAfterRender = true;
@@ -330,7 +344,7 @@ function render(session: Session): void {
       openPersonMenu(session, { id, x: Math.round(r.left), y: Math.round(r.bottom + 4), from: 'interact' });
     },
     onAct: (id, target) => { void act(session, target === undefined ? { type: 'start', actionId: id } : { type: 'start', actionId: id, target }); },
-    onBoard: (placeId) => { openBoard(session, state.contracts.offers.find((o) => o.place === placeId)?.id ?? null); },
+    onBoard: (placeId) => { openBoard(session, state.contracts.offers.find((o) => o.place === placeId)?.id ?? null, 'place-board'); },
   });
 
   const header = headerPanel({ figures: headerFigures(state, content), ...menuProps });
@@ -366,6 +380,7 @@ function render(session: Session): void {
           canPlay: mode === 'paused' || (mode === 'idle' && idleAction(state, content) !== null),
           onToggle: () => { void togglePause(session); },
           onSpeed: (speed) => setSpeed(session, speed),
+          held: session.boardOpen ? 'Paused while the work board is open' : null,
         }))));
   // the menu stays reachable under a pinned window: "New game" must work whatever is pending
   if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar, .sidebar-toggle, .avatar, .actions-panel')) part.inert = true;
@@ -392,12 +407,16 @@ function boardCount(ctx: { state: GameState; content: Content }): { offers: numb
   return { offers, here: here !== null && !ctx.state.activeAction?.target ? (byPlace.get(here) ?? 0) : 0 };
 }
 
-/** Opens the board of work on an offer (null: the first one here), unless another window holds the hero. */
-function openBoard(session: Session, offer: string | null): void {
+/**
+ * Opens the board of work on an offer (null: the first one here), unless another window holds the hero; `from` is the
+ * control that opened it, where the focus goes back.
+ */
+function openBoard(session: Session, offer: string | null, from: string | null): void {
   if (session.windowOpen && !session.boardOpen) return;
   session.boardOpen = true;
   session.boardSelected = offer;
-  session.focusAfterRender = true;
+  session.boardFrom = from;
+  session.boardFocus = true;
   render(session);
 }
 
@@ -413,6 +432,8 @@ function measureFreeMap(game: HTMLElement, map: ReturnType<typeof mapView>): voi
   const top = box('.topbar');
   const centre = box('.center');
   lastBottomInset = centre ? Math.max(0, window.innerHeight - centre.top + gap) : 0;
+  // a wide window (the work board) keeps above the block "where I am"
+  document.documentElement.style.setProperty('--free-bottom', `${lastBottomInset}px`);
   map.setInsets({
     left: side ? side.right + gap : 0,
     right: right ? Math.max(0, window.innerWidth - right.left + gap) : 0,
@@ -516,15 +537,16 @@ function actionEndNews(session: Session, before: string | null, seen: number): v
 
 /**
  * The end of work on a contract (CK.4) is a word in the news, whether done, failed or left: the line it wrote, which
- * says which, and the money the hero has more or less since `money` (the pay and what the outcome brought).
+ * says which, and the pay of the work when it was done.
  */
-function contractNews(session: Session, seen: number, money: number): void {
+function contractNews(session: Session, seen: number): void {
   const { state } = session;
   const hero = getPlayer(state);
   const line = allChronicle(state).slice(seen).find((e) => e.kind === 'contract' && e.subject === hero.id);
   if (!line) return;
-  const delta = hero.money - money;
-  addNews(session, `${entryText(line)}${delta !== 0 ? ` ${delta > 0 ? '+' : '−'}${Math.abs(delta)} crowns.` : ''}`);
+  // the pay of the work, not whatever else the day or the window brought
+  const pay = state.contracts.last?.pay ?? 0;
+  addNews(session, `${entryText(line)}${pay > 0 ? ` +${pay} crowns.` : ''}`);
 }
 
 /** One day of the clock: `wait 1`, the idle action again if it ended, a stop on a decision. */
@@ -540,10 +562,9 @@ async function runDay(session: Session): Promise<void> {
   try {
     const seen = allChronicle(session.state).length;
     const endingAction = session.state.activeAction?.actionId ?? null;
-    const money = getPlayer(session.state).money;
     const stopped = tick(session.journal, session.state, session.content);
     actionEndNews(session, endingAction, seen);
-    contractNews(session, seen, money);
+    contractNews(session, seen);
     session.clock.unsaved += 1;
     const lines = allChronicle(session.state).slice(seen).filter((e) => e.level === 'chronicle').map(entryText);
     session.queue.push(chronicleAnnouncement(lines));
@@ -649,11 +670,10 @@ async function act(session: Session, cmd: Command): Promise<void> {
     const ctx = { state: session.state, content: session.content };
     // the archive phase moves old lines out of the hot part: count over the whole chronicle
     const seen = allChronicle(session.state).length;
-    const money = getPlayer(session.state).money;
     let before = null;
     if (cmd.type === 'choose') before = beforeChoice(ctx, cmd.option);
     applyRecorded(session.journal, session.state, session.content, cmd);
-    contractNews(session, seen, money);
+    contractNews(session, seen);
     session.focusAfterRender = true;
     if (before) {
       const outcome = outcomeOf(ctx, before);
@@ -731,7 +751,7 @@ async function boot(content: Content, version: string): Promise<void> {
     state, content, contentVersion: version, store,
     journal: loadedGame?.journal ?? newJournal(state.seed, version), saved: loadedGame?.saved ?? { game: '', chunks: 0, commands: 0 }, busy: false, lostJournal: null,
     notice: null, saveProblem: null, sidebar: newSidebarState(!window.matchMedia(NARROW).matches || entityIdFromHash(location.hash) !== null),
-    menuOpen: false, personMenu: null, actionStart: null, news: [], outcome: null, question: null, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false, boardOpen: false, boardSelected: null, dismiss: null,
+    menuOpen: false, personMenu: null, actionStart: null, news: [], outcome: null, question: null, announcedEvent: '', keymap: [], focusAfterRender: false, queue: [], refocus: null, willOpen: false, boardOpen: false, boardSelected: null, boardFrom: null, boardFocus: false, dismiss: null,
     // a game continued after a reload starts paused: the player picks it up himself
     windowOpen: false, clock: newClock(loadedGame !== null), timer: null,
   };
@@ -800,13 +820,14 @@ window.addEventListener('keydown', (e) => {
     if (s.boardOpen) {
       e.preventDefault();
       s.boardOpen = false;
-      s.focusAfterRender = true;
+      if (s.boardFrom) s.refocus = s.boardFrom;
+      else s.focusAfterRender = true;
       render(s);
       return;
     }
-    if (!s.windowOpen && !s.state.backstory.running && (s.state.status === 'awaiting_action' || s.state.status === 'running')) {
+    if (!s.windowOpen && !s.personMenu && !s.menuOpen && !s.state.backstory.running && (s.state.status === 'awaiting_action' || s.state.status === 'running')) {
       e.preventDefault();
-      openBoard(s, null);
+      openBoard(s, null, null);
       return;
     }
   }

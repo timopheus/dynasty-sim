@@ -32,24 +32,44 @@ test('the work board: J opens it, Esc closes it, the work is taken and the block
   await page.keyboard.press('Escape');
   await expect(board).toHaveCount(0);
 
-  // the button opens it too; the first offer here is chosen, and Down moves along the list
+  // the button opens it too; the focus is on the first offer here, so Down moves along the list at once
   await button.click();
   await expect(board).toBeVisible();
+  const first = await board.locator('.board-offer.selected').getAttribute('data-offer');
+  await expect(board.locator('.board-offer.selected')).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(board.locator('.board-offer.selected')).not.toHaveAttribute('data-offer', first ?? '');
+  await page.keyboard.press('ArrowUp');
   const take = board.locator('[data-focus="board-take"]');
-  for (let i = 0; i < 20 && (await take.getAttribute('aria-disabled')) === 'true'; i++) {
-    await board.locator('.board-offer.selected').focus();
-    await page.keyboard.press('ArrowDown');
-  }
+  for (let i = 0; i < 20 && (await take.getAttribute('aria-disabled')) === 'true'; i++) await page.keyboard.press('ArrowDown');
   await expect(take).not.toHaveAttribute('aria-disabled', 'true');
-  const title = (await board.locator('.board-details h3').textContent()) ?? '';
+  // the window keeps to the free map: its button is on the screen, above the block "where I am"
+  const takeBox = await take.boundingBox();
+  const whereBox = await page.locator('.game > .center').boundingBox();
+  expect((takeBox?.y ?? 0) + (takeBox?.height ?? 0)).toBeLessThanOrEqual(whereBox?.y ?? 0);
+  const title = ((await board.locator('.board-details h3').textContent()) ?? '').replace(/\s*·.*$/, '').trim();
   await take.click();
   await expect(board).toHaveCount(0);
   await expect(page.locator('#where-heading')).toContainText('Work:');
-  await expect(page.locator('#where-heading')).toContainText(title.replace(/\s*[●○]+\s*$/, '').trim());
+  await expect(page.locator('#where-heading')).toContainText(title);
   await page.screenshot({ path: 'out/e2e/board-taken-1440.png' });
-  // with work under way the board says so and offers no second job
+  // with work under way the board says so; another board offers no way there that would leave this work half done
   await page.keyboard.press('j');
   await expect(board.locator('.board-current')).toBeVisible();
+  await expect(take).toHaveAttribute('aria-disabled', 'true');
+  await expect(board.locator('.reason')).toHaveText('You already have work');
+  for (let i = 0; i < 12; i++) await page.keyboard.press('ArrowDown');
+  await expect(board.locator('[data-focus="board-travel"]')).toHaveCount(0);
+  await page.screenshot({ path: 'out/e2e/board-busy-1440.png' });
+  await page.keyboard.press('Escape');
+  await expect(board).toHaveCount(0);
+  // a laptop: the whole window and its button are on the screen
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.keyboard.press('j');
+  await expect(board).toBeVisible();
+  const dialog = await board.boundingBox();
+  expect((dialog?.y ?? 0) + (dialog?.height ?? 0)).toBeLessThanOrEqual(800);
+  await page.screenshot({ path: 'out/e2e/board-1280.png' });
   await page.keyboard.press('Escape');
   expect(problems).toEqual([]);
 });

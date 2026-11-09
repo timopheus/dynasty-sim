@@ -1,4 +1,5 @@
 import { daysWord } from '../core/pages/place';
+import { hrefOf } from './address';
 import { markPerson } from './context-menu';
 import { levelDots, type BoardView, type OfferRow } from './contracts-model';
 import { el } from './dom';
@@ -16,9 +17,9 @@ export interface BoardProps {
 function rowNode(row: OfferRow, selected: boolean, onSelect: (id: string) => void): HTMLElement {
   const node = el('button', { className: selected ? 'board-offer selected' : 'board-offer', type: 'button', role: 'option' },
     el('span', { className: 'board-offer-title' }, row.title),
-    el('span', { className: 'board-offer-level', title: `Level ${row.level} of 3` }, levelDots(row.level)),
-    el('span', { className: 'board-offer-pay' }, `${row.pay} cr.`),
-    el('span', { className: 'note' }, `${row.where} · risk ${row.risk}`));
+    el('span', { className: 'board-offer-level', ariaHidden: 'true' }, levelDots(row.level)),
+    el('span', { className: 'board-offer-pay' }, `${row.pay} crowns`),
+    el('span', { className: 'note' }, `${row.where} · ${row.employer} · level ${row.level} · risk ${row.risk}`));
   node.setAttribute('aria-selected', String(selected));
   node.setAttribute('data-offer', row.id);
   node.setAttribute('data-focus', `offer-${row.id}`);
@@ -40,18 +41,6 @@ export function boardWindow(props: BoardProps): HTMLElement {
       el('h3', {}, place.name, el('span', { className: 'note' }, place.here ? ' · here' : ` · ${daysWord(place.days)}`)),
       ...place.offers.map((o) => rowNode(o, o.id === selected, props.onSelect))));
   }
-  list.onkeydown = (e) => {
-    const at = selected === null ? -1 : ids.indexOf(selected);
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      const next = ids[Math.max(0, Math.min(ids.length - 1, at + (e.key === 'ArrowDown' ? 1 : -1)))];
-      if (next !== undefined) props.onSelect(next);
-    } else if (e.key === 'Enter' && view.selected?.take.enabled) {
-      e.preventDefault();
-      props.onTake(view.selected.id);
-    }
-  };
-
   const parts: (Node | string)[] = [];
   if (view.current) parts.push(el('p', { className: 'board-current' }, `Your work now: ${view.current}.`));
   if (view.empty) {
@@ -60,7 +49,7 @@ export function boardWindow(props: BoardProps): HTMLElement {
     const d = view.selected;
     const side = el('div', { className: 'board-details', ariaLive: 'polite' });
     if (d) {
-      const employer = markPerson(el('span', { className: 'person' }, d.employer.name), d.employer.id);
+      const employer = markPerson(el('a', { href: hrefOf(d.employer.id) }, d.employer.name), d.employer.id);
       const rows: [string, (Node | string)[]][] = [
         ['Employer', [employer, d.employer.occupation ? `, ${d.employer.occupation.toLowerCase()}` : '']],
         ['Where', [d.board]],
@@ -83,15 +72,31 @@ export function boardWindow(props: BoardProps): HTMLElement {
         go.onclick = () => props.onTravel(travel.actionId, travel.target);
         actions.append(go);
       }
-      side.append(
-        el('h3', {}, d.title, el('span', { className: 'board-offer-level', title: `Level ${d.level} of 3` }, ` ${levelDots(d.level)}`)),
+      // the facts scroll on a small screen; the buttons stay at the bottom of the window
+      side.append(el('div', { className: 'board-details-scroll' },
+        el('h3', {}, d.title, el('span', { className: 'board-level-word' }, ` · level ${d.level} of 3 `), el('span', { className: 'board-offer-level', ariaHidden: 'true' }, levelDots(d.level))),
         el('dl', { className: 'board-facts' }, ...rows.flatMap(([label, value]) => [el('dt', {}, label), el('dd', {}, ...value)])),
-        el('p', { className: 'note' }, d.until),
+        el('p', { className: 'note' }, d.until)),
         actions,
       );
     }
     parts.push(el('div', { className: 'board-body' }, list, side));
   }
-  parts.push(el('p', { className: 'note board-keys' }, 'Up and Down choose · Enter takes the work · Esc closes · J opens the board'));
-  return modalFrame({ title: 'Work board', pinned: false, onClose: props.onClose, kind: 'board' }, ...parts);
+  const frame = modalFrame({ title: 'Work board', pinned: false, onClose: props.onClose, kind: 'board' }, ...parts);
+  // Up and Down move along the offers wherever the focus is in the window; Enter on an offer or the heading takes it (D-448)
+  frame.onkeydown = (e) => {
+    const at = selected === null ? -1 : ids.indexOf(selected);
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const next = ids[Math.max(0, Math.min(ids.length - 1, at + (e.key === 'ArrowDown' ? 1 : -1)))];
+      if (next !== undefined) props.onSelect(next);
+      return;
+    }
+    const on = e.target instanceof HTMLElement && (e.target.classList.contains('board-offer') || e.target.classList.contains('modal-title'));
+    if (e.key === 'Enter' && on && view.selected?.take.enabled) {
+      e.preventDefault();
+      props.onTake(view.selected.id);
+    }
+  };
+  return frame;
 }

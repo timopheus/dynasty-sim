@@ -157,11 +157,19 @@ export interface PlaceActions {
   there: string[];
   /** Offers on the board of the place, when it is within reach (CK.4); 0 for none. */
   work: number;
+  /** Why the board cannot be opened now (a window holds the hero); empty when it can. */
+  workHeld: string;
 }
 
 /** The actions done in a place: those the content binds to kinds of places, not the journey itself. */
 function placeBound(ctx: Ctx): ActionDef[] {
   return ctx.content.actions.filter((a) => a.target === undefined && (a.when?.at_place_kind?.some((k) => k !== 'road') ?? false));
+}
+
+/** A window waits for an answer: nothing on a page opens another one. */
+function heldReason(ctx: Ctx): string {
+  const { state } = ctx;
+  return (state.status === 'awaiting_action' || state.status === 'running') && state.pendingEvent === null ? '' : 'answer the window first';
 }
 
 /** Offers on the board of a place within reach (CK.4). */
@@ -179,11 +187,11 @@ export function placeActions(ctx: Ctx, placeId: string): PlaceActions | null {
     // what this kind of place never allows is left off, as the panel leaves off what is outgrown (D-443)
     const ids = new Set(bound.filter((a) => a.when?.at_place_kind?.includes(def.kind)).map((a) => a.id));
     const buttons = actionShelves(ctx, null).shelves.flatMap((s) => s.buttons).filter((b) => ids.has(b.id));
-    return { here: true, travel: null, buttons, there: [], work: workAt(ctx, placeId) };
+    return { here: true, travel: null, buttons, there: [], work: workAt(ctx, placeId), workHeld: heldReason(ctx) };
   }
   const there = bound.filter((a) => a.when?.at_place_kind?.includes(def.kind)).map((a) => a.name);
   const journey = content.actions.find((a) => a.target === 'place') ?? null;
-  if (!journey) return { here: false, travel: null, buttons: [], there, work: workAt(ctx, placeId) };
+  if (!journey) return { here: false, travel: null, buttons: [], there, work: workAt(ctx, placeId), workHeld: heldReason(ctx) };
   const going = state.activeAction?.target ?? null;
   const days = routesFrom(state, content).find((r) => r.to === placeId)?.days;
   const name = `${going !== null && going !== placeId ? 'Turn toward' : 'Travel to'} ${def.name}`;
@@ -194,5 +202,5 @@ export function placeActions(ctx: Ctx, placeId: string): PlaceActions | null {
     : going === placeId ? ['you are going there']
     : days === undefined ? ['no road leads there from here']
     : availability?.hidden ? ['not now'] : (availability?.unmet ?? []);
-  return { here: false, travel: { id: journey.id, target: placeId, name, info, grey: reasons.length > 0, reason: joinReasons(reasons) }, buttons: [], there, work: workAt(ctx, placeId) };
+  return { here: false, travel: { id: journey.id, target: placeId, name, info, grey: reasons.length > 0, reason: joinReasons(reasons) }, buttons: [], there, work: workAt(ctx, placeId), workHeld: heldReason(ctx) };
 }

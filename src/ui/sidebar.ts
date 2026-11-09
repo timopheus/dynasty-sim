@@ -67,9 +67,13 @@ function blockNodes(block: Block, props: SidebarProps, page: SidebarPage): (Node
       if (!place.here && place.there.length > 0) out.push(el('p', { className: 'meta' }, `There: ${place.there.join(', ').toLowerCase()}.`));
       if (place.work > 0) {
         // the board of the place (D-475: "later the board of work lies here")
-        const board = el('button', { className: 'action', type: 'button', onclick: () => props.onBoard(page.id) },
+        const held = place.workHeld !== '';
+        const board = el('button', { className: held ? 'action grey' : 'action', type: 'button' },
           el('span', { className: 'action-name' }, 'Work on the board'),
-          el('span', { className: 'note' }, place.work === 1 ? '1 offer' : `${place.work} offers`));
+          el('span', { className: 'note' }, place.work === 1 ? '1 offer' : `${place.work} offers`),
+          ...(held ? [el('span', { className: 'reason' }, place.workHeld)] : []));
+        if (held) board.setAttribute('aria-disabled', 'true');
+        else board.onclick = () => props.onBoard(page.id);
         board.setAttribute('data-focus', 'place-board');
         out.push(board);
       }

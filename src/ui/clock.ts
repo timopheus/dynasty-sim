@@ -11,13 +11,15 @@ export interface ClockProps {
   canPlay: boolean;
   onToggle: () => void;
   onSpeed: (speed: Speed) => void;
+  /** Why time stands when a window of the interface holds it (the work board), in place of "answer to go on". */
+  held?: string | null;
 }
 
 /** What the clock says beside the date, in words, not only by the state of the buttons. */
-function stateText(mode: ClockMode, canPlay: boolean): string {
+function stateText(mode: ClockMode, canPlay: boolean, held: string | null): string {
   if (mode === 'running') return '▶ Time runs';
   if (mode === 'paused') return 'Paused';
-  if (mode === 'decision') return 'Stopped: answer to go on';
+  if (mode === 'decision') return held ?? 'Stopped: answer to go on';
   if (mode === 'ended') return 'The house has ended';
   return canPlay ? 'Stopped: choose what to do, or play' : 'Stopped: choose what to do';
 }
@@ -27,7 +29,7 @@ function stateText(mode: ClockMode, canPlay: boolean): string {
  * pauses, 1/2/3 pick the speed (D-448); the screen does not write the keys (D-465: they belong to the tutorial), only
  * `aria-keyshortcuts` names them.
  */
-export function clockPanel({ date, mode, speed, canPlay, onToggle, onSpeed }: ClockProps): HTMLElement {
+export function clockPanel({ date, mode, speed, canPlay, onToggle, onSpeed, held = null }: ClockProps): HTMLElement {
   const running = mode === 'running';
   const toggle = el('button', { className: 'clock-button clock-toggle', type: 'button', onclick: onToggle, disabled: !running && !canPlay }, running ? 'Pause' : 'Play');
   toggle.setAttribute('aria-keyshortcuts', 'Space');
@@ -49,6 +51,6 @@ export function clockPanel({ date, mode, speed, canPlay, onToggle, onSpeed }: Cl
       el('span', { className: 'date' }, date),
       el('span', { className: 'clock-buttons' }, toggle, ...speeds)),
     el('div', { className: 'clock-row clock-words' },
-      el('span', { className: 'clock-state' }, stateText(mode, canPlay)),
+      el('span', { className: 'clock-state' }, stateText(mode, canPlay, held)),
       el('span', { className: 'clock-keys' }, 'Space: pause · 1 2 3: speed')));
 }
