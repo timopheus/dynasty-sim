@@ -309,6 +309,7 @@ function render(session: Session): void {
       const r = button.getBoundingClientRect();
       openPersonMenu(session, { id, x: Math.round(r.left), y: Math.round(r.bottom + 4), from: 'interact' });
     },
+    onAct: (id, target) => { void act(session, target === undefined ? { type: 'start', actionId: id } : { type: 'start', actionId: id, target }); },
   });
 
   const header = headerPanel({ figures: headerFigures(state, content), ...menuProps });

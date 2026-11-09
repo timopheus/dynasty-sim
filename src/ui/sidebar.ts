@@ -1,3 +1,4 @@
+import { buttonNode } from './actions-panel';
 import type { ChronicleEntry } from '../core/chronicle/log';
 import type { Ctx } from '../core/state';
 import { markPerson } from './context-menu';
@@ -32,6 +33,8 @@ export interface SidebarProps {
   onWhole: (id: string | null) => void;
   /** The button "Interact ▾" of a person's page: the menu opens under it. */
   onInteract: (id: string, button: HTMLElement) => void;
+  /** A button of an action on the page of a place: start it (`target` — the place of a journey). */
+  onAct: (id: string, target?: string) => void;
 }
 
 function entryList(entries: ChronicleEntry[], own: string | null, heads: ReadonlySet<string>): HTMLElement {
@@ -53,6 +56,15 @@ function blockNodes(block: Block, props: SidebarProps, page: SidebarPage): (Node
       return [el('ul', { className: 'traits' }, ...block.items.map((t) => el('li', {}, withTip(el('span', { className: 'trait' }, t.name), t.tip))))];
     case 'chronicle':
       return [entryList(block.entries, block.own, props.heads)];
+    case 'actions': {
+      const { place } = block;
+      const out: (Node | string)[] = [];
+      if (place.travel) out.push(buttonNode(place.travel, props.onAct, place.travel.target));
+      out.push(...place.buttons.map((b) => buttonNode(b, props.onAct)));
+      if (place.here && place.buttons.length === 0) out.push(el('p', { className: 'meta' }, 'Nothing to do in this place for now.'));
+      if (!place.here && place.there.length > 0) out.push(el('p', { className: 'meta' }, `There: ${place.there.join(', ').toLowerCase()}.`));
+      return [el('div', { className: 'place-actions' }, ...out)];
+    }
     case 'whole':
       return [el('p', {}, withTip(el('button', { className: 'link', type: 'button', onclick: () => props.onWhole(page.id) }, 'Whole chronicle →'), { text: 'Every line written about this page, the small events too.' }))];
   }

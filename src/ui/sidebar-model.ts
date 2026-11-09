@@ -1,3 +1,4 @@
+import { placeActions, type PlaceActions } from './actions-model';
 import type { ChronicleEntry } from '../core/chronicle/log';
 import type { Content } from '../core/content/schema';
 import { findCharacter } from '../core/helpers';
@@ -24,7 +25,9 @@ export type Block =
   | { type: 'traits'; items: { name: string; tip: Tip | null }[] }
   | { type: 'chronicle'; entries: ChronicleEntry[]; own: string | null }
   /** The link to the whole chronicle of the page (D-448: the page is one sheet, the rest is behind a link). */
-  | { type: 'whole' };
+  | { type: 'whole' }
+  /** What a place offers: its deeds where the hero stands, the way there elsewhere (playtest 09.11). */
+  | { type: 'actions'; place: PlaceActions };
 
 /** The tabs of the panel are kinds of pages (D-448): the person, their house. `id` null: that kind has nothing to show. */
 export interface KindTab {
@@ -182,6 +185,8 @@ export function sidebarPage(ctx: Ctx, id: string, lastPerson: string = ctx.state
     return { id, kind: 'House', title: e.title, subtitle: e.subtitle, blocks: houseSheet(ctx, id, e.facts, e.chronicle), whole: chronicleBlocks(e.chronicle, null, []), tabs, interact: false };
   }
   const blocks: Block[] = [{ type: 'facts', rows: e.facts }];
+  const offers = e.kind === 'place' ? placeActions(ctx, id) : null;
+  if (offers) blocks.push({ type: 'heading', text: offers.here ? 'Here you can' : 'Go there' }, { type: 'actions', place: offers });
   if (e.chronicle.length) blocks.push({ type: 'heading', text: 'Chronicle' }, { type: 'chronicle', entries: e.chronicle.slice().reverse(), own: null });
   const tabs: KindTab[] = e.kind === 'place' ? [{ label: 'Person', id: lastPerson, active: false }, { label: 'Place', id, active: true }] : [];
   return { id, kind: e.kind === 'place' ? 'Place' : 'Heirloom', title: e.title, subtitle: e.subtitle, blocks, whole: [], tabs, interact: false };

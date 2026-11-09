@@ -12,14 +12,16 @@ export interface ActionsProps {
 /** The menu of directions is open or folded as the player left it: the clock draws the screen anew every day. */
 let travelOpen = false;
 
-function buttonNode(b: ActionButton, onStart: ActionsProps['onStart']): HTMLElement {
+/** A button of an action, as on the panel; also on the page of a place. */
+export function buttonNode(b: ActionButton, onStart: ActionsProps['onStart'], target?: string): HTMLElement {
   const node = el('button', { className: b.grey ? 'action grey' : 'action', type: 'button' },
     el('span', { className: 'action-name' }, b.name),
     ...(b.info.length > 0 ? [el('span', { className: 'note' }, b.info.join(' · '))] : []),
     ...(b.grey ? [el('span', { className: 'reason' }, b.reason)] : []));
   if (b.grey) node.setAttribute('aria-disabled', 'true');
-  else node.onclick = () => onStart(b.id);
+  else node.onclick = () => (target === undefined ? onStart(b.id) : onStart(b.id, target));
   node.setAttribute('data-action', b.id);
+  if (target !== undefined) node.setAttribute('data-target', target);
   // the clock redraws the screen every day: this is how the focus finds its button again (keepView)
   node.setAttribute('data-focus', `action-${b.id}`);
   // the button says all there is (D-448): the name, the days, the price, the reason; so no tip repeats it (D-465)

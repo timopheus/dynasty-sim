@@ -75,3 +75,15 @@
   max-height: 16rem;
   overflow-y: auto;
 }
+
+/* the deeds of a place on its page in the side panel (playtest 09.11): the same buttons as the panel */
+.place-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.place-actions .meta {
+  margin: 0.2rem 0 0;
+}

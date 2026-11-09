@@ -2,7 +2,8 @@ import { actionAvailability } from '../core/actions/actions';
 import type { ActionCategory, ActionDef } from '../core/actions/content';
 import { getPlayer } from '../core/helpers';
 import { priceCrowns, workCrowns } from '../core/economy/economy';
-import { placeDef, routesFrom } from '../core/place/place';
+import { placeDef, routesFrom, standingIn } from '../core/place/place';
+import { daysWord } from '../core/pages/place';
 import type { Ctx } from '../core/state';
 import { ageYears } from '../core/time/calendar';
 import type { WillForm } from './will';
@@ -126,4 +127,48 @@ export function actionShelves(ctx: Ctx, will: WillForm | null): Panel {
   }
   // one line above the panel instead of the same reason on every button
   return { shelves: shelves.filter((s) => s.buttons.length > 0), note: held || null };
+}
+
+/** What the page of a place offers (playtest 09.11, the window of a holding in CK3): the deeds of the place, or the way there. */
+export interface PlaceActions {
+  /** The hero stands in this place. */
+  here: boolean;
+  /** Elsewhere: the journey there, one button with its place; null in the hero's own place. */
+  travel: (ActionButton & { target: string }) | null;
+  /** Here: the actions done in a place (bound to kinds of places), as the actions panel has them, grey with the reason. */
+  buttons: ActionButton[];
+  /** Elsewhere: the names of what one can do in a place of that kind. */
+  there: string[];
+}
+
+/** The actions done in a place: those the content binds to kinds of places, not the journey itself. */
+function placeBound(ctx: Ctx): ActionDef[] {
+  return ctx.content.actions.filter((a) => a.target === undefined && (a.when?.at_place_kind?.some((k) => k !== 'road') ?? false));
+}
+
+/** What a place offers the hero now (playtest 09.11). Pure. */
+export function placeActions(ctx: Ctx, placeId: string): PlaceActions | null {
+  const { state, content } = ctx;
+  const def = placeDef(state, content, placeId);
+  if (!def || state.backstory.running || state.status === 'ended') return null;
+  const bound = placeBound(ctx);
+  if (standingIn(state, content) === placeId) {
+    const ids = new Set(bound.map((a) => a.id));
+    const buttons = actionShelves(ctx, null).shelves.flatMap((s) => s.buttons).filter((b) => ids.has(b.id));
+    return { here: true, travel: null, buttons, there: [] };
+  }
+  const there = bound.filter((a) => a.when?.at_place_kind?.includes(def.kind)).map((a) => a.name);
+  const journey = content.actions.find((a) => a.target !== undefined) ?? null;
+  if (!journey) return { here: false, travel: null, buttons: [], there };
+  const going = state.activeAction?.target ?? null;
+  const days = routesFrom(state, content).find((r) => r.to === placeId)?.days;
+  const name = `${going !== null ? 'Turn toward' : 'Travel to'} ${def.name}`;
+  const info = [...(days !== undefined ? [daysWord(days)] : []), ...moneyInfo(ctx, journey)];
+  const choosing = state.status === 'awaiting_action' || state.status === 'running';
+  const availability = actionAvailability(ctx).find((x) => x.action.id === journey.id);
+  const reasons = !choosing || state.pendingEvent !== null ? ['answer the window first']
+    : going === placeId ? ['you are going there']
+    : days === undefined ? ['no road leads there from here']
+    : availability?.hidden ? ['not now'] : (availability?.unmet ?? []);
+  return { here: false, travel: { id: journey.id, target: placeId, name, info, grey: reasons.length > 0, reason: joinReasons(reasons) }, buttons: [], there };
 }
