@@ -135,6 +135,11 @@ export const EventSchema = z.strictObject({
    * S.9a). With `actions` too, both must hold.
    */
   places: z.array(Id).min(1).optional(),
+  /**
+   * If set, the event can only fire while the hero serves a contract of one of these kinds (`contracts.kinds`, CK.2a); its
+   * employer is handed over to the role `employer` (`pick: given`). With `actions` or `places` too, all must hold.
+   */
+  contract: z.array(Id).min(1).optional(),
   /** Conditions on the main participant. */
   when: WhenSchema.optional(),
   /** Factors of the weight; with `role`, the factor applies if some candidate of the role meets `when` (D-161). */
@@ -359,6 +364,7 @@ function checkEvent(sources: ContentSources, file: string, at: string, event: Ev
   if ((event.who ?? 'hero') === 'npc') {
     if (event.actions) errors.push({ file, path: `${at}.actions`, message: 'an event of who: npc is not bound to an action of the hero' });
     if (event.places) errors.push({ file, path: `${at}.places`, message: 'an event of who: npc is not bound to the place of the hero' });
+    if (event.contract) errors.push({ file, path: `${at}.contract`, message: 'an event of who: npc is not bound to the contract of the hero' });
     if (event.once === 'life') errors.push({ file, path: `${at}.once`, message: 'once: life counts the lives of the heads of the house; an event of who: npc has only once: game' });
   }
   if (event.roles) errors.push(...checkRoles(event.roles, { file, path: `${at}.roles`, sources }));

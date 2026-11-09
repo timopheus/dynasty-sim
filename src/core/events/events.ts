@@ -4,6 +4,7 @@ import { log, type ChronicleEntry } from '../chronicle/log';
 import { conditionReport } from '../condition-keys';
 import type { Content } from '../content/schema';
 import { factorParts } from '../content/types';
+import { contractUnderWay } from '../contracts/contracts';
 import { applyEffects, type Effects } from '../effects';
 import { findCharacter, getPlayer } from '../helpers';
 import { heroPlaceKind } from '../place/place';
@@ -83,7 +84,8 @@ function met(ctx: Ctx, c: Character, when: Parameters<typeof conditionReport>[2]
 
 /**
  * The event may fall where the hero is now (D-437, S.9a): bound to actions, the hero is doing one of them; bound to kinds
- * of places, he is in a place of one of them (`road` on the road). Both, when both are set. Pure.
+ * of places, he is in a place of one of them (`road` on the road); bound to kinds of contracts, he serves one of them now
+ * (CK.2a). All that are set. Pure.
  */
 export function boundHere(ctx: Ctx, event: EventDef): boolean {
   const { state, content } = ctx;
@@ -94,6 +96,10 @@ export function boundHere(ctx: Ctx, event: EventDef): boolean {
   if (event.places) {
     const kind = heroPlaceKind(state, content);
     if (kind === null || !event.places.includes(kind)) return false;
+  }
+  if (event.contract) {
+    const current = contractUnderWay(state);
+    if (!current || !event.contract.includes(current.kind)) return false;
   }
   return true;
 }

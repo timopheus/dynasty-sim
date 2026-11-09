@@ -5,11 +5,14 @@
  */
 import { backstoryRefs } from './backstory/backstory';
 import { chronicleRefs } from './chronicle/log';
+import { contractsRefs } from './contracts/contracts';
 import { eventsRefs } from './events/events';
 import { familyRefs } from './family/family';
+import { favorsRefs } from './favors/favors';
 import { healthRefs } from './health/health';
 import { heirloomRefs } from './heirloom/heirloom';
 import { houseRefs } from './house/house';
+import { interactionsRefs } from './interactions/interactions';
 import { narratorRefs } from './narrator/narrator';
 import { relationsRefs } from './relations/relations';
 import type { Ctx, RefsFn } from './state';
@@ -37,6 +40,9 @@ export const HOT_REFS: readonly RefsFn[] = [
   houseRefs,
   successionRefs,
   heirloomRefs,
+  contractsRefs,
+  favorsRefs,
+  interactionsRefs,
 ];
 
 /** Every id the hot data refers to directly, once each, in the order of HOT_REFS. A pure query, no randomness. */

@@ -11,9 +11,11 @@ import { z } from 'zod';
 import { applyCharacterEffects, characterEffectShape } from './character/effects';
 import { actionsEffectShape, applyActionsEffects } from './actions/effects';
 import { applyBackstoryEffects, backstoryEffectShape } from './backstory/effects';
+import { applyContractsEffects, contractsEffectShape } from './contracts/effects';
 import { applyEconomyEffects, economyEffectRoleRefs, economyEffectShape } from './economy/effects';
 import { applyEraEffects, eraEffectRoleRefs, eraEffectShape } from './era/effects';
 import { applyFamilyEffects, familyEffectRoleRefs, familyEffectShape } from './family/effects';
+import { applyFavorsEffects, favorsEffectRoleRefs, favorsEffectShape } from './favors/effects';
 import { applyHealthEffects, healthEffectShape } from './health/health';
 import { applyHeirloomEffects, heirloomEffectRoleRefs, heirloomEffectShape } from './heirloom/effects';
 import { applyHouseEffects, houseEffectRoleRefs, houseEffectShape } from './house/effects';
@@ -41,6 +43,8 @@ export const EffectsSchema = z.strictObject({
   ...economyEffectShape,
   ...placeEffectShape,
   ...mindEffectShape,
+  ...contractsEffectShape,
+  ...favorsEffectShape,
 });
 
 export type Effects = z.infer<typeof EffectsSchema>;
@@ -61,6 +65,8 @@ const APPLY: readonly ((ctx: Ctx, c: Character, effects: Effects, scope: Scope) 
   applyEconomyEffects,
   applyPlaceEffects,
   applyMindEffects,
+  applyContractsEffects,
+  applyFavorsEffects,
 ];
 
 /** Roles each module's keys refer to, for the cross-check of events; `later` is followed in effectRoleRefs. */
@@ -73,6 +79,7 @@ const EFFECT_ROLE_REFS: readonly ((effects: Effects) => string[])[] = [
   heirloomEffectRoleRefs,
   eraEffectRoleRefs,
   economyEffectRoleRefs,
+  favorsEffectRoleRefs,
 ];
 
 export function applyEffects(ctx: Ctx, c: Character, effects: Effects | undefined, scope: Scope): void {

@@ -77,7 +77,7 @@ describe('place (S.9a, D-462)', () => {
     const day = state.day;
     apply(state, content, { type: 'start', actionId: 'journey', target: id(state, 'valmont') });
     expect(JSON.stringify(state.rng)).toBe(rng);
-    expect(state.activeAction).toEqual({ actionId: 'journey', endDay: day + 6, target: id(state, 'valmont') });
+    expect(state.activeAction).toEqual({ actionId: 'journey', endDay: day + 6, target: id(state, 'valmont'), contract: null });
     expect(position(state, content)).toEqual({ at: id(state, 'ostmere'), journey: { to: id(state, 'valmont'), arriveDay: day + 6 } });
     expect(heroPlaceKind(state, content)).toBe('road');
     expect(checkInvariants(state, content)).toEqual([]);

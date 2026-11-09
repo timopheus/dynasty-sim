@@ -108,7 +108,8 @@ export function actionShelves(ctx: Ctx, will: WillForm | null): Panel {
   const underWay = state.activeAction?.actionId ?? null;
   const shelves: Shelf[] = SHELVES.map((s) => ({ ...s, buttons: [] }));
   for (const { action, unmet, hidden } of actionAvailability(ctx)) {
-    if (hidden || outgrown(ctx, action)) continue;
+    // work is taken from the board of a place (CK.4), not from the panel
+    if (hidden || outgrown(ctx, action) || action.target === 'contract') continue;
     const shelf = shelves.find((s) => s.category === action.category);
     // a journey under way may be turned toward another place (D-462): its menu stays open
     const turnable = action.target !== undefined;
@@ -159,7 +160,7 @@ export function placeActions(ctx: Ctx, placeId: string): PlaceActions | null {
     return { here: true, travel: null, buttons, there: [] };
   }
   const there = bound.filter((a) => a.when?.at_place_kind?.includes(def.kind)).map((a) => a.name);
-  const journey = content.actions.find((a) => a.target !== undefined) ?? null;
+  const journey = content.actions.find((a) => a.target === 'place') ?? null;
   if (!journey) return { here: false, travel: null, buttons: [], there };
   const going = state.activeAction?.target ?? null;
   const days = routesFrom(state, content).find((r) => r.to === placeId)?.days;

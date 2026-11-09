@@ -7,9 +7,11 @@
 import { actionsOnDeath } from './actions/actions';
 import { characterOnDeath } from './character/character';
 import { log } from './chronicle/log';
+import { contractsOnDeath } from './contracts/contracts';
 import { eventsOnDeath } from './events/events';
 import { familyOnDeath } from './family/family';
 import { familyOnSuccession } from './family/phases';
+import { favorsOnDeath, favorsOnSuccession } from './favors/favors';
 import { healthOnDeath } from './health/health';
 import { heirloomOnDeath, heirloomOnSuccession } from './heirloom/phases';
 import { houseOnDeath } from './house/house';
@@ -38,13 +40,15 @@ const DEATH_HOOKS: readonly DeathHook[] = [
   houseOnDeath,
   heirloomOnDeath,
   successionOnDeath,
+  contractsOnDeath,
+  favorsOnDeath,
 ];
 
 /**
  * After the heir has taken over (stage 4, D-314): what else passes to the new head. Files of these hooks never
  * import this file (import cycle).
  */
-const SUCCESSION_HOOKS: readonly SuccessionHook[] = [familyOnSuccession, houseOnSuccession, relationsOnSuccession, storiesOnSuccession, heirloomOnSuccession, mindOnSuccession];
+const SUCCESSION_HOOKS: readonly SuccessionHook[] = [familyOnSuccession, houseOnSuccession, relationsOnSuccession, storiesOnSuccession, heirloomOnSuccession, mindOnSuccession, favorsOnSuccession];
 
 /**
  * Kills a character today with a cause id. The player's death hands the house to an heir (succession/phases.ts),

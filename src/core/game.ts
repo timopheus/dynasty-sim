@@ -9,12 +9,14 @@ import { archivePhase } from './archive/phases';
 import { backstoryAfterChoice, backstoryOnNewGame } from './backstory/phases';
 import { log } from './chronicle/log';
 import type { Content } from './content/schema';
+import { contractsPhase, settleContract } from './contracts/phases';
 import { chooseOption } from './events/events';
 import { familyOnNewGame, familyPhase, proposeCommand, type ProposeOrder } from './family/phases';
 import { economyPhase } from './economy/phases';
 import { deathPhase, healthPhase } from './health/phases';
 import { createCharacter } from './hooks';
 import { houseOnNewGame } from './house/phases';
+import { interactCommand, type InteractOrder } from './interactions/phases';
 import { mindOnNewGame, mindPhase } from './mind/phases';
 import { narratorPhase } from './narrator/phases';
 import { placeOnNewGame, placePhase } from './place/phases';
@@ -31,7 +33,8 @@ import { worldOnNewGame, worldPhase } from './world/phases';
  * Player commands. `end`: the player ends the house (D-315). `will`: a will at the notary (D-236, D-314; succession/).
  * `propose`: a proposal of marriage from the page of a person (D-313; family/). `wait`: lets up to `days` days pass,
  * stopping earlier at a decision (D-439); no other command moves time. `start` of an action with `target: place` names
- * the place a journey leads to (S.9a, D-462).
+ * the place a journey leads to (S.9a, D-462); of an action with `target: contract`, the offer on the board where the hero
+ * stands (CK.2a). `interact`: an interaction aimed at a person near the hero (CK.2a; interactions/), no time passes.
  */
 export type Command =
   | { type: 'start'; actionId: string; target?: string }
@@ -39,7 +42,8 @@ export type Command =
   | { type: 'wait'; days: number }
   | { type: 'end' }
   | ({ type: 'will' } & WillOrder)
-  | ({ type: 'propose' } & ProposeOrder);
+  | ({ type: 'propose' } & ProposeOrder)
+  | ({ type: 'interact' } & InteractOrder);
 
 /**
  * Day order (D-053). A phase returning true ends the run: death, the end of the
@@ -60,6 +64,7 @@ export const DAY_PHASES: readonly DayPhase[] = [
   summaryPhase,
   archivePhase,
   placePhase,
+  contractsPhase,
   actionEndPhase,
   storiesPhase,
   narratorPhase,
@@ -95,7 +100,8 @@ export const MAX_WAIT_DAYS = 36525;
  * leave the game `running`; a choice that ends an event lets the after-choice hooks start the next scene of the
  * backstory, then the game is `running` if the hero still has an action, else it waits for one (also after the hero's
  * death inside the choice). The next page of an event and the scenes of the backstory wait for the player.
- * A house that has ended takes no command (D-315); `end` ends it; `will` and `propose` go to their modules.
+ * A house that has ended takes no command (D-315); `end` ends it; `will`, `propose` and `interact` go to their modules.
+ * After every command a contract whose action is gone is settled (CK.2a).
  */
 export function apply(state: GameState, content: Content, cmd: Command): void {
   const ctx: Ctx = { state, content };
@@ -109,8 +115,15 @@ export function apply(state: GameState, content: Content, cmd: Command): void {
     proposeCommand(ctx, { suitor: cmd.suitor, target: cmd.target });
     return;
   }
+  if (cmd.type === 'interact') {
+    interactCommand(ctx, { id: cmd.id, target: cmd.target });
+    if (!hasEnded(state)) state.status = state.activeAction ? 'running' : 'awaiting_action';
+    settleContract(ctx);
+    return;
+  }
   if (cmd.type === 'wait') {
     waitDays(ctx, cmd.days);
+    settleContract(ctx);
     return;
   }
   // The will starts the action at the notary (4.6), as `start` starts any other.
@@ -120,11 +133,12 @@ export function apply(state: GameState, content: Content, cmd: Command): void {
     chooseOption(ctx, cmd.option);
     // Nobody inherited a hero who died in the choice.
     if (hasEnded(state)) return;
-    if (state.pendingEvent) return;
+    if (state.pendingEvent) return settleContract(ctx);
     for (const hook of AFTER_CHOICE_HOOKS) hook(ctx);
-    if (state.pendingEvent) return;
+    if (state.pendingEvent) return settleContract(ctx);
   }
   state.status = state.activeAction ? 'running' : 'awaiting_action';
+  settleContract(ctx);
 }
 
 /** The game waits for `wait`: an action is under way and no decision is pending. */

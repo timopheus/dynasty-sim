@@ -4,6 +4,7 @@ import { getPlayer } from './helpers';
 import { BOT_CHARACTERS, HAPPINESS_WEIGHT, isBotCharacter, scoreOf, type BotCharacter } from './bots/characters';
 import { actionFeatures, optionFeatures } from './bots/features';
 import type { Content } from './content/schema';
+import { offersHere } from './contracts/contracts';
 import { pendingEventDef } from './events/events';
 import { routesFrom } from './place/place';
 import { sceneOf, type OptionDef } from './events/content';
@@ -115,10 +116,12 @@ export function botCommand(state: GameState, content: Content, rng: RngState, ch
 }
 
 /**
- * The command that starts the action; an action that goes somewhere takes a place it can reach (D-462), drawn from the
- * bot's own generator (S.9a). Without such actions in the content the generator is used as before.
+ * The command that starts the action; an action that goes somewhere takes a place it can reach (D-462), one that serves a
+ * contract an offer on the board here (CK.2a), drawn from the bot's own generator (S.9a). Without such actions in the
+ * content the generator is used as before.
  */
 function startCommand(ctx: Ctx, rng: RngState, action: ActionDef): Command {
+  if (action.target === 'contract') return { type: 'start', actionId: action.id, target: pick(rng, offersHere(ctx.state, ctx.content)).id };
   if (action.target !== 'place') return { type: 'start', actionId: action.id };
   return { type: 'start', actionId: action.id, target: pick(rng, routesFrom(ctx.state, ctx.content)).to };
 }

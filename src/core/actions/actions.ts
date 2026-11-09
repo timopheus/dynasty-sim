@@ -1,5 +1,6 @@
 import { log } from '../chronicle/log';
 import { conditionReport } from '../condition-keys';
+import { contractPlan, contractReasons, takeContract } from '../contracts/contracts';
 import type { Content } from '../content/schema';
 import { applyEffects } from '../effects';
 import { int } from '../rng';
@@ -10,8 +11,12 @@ import { timeContent } from '../time/seasons';
 import type { ActionDef } from './content';
 
 export interface ActionsState {
-  /** `target`: the place a journey leads to, for an action with `target: place` (S.9a, D-462); null for any other. */
-  activeAction: { actionId: string; endDay: number; target: string | null } | null;
+  /**
+   * `target`: the place a journey leads to — of an action with `target: place` (S.9a, D-462), or of one with
+   * `target: contract` whose work is elsewhere; null for any other. `contract`: the hero's contract the action serves
+   * (CK.2a), only for an action with `target: contract`; null for any other.
+   */
+  activeAction: { actionId: string; endDay: number; target: string | null; contract: string | null } | null;
   /**
    * Set by the `end_action` effect; the action-end phase interrupts the action.
    * `template` null means the default line of `time.texts.interrupted`.
@@ -45,9 +50,11 @@ export function actionAvailability(ctx: Ctx): ActionAvailability[] {
   return content.actions.map((action) => {
     // An action that goes somewhere needs a road from here (S.9a); the hero knows the roads.
     const noRoad = action.target === 'place' && content.places && !hasRoadFrom(state, content) ? [content.places.reasons.no_road] : [];
-    if (!action.when) return { action, unmet: noRoad, hidden: false };
+    // An action that serves a contract needs an offer on the board here and no work under way (CK.2a).
+    const noWork = action.target === 'contract' ? contractReasons(state, content) : [];
+    if (!action.when) return { action, unmet: [...noRoad, ...noWork], hidden: false };
     const report = conditionReport(ctx, hero, action.when, scope);
-    return { action, unmet: [...report.reasons, ...noRoad], hidden: report.hidden };
+    return { action, unmet: [...report.reasons, ...noRoad, ...noWork], hidden: report.hidden };
   });
 }
 
@@ -59,9 +66,10 @@ export function availableActions(ctx: Ctx): ActionDef[] {
 
 /**
  * Starts an action; `target` is the place of an action with `target: place` (S.9a, D-462): any place but the one the hero
- * stands in, by the shortest way from where he is now; its days are the duration, with no roll. Any other action takes
- * no target. A journey under way may be turned toward another place; any other change of occupation stops it where
- * the hero is (`stopJourney`).
+ * stands in, by the shortest way from where he is now; its days are the duration, with no roll. For an action with
+ * `target: contract` (CK.2a) it is an offer on the board where the hero stands: he takes it, and the action lasts its
+ * days of work, or is a journey to the place of the work. Any other action takes no target. A journey under way may be
+ * turned toward another place; any other change of occupation stops it where the hero is (`stopJourney`).
  */
 export function startAction(ctx: Ctx, actionId: string, target: string | null = null): void {
   const { state, content } = ctx;
@@ -75,11 +83,18 @@ export function startAction(ctx: Ctx, actionId: string, target: string | null = 
   if (current?.actionId === action.id && !retarget) throw new Error(`Action "${actionId}" is already under way`);
   // The target is checked before anything changes: a refused command leaves no line and no roll.
   let roadDays: number | null = null;
+  let journeyTo: string | null = null;
   if (action.target === 'place') {
     if (target === null) throw new Error(`Action "${actionId}" needs a place to go to`);
     const way = routesFrom(state, content).find((r) => r.to === target);
     if (!way) throw new Error(`No way leads from here to "${target}"`);
     roadDays = way.days;
+    journeyTo = target;
+  } else if (action.target === 'contract') {
+    if (target === null) throw new Error(`Action "${actionId}" needs an offer to take`);
+    const plan = contractPlan(state, content, target);
+    roadDays = plan.days;
+    journeyTo = plan.to;
   } else if (target !== null) throw new Error(`Action "${actionId}" takes no target`);
   // A turn on the road has its own line (S.9: the journal of the place), not the line of a break.
   const turning = retarget && current?.actionId === action.id;
@@ -89,7 +104,8 @@ export function startAction(ctx: Ctx, actionId: string, target: string | null = 
   }
   const duration = roadDays ?? int(state.rng, action.duration.min, action.duration.max);
   stopJourney(ctx, turning && target !== null ? { turn: target } : 'stopped');
-  state.activeAction = { actionId: action.id, endDay: state.day + duration, target: action.target === 'place' ? target : null };
+  const contract = action.target === 'contract' && target !== null ? takeContract(state, target).id : null;
+  state.activeAction = { actionId: action.id, endDay: state.day + duration, target: journeyTo, contract };
   state.interruptRequest = null;
 }
 
@@ -166,7 +182,9 @@ export const actionsInvariants: Invariant = (ctx) => {
       problems.push(`active action ends on day ${active.endDay}, not after ${state.day}`);
     }
     const def = content.actions.find((a) => a.id === active.actionId);
-    if (def && (active.target !== null) !== (def.target !== undefined)) problems.push(`active action ${active.actionId}: target ${String(active.target)} does not fit the action`);
+    // a journey has its place, a contract its record; work on a contract may be a journey too (CK.2a)
+    if (def && def.target !== 'contract' && (active.target !== null) !== (def.target === 'place')) problems.push(`active action ${active.actionId}: target ${String(active.target)} does not fit the action`);
+    if (def && (active.contract !== null) !== (def.target === 'contract')) problems.push(`active action ${active.actionId}: contract ${String(active.contract)} does not fit the action`);
   }
   if (state.interruptRequest && !active) problems.push('interrupt requested without an active action');
   // D-017: the player is never left without a move.
