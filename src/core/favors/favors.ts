@@ -1,6 +1,6 @@
 import type { Content } from '../content/schema';
 import { findCharacter, isInt } from '../helpers';
-import type { DeathHook, GameState, Invariant, RefsFn, SuccessionHook } from '../state';
+import type { DayPhase, DeathHook, GameState, Invariant, RefsFn, SuccessionHook } from '../state';
 
 /**
  * Favors (CK.2a, D-474; the hooks of CK3): a person owes another one a favor. A weak favor is called in once and lapses
@@ -77,6 +77,18 @@ export function useFavor(state: GameState, content: Content, from: string, to: s
   else f.used = state.day;
   return true;
 }
+
+/**
+ * A weak favor past its term goes (CK.3 review): it can no longer be called in, and it would keep both people in the
+ * hot part. Returns false: favors never stop time. No randomness.
+ */
+export const favorsPhase: DayPhase = {
+  id: 'favors',
+  run({ state }) {
+    if (state.favors.some((f) => f.until !== null && f.until < state.day)) state.favors = state.favors.filter((f) => f.until === null || f.until >= state.day);
+    return false;
+  },
+};
 
 /** The favors of a dead person go, but the hero's wait for his heir (`favorsOnSuccession`). */
 export const favorsOnDeath: DeathHook = ({ state }, c) => {

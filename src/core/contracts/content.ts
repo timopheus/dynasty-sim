@@ -78,16 +78,19 @@ const BoardSchema = z.strictObject({
  * Optional top-level key `contracts` (CK.2a, CK.3, D-474):
  * - `kinds`: kinds of contracts, how the boards offer each and how each ends;
  * - `board`: the boards (CK.3); without it nothing is offered;
- * - `chronicleLevel`: a success of this level or higher goes to the chronicle, a lower one to the journal; a failure always
- *   goes to the chronicle (the corridor of lines, D-203); without it every line goes to the journal;
+ * - `chronicle`: from which level a success and a failure go to the chronicle, a lower one to the journal (the corridor of
+ *   lines, D-203); without it every line goes to the journal;
  * - `favorLevel`: a success of this level or higher makes the employer owe the hero a favor (D-474; needs `favors`);
+ * - `texts.left`: the line of work left unfinished — another occupation, an illness, a window broke it off (`{name}`,
+ *   `{employer}`); the failure of the kind is for the failures its events marked; without it the failure stands for both;
  * - `reasons`: texts of unmet conditions — `none` (no work on the board here), `busy` (work under way), `taken` and
  *   `free` (`contract_taken: true / false`), `kind` (`{kinds}`), `level` (`{level}`).
  */
 export const ContractsContentSchema = z.strictObject({
   kinds: z.array(ContractKindSchema).min(1),
   board: BoardSchema.optional(),
-  chronicleLevel: Int.min(0).max(3).optional(),
+  chronicle: z.strictObject({ success: Int.min(0).max(3), failure: Int.min(0).max(3) }).optional(),
+  texts: z.strictObject({ left: Text }).optional(),
   favorLevel: Int.min(0).max(3).optional(),
   reasons: z.strictObject({ none: Text, busy: Text, taken: Text, free: Text, kind: Text, level: Text }),
 });
@@ -132,6 +135,10 @@ export const checkContracts: CrossCheck = ({ contracts, actions, events, populat
       const problem = checkReason(item.reasons[key], allowed);
       if (problem) err(`reasons.${key}`, problem);
     }
+    if (item.texts) {
+      const problem = checkReason(item.texts.left, OUTCOME_PLACEHOLDERS);
+      if (problem) err('texts.left', problem);
+    }
     errors.push(...checkOffers(file, item, { events: events.map((e) => e.item), population: population.map((p) => p.item), places: places.map((p) => p.item) }));
     if (item.favorLevel !== undefined && favors.length === 0) err('favorLevel', 'favors from contracts need the top-level key "favors"');
   }
@@ -174,9 +181,9 @@ export const checkContracts: CrossCheck = ({ contracts, actions, events, populat
 };
 
 interface OfferSources {
-  events: readonly { id: string; contract?: string[] | undefined; roles?: Record<string, { pick: string }> | undefined }[];
+  events: readonly { id: string; contract?: string[] | undefined; followup_only?: boolean | undefined; roles?: Record<string, { pick: string }> | undefined }[];
   population: readonly { occupations: readonly { id: string }[] }[];
-  places: readonly { kinds: readonly { id: string }[] }[];
+  places: readonly { kinds: readonly { id: string }[]; list: readonly unknown[] }[];
 }
 
 /**
@@ -197,6 +204,8 @@ function checkOffers(file: string, item: ContractsContent, sources: OfferSources
       // the ids of the offers of a board have room for 8 a month (`boardOfferId`)
       if (s.size.max > 8) err(`board.sizes[${i}].size.max`, 'a board holds at most 8 offers');
     });
+    // the streams and ids of the boards have rows for 64 places a month (`boardOfferId`, `board.ts`)
+    if (sources.places.some((p) => p.list.length > 64)) err('board', 'boards keep at most 64 places');
     const risks = new Set(board.risks.map((r) => r.id));
     if (risks.size !== RISKS.length) err('board.risks', `every risk once: ${RISKS.join(', ')}`);
     board.pay.forEach((p, i) => {
@@ -219,6 +228,7 @@ function checkOffers(file: string, item: ContractsContent, sources: OfferSources
       const event = sources.events.find((e) => e.id === offer.complication);
       if (!event) err(`${at}.complication`, `unknown event "${offer.complication}"`);
       else if (!event.contract?.includes(k.id)) err(`${at}.complication`, `event "${event.id}" is not bound to the kind "${k.id}" (contract: [${k.id}])`);
+      else if (event.followup_only !== true) err(`${at}.complication`, `event "${event.id}" comes only as a complication: it needs followup_only: true`);
     }
   });
   return errors;

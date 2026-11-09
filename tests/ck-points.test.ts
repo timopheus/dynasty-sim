@@ -9,7 +9,7 @@ import { contractsRefs, postOffer, type Contract } from '../src/core/contracts/c
 import { applyEffects } from '../src/core/effects';
 import { eventWeight, findEvent } from '../src/core/events/events';
 import { eventView } from '../src/core/events/view';
-import { favorBetween, favorsOnSuccession, favorsRefs, grantFavor } from '../src/core/favors/favors';
+import { favorBetween, favorsOnSuccession, favorsPhase, favorsRefs, grantFavor } from '../src/core/favors/favors';
 import { apply, newGame } from '../src/core/game';
 import { findCharacter, getPlayer } from '../src/core/helpers';
 import { interactionAvailability } from '../src/core/interactions/phases';
@@ -243,11 +243,13 @@ describe('CK.2a: favors', () => {
     clean(state);
   });
 
-  it('a weak favor lapses after its term', () => {
+  it('a weak favor lapses after its term, and the favors phase lets it go', () => {
     const { state, ctx, hero, employer } = game();
     grantFavor(state, content, employer.id, hero.id, 'weak');
     state.day += 101;
     expect(conditionReport(ctx, hero, { favor_with: 'target' }, { hero: hero.id, protagonist: hero.id, target: employer.id }).met).toBe(false);
+    favorsPhase.run(ctx);
+    expect(state.favors).toEqual([]);
   });
 
   it('the heir takes the favors of the dead head, held and owed, as weak ones, once; a dead debtor owes nothing', () => {
