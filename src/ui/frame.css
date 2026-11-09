@@ -1,0 +1,215 @@
+/*
+ * The frame of the game screen (playtest 09.11: "the panels do not meet, they are not on a grid"). The map fills the
+ * window (M.1); every panel is a card over it, on one grid: the same margin from the window, the same gap between
+ * cards, the same border and shadow. The left column is the page and the portrait under it, the right column the
+ * actions and the clock under them; the header runs over the free map and the right column; the block "where I am"
+ * closes the free map at the bottom. Desktop only (D-444).
+ */
+:root {
+  --frame-m: 0.75rem;
+  --frame-g: 0.75rem;
+  --frame-side: 22rem;
+  --frame-right: 19rem;
+  --frame-top: 4rem;
+  --frame-portrait: 6.25rem;
+  --card-border: 2px solid var(--fg);
+  --card-shadow: 3px 3px 0 rgb(0 0 0 / 0.22);
+}
+
+@media (min-width: 48rem) {
+  .game,
+  .game.side-closed {
+    display: block;
+    --free-left: calc(var(--frame-m) + var(--frame-side) + var(--frame-g));
+  }
+
+  .game.side-closed {
+    --free-left: calc(var(--frame-m) + 2.75rem + var(--frame-g));
+  }
+
+  /* left column: the page over the portrait */
+  .game > .left-column {
+    position: fixed;
+    z-index: 2;
+    left: var(--frame-m);
+    top: var(--frame-m);
+    bottom: var(--frame-m);
+    width: var(--frame-side);
+    display: flex;
+    flex-direction: column;
+    gap: var(--frame-g);
+    pointer-events: none;
+  }
+
+  .game > .left-column > * {
+    pointer-events: auto;
+  }
+
+  .game .left-column > .sidebar {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: auto;
+    border: var(--card-border);
+    box-shadow: var(--card-shadow);
+    background: var(--bg);
+  }
+
+  .game .left-column > .sidebar::after {
+    content: none;
+  }
+
+  .game .left-column > .avatar {
+    position: static;
+    flex: 0 0 auto;
+    align-self: flex-start;
+    margin-top: auto;
+  }
+
+  .game .sidebar-toggle {
+    position: fixed;
+    z-index: 3;
+    top: calc(var(--frame-m) + 0.4rem);
+    left: calc(var(--frame-m) + var(--frame-side) - 2.4rem);
+    width: 2rem;
+    min-width: 0;
+    height: 2rem;
+    min-height: 0;
+  }
+
+  .game > .topbar > .menu {
+    margin-left: auto;
+  }
+
+  .game.side-closed .sidebar-toggle {
+    top: var(--frame-m);
+    left: var(--frame-m);
+    width: 2.75rem;
+    height: var(--frame-top);
+    border: var(--card-border);
+    box-shadow: var(--card-shadow);
+  }
+
+  /* the header: over the free map and the right column, one height */
+  .game > .topbar {
+    position: fixed;
+    z-index: 2;
+    top: var(--frame-m);
+    left: var(--free-left);
+    right: var(--frame-m);
+    box-sizing: border-box;
+    height: var(--frame-top);
+    margin: 0;
+    /* the old grid put it at the end; a fixed box obeys the alignment too, so it is stretched between its edges */
+    justify-self: stretch;
+    border: var(--card-border);
+    box-shadow: var(--card-shadow);
+  }
+
+  /* right column: the actions over the news and the clock */
+  .game > .right-column {
+    position: fixed;
+    z-index: 2;
+    right: var(--frame-m);
+    top: calc(var(--frame-m) + var(--frame-top) + var(--frame-g));
+    bottom: var(--frame-m);
+    width: var(--frame-right);
+    display: flex;
+    flex-direction: column;
+    gap: var(--frame-g);
+    pointer-events: none;
+  }
+
+  .game > .right-column > * {
+    pointer-events: auto;
+  }
+
+  .game .right-column > .actions-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 0.5rem 0.75rem;
+    border: var(--card-border);
+    box-shadow: var(--card-shadow);
+    background: var(--bg);
+  }
+
+  .game .right-column > .clock-stack {
+    flex: 0 0 auto;
+    gap: var(--frame-g);
+  }
+
+  .game .right-column .news,
+  .game .right-column .clock {
+    margin: 0;
+    box-sizing: border-box;
+    width: 100%;
+    border: var(--card-border);
+    box-shadow: var(--card-shadow);
+    background: var(--bg);
+  }
+
+  /* the block "where I am": closes the free map at the bottom, between the columns */
+  .game > .center {
+    position: fixed;
+    z-index: 1;
+    left: var(--free-left);
+    right: calc(var(--frame-m) + var(--frame-right) + var(--frame-g));
+    bottom: var(--frame-m);
+    top: auto;
+    max-height: 45vh;
+    padding: 0;
+    overflow: visible;
+    gap: var(--frame-g);
+  }
+
+  /* with the page folded the block keeps clear of the portrait at the bottom left */
+  .game.side-closed > .center {
+    left: calc(var(--frame-m) + var(--frame-portrait) + var(--frame-g));
+    padding-left: 0;
+  }
+
+  .game > .center .where {
+    margin: 0;
+    border: var(--card-border);
+    box-shadow: var(--card-shadow);
+    background: var(--bg);
+  }
+
+  /* the map modes and their key: at the top right of the free map, under the header */
+  .game > .map-view .map-modes {
+    top: calc(var(--frame-m) + var(--frame-top) + var(--frame-g));
+    right: calc(var(--frame-m) + var(--frame-right) + var(--frame-g));
+  }
+
+  .game > .map-view .map-legend {
+    top: calc(var(--frame-m) + var(--frame-top) + var(--frame-g) + 3rem);
+    right: calc(var(--frame-m) + var(--frame-right) + var(--frame-g));
+    box-shadow: var(--card-shadow);
+  }
+}
+
+/* the block "where I am" never takes more than a third of the window: on a laptop the picture is smaller and the
+   rest scrolls inside the card */
+@media (min-width: 48rem) {
+  .game > .center .where {
+    max-height: 36vh;
+    overflow-y: auto;
+  }
+}
+
+@media (min-width: 48rem) and (max-width: 1599px) {
+  .game > .center .place-picture {
+    width: 9rem;
+  }
+
+  .game > .center .place-table dt {
+    min-width: 3.6rem;
+  }
+}
+
+@media (min-width: 48rem) and (max-width: 1365px) {
+  .game > .center .place-table {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

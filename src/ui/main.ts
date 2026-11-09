@@ -50,6 +50,7 @@ import { regionModel } from './map/region';
 import { mapView } from './map/view';
 import { willForm } from './will';
 import './style.css';
+import './frame.css';
 
 const raw = import.meta.glob<string>('/content/**/*.{yaml,yml}', { query: '?raw', import: 'default', eager: true });
 const files = Object.keys(raw)
@@ -324,37 +325,61 @@ function render(session: Session): void {
     },
     travel: (actionId, id) => { void act(session, { type: 'start', actionId, target: id }); },
   }));
+  // the free part of the map, by the frame of cards (frame.css); measured again once the screen is drawn
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-  map.setInsets({ left: session.sidebar.open ? 22 * rem : 0, right: 19 * rem, top: 5 * rem, bottom: 14 * rem });
+  map.setInsets({ left: session.sidebar.open ? 23.5 * rem : 0, right: 20.5 * rem, top: 5.5 * rem, bottom: lastBottomInset || 21 * rem });
   const game = el('div', { className: session.sidebar.open ? 'game' : 'game side-closed' },
     map.element,
-    ...sidebar,
+    // the frame of cards over the map (playtest 09.11): the page over the portrait, the actions over the clock
+    el('div', { className: 'left-column' }, ...sidebar.filter((n) => n.classList.contains('sidebar')), avatarPanel(ctx, () => openProfile(session))),
+    ...sidebar.filter((n) => !n.classList.contains('sidebar')),
     header,
     el('main', { className: 'center', id: 'center' }, ...notices, centre),
-    actions,
-    el('div', { className: 'clock-stack' },
-      newsPanel(visibleNews(session.news, state.day)),
-      clockPanel({
-        date: formatDate(state.day),
-        mode,
-        speed: session.clock.speed,
-        canPlay: mode === 'paused' || (mode === 'idle' && idleAction(state, content) !== null),
-        onToggle: () => { void togglePause(session); },
-        onSpeed: (speed) => setSpeed(session, speed),
-      })),
-    avatarPanel(ctx, () => openProfile(session)));
+    el('div', { className: 'right-column' },
+      actions,
+      el('div', { className: 'clock-stack' },
+        newsPanel(visibleNews(session.news, state.day)),
+        clockPanel({
+          date: formatDate(state.day),
+          mode,
+          speed: session.clock.speed,
+          canPlay: mode === 'paused' || (mode === 'idle' && idleAction(state, content) !== null),
+          onToggle: () => { void togglePause(session); },
+          onSpeed: (speed) => setSpeed(session, speed),
+        }))));
   // the menu stays reachable under a pinned window: "New game" must work whatever is pending
   if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar, .avatar, .actions-panel')) part.inert = true;
   // the map is kept across draws: it is closed under a window and open again without one
   map.element.inert = modal !== null;
   const menu = menuNodeFor(session);
   app?.replaceChildren(game, ...(modal ? [modal] : []), ...(menu ? [menu] : []));
+  measureFreeMap(game, map);
   if (menu) keepInView(menu);
   // on a phone the window starts below the header, whatever height its words make it
   if (modal && window.matchMedia(NARROW).matches) modal.style.paddingTop = `${Math.ceil(header.getBoundingClientRect().bottom) + 8}px`;
   if (DEV) game.setAttribute('data-seed', String(state.seed));
 
   afterDraw(session, modal);
+}
+
+/** The height of the block at the bottom at the last draw: the next draw starts from it. */
+let lastBottomInset = 0;
+
+/** The panels over the map as drawn: the map centres the hero in what they leave free (M.1). */
+function measureFreeMap(game: HTMLElement, map: ReturnType<typeof mapView>): void {
+  const gap = 12;
+  const box = (selector: string) => game.querySelector(selector)?.getBoundingClientRect() ?? null;
+  const side = game.classList.contains('side-closed') ? null : box('.left-column');
+  const right = box('.right-column');
+  const top = box('.topbar');
+  const centre = box('.center');
+  lastBottomInset = centre ? Math.max(0, window.innerHeight - centre.top + gap) : 0;
+  map.setInsets({
+    left: side ? side.right + gap : 0,
+    right: right ? Math.max(0, window.innerWidth - right.left + gap) : 0,
+    top: top ? top.bottom + gap : 0,
+    bottom: lastBottomInset,
+  });
 }
 
 /** What every draw ends with: words for the screen reader, the focus, the tip under the pointer, the clock. */
