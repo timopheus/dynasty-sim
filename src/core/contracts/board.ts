@@ -49,7 +49,10 @@ export function refreshBoards(ctx: Ctx): void {
   const { state, content } = ctx;
   if (!content.contracts?.board || !content.places) return;
   const month = monthOf(state.day);
-  const standing = state.activeAction?.target ? null : state.place.here;
+  // on the last day of a journey the hero has come (the arrival goes before this phase): he stands where it led
+  const active = state.activeAction;
+  const travelling = active !== null && active.target !== null && state.day < active.endDay;
+  const standing = travelling ? null : state.place.here;
   if (state.contracts.month === month) {
     if (standing === null || LOOKED_FROM.get(state) === standing) return;
   } else {

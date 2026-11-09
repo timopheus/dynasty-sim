@@ -9,9 +9,11 @@ import { archivePhase } from './archive/phases';
 import { backstoryAfterChoice, backstoryOnNewGame } from './backstory/phases';
 import { log } from './chronicle/log';
 import type { Content } from './content/schema';
+import { dropContract } from './contracts/contracts';
 import { contractsOnNewGame, contractsPhase, settleContract } from './contracts/phases';
 import { chooseOption } from './events/events';
 import { familyOnNewGame, familyPhase, proposeCommand, type ProposeOrder } from './family/phases';
+import { favorsPhase } from './favors/favors';
 import { economyPhase } from './economy/phases';
 import { deathPhase, healthPhase } from './health/phases';
 import { createCharacter } from './hooks';
@@ -59,6 +61,7 @@ export const DAY_PHASES: readonly DayPhase[] = [
   familyPhase,
   successionPhase,
   relationsPhase,
+  favorsPhase,
   economyPhase,
   mindPhase,
   summaryPhase,
@@ -109,6 +112,7 @@ export function apply(state: GameState, content: Content, cmd: Command): void {
   if (hasEnded(state)) throw new Error('The house has come to an end: no more commands');
   if (cmd.type === 'end') {
     endHouse(ctx);
+    dropContract(state);
     return;
   }
   if (cmd.type === 'propose') {

@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { botCommand } from '../src/core/bot';
 import type { Content } from '../src/core/content/schema';
 import { placesInReach } from '../src/core/contracts/board';
-import { postOffer, type Contract } from '../src/core/contracts/contracts';
+import { contractsOnSuccession, postOffer, type Contract } from '../src/core/contracts/contracts';
 import { contractsPhase } from '../src/core/contracts/phases';
+import { entryText, type ChronicleEntry } from '../src/core/chronicle/log';
 import { favorBetween } from '../src/core/favors/favors';
 import { apply, newGame } from '../src/core/game';
 import { findCharacter, getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
-import { placeDef, placeIdOf, routesFromPlace, setHere } from '../src/core/place/place';
+import { placeDef, placeIdOf, routesFrom, routesFromPlace, setHere } from '../src/core/place/place';
 import { seedRng } from '../src/core/rng';
 import type { Character, Ctx, GameState } from '../src/core/state';
 import { ageYears, fromYmd } from '../src/core/time/calendar';
@@ -178,12 +179,50 @@ describe('CK.3: the work', () => {
     runOut(state, never);
     expect(line()?.level).toBe('chronicle');
     expect(favorBetween(state, high.employer, hero.id)?.strength).toBe('weak');
-    const left = postHere(state, 'watch', 0, never);
+    // work left unfinished: the line of `texts.left`; a failure from level 1 goes to the chronicle, of level 0 to the journal
+    const left = postHere(state, 'watch', 1, never);
     apply(state, never, { type: 'start', actionId: 'contract_work', target: left.id });
     apply(state, never, { type: 'wait', days: 1 });
     apply(state, never, { type: 'start', actionId: 'rest' });
     expect(line()?.level).toBe('chronicle');
+    expect(entryText(line() as ChronicleEntry)).toContain('unfinished');
+    expect(state.contracts.last).toMatchObject({ id: left.id, outcome: 'failure', left: true, pay: 0 });
+    const small = postHere(state, 'watch', 0, never);
+    apply(state, never, { type: 'start', actionId: 'contract_work', target: small.id });
+    apply(state, never, { type: 'wait', days: 1 });
+    apply(state, never, { type: 'start', actionId: 'rest' });
+    expect(line()?.level).toBe('journal');
     clean(state, never);
+  });
+
+  it('a board within reach of the place of arrival is there on the day of arrival, with no other command', () => {
+    for (const seed of [1, 2, 3]) {
+      const { state, ctx } = game(seed);
+      const journey = content.actions.find((a) => a.target === 'place');
+      const far = routesFrom(state, content).sort((a, b) => b.days - a.days)[0];
+      if (!journey || !far) throw new Error('no journey');
+      apply(state, content, { type: 'start', actionId: journey.id, target: far.to });
+      for (let i = 0; i < 400 && state.activeAction; i++) apply(state, content, state.pendingEvent ? { type: 'choose', option: 0 } : { type: 'wait', days: 1 });
+      if (state.place.here !== far.to) continue;
+      expect(state.status).toBe('awaiting_action');
+      for (const id of placesInReach(state, content)) expect(state.contracts.posted).toContain(id);
+      clean(state);
+    }
+  });
+
+  it('the end of the house drops the work under way; the new head offers no work to himself', () => {
+    const { state, ctx } = game(1);
+    const offer = postHere(state, 'watch', 1);
+    apply(state, content, { type: 'start', actionId: 'contract_work', target: offer.id });
+    apply(state, content, { type: 'end' });
+    expect(state.contracts.current).toBeNull();
+    clean(state);
+    const other = game(2);
+    const heir = employerFor(other.state, 'watch');
+    postHere(other.state, 'watch', 0);
+    contractsOnSuccession(other.ctx, getPlayer(other.state), heir);
+    expect(other.state.contracts.offers.some((o) => o.employer === heir.id)).toBe(false);
+    void ctx;
   });
 
   it('a letter of level 3 leaves the employer owing a strong favor', () => {

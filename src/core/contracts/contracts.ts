@@ -1,7 +1,7 @@
 import type { Content } from '../content/schema';
 import { findCharacter, isInt, newId } from '../helpers';
 import { routesFrom, standingIn } from '../place/place';
-import type { DeathHook, GameState, Invariant, RefsFn } from '../state';
+import type { DeathHook, GameState, Invariant, RefsFn, SuccessionHook } from '../state';
 
 /**
  * Contracts (CK.2a, D-473, D-474): work a person of the world offers on the board of a place, at a level 0–3 that sets
@@ -54,11 +54,13 @@ export interface ContractsState {
     month: number | null;
     /** Record ids of the places whose boards were refreshed in that month, in the order refreshed (CK.3). */
     posted: string[];
+    /** The last contract settled: how it ended and what it paid, for the word in the news (CK.4); null before any. */
+    last: { id: string; outcome: ContractOutcome; left: boolean; pay: number; day: number } | null;
   };
 }
 
 export function initContractsState(): ContractsState {
-  return { contracts: { offers: [], current: null, month: null, posted: [] } };
+  return { contracts: { offers: [], current: null, month: null, posted: [], last: null } };
 }
 
 /** The highest level of a contract (D-474: levels 0–3). */
@@ -148,6 +150,16 @@ export const contractsOnDeath: DeathHook = ({ state }, c) => {
   if (c.id === state.playerId) state.contracts.current = null;
 };
 
+/** The house has come to its end (`end`, D-315): the work under way goes with it, unsettled. */
+export function dropContract(state: GameState): void {
+  state.contracts.current = null;
+}
+
+/** The new head offers no work to himself: his offers leave the boards. */
+export const contractsOnSuccession: SuccessionHook = ({ state }, _deceased, heir) => {
+  state.contracts.offers = state.contracts.offers.filter((o) => o.employer !== heir.id);
+};
+
 /** The employers of the offers and of the hero's contract stay in the hot part (D-312). */
 export const contractsRefs: RefsFn = ({ state }) => [
   ...state.contracts.offers.map((o) => o.employer),
@@ -182,12 +194,14 @@ export const contractsInvariants: Invariant = ({ state, content }) => {
     problems.push(...contractProblems(state, content, o, 'offer'));
     const employer = findCharacter(state, o.employer);
     if (employer && employer.deathDay !== null) problems.push(`offer ${o.id}: the employer is dead`);
+    if (o.employer === state.playerId) problems.push(`offer ${o.id}: the hero offers work to himself`);
   }
   if (current) {
     problems.push(...contractProblems(state, content, current, 'contract'));
     if (current.outcome !== null && current.outcome !== 'success' && current.outcome !== 'failure') problems.push(`contract ${current.id}: outcome ${String(current.outcome)}`);
     // after every command a contract is served by the action under way, or has been settled (`settleContract`)
     if (state.activeAction?.contract !== current.id) problems.push(`contract ${current.id} without its action`);
+    if (state.status === 'ended') problems.push(`contract ${current.id} after the end of the house`);
   }
   const serving = state.activeAction?.contract ?? null;
   if (serving !== null && current?.id !== serving) problems.push(`the action serves ${serving}, which is not the hero's contract`);
@@ -195,6 +209,8 @@ export const contractsInvariants: Invariant = ({ state, content }) => {
   const places = new Set(state.place.places.map((p) => p.id));
   const posted = state.contracts.posted;
   if (new Set(posted).size !== posted.length || posted.some((id) => !places.has(id))) problems.push(`contracts: boards refreshed ${posted.join(', ')}`);
+  const last = state.contracts.last;
+  if (last && (!isInt(last.pay) || !isInt(last.day) || last.day > state.day || (last.outcome !== 'success' && last.outcome !== 'failure'))) problems.push(`contracts: last settled ${JSON.stringify(last)}`);
   if (current && (!isInt(current.start) || current.start > state.day || typeof current.rolled !== 'boolean')) problems.push(`contract ${current.id}: start ${String(current.start)}, rolled ${String(current.rolled)}`);
   return problems;
 };

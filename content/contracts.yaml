@@ -14,7 +14,7 @@ contracts:
       - { id: low, name: low, chance: 25 }
       - { id: notable, name: notable, chance: 50 }
       - { id: high, name: high, chance: 75 }
-  chronicleLevel: 2                # a success from this level goes to the chronicle; a failure always does (D-203)
+  chronicle: { success: 2, failure: 1 }   # from which level an outcome goes to the chronicle, else the journal (D-203)
   favorLevel: 2                    # a success from this level leaves the employer owing a favor (D-474)
   kinds:
     - id: day_labour
@@ -71,6 +71,8 @@ contracts:
       failure:
         text: "{name} left the papers of {employer} half copied."
         on: { employer: { opinion: [{ toward: hero, reason: contract_failed }] } }
+  texts:
+    left: "{name} left the work for {employer} unfinished."
   reasons:
     none: "No work on the board here"
     busy: "You already have work"

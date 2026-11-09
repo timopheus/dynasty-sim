@@ -76,16 +76,16 @@ function complication(ctx: Ctx, current: CurrentContract, endDay: number): boole
 export function settleContract(ctx: Ctx): void {
   const current = ctx.state.contracts.current;
   if (!current || ctx.state.activeAction?.contract === current.id) return;
-  settle(ctx, current.outcome === 'success' ? 'success' : 'failure');
+  settle(ctx, current.outcome === 'success' ? 'success' : 'failure', current.outcome !== 'success');
 }
 
 /**
  * The contract ends: on success the hero is paid, and from `favorLevel` the employer owes him a favor (a strong one at
  * level 3 for a kind with `strongFavor`); then the outcome of its kind — its effects on the hero and on the employer
- * while alive (the role `employer`) and its line with the money it brought: in the chronicle for a failure and from
- * `chronicleLevel`, else in the journal (D-203).
+ * while alive (the role `employer`) and its line with the money it brought — work left unfinished has the line
+ * `texts.left` — in the chronicle from the level `chronicle` gives for the outcome, else in the journal (D-203).
  */
-function settle(ctx: Ctx, outcome: ContractOutcome): void {
+function settle(ctx: Ctx, outcome: ContractOutcome, left = false): void {
   const { state, content } = ctx;
   const current = state.contracts.current;
   state.contracts.current = null;
@@ -97,6 +97,7 @@ function settle(ctx: Ctx, outcome: ContractOutcome): void {
   const alive = employer !== null && employer.deathDay === null;
   const scope = { hero: hero.id, protagonist: hero.id, ...(alive ? { employer: current.employer } : {}) };
   const end = kind[outcome];
+  state.contracts.last = { id: current.id, outcome, left, pay: outcome === 'success' ? current.pay : 0, day: state.day };
   const before = hero.money;
   if (outcome === 'success') {
     hero.money += current.pay;
@@ -106,7 +107,9 @@ function settle(ctx: Ctx, outcome: ContractOutcome): void {
   }
   applyEffects(ctx, hero, end.effects, scope);
   if (employer && alive) applyEffects(ctx, employer, end.on?.employer, scope);
-  const parts = fillTemplate(end.text, { ...placeholderValues(hero, state.day), employer: employer ? { id: employer.id, name: fullName(employer) } : current.employer });
-  const chronicle = outcome === 'failure' || (contracts.chronicleLevel !== undefined && current.level >= contracts.chronicleLevel);
+  const text = left && contracts.texts ? contracts.texts.left : end.text;
+  const parts = fillTemplate(text, { ...placeholderValues(hero, state.day), employer: employer ? { id: employer.id, name: fullName(employer) } : current.employer });
+  const from = contracts.chronicle?.[outcome];
+  const chronicle = from !== undefined && current.level >= from;
   log(ctx, { subject: hero, kind: 'contract', level: chronicle ? 'chronicle' : 'journal', parts, money: hero.money - before });
 }
