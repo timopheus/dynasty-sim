@@ -514,6 +514,19 @@ function actionEndNews(session: Session, before: string | null, seen: number): v
   addNews(session, `${action.name}: ${money ? `${money > 0 ? '+' : '−'}${Math.abs(money)} crowns` : 'done'}`);
 }
 
+/**
+ * The end of work on a contract (CK.4) is a word in the news, whether done, failed or left: the line it wrote, which
+ * says which, and the money the hero has more or less since `money` (the pay and what the outcome brought).
+ */
+function contractNews(session: Session, seen: number, money: number): void {
+  const { state } = session;
+  const hero = getPlayer(state);
+  const line = allChronicle(state).slice(seen).find((e) => e.kind === 'contract' && e.subject === hero.id);
+  if (!line) return;
+  const delta = hero.money - money;
+  addNews(session, `${entryText(line)}${delta !== 0 ? ` ${delta > 0 ? '+' : '−'}${Math.abs(delta)} crowns.` : ''}`);
+}
+
 /** One day of the clock: `wait 1`, the idle action again if it ended, a stop on a decision. */
 async function runDay(session: Session): Promise<void> {
   session.timer = null;
@@ -527,8 +540,10 @@ async function runDay(session: Session): Promise<void> {
   try {
     const seen = allChronicle(session.state).length;
     const endingAction = session.state.activeAction?.actionId ?? null;
+    const money = getPlayer(session.state).money;
     const stopped = tick(session.journal, session.state, session.content);
     actionEndNews(session, endingAction, seen);
+    contractNews(session, seen, money);
     session.clock.unsaved += 1;
     const lines = allChronicle(session.state).slice(seen).filter((e) => e.level === 'chronicle').map(entryText);
     session.queue.push(chronicleAnnouncement(lines));
@@ -634,9 +649,11 @@ async function act(session: Session, cmd: Command): Promise<void> {
     const ctx = { state: session.state, content: session.content };
     // the archive phase moves old lines out of the hot part: count over the whole chronicle
     const seen = allChronicle(session.state).length;
+    const money = getPlayer(session.state).money;
     let before = null;
     if (cmd.type === 'choose') before = beforeChoice(ctx, cmd.option);
     applyRecorded(session.journal, session.state, session.content, cmd);
+    contractNews(session, seen, money);
     session.focusAfterRender = true;
     if (before) {
       const outcome = outcomeOf(ctx, before);

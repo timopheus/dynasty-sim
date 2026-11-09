@@ -17,7 +17,8 @@ const shot = (page: Page, seed: number, name: string) => page.screenshot({ path:
  * The directions of the journey fold into a menu (S.9): a folded button cannot be pressed, the place spec opens it.
  */
 async function choices(page: Page) {
-  return (await page.locator('.modal-layer').count()) > 0 ? page.locator('.modal-layer .option button.choice') : page.locator('.actions-panel button.action:not(.grey):visible');
+  // the button of the work board opens a window and takes no turn (CK.4): the board has its own test
+  return (await page.locator('.modal-layer').count()) > 0 ? page.locator('.modal-layer .option button.choice') : page.locator('.actions-panel button.action:not(.grey):not([data-action="board"]):visible');
 }
 
 /**
@@ -217,7 +218,7 @@ for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]
     expect(Math.abs(top.left - bottom.left), 'the header and the block start on one line').toBeLessThan(2);
     // the actions are on shelves, with their information inside the button and no digit before the name
     await expect(page.locator('.actions-panel .shelf h2').first()).toHaveText('Livelihood');
-    const first = page.locator('.actions-panel button.action').first();
+    const first = page.locator('.actions-panel button.action:not([data-action="board"])').first();
     await expect(first).toContainText(/\d+(–\d+)? days/);
     for (const name of await page.locator('.actions-panel .action-name').allTextContents()) expect(name).not.toMatch(/^\d/);
     // the map fills the whole window under the panels, as in CK3 (M.1, D-469); the block "where I am" ends at the bottom
