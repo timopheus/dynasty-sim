@@ -111,14 +111,14 @@ translations:
   - en: "{name} became heir to the feud between {deceased} and {other}."
     text: "{name} {~унаследовал|унаследовала} вражду между {deceased:ins} и {other:ins}."
   - en: Needs {word} towards {name}
-    text: "К {name}: нужна {word}"
+    text: "К {name:dat}: нужно отношение «{word}»"
   - en: Needs no more than {word} towards {name}
-    text: "К {name}: не больше, чем {word}"
+    text: "К {name:dat}: отношение не выше «{word}»"
   - en: "Needs a bond with {name}: {kind}"
-    text: "Нужна связь с {name}: {kind}"
+    text: "Нужна связь с {name:ins}: {kind}"
   - en: Must not be bound to {name} as {kind}
-    text: "Нет связи с {name}: {kind}"
+    text: "Не должно быть связи с {name:ins}: {kind}"
   - en: You must know {name}
-    text: "Нужно знакомство: {name}"
+    text: "Нужно знать {name:acc}"
   - en: You must be close to {name}
-    text: "Нужна близость: {name}"
+    text: "Нужно быть близким к {name:dat}"

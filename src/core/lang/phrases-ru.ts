@@ -65,4 +65,13 @@ export const RU_CORE: Record<string, string> = {
   "{who}'s {stat} ({own}) against {against}": "{stat} — {who} ({own}) против: {against}",
   "{stat} ({own}) against {against}": "{stat} ({own}) против: {against}",
   "or": "или",
+  // a child as the object of a line: "родила сына", "потерял дочь"
+  "son": "сына",
+  "daughter": "дочь",
+  "Against your nature ({traits}): happiness −{n}": "Против твоей натуры ({traits}): довольство −{n}",
+  "True to your nature ({traits}): happiness +{n}": "По твоей натуре ({traits}): довольство +{n}",
+  "Held": "В роду",
+  "Sold in {year}": "Продана в {year}",
+  "Lost in {year}": "Утрачена в {year}",
+  "and {count} more": "и ещё {count}",
 };

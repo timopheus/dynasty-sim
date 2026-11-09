@@ -1,5 +1,7 @@
 import { fullName } from '../character/character';
-import { placeholderValues } from '../character/text';
+import { personValues, placeholderValues } from '../character/text';
+import { localName } from '../lang/phrases';
+import { resolvePlaceholder, type Case } from '../text/forms';
 import { findCharacter } from '../helpers';
 import { int, seedRng } from '../rng';
 import type { Ctx, Scope } from '../state';
@@ -22,6 +24,7 @@ export function heirloomName(ctx: Ctx, template: string, scope: Scope, seq: numb
   for (const role of Object.keys(scope)) {
     const c = findCharacter(state, scope[role] as string);
     if (!c) continue;
+    Object.assign(values, personValues(role, c));
     values[role] = fullName(c);
     for (const [key, value] of Object.entries(placeholderValues(c, state.day))) if (key !== 'name') values[`${role}.${key}`] = value;
   }
@@ -30,7 +33,11 @@ export function heirloomName(ctx: Ctx, template: string, scope: Scope, seq: numb
     let out = '';
     for (const node of nodes) {
       if (node.t === 'text') out += node.s;
-      else if (node.t === 'ph') out += partsText([values[node.name] ?? '']);
+      else if (node.t === 'ph') {
+        // a name in a case is declined here: the name of a thing is plain text (RU.1)
+        const kase = /^([a-z][a-z0-9_.]*):([a-z]+)$/.exec(node.name);
+        out += kase ? localName(content, partsText([values[kase[1] as string] ?? '']), kase[2] as Case) : partsText([resolvePlaceholder(node.name, values) ?? '']);
+      }
       else if (node.t === 'opt') out += scope[node.role] === undefined ? '' : expand(node.nodes, depth);
       else {
         const grammar = content.grammar ?? {};

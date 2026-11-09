@@ -45,9 +45,10 @@ export function checkFamilyConditions(ctx: Ctx, c: Character, when: FamilyWhen, 
   const texts = content.family?.texts;
   if (!texts) throw new Error('The conditions "married", "kin", "children_min" and "can_marry" need the family section');
   const unmet: Unmet[] = [];
-  const nameOf = (id: string) => {
+  // the person a reason names: the name, and the sex for the forms of the language (RU.1)
+  const nameOf = (id: string): Record<string, string> => {
     const other = findCharacter(state, id);
-    return other ? fullName(other) : id;
+    return other ? { name: fullName(other), '~': other.sex === 'male' ? 'm' : 'f' } : { name: id };
   };
   if (when.married !== undefined && (c.spouse !== null) !== when.married) {
     unmet.push({ text: when.married ? texts.reasons.married : texts.reasons.unmarried, hidden: false });
@@ -56,7 +57,7 @@ export function checkFamilyConditions(ctx: Ctx, c: Character, when: FamilyWhen, 
     const other = scope[when.kin.with];
     if (other === undefined) unmet.push(NEVER);
     else if (!isKin(state, when.kin.kind, c.id, other)) {
-      unmet.push({ text: fillReason(texts.reasons.kin, { kind: texts.kinds[when.kin.kind], name: nameOf(other) }), hidden: false });
+      unmet.push({ text: fillReason(texts.reasons.kin, { kind: texts.kinds[when.kin.kind], ...nameOf(other) }, content), hidden: false });
     }
   }
   if (when.children_min !== undefined && livingChildren(ctx, c.id) < when.children_min) {
@@ -66,7 +67,7 @@ export function checkFamilyConditions(ctx: Ctx, c: Character, when: FamilyWhen, 
     const id = scope[when.can_marry];
     const other = id === undefined ? null : findCharacter(state, id);
     if (!other) unmet.push(NEVER);
-    else if (!canMarry(ctx, c, other)) unmet.push({ text: fillReason(texts.reasons.canMarry, { name: fullName(other) }), hidden: false });
+    else if (!canMarry(ctx, c, other)) unmet.push({ text: fillReason(texts.reasons.canMarry, nameOf(other.id), content), hidden: false });
   }
   return unmet;
 }

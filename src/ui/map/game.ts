@@ -5,13 +5,17 @@ import type { Ctx } from '../../core/state';
 import { cellAt, type MapModel, type Point } from './model';
 import { partOf, pointOf, wayBetween } from './roads';
 import type { MapProps } from './types';
-import { crownsText, dateText, daysText, localName, offersText, tr } from '../i18n';
+import { crownsText, dateText, daysText, localName, offersText, sourceContent, tr } from '../i18n';
 
-/** Where the places of the game lie on the map: the towns of the map with the same names (S.9 named the places after them). */
+/**
+ * Where the places of the game lie on the map: the towns of the map with the same names (S.9 named the places after
+ * them). The map names them in English, so the English names of the places are looked for (RU.1).
+ */
 function placePoints(ctx: Ctx, model: MapModel): Map<string, Point> {
   const out = new Map<string, Point>();
+  const english = sourceContent(ctx.content);
   for (const record of ctx.state.place.places) {
-    const def = placeDef(ctx.state, ctx.content, record.id);
+    const def = placeDef(ctx.state, english, record.id);
     const burg = def ? model.burgs.find((b) => b.name === def.name) : undefined;
     if (burg) out.set(record.id, { x: burg.x, y: burg.y });
   }

@@ -64,7 +64,7 @@ export function housePage(ctx: Ctx, id: string): EntityPage | null {
       if (i > 0) parts.push(', ');
       parts.push({ id: c.id, name: fullName(c) });
     });
-    if (living.length > MEMBER_LIMIT) parts.push(` and ${living.length - MEMBER_LIMIT} more`);
+    if (living.length > MEMBER_LIMIT) parts.push(` ${phrase(ctx.content, 'and {count} more', { count: living.length - MEMBER_LIMIT })}`);
     facts.push({ label: 'Living', parts });
   }
   return { id, kind: 'house', title: phrase(ctx.content, 'House {name}', { name: localName(ctx.content, house.name) }), subtitle: status, facts, chronicle: houseChronicle(ctx, id) };

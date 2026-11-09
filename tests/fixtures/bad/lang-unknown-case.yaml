@@ -1,0 +1,5 @@
+# expect-error: translations[0].text /unknown case ":abl"/
+language: { id: ru, name: Русский }
+translations:
+  - en: "{name} grew proud."
+    text: "{name:abl} гордится."

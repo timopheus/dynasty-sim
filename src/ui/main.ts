@@ -52,7 +52,7 @@ import { mapView } from './map/view';
 import { willForm } from './will';
 import './style.css';
 import './frame.css';
-import { currentLang, dateText, savedLang, setLang, tr, useNames, type Lang } from './i18n';
+import { currentLang, dateText, savedLang, setLang, tr, useNames, useSource, type Lang } from './i18n';
 
 const raw = import.meta.glob<string>('/content/**/*.{yaml,yml}', { query: '?raw', import: 'default', eager: true });
 const files = Object.keys(raw)
@@ -793,6 +793,7 @@ const loadedRu = loaded.ok ? loadContent([...files, ...ruFiles]) : null;
 if (loadedRu && !loadedRu.ok) console.warn('Russian is off:', loadedRu.errors.slice(0, 20).map((e) => `${e.file}: ${e.path}: ${e.message}`).join('\n'));
 const contents: Record<Lang, Content | null> = { en: loaded.ok ? loaded.content : null, ru: loadedRu?.ok ? loadedRu.content : null };
 if (contents.ru) useNames(contents.ru);
+if (contents.en) useSource(contents.en);
 setLang(savedLang() === 'ru' && contents.ru ? 'ru' : 'en');
 let current: Session | null = null;
 window.addEventListener('hashchange', () => {

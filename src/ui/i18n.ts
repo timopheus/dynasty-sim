@@ -21,6 +21,9 @@ export function currentLang(): Lang {
 
 export function setLang(next: Lang): void {
   lang = next;
+  // a screen reader reads the page in the voice of its language
+  const page = (globalThis as { document?: { documentElement: { lang: string } } }).document;
+  if (page) page.documentElement.lang = next;
   try {
     localStorage.setItem(STORE_KEY, next);
   } catch {
@@ -89,6 +92,18 @@ export function dateText(day: number): string {
 export function monthText(month: number, inPhrase = false): string {
   const name = (lang === 'ru' ? MONTHS_RU_NOM : MONTHS_EN)[month - 1] ?? '';
   return lang === 'ru' && inPhrase ? name.toLowerCase() : name;
+}
+
+/** The English content, the source of every translation (RU.1): the map names its towns in English. */
+let source: Content | null = null;
+
+export function useSource(content: Content): void {
+  source = content;
+}
+
+/** The content whose names match the map: the English source, else the one given. */
+export function sourceContent(fallback: Content): Content {
+  return source ?? fallback;
 }
 
 /** The content of the Russian language, whose forms of names `localName` uses. */

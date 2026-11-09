@@ -1,5 +1,6 @@
 import type { Content } from '../content/schema';
-import { phrase } from '../lang/phrases';
+import { localName, phrase } from '../lang/phrases';
+import { CASES, resolvePlaceholder, type Case } from '../text/forms';
 
 /** Reason texts for unmet conditions come from content (`time.reasons`, D-043); this fills their placeholders. */
 export type ReasonVars = Record<string, string>;
@@ -16,8 +17,24 @@ export function checkReason(template: string, allowed: readonly string[]): strin
   return null;
 }
 
-export function fillReason(template: string, vars: ReasonVars): string {
-  return template.replace(VAR_RE, (_m, name: string) => vars[name] ?? '');
+const CASE_RE = /^([a-z][a-z0-9_]*):([a-z]+)$/;
+
+/**
+ * Fills a reason. With the content, the names in it speak its language (RU.1): `{name}` is the name as the language
+ * writes it, `{name:gen}` in a case, `{~он|она}` by the sex in `vars['~']` (`m` or `f`; the first form without it).
+ */
+export function fillReason(template: string, vars: ReasonVars, content?: Content): string {
+  return template.replace(VAR_RE, (_m, name: string) => {
+    const kase = CASE_RE.exec(name);
+    if (kase) {
+      const value = vars[kase[1] as string] ?? '';
+      const c = kase[2] as Case;
+      return content && (CASES as readonly string[]).includes(c) ? localName(content, value, c) : value;
+    }
+    if (name.includes('~')) return String(resolvePlaceholder(name, vars) ?? '');
+    const value = vars[name] ?? '';
+    return content && name === 'name' ? localName(content, value) : value;
+  });
 }
 
 /** "a", "a or b", "a, b or c"; "or" in the language of the content (RU.1). */

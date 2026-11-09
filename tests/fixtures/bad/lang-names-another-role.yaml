@@ -1,0 +1,5 @@
+# expect-error: translations[0].text /names \{other\}/
+language: { id: ru, name: Русский }
+translations:
+  - en: "{name} rested."
+    text: "{name} {~отдыхал|отдыхала} с {other:ins}."

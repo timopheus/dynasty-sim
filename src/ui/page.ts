@@ -24,7 +24,7 @@ export function partNodes(make: Make, parts: readonly TextPart[]): (Node | strin
     const found = personTipOf(p.id);
     if (!found) return link;
     // the title is the full name: it says nothing more where the link shows the full name already (D-465)
-    const tip = found.title === p.name ? { text: found.text } : found;
+    const tip = found.title === p.name || found.title === localName(p.name) ? { text: found.text } : found;
     // a person's name opens the menu of the person on a right click (D-448)
     return withTip(/^c\d+$/.test(p.id) ? markPerson(link, p.id) : link, tip);
   });

@@ -8,7 +8,12 @@ import { comparePlaceholders } from '../src/core/lang/content';
 import { localName } from '../src/core/lang/phrases';
 import { setStrictForms } from '../src/core/text/forms';
 import { runSim } from '../src/core/sim';
-import { mapName, setLang, transliterate } from '../src/ui/i18n';
+import { mapName, setLang, transliterate, useSource } from '../src/ui/i18n';
+import { mapProps } from '../src/ui/map/game';
+import { buildModel, type MapFile } from '../src/ui/map/model';
+import { newGame } from '../src/core/game';
+import { fillReason } from '../src/core/conditions/reasons';
+import { BASE_FILES } from './fixtures/content';
 import { RU } from '../src/ui/i18n-ru';
 import { readContentFiles } from '../tools/content-files';
 
@@ -84,6 +89,31 @@ describe('RU.1: Russian, the second language (D-476)', () => {
     } finally {
       setLang('en');
     }
+  });
+
+  it('a language without the translation of a text of the content fails, at that text', () => {
+    const result = loadContent([...BASE_FILES, { path: 'lang/ru/language.yaml', text: 'language: { id: ru, name: Русский }\n' }]);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors.some((e) => e.file.startsWith('tests/fixtures/base/') && /no translation of "\{name\} waited\."/.test(e.message))).toBe(true);
+  });
+
+  it('a reason names a person in the case and the sex its language asks', () => {
+    const man = { name: 'Thomas Holloway', '~': 'm' };
+    expect(fillReason('К {name:dat}: нужно', man, russian)).toBe('К Томасу Холлоуэю: нужно');
+    expect(fillReason('Брак с {name:ins} невозможен', { name: 'Anne Calder', '~': 'f' }, russian)).toBe('Брак с Энн Колдер невозможен');
+    expect(fillReason('{name} {~готов|готова}', { name: 'Anne Calder', '~': 'f' }, russian)).toBe('Энн Колдер готова');
+    expect(fillReason('Needs to know {name}', man, english)).toBe('Needs to know Thomas Holloway');
+  });
+
+  it('puts every place of the game on the Russian map: the map names its towns in English', () => {
+    const model = buildModel(JSON.parse(readFileSync(join(import.meta.dirname, '../src/ui/map/region-map.json'), 'utf8')) as MapFile);
+    const state = newGame(1, russian);
+    useSource(english);
+    const props = mapProps({ state, content: russian }, model, { open: () => {}, travel: () => {} });
+    expect(state.place.places.length).toBeGreaterThan(0);
+    expect(props.places.length).toBe(state.place.places.length);
+    expect(props.places.map((p) => p.name).join(' ')).toMatch(/[а-яё]/i);
   });
 
   it('the same seed gives the same game in both languages; only the words differ', () => {
