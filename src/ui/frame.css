@@ -12,6 +12,7 @@
   --frame-right: 19rem;
   --frame-top: 4rem;
   --frame-portrait: 6.25rem;
+  --frame-modes: 3.375rem;
   --card-border: 2px solid var(--fg);
   --card-shadow: 3px 3px 0 rgb(0 0 0 / 0.22);
 }
@@ -59,6 +60,7 @@
   }
 
   .game .left-column > .avatar {
+    box-shadow: var(--card-shadow);
     position: static;
     flex: 0 0 auto;
     align-self: flex-start;
@@ -92,7 +94,8 @@
   /* the header: over the free map and the right column, one height */
   .game > .topbar {
     position: fixed;
-    z-index: 2;
+    /* above the columns: the menu and the breakdown of the money drop over them */
+    z-index: 4;
     top: var(--frame-m);
     left: var(--free-left);
     right: var(--frame-m);
@@ -183,7 +186,7 @@
   }
 
   .game > .map-view .map-legend {
-    top: calc(var(--frame-m) + var(--frame-top) + var(--frame-g) + 3rem);
+    top: calc(var(--frame-m) + var(--frame-top) + var(--frame-g) + var(--frame-modes) + var(--frame-g));
     right: calc(var(--frame-m) + var(--frame-right) + var(--frame-g));
     box-shadow: var(--card-shadow);
   }
@@ -208,8 +211,23 @@
   }
 }
 
+/* on a laptop the block keeps what matters (the place, its table, what goes on now, the roads): the empty picture
+   frame and the line of description give way */
 @media (min-width: 48rem) and (max-width: 1365px) {
-  .game > .center .place-table {
-    grid-template-columns: minmax(0, 1fr);
+  .game > .center .place-picture,
+  .game > .center .place-line {
+    display: none;
+  }
+}
+
+/* 4. a window of a decision stands in the free part of the map, under the header and the map modes, not over them */
+@media (min-width: 48rem) {
+  .game ~ .modal-layer {
+    padding: calc(var(--frame-m) + var(--frame-top) + var(--frame-g) + var(--frame-modes) + var(--frame-g))
+      calc(var(--frame-m) + var(--frame-right) + var(--frame-g)) var(--frame-m) var(--free-left-window, calc(var(--frame-m) + var(--frame-side) + var(--frame-g)));
+  }
+
+  .game.side-closed ~ .modal-layer {
+    --free-left-window: calc(var(--frame-m) + 2.75rem + var(--frame-g));
   }
 }

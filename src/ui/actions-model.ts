@@ -153,7 +153,8 @@ export function placeActions(ctx: Ctx, placeId: string): PlaceActions | null {
   if (!def || state.backstory.running || state.status === 'ended') return null;
   const bound = placeBound(ctx);
   if (standingIn(state, content) === placeId) {
-    const ids = new Set(bound.map((a) => a.id));
+    // what this kind of place never allows is left off, as the panel leaves off what is outgrown (D-443)
+    const ids = new Set(bound.filter((a) => a.when?.at_place_kind?.includes(def.kind)).map((a) => a.id));
     const buttons = actionShelves(ctx, null).shelves.flatMap((s) => s.buttons).filter((b) => ids.has(b.id));
     return { here: true, travel: null, buttons, there: [] };
   }
@@ -162,7 +163,7 @@ export function placeActions(ctx: Ctx, placeId: string): PlaceActions | null {
   if (!journey) return { here: false, travel: null, buttons: [], there };
   const going = state.activeAction?.target ?? null;
   const days = routesFrom(state, content).find((r) => r.to === placeId)?.days;
-  const name = `${going !== null ? 'Turn toward' : 'Travel to'} ${def.name}`;
+  const name = `${going !== null && going !== placeId ? 'Turn toward' : 'Travel to'} ${def.name}`;
   const info = [...(days !== undefined ? [daysWord(days)] : []), ...moneyInfo(ctx, journey)];
   const choosing = state.status === 'awaiting_action' || state.status === 'running';
   const availability = actionAvailability(ctx).find((x) => x.action.id === journey.id);

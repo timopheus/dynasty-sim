@@ -43,7 +43,8 @@ describe('the map and the game (M.1)', () => {
     expect(props.travel(here).enabled).toBe(false);
     const other = props.places.find((p) => p.id !== here && props.travel(p.id).enabled);
     expect(other, 'a place to travel to').toBeDefined();
-    expect(props.travel(other?.id ?? '').label).toMatch(/^Travel to .+ \(\d+ days?\)$/);
+    expect(props.travel(other?.id ?? '').label).toMatch(/^Travel to \S.*$/);
+    expect(props.travel(other?.id ?? '').note).toMatch(/^\d+ days? · costs 5 crowns$/);
     props.onTravel(other?.id ?? '');
     expect(calls).toHaveLength(1);
     const [actionId, target] = calls[0] as [string, string];
@@ -54,7 +55,10 @@ describe('the map and the game (M.1)', () => {
     expect(path[path.length - 1]).toEqual(props.places.find((p) => p.id === target)?.at);
     expect(path[0]).toEqual(moving.hero);
     expect(moving.hero).not.toEqual(props.hero);
-    expect(props.travel(other?.id ?? '').note).toBe('costs 5 crowns');
+    // the place the hero is going to keeps "Travel to", grey with its reason; another one turns him
+    const going = mapProps({ state, content }, model, noop);
+    expect(going.travel(target).label).toMatch(/^Travel to /);
+    expect(going.travel(target).enabled).toBe(false);
   });
 
   it('draws a long journey along the roads through every place on its way, not straight to the end', () => {
@@ -63,7 +67,7 @@ describe('the map and the game (M.1)', () => {
     const props = mapProps({ state, content }, model, noop);
     // the farthest place with a road: its way passes other places
     const far = props.places.filter((p) => props.travel(p.id).enabled).sort((a, b) => {
-      const days = (id: string) => Number(/\((\d+) days?\)/.exec(props.travel(id).label)?.[1] ?? 0);
+      const days = (id: string) => Number(/^(\d+) days?/.exec(props.travel(id).note)?.[1] ?? 0);
       return days(b.id) - days(a.id);
     })[0];
     expect(far).toBeDefined();

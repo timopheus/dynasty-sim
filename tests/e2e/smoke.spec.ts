@@ -130,8 +130,10 @@ for (const seed of SEEDS) {
 
 /** Answers the scenes of the backstory and stands the clock still, so the panel is free and the screen does not change. */
 async function growUp(page: Page): Promise<void> {
+  // the first draw: the screen of the early years, or the game itself after a reload
+  await expect(page.locator('.backstory-screen, .clock').first()).toBeVisible();
   for (let i = 0; i < 40; i++) {
-    if ((await page.locator('.modal-layer').count()) > 0) {
+    if ((await page.locator('.modal-layer').count()) > 0 || (await page.locator('.backstory-screen').count()) > 0) {
       await page.locator('.modal-layer .option button.choice').first().click({ timeout: 2_000 }).catch(() => undefined);
       continue;
     }

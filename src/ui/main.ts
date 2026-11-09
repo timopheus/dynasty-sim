@@ -348,7 +348,7 @@ function render(session: Session): void {
           onSpeed: (speed) => setSpeed(session, speed),
         }))));
   // the menu stays reachable under a pinned window: "New game" must work whatever is pending
-  if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar, .avatar, .actions-panel')) part.inert = true;
+  if (modal) for (const part of game.querySelectorAll<HTMLElement>('.center, .sidebar, .sidebar-toggle, .avatar, .actions-panel')) part.inert = true;
   // the map is kept across draws: it is closed under a window and open again without one
   map.element.inert = modal !== null;
   const menu = menuNodeFor(session);

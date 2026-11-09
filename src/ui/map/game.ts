@@ -169,9 +169,9 @@ export function mapProps(ctx: Ctx, model: MapModel, handlers: { open: (id: strin
       const name = placeDef(state, content, id)?.name ?? id;
       const days = routes.get(id);
       const verb = going !== null ? 'Turn toward' : 'Travel to';
-      const label = days === undefined ? `${verb} ${name}` : `${verb} ${name} (${dayWord(days)})`;
-      // the price stands by the item, as on the buttons of the actions (D-443)
-      const note = cost > 0 ? `costs ${cost} crowns` : '';
+      const label = `${id === going ? 'Travel to' : verb} ${name}`;
+      // the days and the price stand under the name, as on the buttons of the actions and the page of the place (D-443)
+      const note = [...(days !== undefined ? [dayWord(days)] : []), ...(cost > 0 ? [`costs ${cost} crowns`] : [])].join(' · ');
       const grey = (reason: string) => ({ label, note, enabled: false, reason });
       if (!travel) return grey('There is no travelling yet');
       if (id === here) return { label: `Travel to ${name}`, note, enabled: false, reason: 'You are here' };

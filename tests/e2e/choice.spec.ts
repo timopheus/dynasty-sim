@@ -5,6 +5,8 @@ const TIP_WAIT = 1_000;
 
 /** Answers the scenes of the backstory (first answer) until the hero is free and the clock stands. */
 async function growUp(page: Page): Promise<void> {
+  // the first draw: the screen of the early years (playtest 09.11), or the game itself
+  await expect(page.locator('.backstory-screen, .clock').first()).toBeVisible();
   for (let i = 0; i < 60; i++) {
     if ((await page.locator('.modal-layer').count()) > 0) {
       await page.locator('.modal-layer .option button.choice').first().click({ timeout: 2_000 }).catch(() => undefined);

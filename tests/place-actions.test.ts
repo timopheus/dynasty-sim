@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { newGame, play } from '../src/core/game';
+import { apply, newGame, play } from '../src/core/game';
 import { botCommand } from '../src/core/bot';
 import { getPlayer } from '../src/core/helpers';
 import { seedRng } from '../src/core/rng';
@@ -28,6 +28,8 @@ describe('what a place offers on its page', () => {
     expect(offers?.buttons.map((b) => b.id)).toContain('serve_contract');
     expect(offers?.buttons.some((b) => !b.grey)).toBe(true);
     expect(offers?.buttons.map((b) => b.id)).not.toContain('travel');
+    // what a town never allows (hunting is for a village or the road) is not offered in a town
+    expect(offers?.buttons.map((b) => b.id)).not.toContain('hunt');
     const page = sidebarPage({ state, content }, here);
     expect(page.blocks.some((b) => b.type === 'heading' && b.text === 'Here you can')).toBe(true);
   });
@@ -47,5 +49,17 @@ describe('what a place offers on its page', () => {
   it('offers nothing while the backstory runs', () => {
     const state = newGame(1, content);
     expect(placeActions({ state, content }, state.place.places[0]?.id ?? '')).toBeNull();
+  });
+
+  it('keeps "Travel to" for the place the hero is already going to, grey with the reason', () => {
+    const state = grownUp(1);
+    getPlayer(state).money = 100;
+    const other = state.place.places.find((p) => p.id !== state.place.here && placeActions({ state, content }, p.id)?.travel?.grey === false);
+    apply(state, content, { type: 'start', actionId: 'travel', target: other?.id ?? '' });
+    apply(state, content, { type: 'wait', days: 1 });
+    const offers = placeActions({ state, content }, other?.id ?? '');
+    expect(offers?.travel?.name).toMatch(/^Travel to /);
+    expect(offers?.travel?.grey).toBe(true);
+    expect(offers?.travel?.reason).toBe('you are going there');
   });
 });
