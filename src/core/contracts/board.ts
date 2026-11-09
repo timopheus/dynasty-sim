@@ -4,7 +4,7 @@ import { currentPoint, placeDef, routesFrom, routesFromPlace } from '../place/pl
 import { int, pick, seedRng, weightedPick } from '../rng';
 import type { Character, Ctx, GameState } from '../state';
 import { ageYears, toYmd } from '../time/calendar';
-import { postOffer } from './contracts';
+import { boardOfferId, postOffer } from './contracts';
 
 /**
  * Stream of the boards in `seedRng(seed, stream)` (CK.3): a month and a place apart, like the weather (S.9), so the boards
@@ -32,18 +32,29 @@ export function placesInReach(state: GameState, content: Content): string[] {
 }
 
 /**
+ * The place the hero last stood in when the boards were looked at, by game: a cache that is never stored. Within a month
+ * the boards are looked at again only when he stands somewhere new, not every day of the road (the ways of a point on a
+ * road are not cached across days).
+ */
+const LOOKED_FROM = new WeakMap<GameState, string | null>();
+
+/**
  * Boards within reach of the hero that have not been refreshed this month get their offers of the month (CK.3): on a new
- * month every board within reach, and a board the hero comes within reach of later in the month when he does. Offers
- * still on a board stay; only the missing ones are posted.
+ * month every board within reach, and a board that comes within reach later in the month once the hero stands in a new
+ * place. Offers still on a board stay; only the missing ones are posted.
  */
 export function refreshBoards(ctx: Ctx): void {
   const { state, content } = ctx;
   if (!content.contracts?.board || !content.places) return;
   const month = monthOf(state.day);
-  if (state.contracts.month !== month) {
+  const standing = state.activeAction?.target ? null : state.place.here;
+  if (state.contracts.month === month) {
+    if (standing === null || LOOKED_FROM.get(state) === standing) return;
+  } else {
     state.contracts.month = month;
     state.contracts.posted = [];
   }
+  LOOKED_FROM.set(state, standing);
   for (const id of placesInReach(state, content)) {
     if (state.contracts.posted.includes(id)) continue;
     state.contracts.posted.push(id);
@@ -84,6 +95,7 @@ function fillBoard(ctx: Ctx, placeId: string, month: number): void {
   const want = int(rng, size.min, size.max);
   let have = state.contracts.offers.filter((o) => o.place === placeId).length;
   let people = freeEmployers(ctx);
+  let slot = 0;
   const ways = routesFromPlace(state, content, placeId);
   const kinds = contracts.kinds.filter((k) => k.offer?.places.includes(def.kind));
   while (have < want) {
@@ -107,7 +119,8 @@ function fillBoard(ctx: Ctx, placeId: string, month: number): void {
       days = way.days;
     } else days = int(rng, offer.days?.min ?? 1, offer.days?.max ?? 1);
     const stay = int(rng, board.stay.min, board.stay.max);
-    postOffer(state, { kind: kind.id, place: placeId, employer: employer.id, level, pay: board.pay[level] ?? 0, to, days, expires: state.day + stay });
+    postOffer(state, { kind: kind.id, place: placeId, employer: employer.id, level, pay: board.pay[level] ?? 0, to, days, expires: state.day + stay }, boardOfferId(month, index, slot));
+    slot += 1;
     people = people.filter((p) => p !== employer);
     have += 1;
   }

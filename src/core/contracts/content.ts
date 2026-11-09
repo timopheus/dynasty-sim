@@ -194,6 +194,8 @@ function checkOffers(file: string, item: ContractsContent, sources: OfferSources
     if (sources.places.length === 0) err('board', 'boards need the top-level key "places"');
     board.sizes.forEach((s, i) => {
       if (sources.places.length > 0 && !placeKinds.has(s.kind)) err(`board.sizes[${i}].kind`, `unknown kind of place "${s.kind}"`);
+      // the ids of the offers of a board have room for 8 a month (`boardOfferId`)
+      if (s.size.max > 8) err(`board.sizes[${i}].size.max`, 'a board holds at most 8 offers');
     });
     const risks = new Set(board.risks.map((r) => r.id));
     if (risks.size !== RISKS.length) err('board.risks', `every risk once: ${RISKS.join(', ')}`);

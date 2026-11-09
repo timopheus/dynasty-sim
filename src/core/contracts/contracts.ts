@@ -65,13 +65,25 @@ export function initContractsState(): ContractsState {
 export const MAX_CONTRACT_LEVEL = 3;
 
 /**
- * Posts an offer on the board of a place and returns it (CK.3 fills the boards through it). The id is new; nothing is
- * checked here beyond what the invariants check after the command.
+ * Posts an offer on the board of a place and returns it. The id is a new one of the game (`newId`) unless the board gives
+ * its own (`boardOfferId`); nothing is checked here beyond what the invariants check after the command.
  */
-export function postOffer(state: GameState, offer: Omit<Contract, 'id'>): Contract {
-  const posted: Contract = { id: newId(state, 'k'), ...offer };
+export function postOffer(state: GameState, offer: Omit<Contract, 'id'>, id: string = newId(state, 'k')): Contract {
+  const posted: Contract = { id, ...offer };
   state.contracts.offers.push(posted);
   return posted;
+}
+
+/** First number of the ids the boards give their offers: far above any id the counter of the game will reach. */
+const BOARD_IDS = 1_000_000_000;
+
+/**
+ * The id of the `slot`-th offer posted on the board of the place at `index` in a month (CK.3): `k` and a number made of
+ * the three, so the boards spend nothing of the counter of the game (`nextId`) and the ids of the people do not move with
+ * them (their looks and kin are drawn from streams by id). A board posts at most 8 offers in a month.
+ */
+export function boardOfferId(month: number, index: number, slot: number): string {
+  return `k${BOARD_IDS + (month * 64 + index) * 8 + slot}`;
 }
 
 /** Offers on the board of the place the hero stands in (not passing through, D-462), in the order posted. Pure. */
