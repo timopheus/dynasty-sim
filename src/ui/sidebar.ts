@@ -9,6 +9,7 @@ import { partNodes, entryNode } from './page';
 import { sidebarPage, type Block, type SidebarPage } from './sidebar-model';
 import { withTip } from './tooltip';
 import './sidebar.css';
+import { offersText, tr } from './i18n';
 
 /** What the panel remembers between renders: open or folded, the trail of visited pages, the page whose whole chronicle shows. */
 export interface SidebarState {
@@ -46,12 +47,12 @@ function entryList(entries: ChronicleEntry[], own: string | null, heads: Readonl
 function blockNodes(block: Block, props: SidebarProps, page: SidebarPage): (Node | string)[] {
   switch (block.type) {
     case 'heading':
-      return [el('h3', {}, block.text)];
+      return [el('h3', {}, tr(block.text))];
     case 'text':
       return [el('p', {}, block.text)];
     case 'facts':
       return [el('dl', { className: 'facts' }, ...block.rows.flatMap((r) => [
-        withTip(el('dt', {}, r.label), r.tip),
+        withTip(el('dt', {}, tr(r.label)), r.tip),
         el('dd', {}, ...partNodes(el, r.parts)),
       ]))];
     case 'traits':
@@ -63,14 +64,14 @@ function blockNodes(block: Block, props: SidebarProps, page: SidebarPage): (Node
       const out: (Node | string)[] = [];
       if (place.travel) out.push(buttonNode(place.travel, props.onAct, place.travel.target));
       out.push(...place.buttons.map((b) => buttonNode(b, props.onAct)));
-      if (place.here && place.buttons.length === 0 && place.work === 0) out.push(el('p', { className: 'meta' }, 'Nothing to do in this place for now.'));
-      if (!place.here && place.there.length > 0) out.push(el('p', { className: 'meta' }, `There: ${place.there.join(', ').toLowerCase()}.`));
+      if (place.here && place.buttons.length === 0 && place.work === 0) out.push(el('p', { className: 'meta' }, tr('Nothing to do in this place for now.')));
+      if (!place.here && place.there.length > 0) out.push(el('p', { className: 'meta' }, tr('There: {what}.', { what: place.there.join(', ').toLowerCase() })));
       if (place.work > 0) {
         // the board of the place (D-475: "later the board of work lies here")
         const held = place.workHeld !== '';
         const board = el('button', { className: held ? 'action grey' : 'action', type: 'button' },
-          el('span', { className: 'action-name' }, 'Work on the board'),
-          el('span', { className: 'note' }, place.work === 1 ? '1 offer' : `${place.work} offers`),
+          el('span', { className: 'action-name' }, tr('Work on the board')),
+          el('span', { className: 'note' }, offersText(place.work)),
           ...(held ? [el('span', { className: 'reason' }, place.workHeld)] : []));
         if (held) board.setAttribute('aria-disabled', 'true');
         else board.onclick = () => props.onBoard(page.id);
@@ -85,15 +86,15 @@ function blockNodes(block: Block, props: SidebarProps, page: SidebarPage): (Node
 }
 
 function breadcrumbs(props: SidebarProps, page: SidebarPage): HTMLElement {
-  const crumbs = el('nav', { className: 'crumbs', ariaLabel: 'Pages you have opened' });
+  const crumbs = el('nav', { className: 'crumbs', ariaLabel: tr('Pages you have opened') });
   const trail = props.view.trail;
   const before = trail.slice(0, -1);
   if (before.length === 0) {
-    crumbs.append(el('span', { className: 'kind' }, page.kind));
+    crumbs.append(el('span', { className: 'kind' }, tr(page.kind)));
     return crumbs;
   }
   const back = before[before.length - 1] as string;
-  crumbs.append(el('a', { href: hrefOf(back), className: 'back' }, '← Back'));
+  crumbs.append(el('a', { href: hrefOf(back), className: 'back' }, tr('← Back')));
   for (const id of before) crumbs.append(' ', el('a', { href: hrefOf(id), className: 'crumb' }, sidebarPage(props.ctx, id).title), ' ›');
   crumbs.append(' ', el('span', { className: 'kind' }, page.title));
   return crumbs;
@@ -113,9 +114,9 @@ export function sidebarPanel(props: SidebarProps): HTMLElement[] {
   const toggle = el('button', { className: 'sidebar-toggle', type: 'button', onclick: props.onToggle }, props.view.open ? '‹' : '›');
   toggle.setAttribute('aria-expanded', String(props.view.open));
   toggle.setAttribute('aria-controls', 'sidebar');
-  toggle.setAttribute('aria-label', props.view.open ? 'Fold the side panel' : 'Open the side panel');
+  toggle.setAttribute('aria-label', props.view.open ? tr('Fold the side panel') : tr('Open the side panel'));
   toggle.setAttribute('data-focus', 'sidebar-toggle');
-  withTip(toggle, { text: props.view.open ? 'Fold the panel of pages.' : 'Open the panel of pages: a person or a house.' });
+  withTip(toggle, { text: props.view.open ? tr('Fold the panel of pages.') : tr('Open the panel of pages: a person or a house.') });
   const aside = el('aside', { className: props.view.open ? 'sidebar open' : 'sidebar', id: 'sidebar' });
   if (!props.view.open) return [aside, toggle];
 
@@ -131,14 +132,14 @@ export function sidebarPanel(props: SidebarProps): HTMLElement[] {
   const kinds = page.tabs.filter((t) => t.id !== null);
   if (kinds.length > 1 || page.interact) {
     const bar = el('div', { className: 'tabs', role: 'group' }, ...kinds.map((t) => {
-      const link = el('a', { className: t.active ? 'tab active' : 'tab', href: hrefOf(t.id ?? page.id) }, t.label);
+      const link = el('a', { className: t.active ? 'tab active' : 'tab', href: hrefOf(t.id ?? page.id) }, tr(t.label));
       if (t.active) link.setAttribute('aria-current', 'page');
       link.setAttribute('data-focus', `tab-${t.label}`);
       return link;
     }));
-    bar.setAttribute('aria-label', 'Kinds of page');
+    bar.setAttribute('aria-label', tr('Kinds of page'));
     if (page.interact) {
-      const interact = el('button', { className: 'interact', type: 'button' }, 'Interact ▾');
+      const interact = el('button', { className: 'interact', type: 'button' }, tr('Interact ▾'));
       interact.setAttribute('aria-haspopup', 'menu');
       interact.setAttribute('data-focus', 'interact');
       interact.onclick = () => props.onInteract(page.id, interact);

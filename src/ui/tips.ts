@@ -4,6 +4,7 @@ import { STAT_IDS, type StatId } from '../core/character/stat-ids';
 import type { Content } from '../core/content/schema';
 import type { Character, Ctx } from '../core/state';
 import { ageYears } from '../core/time/calendar';
+import { tr } from './i18n';
 
 /**
  * What a tooltip says (D-444, D-448, D-465): a line or two, under a title when the title tells more than the name on
@@ -29,7 +30,7 @@ const signed = (n: number) => (n < 0 ? `−${-n}` : `+${n}`);
 
 /** What a stat is made of for someone whose numbers the player knows: the base, each trait, the age. */
 export function statParts(ctx: Ctx, c: Character, id: StatId): string[] {
-  const out = [`base ${c.baseStats[id]}`];
+  const out = [tr('base {n}', { n: c.baseStats[id] })];
   for (const traitId of c.traits) {
     const def = findTrait(ctx.content, traitId);
     if (!def) continue;
@@ -37,7 +38,7 @@ export function statParts(ctx: Ctx, c: Character, id: StatId): string[] {
     if (bonus !== 0) out.push(`${signed(bonus)} ${def.name}`);
   }
   const age = ageModifiers(ageYears(c.birthDay, ctx.state.day))[id] ?? 0;
-  if (age !== 0) out.push(`${signed(age)} age`);
+  if (age !== 0) out.push(`${signed(age)} ${tr('age')}`);
   return out;
 }
 
@@ -46,16 +47,17 @@ export function statTip(ctx: Ctx, c: Character | null, id: string): Tip | null {
   const known = STAT_IDS.find((s) => s === id);
   if (!known) return null;
   const parts = c ? statParts(ctx, c, known).join(' · ') : '';
-  return { text: [STAT_MEANING[known], parts ? `${parts.charAt(0).toUpperCase()}${parts.slice(1)}.` : ''].filter(Boolean).join(' ') };
+  return { text: [tr(STAT_MEANING[known]), parts ? `${parts.charAt(0).toUpperCase()}${parts.slice(1)}.` : ''].filter(Boolean).join(' ') };
 }
 
 /** A trait with what it changes, from the content; the name is on the screen already, so the tip has no title. */
 export function traitTip(content: Content, name: string): Tip | null {
   const def = content.traits.find((t) => t.name === name);
   if (!def) return null;
-  const bonuses = STAT_IDS.flatMap((s) => (def.stats?.[s] ? [`${signed(def.stats[s] ?? 0)} ${s}`] : []));
-  if (def.education) bonuses.push(`${signed(2 * def.education.level)} ${def.education.stat}`);
-  const kind = def.category === 'education' ? 'Education' : def.category === 'body' ? 'A trait of the body' : 'A trait of character';
+  const statName = (s: string) => tr(s.charAt(0).toUpperCase() + s.slice(1)).toLowerCase();
+  const bonuses = STAT_IDS.flatMap((s) => (def.stats?.[s] ? [`${signed(def.stats[s] ?? 0)} ${statName(s)}`] : []));
+  if (def.education) bonuses.push(`${signed(2 * def.education.level)} ${statName(def.education.stat)}`);
+  const kind = def.category === 'education' ? tr('Education') : def.category === 'body' ? tr('A trait of the body') : tr('A trait of character');
   return { text: [kind, bonuses.join(', ')].filter(Boolean).join('. ') + '.' };
 }
 

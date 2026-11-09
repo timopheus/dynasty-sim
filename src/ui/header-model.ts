@@ -27,19 +27,19 @@ export function headerFigures(state: GameState, content: Content): Figure[] {
   const hero = getPlayer(state);
   const house = houseOf(state, hero);
   const balance = content.economy ? monthlyBalance({ state, content }, hero) : null;
-  const money: Figure = { value: crownsText(hero.money), label: tr('money') };
+  const money: Figure = { value: crownsText(hero.money), label: 'money' };
   if (balance) {
     money.note = tr('{sum} / month', { sum: signed(balance.total) });
     money.breakdown = balance.lines.map((l) => `${l.label} ${signed(l.amount)}`);
   }
   const figures: Figure[] = [
     money,
-    { value: withNumber(fameWord(content, hero) || tr('Unknown'), hero.fame), label: tr('fame') },
+    { value: withNumber(fameWord(content, hero) || tr('Unknown'), hero.fame), label: 'fame' },
   ];
   if (house) {
     figures.push(
-      { value: withNumber(renownWord(content, house.renown) || tr('Unknown'), house.renown), label: tr('house renown') },
-      { value: statusName(content, house.status) || tr('None'), label: tr('house status') },
+      { value: withNumber(renownWord(content, house.renown) || tr('Unknown'), house.renown), label: 'house renown' },
+      { value: statusName(content, house.status) || tr('None'), label: 'house status' },
     );
   }
   return figures;

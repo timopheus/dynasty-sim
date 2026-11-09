@@ -6,6 +6,7 @@ import type { Ctx } from '../state';
 import type { TextPart } from '../text/text';
 import { seasonAt } from '../time/seasons';
 import type { EntityPage } from './entity';
+import { daysPhrase, phrase } from '../lang/phrases';
 
 /** Lines of the journal about the place the page shows: the hero's arrivals, stays and turns. */
 const VISIT_LIMIT = 10;
@@ -45,14 +46,14 @@ export function placePage(ctx: Ctx, id: string): EntityPage | null {
     const otherId = other === null ? null : placeIdOf(state, other);
     if (otherId === null) continue;
     if (roads.length > 0) roads.push(', ');
-    roads.push({ id: otherId, name: placeDef(state, content, otherId)?.name ?? other ?? '' }, ` (${daysWord(r.days)})`);
+    roads.push({ id: otherId, name: placeDef(state, content, otherId)?.name ?? other ?? '' }, ` (${daysPhrase(content, r.days)})`);
   }
   if (roads.length > 0) rows.push({ label: 'Roads', parts: roads });
   const pos = position(state, content);
-  if (pos && 'at' in pos && pos.at === id && pos.journey === null) rows.push({ label: 'You', parts: ['You are here.'] });
+  if (pos && 'at' in pos && pos.at === id && pos.journey === null) rows.push({ label: 'You', parts: [phrase(content, 'You are here.')] });
   else {
     const way = routesFrom(state, content).find((r) => r.to === id);
-    if (way) rows.push({ label: 'You', parts: [`${daysWord(way.days)} from where you are.`] });
+    if (way) rows.push({ label: 'You', parts: [phrase(content, '{days} from where you are.', { days: daysPhrase(content, way.days) })] });
   }
   return { id, kind: 'place', title: facts.name, subtitle: facts.description ?? '', facts: rows, chronicle: visits(ctx, id) };
 }

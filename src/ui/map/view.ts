@@ -11,6 +11,7 @@ import type { MapMode, MapOverlay, MapProps } from './types';
 import { MAP_MODES } from './types';
 export type { MapProps } from './types';
 import './map.css';
+import { tr } from '../i18n';
 
 const MODE_NAMES: Record<MapMode, { label: string; tip: string }> = {
   realms: { label: 'Realms', tip: 'The realms of the land and their borders (E).' },
@@ -85,14 +86,31 @@ export function mapView(): MapView {
   const held = new Set<string>();
 
   const modeButtons = MAP_MODES.map((m) => {
-    const b = el('button', { className: 'map-mode', type: 'button', onclick: () => setMode(m) }, MODE_NAMES[m].label);
+    const b = el('button', { className: 'map-mode', type: 'button', onclick: () => setMode(m) });
     b.setAttribute('data-focus', `map-mode-${m}`);
     b.setAttribute('aria-pressed', String(m === mode));
-    withTip(b, { text: MODE_NAMES[m].tip });
     modes.append(b);
     return { m, b };
   });
   modes.append(home);
+
+  /** Words of the controls in the language chosen (RU.1): set again on every update, the map itself is made once. */
+  let labelled = '';
+  function relabel(): void {
+    const sign = tr('Realms');
+    if (sign === labelled) return;
+    labelled = sign;
+    for (const { m, b } of modeButtons) {
+      b.textContent = tr(MODE_NAMES[m].label);
+      withTip(b, { text: tr(MODE_NAMES[m].tip) });
+    }
+    home.textContent = tr('Me');
+    withTip(home, { text: tr('Show where you are on the map (Home).') });
+    canvas.setAttribute('aria-label', tr('Map of the region'));
+    modes.setAttribute('aria-label', tr('Map modes'));
+    legend.setAttribute('aria-label', tr('Map key'));
+    fillLegend();
+  }
 
   /** The camera kept over the map in the free part of the screen. */
   const fix = (c: Camera): Camera => clamp(c, view, model.width, model.height, insets);
@@ -115,10 +133,11 @@ export function mapView(): MapView {
       swatch.style.background = c.color;
       return el('div', { className: 'map-legend-row' }, swatch, el('span', {}, names.get(c.id) ?? c.name));
     });
-    legend.replaceChildren(el('div', { className: 'map-legend-title' }, 'Peoples'), ...rows);
+    legend.replaceChildren(el('div', { className: 'map-legend-title' }, tr('Peoples')), ...rows);
     legend.hidden = false;
   }
   setMode(mode);
+  relabel();
 
   function request(): void {
     if (!frame) frame = requestAnimationFrame(draw);
@@ -218,10 +237,10 @@ export function mapView(): MapView {
       choose.set(full, run);
     };
     // the journey is offered only when it is a journey: the place you stand in has nothing to travel to
-    if (travel.reason !== 'You are here') {
+    if (travel.reason !== tr('You are here')) {
       add({ label: travel.label, note: travel.note, grey: !travel.enabled, reason: travel.reason }, () => props?.onTravel(id));
     }
-    add({ label: 'Open the page', note: '', grey: false, reason: '' }, () => { selected = id; props?.onOpen(id); request(); });
+    add({ label: tr('Open the page'), note: '', grey: false, reason: '' }, () => { selected = id; props?.onOpen(id); request(); });
     const node = personMenuNode({ id, title: p.name, items }, { id, x: Math.round(clientX), y: Math.round(clientY), from: null }, (item) => {
       const run = choose.get(item);
       closeMenu(false);
@@ -352,6 +371,7 @@ export function mapView(): MapView {
   const api: MapView = {
     element: root,
     update(next) {
+      relabel();
       // the screen is drawn every day of the clock; the map is drawn again only when what it shows has changed
       const sign = JSON.stringify([next.places.map((p) => p.id), next.hero, next.journey, next.places.map((p) => next.describe(p.id))]);
       const changed = sign !== lastSign;

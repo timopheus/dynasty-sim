@@ -1,11 +1,11 @@
 import { actionAvailability } from '../../core/actions/actions';
 import { offersByPlace } from '../contracts-model';
 import { placeDef, position, roadDays, routesFrom, standingIn } from '../../core/place/place';
-import { formatDate } from '../../core/time/calendar';
 import type { Ctx } from '../../core/state';
 import { cellAt, type MapModel, type Point } from './model';
 import { partOf, pointOf, wayBetween } from './roads';
 import type { MapProps } from './types';
+import { crownsText, dateText, daysText, localName, offersText, tr } from '../i18n';
 
 /** Where the places of the game lie on the map: the towns of the map with the same names (S.9 named the places after them). */
 function placePoints(ctx: Ctx, model: MapModel): Map<string, Point> {
@@ -143,7 +143,7 @@ export function mapProps(ctx: Ctx, model: MapModel, handlers: { open: (id: strin
   const going = state.activeAction?.target ?? null;
   const money = (travel?.effects as { money?: number } | undefined)?.money ?? 0;
   const cost = money < 0 ? -money : 0;
-  const dayWord = (n: number) => `${n} day${n === 1 ? '' : 's'}`;
+  const dayWord = (n: number) => daysText(n);
 
   return {
     places,
@@ -156,33 +156,36 @@ export function mapProps(ctx: Ctx, model: MapModel, handlers: { open: (id: strin
       const def = placeDef(state, content, id);
       if (!def) return '';
       const kind = kinds.get(def.kind) ?? def.kind;
-      const where = def.realm ? `${kind[0]?.toUpperCase() ?? ''}${kind.slice(1)} of ${def.realm}` : kind;
+      const what = `${kind[0]?.toUpperCase() ?? ''}${kind.slice(1)}`;
+      const where = def.realm ? tr('{kind} of {realm}', { kind: what, realm: def.realm }) : what;
       const at = points.get(id);
       const cell = at ? cellAt(model, at) : -1;
-      const land = cell >= 0 ? LAND_WORDS[model.terrains[model.terrain[cell] as number] ?? ''] : undefined;
+      const landWord = cell >= 0 ? LAND_WORDS[model.terrains[model.terrain[cell] as number] ?? ''] : undefined;
+      const land = landWord === undefined ? undefined : tr(landWord);
       const offers = work.get(id) ?? 0;
-      const head = `${land ? `${where}, ${land}.` : `${where}.`}${offers > 0 ? ` Work on the board: ${offers === 1 ? '1 offer' : `${offers} offers`}.` : ''}`;
-      if (id === here) return `${head} You are here.`;
+      const head = `${land ? `${where}, ${land}.` : `${where}.`}${offers > 0 ? ` ${tr('Work on the board: {offers}.', { offers: offersText(offers) })}` : ''}`;
+      if (id === here) return `${head} ${tr('You are here.')}`;
       const days = routes.get(id);
-      const arrival = (n: number) => `arriving about ${formatDate(state.day + n)}`;
-      if (id === going && days !== undefined) return `${head} On your way: ${dayWord(days)} left, ${arrival(days)}.`;
-      return days === undefined ? `${head} No road leads there from here.` : `${head} ${dayWord(days)} of road, ${arrival(days)}.`;
+      const arrival = (n: number) => tr('arriving about {date}', { date: dateText(state.day + n) });
+      if (id === going && days !== undefined) return `${head} ${tr('On your way: {days} left, {arrival}.', { days: dayWord(days), arrival: arrival(days) })}`;
+      return days === undefined ? `${head} ${tr('No road leads there from here.')}` : `${head} ${tr('{days} of road, {arrival}.', { days: dayWord(days), arrival: arrival(days) })}`;
     },
     travel: (id) => {
       const name = placeDef(state, content, id)?.name ?? id;
       const days = routes.get(id);
-      const verb = going !== null ? 'Turn toward' : 'Travel to';
-      const label = `${id === going ? 'Travel to' : verb} ${name}`;
+      const toward = tr('Turn toward {place}', { place: localName(name, 'dat') });
+      const travelTo = tr('Travel to {place}', { place: localName(name, 'acc') });
+      const label = id === going || going === null ? travelTo : toward;
       // the days and the price stand under the name, as on the buttons of the actions and the page of the place (D-443)
-      const note = [...(days !== undefined ? [dayWord(days)] : []), ...(cost > 0 ? [`costs ${cost} crowns`] : [])].join(' · ');
+      const note = [...(days !== undefined ? [dayWord(days)] : []), ...(cost > 0 ? [tr('costs {crowns}', { crowns: crownsText(cost) })] : [])].join(' · ');
       const grey = (reason: string) => ({ label, note, enabled: false, reason });
-      if (!travel) return grey('There is no travelling yet');
-      if (id === here) return { label: `Travel to ${name}`, note, enabled: false, reason: 'You are here' };
-      if (id === going) return grey('You are already on your way there');
-      if (held) return grey('Answer the window first');
-      if (days === undefined) return grey('No road leads there from here');
+      if (!travel) return grey(tr('There is no travelling yet'));
+      if (id === here) return { label: travelTo, note, enabled: false, reason: tr('You are here') };
+      if (id === going) return grey(tr('You are already on your way there'));
+      if (held) return grey(tr('Answer the window first'));
+      if (days === undefined) return grey(tr('No road leads there from here'));
       const reasons = availability?.unmet.map((u) => u) ?? [];
-      if (availability?.hidden || reasons.length > 0) return grey(reasons.join('; ') || 'Not now');
+      if (availability?.hidden || reasons.length > 0) return grey(reasons.join('; ') || tr('Not now'));
       return { label, note, enabled: true, reason: '' };
     },
     onOpen: (id) => handlers.open(id),
