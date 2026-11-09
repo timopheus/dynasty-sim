@@ -6,11 +6,16 @@ import type { CrossCheck } from '../content/schema';
 import { Id, Text, type ContentError } from '../content/types';
 import { effectRoleRefs, EffectsSchema } from '../effects';
 
-/** How a contract ends: the line of the journal or chronicle (`{name}`, `{employer}`) and the effects on the hero. */
+/**
+ * How a contract ends: the line of the journal or chronicle (`{name}`, `{employer}`), the effects on the hero and, as in
+ * an event, on the employer (`on: {employer: …}`, skipped once the employer has died).
+ */
 const ContractOutcomeSchema = z.strictObject({
   text: Text,
   /** Effects on the hero; the employer is the role `employer` (empty when the employer has died). */
   effects: EffectsSchema.optional(),
+  /** Effects on the employer (the only role of an outcome); the hero is the role `hero`. */
+  on: z.strictObject({ employer: EffectsSchema }).optional(),
 });
 
 /** One kind of contract (CK.2a): CK.3 adds where it is offered, its levels, days and risk. */
@@ -64,8 +69,8 @@ export const checkContracts: CrossCheck = ({ contracts, actions, events }) => {
       for (const end of ['success', 'failure'] as const) {
         const problem = checkReason(k[end].text, OUTCOME_PLACEHOLDERS);
         if (problem) err(`kinds[${i}].${end}.text`, problem);
-        const effects = k[end].effects;
-        for (const role of effects ? effectRoleRefs(effects) : []) {
+        const blocks = [k[end].effects, k[end].on?.employer].filter((e) => e !== undefined);
+        for (const role of blocks.flatMap((e) => effectRoleRefs(e))) {
           if (!OUTCOME_ROLES.includes(role)) err(`kinds[${i}].${end}.effects`, `unknown role "${role}": an outcome knows hero, protagonist and employer`);
         }
       }

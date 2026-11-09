@@ -41,7 +41,7 @@ export function interactionAvailability(ctx: Ctx, target: string): InteractionAv
 
 /**
  * Carries out an interaction (CK.2a): the person is alive, near the hero and not the hero; the interaction is shown and
- * its conditions are met. Its effects apply to the hero with the person as the role `target`. No time passes and no
+ * its conditions are met. Its effects apply to the hero, and its `on.target` to the person (the role `target`). No time passes and no
  * randomness is used here (effects may use it). Throws on a command the player could not give.
  */
 export function interactCommand(ctx: Ctx, order: InteractOrder): void {
@@ -61,5 +61,7 @@ export function interactCommand(ctx: Ctx, order: InteractOrder): void {
     return days !== undefined && state.day - r.day < days;
   });
   if (def.cooldown_days !== undefined) state.interactions.recent.push({ id: def.id, target: person.id, day: state.day });
-  applyEffects(ctx, hero, def.effects, { hero: hero.id, protagonist: hero.id, target: person.id });
+  const scope = { hero: hero.id, protagonist: hero.id, target: person.id };
+  applyEffects(ctx, hero, def.effects, scope);
+  applyEffects(ctx, person, def.on?.target, scope);
 }

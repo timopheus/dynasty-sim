@@ -8,11 +8,14 @@ import { Int, Text, type ContentError } from '../content/types';
  * Optional top-level key `favors` (CK.2a, D-474):
  * - `weakDays`: how long a weak favor may be called in (10 years);
  * - `strongRestDays`: how long a strong favor rests after it is called in (5 years);
+ * - `inheritedDays`: the longest a weak favor passed with the house still runs (5 years); a strong one passes as a weak one
+ *   with the full `weakDays` (D-375, CK3);
  * - `reasons`: texts of unmet `favor_with` — `none` (no favor of the person, `{name}`) and `strong` (no strong one, `{name}`).
  */
 export const FavorsContentSchema = z.strictObject({
   weakDays: Int.min(1),
   strongRestDays: Int.min(1),
+  inheritedDays: Int.min(1),
   reasons: z.strictObject({ none: Text, strong: Text }),
 });
 

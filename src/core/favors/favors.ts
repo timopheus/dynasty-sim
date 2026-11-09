@@ -6,8 +6,8 @@ import type { DeathHook, GameState, Invariant, RefsFn, SuccessionHook } from '..
  * Favors (CK.2a, D-474; the hooks of CK3): a person owes another one a favor. A weak favor is called in once and lapses
  * after `favors.weakDays` (10 years); a strong one is never used up, but after it is called in it rests
  * `favors.strongRestDays` (5 years). One person owes another at most one favor: a new one keeps the stronger of the two
- * and the later term. Contracts give favors (CK.3), interactions spend them (CK.7). With the house the heir gets the
- * favors the dead head held, as weak ones, for one generation (D-375).
+ * and the later term. Contracts give favors (CK.3), interactions spend them (CK.7). With the house the heir takes the
+ * favors the dead head held and the ones he owed, as weak ones, for one generation (D-375; CK3 hooks).
  */
 export type FavorStrength = 'weak' | 'strong';
 
@@ -78,27 +78,36 @@ export function useFavor(state: GameState, content: Content, from: string, to: s
   return true;
 }
 
-/** A dead debtor owes nothing; a dead holder's favors go, but the hero's wait for his heir (`favorsOnSuccession`). */
+/** The favors of a dead person go, but the hero's wait for his heir (`favorsOnSuccession`). */
 export const favorsOnDeath: DeathHook = ({ state }, c) => {
-  state.favors = state.favors.filter((f) => f.from !== c.id && (f.to !== c.id || c.id === state.playerId));
+  if (c.id !== state.playerId) state.favors = state.favors.filter((f) => f.from !== c.id && f.to !== c.id);
 };
 
 /**
- * The heir takes the favors the dead head held (D-375, D-474): as weak ones with a full term, once — a favor already
- * passed with the house goes with him. A favor the heir himself owed the dead goes too, and one the heir already holds
- * from the same person stays as it is.
+ * The heir takes the favors of the dead head (D-375, D-474; CK3 hooks): those he held and those he owed, each as a weak
+ * one, once — a favor already passed with the house goes with him. A strong favor passes with the full `weakDays`, a
+ * weak one keeps its term but runs at most `inheritedDays`. A favor between the dead and the heir himself goes, and one
+ * the heir already has with the same person stays as it is.
  */
 export const favorsOnSuccession: SuccessionHook = (ctx, deceased, heir) => {
   const { state, content } = ctx;
   const weakDays = content.favors?.weakDays ?? 0;
+  const inheritedDays = content.favors?.inheritedDays ?? 0;
+  const before = state.favors;
   const kept: Favor[] = [];
-  for (const f of state.favors) {
-    if (f.to !== deceased.id) {
+  for (const f of before) {
+    const held = f.to === deceased.id;
+    if (!held && f.from !== deceased.id) {
       kept.push(f);
       continue;
     }
-    if (f.inherited || f.from === heir.id || state.favors.some((g) => g.from === f.from && g.to === heir.id)) continue;
-    kept.push({ from: f.from, to: heir.id, strength: 'weak', day: state.day, until: state.day + weakDays, used: null, inherited: true });
+    const other = held ? f.from : f.to;
+    const from = held ? other : heir.id;
+    const to = held ? heir.id : other;
+    if (f.inherited || other === heir.id || before.some((g) => g.from === from && g.to === to)) continue;
+    const until = f.strength === 'strong' || f.until === null ? state.day + weakDays : Math.min(f.until, state.day + inheritedDays);
+    if (until < state.day) continue;
+    kept.push({ from, to, strength: 'weak', day: state.day, until, used: null, inherited: true });
   }
   state.favors = kept;
 };

@@ -19,6 +19,8 @@ export const InteractionSchema = z.strictObject({
   when: WhenSchema.optional(),
   /** Effects on the hero; the person aimed at is the role `target`. */
   effects: EffectsSchema.optional(),
+  /** Effects on the person aimed at, as `on` of an event; the hero is the role `hero`. */
+  on: z.strictObject({ target: EffectsSchema }).optional(),
   /** Days before the hero may do it again to the same person. */
   cooldown_days: Int.min(1).optional(),
 });
@@ -45,7 +47,8 @@ export const checkInteractions: CrossCheck = ({ interactions }) => {
     item.list.forEach((x, i) => {
       if (ids.has(x.id)) err(`list[${i}].id`, `duplicate interaction "${x.id}"`);
       ids.add(x.id);
-      const roles = [...(x.when ? conditionRoleRefs(x.when) : []), ...(x.effects ? effectRoleRefs(x.effects) : [])];
+      const blocks = [x.effects, x.on?.target].filter((e) => e !== undefined);
+      const roles = [...(x.when ? conditionRoleRefs(x.when) : []), ...blocks.flatMap((e) => effectRoleRefs(e))];
       for (const role of roles) {
         if (!(INTERACTION_ROLES as readonly string[]).includes(role)) err(`list[${i}]`, `unknown role "${role}": an interaction knows ${INTERACTION_ROLES.join(', ')}`);
       }

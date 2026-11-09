@@ -46,8 +46,8 @@ export function settleContract(ctx: Ctx): void {
 }
 
 /**
- * The contract ends: on success the hero is paid; then the outcome of its kind — its effects on the hero (the employer is
- * the role `employer` while alive) and its line in the journal with the money it brought (CK.3 decides which lines go to
+ * The contract ends: on success the hero is paid; then the outcome of its kind — its effects on the hero and on the
+ * employer while alive (the role `employer`) and its line in the journal with the money it brought (CK.3 decides which lines go to
  * the chronicle).
  */
 function settle(ctx: Ctx, outcome: ContractOutcome): void {
@@ -63,6 +63,7 @@ function settle(ctx: Ctx, outcome: ContractOutcome): void {
   const before = hero.money;
   if (outcome === 'success') hero.money += current.pay;
   applyEffects(ctx, hero, end.effects, scope);
+  if (employer && employer.deathDay === null) applyEffects(ctx, employer, end.on?.employer, scope);
   const parts = fillTemplate(end.text, { ...placeholderValues(hero, state.day), employer: employer ? { id: employer.id, name: fullName(employer) } : current.employer });
   log(ctx, { subject: hero, kind: 'contract', level: 'journal', parts, money: hero.money - before });
 }

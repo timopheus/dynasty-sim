@@ -1,0 +1,62 @@
+# Contracts, favors and interactions (CK.2a): two kinds of contracts with their outcomes, an action that serves a
+# contract, an event of a contract that gets its employer, the favors of D-474 in short days, two interactions.
+# Goes on top of tests/fixtures/base, places, population and opinions.
+contracts:
+  kinds:
+    - id: letter
+      name: a letter
+      success:
+        text: "{name} carried a letter for {employer}."
+        effects: { favor: { from: employer, strength: weak } }
+        on: { employer: { opinion: [{ toward: hero, reason: gift }] } }
+      failure:
+        text: "{name} failed {employer} with a letter."
+        on: { employer: { opinion: [{ toward: hero, reason: slight }] } }
+    - id: guard
+      name: a watch over a shop
+      success: { text: "{name} kept watch over a shop for {employer}." }
+      failure: { text: "{name} left the shop of {employer} unwatched." }
+  reasons:
+    none: "No work on the board here"
+    busy: "You already have work"
+    taken: "Only at work"
+    free: "Only without work under way"
+    kind: "Only at {kinds}"
+    level: "Only at work of level {level} or higher"
+favors:
+  weakDays: 100
+  strongRestDays: 50
+  inheritedDays: 40
+  reasons:
+    none: "{name} owes you no favor"
+    strong: "{name} owes you no strong favor"
+interactions:
+  list:
+    - id: call_in
+      name: Call in a favor
+      when: { favor_with: target }
+      effects: { favor_use: target }
+    - id: chat
+      name: Chat
+      cooldown_days: 30
+      on: { target: { opinion: [{ toward: hero, reason: gift }] } }
+  reasons:
+    cooldown: "You did this lately"
+actions:
+  - id: work
+    name: Take work
+    category: livelihood
+    duration: { min: 10, max: 10 }
+    target: contract
+    text: "{name} took work."
+events:
+  - id: letter_thief
+    weight: 10
+    contract: [letter]
+    roles:
+      employer: { pick: given }
+    text: "A thief has an eye on the letter you carry."
+    options:
+      - text: Let it go
+        effects: { contract_outcome: failure }
+        result: "{name} lost a letter on the road."
