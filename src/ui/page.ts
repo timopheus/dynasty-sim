@@ -7,6 +7,7 @@ import { markPerson } from './context-menu';
 import { el } from './dom';
 import type { Tip } from './tips';
 import { withTip } from './tooltip';
+import { dateText, localName } from './i18n';
 
 let personTipOf: (id: string) => Tip | null = () => null;
 
@@ -19,7 +20,8 @@ export function usePersonTips(resolve: (id: string) => Tip | null): void {
 export function partNodes(make: Make, parts: readonly TextPart[]): (Node | string)[] {
   return parts.map((p) => {
     if (typeof p === 'string') return p;
-    const link = make('a', { href: hrefOf(p.id), className: 'person' }, p.name);
+    // the name in the language chosen, in the case the line put it in (RU.1)
+    const link = make('a', { href: hrefOf(p.id), className: 'person' }, localName(p.name, p.case ?? 'nom'));
     const found = personTipOf(p.id);
     if (!found) return link;
     // the title is the full name: it says nothing more where the link shows the full name already (D-465)
@@ -31,5 +33,5 @@ export function partNodes(make: Make, parts: readonly TextPart[]): (Node | strin
 
 /** A line of the chronicle: its date, the marks ◆ (the circle's) and ▸ (the player's choice), the text with links. */
 export function entryNode(v: EntryView, day: number): HTMLElement {
-  return el('li', {}, el('span', { className: 'date' }, formatDate(day)), v.world ? '◆ ' : '', ...partNodes(el, v.parts), v.mark ? ' ▸' : '');
+  return el('li', {}, el('span', { className: 'date' }, dateText(day)), v.world ? '◆ ' : '', ...partNodes(el, v.parts), v.mark ? ' ▸' : '');
 }

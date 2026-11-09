@@ -1,5 +1,6 @@
 import { el } from './dom';
 import './backstory-screen.css';
+import { localName, tr } from './i18n';
 
 export interface BackstoryProps {
   /** The founder's name and house, as the game will know him. */
@@ -21,20 +22,20 @@ export interface BackstoryProps {
  */
 export function backstoryScreen(props: BackstoryProps): HTMLElement {
   const dots = el('ol', { className: 'backstory-steps' });
-  dots.setAttribute('aria-label', `Scene ${props.step} of ${props.steps}`);
+  dots.setAttribute('aria-label', tr('Scene {step} of {steps}', { step: props.step, steps: props.steps }));
   for (let i = 1; i <= props.steps; i++) {
     dots.append(el('li', { className: i < props.step ? 'done' : i === props.step ? 'current' : '' }));
   }
   return el('div', { className: 'backstory-screen' },
     el('header', { className: 'backstory-top' },
       el('div', { className: 'backstory-title' },
-        el('h1', {}, 'The early years'),
-        el('p', {}, `${props.name} of the house of ${props.house}`)),
+        el('h1', {}, tr('The early years')),
+        el('p', {}, tr('{name} of the house of {house}', { name: localName(props.name), house: localName(props.house) }))),
       props.menu),
     el('div', { className: 'backstory-body' },
       el('div', { className: 'backstory-progress' },
-        el('span', { className: 'backstory-age' }, `Scene ${props.step} of ${props.steps}`),
+        el('span', { className: 'backstory-age' }, tr('Scene {step} of {steps}', { step: props.step, steps: props.steps })),
         dots),
       props.scene,
-      el('p', { className: 'backstory-note' }, 'Answer each scene: they make the person who will go out into the world.')));
+      el('p', { className: 'backstory-note' }, tr('Answer each scene: they make the person who will go out into the world.'))));
 }

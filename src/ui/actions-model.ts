@@ -42,10 +42,10 @@ export interface Shelf {
 }
 
 export const SHELVES: { category: ActionCategory; title: string }[] = [
-  { category: 'livelihood', title: tr('Livelihood') },
-  { category: 'road', title: tr('Road & place') },
-  { category: 'family', title: tr('Family & house') },
-  { category: 'self', title: tr('Self') },
+  { category: 'livelihood', title: 'Livelihood' },
+  { category: 'road', title: 'Road & place' },
+  { category: 'family', title: 'Family & house' },
+  { category: 'self', title: 'Self' },
 ];
 
 export const WILL_ID = 'will';
@@ -116,7 +116,7 @@ export function actionShelves(ctx: Ctx, will: WillForm | null, board: BoardCount
   const choosing = state.status === 'awaiting_action' || state.status === 'running';
   const held = !choosing || state.pendingEvent !== null ? tr('Answer the window first') : '';
   const underWay = state.activeAction?.actionId ?? null;
-  const shelves: Shelf[] = SHELVES.map((s) => ({ ...s, buttons: [] }));
+  const shelves: Shelf[] = SHELVES.map((s) => ({ ...s, title: tr(s.title), buttons: [] }));
   for (const { action, unmet, hidden } of actionAvailability(ctx)) {
     // work is taken from the board of a place (CK.4), not from the panel
     if (hidden || outgrown(ctx, action) || action.target === 'contract') continue;

@@ -3,6 +3,7 @@ import { HEADER_TIPS } from './tips';
 import { withTip } from './tooltip';
 import type { Figure } from './header-model';
 import './header.css';
+import { tr } from './i18n';
 
 export interface MenuItem {
   label: string;
@@ -20,7 +21,7 @@ export interface HeaderProps {
 
 /** The menu of the game (New game…), also on screens without the header (the early years). */
 export function menuNode({ menuOpen, onMenuToggle, items, devNotes }: Pick<HeaderProps, 'menuOpen' | 'onMenuToggle' | 'items' | 'devNotes'>): HTMLElement {
-  const button = el('button', { className: 'menu-button', type: 'button', onclick: onMenuToggle }, 'Menu ▾');
+  const button = el('button', { className: 'menu-button', type: 'button', onclick: onMenuToggle }, tr('Menu ▾'));
   button.setAttribute('aria-expanded', String(menuOpen));
   button.setAttribute('aria-controls', 'menu-list');
   button.setAttribute('data-focus', 'menu');

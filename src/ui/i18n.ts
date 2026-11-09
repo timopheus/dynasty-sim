@@ -1,5 +1,5 @@
 import type { Content } from '../core/content/schema';
-import type { Forms } from '../core/lang/content';
+import { localName as coreLocalName } from '../core/lang/phrases';
 import type { Case } from '../core/text/forms';
 import { toYmd } from '../core/time/calendar';
 import { RU } from './i18n-ru';
@@ -90,37 +90,15 @@ export function monthText(month: number): string {
   return (lang === 'ru' ? MONTHS_RU_NOM : MONTHS_EN)[month - 1] ?? '';
 }
 
-/** Forms of names of the Russian content, by the English name and by the Russian nominative. */
-let names: Map<string, { forms?: Forms; m?: Forms; f?: Forms }> = new Map();
-let femaleGiven: Set<string> = new Set();
+/** The content of the Russian language, whose forms of names `localName` uses. */
+let russian: Content | null = null;
 
 /** The names of people and places of the language of `content` (its `declensions`), for `localName`. */
 export function useNames(content: Content): void {
-  names = new Map();
-  for (const d of content.declensions) {
-    const entry = { ...(d.forms ? { forms: d.forms } : {}), ...(d.m ? { m: d.m } : {}), ...(d.f ? { f: d.f } : {}) };
-    names.set(d.en, entry);
-    const nom = d.forms?.nom ?? d.m?.nom;
-    if (nom) names.set(nom, entry);
-  }
-  femaleGiven = new Set(content.names.given.female);
+  russian = content;
 }
 
-/**
- * A name in the language chosen and in a case (RU.1): a place by its forms; a person "Given Surname" word by word, the
- * surname by the sex the given name says. English, or a name the language does not know, stays as it is.
- */
+/** A name in the language chosen and in a case (RU.1), by the forms of the language (`core/lang/phrases.ts`). */
 export function localName(name: string, kase: Case = 'nom'): string {
-  if (lang !== 'ru') return name;
-  const whole = names.get(name);
-  if (whole?.forms) return whole.forms[kase];
-  const space = name.indexOf(' ');
-  if (space < 0) return whole?.m?.[kase] ?? name;
-  const given = name.slice(0, space);
-  const surname = name.slice(space + 1);
-  const female = femaleGiven.has(given);
-  const g = names.get(given)?.forms?.[kase] ?? given;
-  const s = names.get(surname);
-  const sur = (female ? s?.f : s?.m)?.[kase] ?? surname;
-  return `${g} ${sur}`;
+  return lang === 'ru' && russian ? coreLocalName(russian, name, kase) : name;
 }
