@@ -5,7 +5,7 @@ import type { Ctx } from '../core/state';
 import type { TextPart } from '../core/text/text';
 import { control, plainLabel, type Control } from './access';
 import type { Tip } from './tips';
-import { daysRangeText, localText, tr } from './i18n';
+import { daysRangeText, localName, localText, tr } from './i18n';
 
 /** Words of the chance bands (D-042, D-175), in English: the core gives ids, the screen words them (`chanceWord`). */
 export const CHANCE_WORDS: Record<ChanceBand, string> = {
@@ -58,7 +58,7 @@ export function eventScreen(ctx: Ctx): EventScreen | null {
       reason: o.reasons.join('; '),
       chance: o.chance ? { word: chanceWord(o.chance.band), percent: o.chance.percent, title: `${o.chance.percent}%` } : null,
       icons: o.icons,
-      tip: optionTip(o),
+      tip: optionTip(o, (o.text ?? [tr(CONTINUE_LABEL)]).map((p) => (typeof p === 'string' ? p : localName(p.name, p.case ?? 'nom'))).join('')),
     })),
   };
 }
@@ -68,7 +68,7 @@ export function eventScreen(ctx: Ctx): EventScreen | null {
  * and a failure bring, the price, the risk the author wrote, why it is grey. A grey variant shows no chance (S.10). One
  * line per fact; null when the button says it all.
  */
-export function optionTip(o: OptionView): Tip | null {
+export function optionTip(o: OptionView, title = ''): Tip | null {
   const groups: string[][] = [];
   const list = (head: string, items: string[]): string[] => (items.length === 1 ? [`${head} ${items[0]}`] : [head, ...items.map((i) => ` • ${i}`)]);
   if (o.available) {
@@ -79,13 +79,14 @@ export function optionTip(o: OptionView): Tip | null {
     if (o.outcomes.result.length) outcomes.push(...list(tr('Result:'), o.outcomes.result));
     if (outcomes.length) groups.push(outcomes);
     const price: string[] = [...o.outcomes.cost];
-    if (o.risk) price.push(tr('Risk: {risk}', { risk: o.risk }));
+    if (o.risk) price.push(tr('[[risk]]: {risk}', { risk: o.risk }));
     if (price.length) groups.push(price);
     if (o.nature) groups.push(o.nature.lines);
   } else if (o.reasons.length) {
-    groups.push([tr('Unavailable: {reasons}', { reasons: o.reasons.join('; ') })]);
+    // the reasons it is grey, as in CK3: each with a red cross
+    return { ...(title ? { title } : {}), text: '', conds: o.reasons.map((text) => ({ ok: false, text })) };
   }
-  return groups.length ? { text: groups.map((g) => g.join('\n')).join('\n\n') } : null;
+  return groups.length ? { ...(title ? { title } : {}), text: groups.map((g) => g.join('\n')).join('\n\n') } : null;
 }
 
 export interface ActionRow {

@@ -1,4 +1,5 @@
 import type { Point } from './model';
+import type { Tip } from '../tips';
 
 /**
  * Map modes, as the buttons by the map (CK3): realms, terrain, peoples, and our roads and places. No faiths yet: the
@@ -40,6 +41,8 @@ export interface MapProps {
   peoples: MapOverlay['peoples'];
   /** One line about a place for its tip: kind, realm, days away. */
   describe: (id: string) => string;
+  /** The tip of a place in the form of CK3's (TT.1): the kind and realm as the crumb, the way there, what the mouse does. */
+  tip: (id: string) => Tip | null;
   /** The travel the hero can make to a place now: the label of the item, its price, or the reason it is grey. */
   travel: (id: string) => { label: string; note: string; enabled: boolean; reason: string };
   onOpen: (id: string) => void;

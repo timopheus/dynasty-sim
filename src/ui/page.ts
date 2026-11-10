@@ -23,10 +23,9 @@ export function partNodes(make: Make, parts: readonly TextPart[]): (Node | strin
     const link = make('a', { href: hrefOf(p.id), className: 'person' }, localName(p.name, p.case ?? 'nom'));
     const found = personTipOf(p.id);
     if (!found) return link;
-    // the title is the full name: it says nothing more where the link shows the full name already (D-465)
-    const tip = found.title === p.name || found.title === localName(p.name) ? { text: found.text } : found;
+    // the title repeats the name, as CK3 does (D-477)
     // a person's name opens the menu of the person on a right click (D-448)
-    return withTip(/^c\d+$/.test(p.id) ? markPerson(link, p.id) : link, tip);
+    return withTip(/^c\d+$/.test(p.id) ? markPerson(link, p.id) : link, found);
   });
 }
 

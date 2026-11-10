@@ -39,7 +39,7 @@ describe('tooltip of a variant (D-463, D-465)', () => {
     expect(tip?.text.split('\n\n')).toEqual([
       'Chance: a toss-up, 55%\nProwess (9) against difficulty 6',
       'If it works: Become Brave\nIf it fails: Wound: Light wound',
-      'Costs 5 crowns\nRisk: The bailiff may remember.',
+      'Costs 5 crowns\n[[risk]]: The bailiff may remember.',
       'Against your nature (Brave): happiness −10',
     ]);
   });
@@ -51,6 +51,6 @@ describe('tooltip of a variant (D-463, D-465)', () => {
 
   it('shows a grey variant its reason and no chance', () => {
     const tip = optionTip(view({ available: false, reasons: ['Requires 50 crowns'], chance: { percent: 55, band: 'even' } }));
-    expect(tip?.text).toBe('Unavailable: Requires 50 crowns');
+    expect(tip?.conds).toEqual([{ ok: false, text: 'Requires 50 crowns' }]);
   });
 });

@@ -218,7 +218,7 @@ export function mapView(): MapView {
     for (const node of hotspots.children) {
       const id = (node as HTMLElement).dataset.place ?? '';
       const p = list.find((x) => x.id === id);
-      if (p && props) withTip(node as HTMLElement, { title: p.name, text: props.describe(id) });
+      if (p && props) withTip(node as HTMLElement, props.tip(id) ?? { title: p.name, text: props.describe(id) });
     }
   }
 
@@ -373,7 +373,7 @@ export function mapView(): MapView {
     update(next) {
       relabel();
       // the screen is drawn every day of the clock; the map is drawn again only when what it shows has changed
-      const sign = JSON.stringify([next.places.map((p) => p.id), next.hero, next.journey, next.places.map((p) => next.describe(p.id))]);
+      const sign = JSON.stringify([next.places.map((p) => p.id), next.hero, next.journey, next.places.map((p) => next.describe(p.id)), next.places.map((p) => JSON.stringify(next.tip(p.id)))]);
       const changed = sign !== lastSign;
       lastSign = sign;
       props = next;

@@ -6,6 +6,8 @@ import type { Ctx } from '../core/state';
 import { ageYears } from '../core/time/calendar';
 import { happinessMood, happinessWord } from '../core/mind/mind';
 import { withNumber } from './access';
+import { conceptTip } from './concepts';
+import { personTip } from './people-model';
 import { withTip } from './tooltip';
 import { markPerson } from './context-menu';
 import { el } from './dom';
@@ -27,9 +29,10 @@ export function avatarPanel(ctx: Ctx, onOpen: () => void): HTMLElement {
   button.setAttribute('aria-label', tr('Open the profile of {name}', { name: localName(`${hero.givenName} ${hero.surname}`, 'gen') }));
   button.setAttribute('data-focus', 'avatar');
   markPerson(button, hero.id);
+  withTip(button, personTip(ctx, hero.id));
   const mood = happiness === null ? null : withTip(el('p', { className: 'happiness' }, withNumber(happinessWord(ctx.content, happiness), happiness)), {
-    title: tr('Happiness'),
-    text: tr('Deeds against your nature, losses and poverty lower it; deeds true to it and good news raise it. With time it drifts back to where it began; at the bottom you break.'),
+    ...(conceptTip('happiness') ?? { text: '' }),
+    title: `${tr('Happiness')}: ${withNumber(happinessWord(ctx.content, happiness), happiness)}`,
   });
   mood?.setAttribute('aria-label', `${tr('Happiness')}: ${mood.textContent ?? ''}`);
   return el('div', { className: 'avatar' }, button, ...(mood ? [mood] : []));

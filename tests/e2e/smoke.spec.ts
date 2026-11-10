@@ -368,7 +368,7 @@ test('a choice that says it all has no tip; a window that opens under a still po
   await plain.hover();
   await page.waitForTimeout(TIP_WAIT);
   await expect(tip).toBeHidden();
-  await expect(page.locator('.tip-timer')).toHaveCount(0);
+  await expect(page.locator('.tip-ring')).toHaveCount(0);
   // a scene with a name in its words: the name explains itself after the delay
   const named = page.locator('.modal-layer .event-text [data-tip]');
   for (let i = 0; i < 8 && (await named.count()) === 0; i++) await first.click({ timeout: 2_000 }).catch(() => undefined);
@@ -383,7 +383,7 @@ test('a choice that says it all has no tip; a window that opens under a still po
   expect(problems).toEqual([]);
 });
 
-test('a tip waits a moment with a ring at the pointer; a pointer that passes over opens none (D-465)', async ({ page }) => {
+test('a tip waits a moment, with no ring at the pointer; a pointer that passes over opens none (D-477)', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/?seed=7');
@@ -393,14 +393,13 @@ test('a tip waits a moment with a ring at the pointer; a pointer that passes ove
   const box = await figure.boundingBox();
   if (!box) throw new Error('no figure in the header');
   await page.mouse.move(700, 300);
-  // at rest on the figure: first the ring, then the tip, and the ring is gone
+  // at rest on the figure: nothing at the pointer while it waits, then the tip with its ring in its own corner
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  const early = await page.evaluate<{ ring: number; open: boolean }>(`({ ring: document.querySelectorAll('.tip-timer').length, open: !(document.getElementById('tooltip')?.hidden ?? true) })`);
-  expect(early, 'the tip waits, with the ring').toEqual({ ring: 1, open: false });
-  await page.waitForTimeout(250);
-  await page.screenshot({ path: 'out/e2e/tip-timer-1440.png', clip: { x: Math.max(0, box.x - 40), y: Math.max(0, box.y - 20), width: 240, height: 120 } });
+  const early = await page.evaluate<{ ring: number; open: boolean }>(`({ ring: document.querySelectorAll('.tip-timer, .tip-ring').length, open: !!document.getElementById('tooltip') })`);
+  expect(early, 'the tip waits, with no ring at the pointer').toEqual({ ring: 0, open: false });
   await expect(tip).toBeVisible();
-  await expect(page.locator('.tip-timer')).toHaveCount(0);
+  await expect(tip.locator('.tip-ring')).toHaveCount(1);
+  await page.screenshot({ path: 'out/e2e/tip-ring-1440.png', clip: { x: Math.max(0, box.x - 40), y: Math.max(0, box.y - 20), width: 420, height: 260 } });
   // passing over: the pointer leaves before the delay, and nothing opens
   await page.mouse.move(700, 300);
   await expect(tip).toBeHidden();
@@ -408,7 +407,71 @@ test('a tip waits a moment with a ring at the pointer; a pointer that passes ove
   await page.mouse.move(700, 300);
   await page.waitForTimeout(TIP_WAIT);
   await expect(tip).toBeHidden();
-  await expect(page.locator('.tip-timer')).toHaveCount(0);
+  await expect(page.locator('.tip-ring')).toHaveCount(0);
+  expect(problems).toEqual([]);
+});
+
+test('money: the breakdown, frozen by the ring, a blue concept opens a nested tip, Esc closes both (D-477)', async ({ page }) => {
+  const problems = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?seed=7');
+  await growUp(page);
+  await page.mouse.move(700, 300);
+  const tip = page.locator('#tooltip');
+  const nested = page.locator('#tooltip-2');
+  const money = page.locator('.topbar .figure').first();
+  const at = await money.boundingBox();
+  if (!at) throw new Error('no money in the header');
+  await page.mouse.move(at.x + at.width / 2, at.y + at.height / 2);
+  await expect(tip).toBeVisible();
+  // the breakdown: the title says the money now, the total is the number on the screen
+  await expect(tip.locator('.tip-title')).toContainText(/\d/);
+  await expect(tip.locator('.tip-row.total .tip-value')).toHaveText(/^[+−]?\d+$/);
+  const shown = await page.locator('.topbar .figure-note').first().textContent();
+  const total = await tip.locator('.tip-row.total .tip-value').textContent();
+  expect(shown ?? '').toContain(total ?? '?');
+  // not frozen yet: the pointer cannot enter, the ring runs in the corner
+  await expect(tip.locator('.tip-ring')).toHaveCount(1);
+  await expect(tip).not.toHaveClass(/locked/);
+  // after about two seconds it freezes by itself
+  await expect(tip).toHaveClass(/locked/, { timeout: 5_000 });
+  await expect(tip.locator('.tip-ring')).toHaveCount(0);
+  // the pointer goes into the tip, to the blue word: a tip inside, darker
+  const word = tip.locator('.tip-concept[data-concept]').first();
+  await expect(word).toBeVisible();
+  const w = await word.boundingBox();
+  if (!w) throw new Error('no concept in the tip');
+  await page.mouse.move(at.x + at.width / 2, at.y + at.height + 4, { steps: 4 });
+  await page.mouse.move(w.x + w.width / 2, w.y + w.height / 2, { steps: 8 });
+  await expect(nested).toBeVisible();
+  await expect(tip).toBeVisible();
+  await expect(nested.locator('.tip-crumb')).toBeVisible();
+  const bgs = await page.evaluate<string[]>(`['tooltip', 'tooltip-2'].map((id) => getComputedStyle(document.getElementById(id)).backgroundColor)`);
+  expect(bgs[0]).not.toBe(bgs[1]);
+  await page.screenshot({ path: 'out/e2e/tip-nested-1440.png' });
+  // Esc closes the whole stack
+  await page.keyboard.press('Escape');
+  await expect(nested).toBeHidden();
+  await expect(tip).toBeHidden();
+  expect(problems).toEqual([]);
+});
+
+test('a middle click freezes a tip at once; leaving it closes the stack after a moment (D-477)', async ({ page }) => {
+  const problems = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?seed=7');
+  await growUp(page);
+  await page.mouse.move(700, 300);
+  const tip = page.locator('#tooltip');
+  const at = await page.locator('.topbar .figure').first().boundingBox();
+  if (!at) throw new Error('no money in the header');
+  await page.mouse.move(at.x + at.width / 2, at.y + at.height / 2);
+  await expect(tip).toBeVisible();
+  await page.mouse.down({ button: 'middle' });
+  await page.mouse.up({ button: 'middle' });
+  await expect(tip).toHaveClass(/locked/);
+  await page.mouse.move(700, 600, { steps: 3 });
+  await expect(tip).toBeHidden();
   expect(problems).toEqual([]);
 });
 
