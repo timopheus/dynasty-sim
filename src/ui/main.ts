@@ -1,4 +1,5 @@
 import { allChronicle } from '../core/archive/archive';
+import { toYmd } from '../core/time/calendar';
 import { entryText } from '../core/chronicle/log';
 import { loadContent } from '../core/content/load';
 import type { Content } from '../core/content/schema';
@@ -318,6 +319,7 @@ function render(session: Session): void {
       steps: stages.length,
       date: onClock ? backstoryDate(state) : null,
       running: modal === null && backstoryRuns(state, content),
+      log: allChronicle(state).filter((e) => e.level === 'chronicle').slice(-6).map((e) => ({ year: toYmd(e.day).year, text: entryText(e) })),
       scene: modal ?? el('div', { className: 'modal-layer' }),
       menu: menuNode(menuProps),
     });

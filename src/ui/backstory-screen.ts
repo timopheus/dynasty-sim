@@ -14,6 +14,8 @@ export interface BackstoryProps {
   date?: { year: number; age: number } | null;
   /** The years run by between the scenes: the head shows it and the scene's place is empty. */
   running?: boolean;
+  /** The lines of the years run so far, newest last: what the world did while the years ran by. */
+  log?: { year: number; text: string }[];
   /** The window of the scene (an event window, D-438), drawn on this screen instead of over the game. */
   scene: HTMLElement;
   /** The menu of the screen (New game), the same as the header's. */
@@ -43,6 +45,10 @@ export function backstoryScreen(props: BackstoryProps): HTMLElement {
           ? el('span', { className: 'backstory-age backstory-date' }, backstoryHead(props.date.year, props.date.age))
           : el('span', { className: 'backstory-age' }, tr('Scene {step} of {steps}', { step: props.step, steps: props.steps })),
         dots),
-      props.scene,
-      el('p', { className: 'backstory-note' }, tr('Answer each scene: they make the person who will go out into the world.'))));
+      el('div', { className: 'backstory-slot' },
+        props.scene,
+        props.running && props.log && props.log.length > 0
+          ? el('ul', { className: 'backstory-log' }, ...props.log.map((l) => el('li', {}, el('span', { className: 'backstory-log-year' }, String(l.year)), ` ${l.text}`)))
+          : ''),
+      el('p', { className: props.running ? 'backstory-note hidden' : 'backstory-note' }, tr('Answer each scene: they make the person who will go out into the world.'))));
 }
