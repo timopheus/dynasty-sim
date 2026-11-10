@@ -9,14 +9,15 @@ function watch(page: Page): string[] {
   return problems;
 }
 
+/** Answers the scenes of the early years, the years running between them on the clock (D-479), until the game is there. */
 async function growUp(page: Page): Promise<void> {
   await expect(page.locator('.modal.event')).toBeVisible();
-  for (let i = 0; i < 40 && (await page.locator('.modal-layer').count()) > 0; i++) {
-    const shown = await page.locator('#app').innerText();
-    await page.locator('.modal-layer .option button.choice').first().click();
-    await expect.poll(async () => page.locator('#app').innerText()).not.toBe(shown);
+  const choice = page.locator('.modal-layer .option button.choice').first();
+  for (let i = 0; i < 60; i++) {
+    if ((await page.locator('.backstory-screen').count()) === 0 && (await page.locator('.modal-layer').count()) === 0) return;
+    await choice.click({ timeout: 2_000 }).catch(() => undefined);
   }
-  await expect(page.locator('.modal-layer')).toHaveCount(0);
+  throw new Error('the hero never grew up');
 }
 
 /** Index of the first place on the map not covered by a panel. */
