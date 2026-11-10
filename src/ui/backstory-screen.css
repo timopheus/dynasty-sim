@@ -98,7 +98,6 @@
 /* the place of the scene keeps its height whether a window or the lines of the years stand in it: no jump */
 .backstory-slot {
   width: min(38rem, 100%);
-  min-height: 22rem;
 }
 
 .backstory-log {
@@ -118,4 +117,8 @@
 
 .backstory-note.hidden {
   visibility: hidden;
+}
+
+.backstory-screen.clock .backstory-slot {
+  min-height: 22rem;
 }

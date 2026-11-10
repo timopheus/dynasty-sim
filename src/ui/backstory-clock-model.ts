@@ -18,7 +18,7 @@ export const BACKSTORY_CHUNK_DAYS = 30;
 /** Milliseconds between two frames: a year of the childhood runs by in about 0.7 s. */
 export const BACKSTORY_FRAME_MS = 60;
 
-/** Days run since the last save, at which the backstory saves on its own (the same as the game's clock, D-439). */
+/** Days run since the last save, at which the backstory saves on its own (rarer than the game's clock, which saves every 30 days, D-439: a frame is already 30 days; accepted by the lead). */
 export const BACKSTORY_SAVE_EVERY_DAYS = 360;
 
 /** The backstory is on the clock and no scene waits: the next frame hands time to the game. */

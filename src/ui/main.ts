@@ -319,7 +319,7 @@ function render(session: Session): void {
       steps: stages.length,
       date: onClock ? backstoryDate(state) : null,
       running: modal === null && backstoryRuns(state, content),
-      log: allChronicle(state).filter((e) => e.level === 'chronicle').slice(-6).map((e) => ({ year: toYmd(e.day).year, parts: e.parts })),
+      log: onClock && modal === null ? allChronicle(state).filter((e) => e.level === 'chronicle').slice(-6).map((e) => ({ year: toYmd(e.day).year, parts: e.parts })) : [],
       scene: modal ?? el('div', { className: 'modal-layer' }),
       menu: menuNode(menuProps),
     });
@@ -866,7 +866,7 @@ function switchLang(session: Session): void {
   session.menuOpen = false;
   session.refocus = 'menu';
   // nothing is lost while no scene is answered (the years run by on their own): the game begins again in the new language
-  if (session.journal.commands.every((c) => c.type === 'wait')) {
+  if (session.state.backstory.running && session.journal.commands.every((c) => c.type === 'wait')) {
     session.busy = true;
     void startSession(session, session.state.seed).finally(() => { session.busy = false; });
     return;
