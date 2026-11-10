@@ -240,7 +240,7 @@ events:
         result: "{name} watched a creditor carry off the household's goods and trusted few people after."
         chronicle: true
 
-  # --- training: one education at most, age_years only here ---
+  # --- training: one education at most, years only here ---
   - id: bs_train_master
     deck: backstory
     stage: training
@@ -254,7 +254,7 @@ events:
         effects:
           traits: { add: [stewardship_2] }
           stats_roll: { stewardship: { min: 0, max: 1 } }
-          age_years: 2
+          years: 2
           money: -10
           opinion: [{ toward: master, reason: mentor }]
         result: "{name} was apprenticed to {master} for two years and learned to keep accounts."
@@ -263,7 +263,7 @@ events:
         effects:
           traits: { add: [street_2] }
           stats_roll: { intrigue: { min: 0, max: 1 } }
-          age_years: 2
+          years: 2
           opinion: [{ toward: master, reason: mentor }]
         result: "{name} was apprenticed to {master} for two years and learned to read people."
         chronicle: true
@@ -271,7 +271,7 @@ events:
         effects:
           traits: { add: [learned_1] }
           stats_roll: { learning: { min: 0, max: 2 } }
-          age_years: 1
+          years: 1
           opinion: [{ toward: master, reason: mentor }]
         on:
           master: { opinion: [{ toward: hero, reason: gift }] }
@@ -292,7 +292,7 @@ events:
         effects:
           traits: { add: [martial_2] }
           stats_roll: { prowess: { min: 0, max: 1 } }
-          age_years: 2
+          years: 2
           opinion: [{ toward: sergeant, reason: mentor }]
         mood: triumph
         result: "{name} served two years under {sergeant} and learned the soldier's trade."
@@ -301,7 +301,7 @@ events:
         effects:
           traits: { add: [martial_1] }
           stats_roll: { martial: { min: 0, max: 1 }, intrigue: { min: 0, max: 1 } }
-          age_years: 1
+          years: 1
           money: 20
         result: "{name} served a year under {sergeant} and left early with a few coins."
         chronicle: true
@@ -310,7 +310,7 @@ events:
         success:
           effects:
             traits: { add: [martial_3] }
-            age_years: 2
+            years: 2
             fame: 1
             opinion: [{ toward: sergeant, reason: favour }]
           on:
@@ -321,7 +321,7 @@ events:
         failure:
           effects:
             traits: { add: [martial_1] }
-            age_years: 2
+            years: 2
             money: -10
           on:
             sergeant: { opinion: [{ toward: hero, reason: slighted }] }
@@ -340,7 +340,7 @@ events:
         effects:
           traits: { add: [learned_2] }
           stats_roll: { learning: { min: 0, max: 1 } }
-          age_years: 3
+          years: 3
           money: -25
         result: "{name} studied for three years at a town school."
         chronicle: true
@@ -348,7 +348,7 @@ events:
         effects:
           traits: { add: [courtly_2] }
           stats_roll: { diplomacy: { min: 0, max: 1 } }
-          age_years: 2
+          years: 2
           money: -10
         result: "{name} served two years as a page in a great household and learned its manners."
         chronicle: true
@@ -356,7 +356,7 @@ events:
         effects:
           traits: { add: [street_1] }
           stats_roll: { intrigue: { min: 0, max: 2 }, prowess: { min: 0, max: 1 } }
-          age_years: 1
+          years: 1
           money: 15
         mood: threat
         result: "{name} spent a year wandering from tavern to tavern and learned the ways of the road."

@@ -1,3 +1,4 @@
+import { inChildhood } from '../backstory/backstory';
 import { fullName } from '../character/character';
 import { personValues, placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
@@ -29,7 +30,8 @@ export const contractsPhase: DayPhase = {
     if (!content.contracts) return false;
     const contracts = state.contracts;
     if (contracts.offers.some((o) => o.expires < state.day)) contracts.offers = contracts.offers.filter((o) => o.expires >= state.day);
-    refreshBoards(ctx);
+    // no boards for the child founder (D-480): they are filled the first day after he goes out into the world
+    if (!inChildhood(ctx)) refreshBoards(ctx);
     const current = contracts.current;
     const active = state.activeAction;
     if (!current || active?.contract !== current.id || state.interruptRequest) return false;
@@ -43,7 +45,7 @@ export const contractsPhase: DayPhase = {
 
 /** The boards within reach of the founder are there from the first day (CK.3). Uses no randomness of the world. */
 export const contractsOnNewGame: NewGameHook = (ctx) => {
-  refreshBoards(ctx);
+  if (!inChildhood(ctx)) refreshBoards(ctx);
 };
 
 /**

@@ -119,7 +119,7 @@ describe('the backstory of the first hero (D-167)', () => {
     expect([...seen].sort()).toEqual(['va', 'vb', 'vc']);
   });
 
-  it('sets the direction by the answer and the size by chance; age_years makes the hero older', () => {
+  it('sets the direction by the answer and the size by chance; years make the hero older (the old way)', () => {
     const state = newGame(3, content);
     const hero = getPlayer(state);
     const before = ageYears(hero.birthDay, state.day);
@@ -211,7 +211,7 @@ describe('the backstory of the first hero (D-167)', () => {
 });
 
 describe('effects of the scenes', () => {
-  it('stats_roll stays in its range and in 0..20; age_years moves a 29 February birth to the 28th', () => {
+  it('stats_roll stays in its range and in 0..20; years (the old way) move a 29 February birth to the 28th', () => {
     const state = newGame(3, content);
     const ctx = { state, content };
     const hero = getPlayer(state);
@@ -226,7 +226,7 @@ describe('effects of the scenes', () => {
     applyBackstoryEffects(ctx, hero, { stats_roll: { martial: { min: 3, max: 3 } } }, {});
     expect(hero.baseStats.martial).toBe(20);
     hero.birthDay = fromYmd(1684, 2, 29);
-    applyBackstoryEffects(ctx, hero, { age_years: 1 }, {});
+    applyBackstoryEffects(ctx, hero, { years: 1 }, {});
     expect(toYmd(hero.birthDay)).toMatchObject({ year: 1683, month: 2, day: 28 });
   });
 });

@@ -1,3 +1,4 @@
+import { EARLY_YEARS, inChildhood } from '../backstory/backstory';
 import { log } from '../chronicle/log';
 import { conditionReport } from '../condition-keys';
 import { contractPlan, contractReasons, takeContract } from '../contracts/contracts';
@@ -47,11 +48,14 @@ export function actionAvailability(ctx: Ctx): ActionAvailability[] {
   const { state, content } = ctx;
   const hero = getPlayer(state);
   const scope = { hero: hero.id, protagonist: hero.id };
+  const childhood = inChildhood(ctx);
   return content.actions.map((action) => {
     // An action that goes somewhere needs a road from here (S.9a); the hero knows the roads.
     const noRoad = action.target === 'place' && content.places && !hasRoadFrom(state, content) ? [content.places.reasons.no_road] : [];
     // An action that serves a contract needs an offer on the board here and no work under way (CK.2a).
     const noWork = action.target === 'contract' ? contractReasons(state, content) : [];
+    // the founder's childhood (D-479, T.3): no occupation of his own until he goes out into the world
+    if (childhood) return { action, unmet: ['childhood'], hidden: true };
     if (!action.when) return { action, unmet: [...noRoad, ...noWork], hidden: false };
     const report = conditionReport(ctx, hero, action.when, scope);
     return { action, unmet: [...report.reasons, ...noRoad, ...noWork], hidden: report.hidden };
@@ -110,6 +114,19 @@ export function startAction(ctx: Ctx, actionId: string, target: string | null = 
 }
 
 /**
+ * The founder's childhood (D-479, T.3): an occupation of his own that ended or was broken off gives way to the early
+ * years again, until the next scene (at the earliest tomorrow: a scene put off today comes then). True if it did.
+ */
+function resumeEarlyYears(ctx: Ctx): boolean {
+  const { state } = ctx;
+  const next = state.backstory.next;
+  if (!inChildhood(ctx) || next === null || state.activeAction !== null || state.pendingEvent) return false;
+  state.activeAction = { actionId: EARLY_YEARS, endDay: Math.max(next, state.day + 1), target: null, contract: null };
+  state.status = 'running';
+  return true;
+}
+
+/**
  * Stops the hero's action before its end: no effects, a journal line, the player chooses
  * anew. The health phase (2.9) calls it and then returns true to end the day.
  */
@@ -127,6 +144,7 @@ export function interruptAction(ctx: Ctx, template?: string): void {
   state.pendingEvent = null;
   state.interruptRequest = null;
   state.status = 'awaiting_action';
+  resumeEarlyYears(ctx);
 }
 
 /**
@@ -158,7 +176,8 @@ export const actionEndPhase: DayPhase = {
     state.activeAction = null;
     state.interruptRequest = null;
     state.status = 'awaiting_action';
-    return true;
+    // in the founder's childhood the early years go on by themselves: the day goes on too
+    return !resumeEarlyYears(ctx);
   },
 };
 

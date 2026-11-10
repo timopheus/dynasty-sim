@@ -1,3 +1,4 @@
+import { inChildhood } from '../backstory/backstory';
 import { log } from '../chronicle/log';
 import { findCharacter } from '../helpers';
 import type { DayPhase } from '../state';
@@ -24,6 +25,8 @@ export const economyPhase: DayPhase = {
     state.economy.month = key;
     const hero = findCharacter(state, state.playerId);
     if (last === null || !hero || hero.deathDay !== null) return false;
+    // the founder's childhood (D-480): no costs and no debts; the months are noted, so none is caught up afterwards
+    if (inChildhood(ctx)) return false;
     // Catching up: a day on which another phase ended the run is never seen by this one, so every month passed since
     // the last one counts, not only the one that begins today (D-053).
     const { total } = monthlyBalance(ctx, hero);

@@ -19,5 +19,16 @@ backstory:
     - id: training
       age: 15
     - id: leaving
+  # Fates of the founder's parents (D-481): on the clock (fromBirth, T.4) each parent alive at the birth dies or goes
+  # missing on a day of the founder's childhood, between these ages; the line is about the founder.
+  fates:
+    ages: { min: 2, max: 14 }
+    missingPct: 25
+    causes: [illness, fever, killed]
+    texts:
+      father_died: "{name} lost {his} father, {parent}."
+      mother_died: "{name} lost {his} mother, {parent}."
+      father_vanished: "{name}'s father, {parent}, went away one day and never came back."
+      mother_vanished: "{name}'s mother, {parent}, went away one day and never came back."
   texts:
     leave: "{name}, aged {age}, went out into the world."

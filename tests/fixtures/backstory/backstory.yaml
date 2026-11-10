@@ -77,6 +77,6 @@ events:
     text: "You are sent to school."
     options:
       - text: Go
-        effects: { age_years: 1, traits: { add: [courtly_1] } }
+        effects: { years: 1, traits: { add: [courtly_1] } }
         result: "{name} went to school."
         chronicle: true

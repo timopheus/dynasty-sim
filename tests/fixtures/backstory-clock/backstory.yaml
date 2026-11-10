@@ -1,0 +1,148 @@
+# Backstory on the clock (D-479, T.1): the founder is born on day 0 and the world lives between the scenes. Goes on top
+# of base, population and opinions, instead of tests/fixtures/backstory. Real content keeps fromBirth off until T.4.
+backstory:
+  fromBirth: true
+  base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
+  stages:
+    - id: origin
+      age: 0
+      offer: { count: 2, variants: [va, vb, vc] }
+    - id: childhood
+      age: 7
+    - id: youth
+      age: 12
+      scenes: 2
+    - id: training
+      age: 15
+    - id: leaving
+  # Fates of the parents (D-481, T.3).
+  fates:
+    ages: { min: 2, max: 14 }
+    missingPct: 25
+    causes: [illness, killed]
+    texts:
+      father_died: "{name} lost {his} father, {parent}."
+      mother_died: "{name} lost {his} mother, {parent}."
+      father_vanished: "{name}'s father, {parent}, went away one day and never came back."
+      mother_vanished: "{name}'s mother, {parent}, went away one day and never came back."
+  texts:
+    leave: "{name}, aged {age}, went out."
+
+actions:
+  - id: early_years
+    name: Early years
+    category: self
+    duration: { min: 1, max: 1 }
+    when: { backstory_only: true }
+    idle: true
+    text: "{name} grew up."
+
+events:
+  - id: origin_scene
+    deck: backstory
+    stage: origin
+    weight: 1
+    text: "You were born."
+    options:
+      - text: House A
+        when: { offered: va }
+        result: "{name} was born in house A."
+        chronicle: true
+      - text: House B
+        when: { offered: vb }
+        result: "{name} was born in house B."
+        chronicle: true
+      - text: House C
+        when: { offered: vc }
+        result: "{name} was born in house C."
+        chronicle: true
+      - text: Nowhere in particular
+        result: "{name} was born nowhere in particular."
+        chronicle: true
+
+  - id: childhood_mentor
+    deck: backstory
+    stage: childhood
+    weight: 1000
+    roles:
+      mentor: { pick: circle, where: { occupation: [porter] } }
+    text: "{mentor} takes an interest in you."
+    options:
+      - text: Listen
+        effects: { stats_roll: { intrigue: { min: 1, max: 1 } } }
+        result: "{name} learned from {mentor}."
+        chronicle: true
+      - text: Run off
+        result: "{name} ran off from {mentor}."
+        chronicle: true
+
+  - id: childhood_plain
+    deck: backstory
+    stage: childhood
+    weight: 1
+    text: "A quiet year."
+    options:
+      - text: Play
+        result: "{name} played through a quiet year."
+        chronicle: true
+
+  - id: youth_fight
+    deck: backstory
+    stage: youth
+    weight: 1
+    text: "A fight in the street."
+    options:
+      - text: Fight
+        effects: { stats_roll: { prowess: { min: 1, max: 1 } } }
+        result: "{name} fought in the street."
+        chronicle: true
+
+  - id: youth_books
+    deck: backstory
+    stage: youth
+    weight: 1
+    text: "A book falls into your hands."
+    options:
+      - text: Read
+        effects: { stats_roll: { learning: { min: 1, max: 1 } } }
+        result: "{name} read a book."
+        chronicle: true
+
+  - id: youth_market
+    deck: backstory
+    stage: youth
+    weight: 1
+    text: "The market calls."
+    options:
+      - text: Haggle
+        effects: { stats_roll: { stewardship: { min: 1, max: 1 } }, money: 4 }
+        result: "{name} haggled at the market."
+        chronicle: true
+
+  - id: training_school
+    deck: backstory
+    stage: training
+    weight: 1
+    text: "You may go to school."
+    options:
+      - text: Two years of school
+        effects: { years: 2, traits: { add: [courtly_1] } }
+        result: "{name} went to school for two years."
+        chronicle: true
+      - text: One year of service
+        effects: { years: 1 }
+        result: "{name} went into service for a year."
+        chronicle: true
+      - text: Stay at home
+        result: "{name} stayed at home."
+        chronicle: true
+
+  - id: leaving_scene
+    deck: backstory
+    stage: leaving
+    weight: 1
+    text: "The road is open."
+    options:
+      - text: Pack
+        result: "{name} packed a bag."
+        chronicle: true

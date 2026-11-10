@@ -1,0 +1,9 @@
+# expect-error: events[0].roles /backstory_only is for an action/
+events:
+  - id: odd_role
+    weight: 1
+    roles:
+      friend: { pick: circle, where: { backstory_only: true } }
+    text: "{friend} waves."
+    options:
+      - { text: Wave, result: "{name} waved." }
