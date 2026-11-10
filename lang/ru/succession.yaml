@@ -12,5 +12,7 @@ translations:
     text: "{name} {~составил|составила} завещание и {~оставил|оставила} выбор наследника закону."
   - en: With a child born since, the will of {name} no longer said all it should.
     text: "После рождения ребёнка завещание {name:gen} уже не говорило всего, что нужно."
+  - en: A child makes no will
+    text: "Ребёнок завещания не пишет"
   - en: With {other} dead, the will of {name} was out of date.
     text: "Со смертью {other:gen} завещание {name:gen} устарело."

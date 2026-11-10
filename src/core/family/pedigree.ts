@@ -82,8 +82,10 @@ function build(ctx: Ctx, family: FamilyContent, person: Character): void {
   // Parents, then brothers and sisters (linked by the parents, so only when one is alive)
   const fatherAge = age + int(r, p.parentGap.min, p.parentGap.max);
   const motherAge = age + int(r, p.parentGap.min, p.parentGap.max);
-  const father = alive(ctx, family, fatherAge) ? relative(ctx, 'male', fatherAge, person.surname) : null;
-  const mother = alive(ctx, family, motherAge) ? relative(ctx, 'female', motherAge, pick(r, content.names.surnames)) : null;
+  // A newborn (D-479, T.2) has both parents alive: the fate of each is drawn at the birth (D-481), so neither may be missing.
+  const newborn = age === 0;
+  const father = newborn || alive(ctx, family, fatherAge) ? relative(ctx, 'male', fatherAge, person.surname) : null;
+  const mother = newborn || alive(ctx, family, motherAge) ? relative(ctx, 'female', motherAge, pick(r, content.names.surnames)) : null;
   if (father) person.father = father.id;
   if (mother) person.mother = mother.id;
   if (father && mother) recordMarriage(ctx, father, mother, yearsAgo(ctx, age + 1));
@@ -91,8 +93,9 @@ function build(ctx: Ctx, family: FamilyContent, person: Character): void {
   const youngestParent = Math.min(father ? fatherAge : Infinity, mother ? motherAge : Infinity);
   const siblings = int(r, p.siblings.min, p.siblings.max);
   for (let i = 0; i < siblings; i++) {
-    const siblingAge = Math.min(youngestParent - adult, Math.max(0, age + int(r, -p.siblingSpread, p.siblingSpread)));
-    if (siblingAge < 0 || !alive(ctx, family, siblingAge)) continue;
+    // A newborn has only older brothers and sisters: the younger ones are born to the parents in living time.
+    const siblingAge = Math.min(youngestParent - adult, Math.max(newborn ? 1 : 0, age + int(r, newborn ? Math.min(1, p.siblingSpread) : -p.siblingSpread, p.siblingSpread)));
+    if (siblingAge < (newborn ? 1 : 0) || !alive(ctx, family, siblingAge)) continue;
     const sex: Sex = chancePer(r, 1, 2) ? 'male' : 'female';
     relative(ctx, sex, siblingAge, person.surname, { ...(father ? { father: father.id } : {}), ...(mother ? { mother: mother.id } : {}) });
   }

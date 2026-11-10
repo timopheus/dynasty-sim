@@ -1,0 +1,9 @@
+# expect-error: events[0].roles.friend.where.age_near /too small|>=0/
+events:
+  - id: odd_age
+    weight: 1
+    roles:
+      friend: { pick: circle, where: { age_near: -1 } }
+    text: "{friend} waves."
+    options:
+      - { text: Wave, result: "{name} waved." }
