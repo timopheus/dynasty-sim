@@ -1,5 +1,7 @@
 # Scenes of the backstory of the first hero (D-038, D-167, task 3.11). Stages are listed in backstory.yaml.
 # The answer sets the direction, the chance sets the size (stats_roll). One education at most, in `training`.
+# One clock (D-479): a scene comes in the year of the founder's life its stage names, so `{age}` is his real age, and
+# peers are taken by `age_near` from the hero, elders by their own age.
 events:
   # --- origin: the house the hero was born in (the player is offered 2 of the 5 variants, plus the common one) ---
   - id: bs_origin_house
@@ -53,8 +55,8 @@ events:
     weight: 8
     mood: joy
     roles:
-      friend: { pick: circle, where: { age_max: 22 } }
-    text: "A child from the next yard, {friend}, was always at your door. Together you ran through the lanes and fields."
+      friend: { pick: circle, where: { age_near: 3 } }  # a child within 3 years of the hero (D-479)
+    text: "When you were {age}, a child from the next yard, {friend}, was always at your door. Together you ran through the lanes and fields."
     options:
       - text: Share everything with {friend}
         effects:
@@ -83,7 +85,7 @@ events:
     stage: childhood
     weight: 8
     mood: threat
-    text: "One winter the stores ran low. The wolves came near the houses, and your household looked to every pair of hands."
+    text: "The winter you were {age}, the stores ran low. The wolves came near the houses, and your household looked to every pair of hands."
     options:
       - text: Go out with the men to set snares
         check: { stat: prowess, difficulty: 5 }
@@ -143,7 +145,7 @@ events:
     weight: 7
     mood: anger
     roles:
-      rival: { pick: circle, where: { age_min: 16, age_max: 28 } }
+      rival: { pick: circle, where: { age_near: 3 } }  # one of the hero's own years (D-479)
     text: "{rival} had long made a habit of mocking you in front of others. Today it was in front of a crowd."
     options:
       - text: Answer with fists
@@ -189,7 +191,7 @@ events:
     mood: neutral
     roles:
       teacher: { pick: circle, where: { occupation: [priest, physician, craftsman, clerk, sergeant], age_min: 25 } }
-    text: "{teacher} noticed you hanging about the door and offered to show you something of {teacher.his} work, if you would come in the evenings."
+    text: "You were {age}, and {teacher} noticed you hanging about the door. {teacher.He} offered to show you something of {teacher.his} work, if you would come in the evenings."
     options:
       - text: Come every evening and listen
         effects:
@@ -215,7 +217,7 @@ events:
     stage: youth
     weight: 8
     mood: loss
-    text: "A bad year, and the creditor came to your household. The family could pay only a part."
+    text: "A bad year, and the creditor came to your household. The family could pay only a part. You were {age}, old enough to understand what that meant."
     options:
       - text: Take the debt on yourself and work it off
         effects: { stats_roll: { stewardship: { min: 1, max: 2 }, prowess: { min: 0, max: 1 } }, money: -20, traits: { add: [diligent] } }
@@ -248,7 +250,7 @@ events:
     mood: neutral
     roles:
       master: { pick: circle, where: { occupation: [craftsman, clerk, physician, merchant, priest], age_min: 25 } }
-    text: "{master} agreed to take you as an apprentice, for board and a promise of obedience."
+    text: "You were {age} when {master} agreed to take you as an apprentice, for board and a promise of obedience."
     options:
       - text: Learn the counting and the keeping of books
         effects:
@@ -368,7 +370,7 @@ events:
     stage: leaving
     weight: 8
     mood: neutral
-    text: "Nothing held you at home any longer. What drove you out?"
+    text: "You were {age}, and nothing held you at home any longer. What drove you out?"
     options:
       - text: A hunger to see the world and be worth something in it
         effects: { traits: { add: [ambitious] }, stats_roll: { diplomacy: { min: 0, max: 1 } }, money: 10 }

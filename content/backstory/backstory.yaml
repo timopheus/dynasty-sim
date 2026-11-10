@@ -26,9 +26,9 @@ backstory:
     missingPct: 25
     causes: [illness, fever, killed]
     texts:
-      father_died: "{name} lost {his} father, {parent}."
-      mother_died: "{name} lost {his} mother, {parent}."
-      father_vanished: "{name}'s father, {parent}, went away one day and never came back."
-      mother_vanished: "{name}'s mother, {parent}, went away one day and never came back."
+      father_died: "{name} was {age} when {his} father, {parent}, was buried."
+      mother_died: "{name} was {age} when {his} mother, {parent}, was buried."
+      father_vanished: "{name} was {age} when {his} father, {parent}, went out one morning and never came back."
+      mother_vanished: "{name} was {age} when {his} mother, {parent}, went out one morning and never came back."
   texts:
     leave: "{name}, aged {age}, went out into the world."

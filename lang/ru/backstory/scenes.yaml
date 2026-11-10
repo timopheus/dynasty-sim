@@ -26,8 +26,8 @@ translations:
     text: "Простой дом простых людей, ничем не примечательных"
   - en: "{name} was born to plain people and learned early to work for {his} bread."
     text: "{name} {~родился|родилась} у простых людей и рано {~привык|привыкла} зарабатывать свой хлеб."
-  - en: A child from the next yard, {friend}, was always at your door. Together you ran through the lanes and fields.
-    text: "Ребёнок с соседнего двора, {friend}, постоянно стучался в твою дверь. Вместе вы носились по переулкам и полям."
+  - en: When you were {age}, a child from the next yard, {friend}, was always at your door. Together you ran through the lanes and fields.
+    text: "Тебе было {age}, и {friend} с соседнего двора то и дело {friend~стучался|стучалась} в твою дверь. Вместе вы носились по переулкам и полям."
   - en: Share everything with {friend}
     text: "Делить с {friend:ins} всё"
   - en: "{name} grew up inseparable from {friend}, a friend of the next yard."
@@ -40,8 +40,8 @@ translations:
     text: "Держаться особняком и смотреть с порога"
   - en: "{name} kept apart as a child and watched the neighbours' games from the doorstep."
     text: "{name} в детстве {~держался|держалась} особняком и {~смотрел|смотрела} с порога на игры соседских детей."
-  - en: One winter the stores ran low. The wolves came near the houses, and your household looked to every pair of hands.
-    text: "Одной зимой кончились запасы. Волки подходили к самым домам, и в твоём доме берегли каждую пару рук."
+  - en: The winter you were {age}, the stores ran low. The wolves came near the houses, and your household looked to every pair of hands.
+    text: "Зимой, когда тебе было {age}, кончились запасы. Волки подходили к самым домам, и в твоём доме была на счету каждая пара рук."
   - en: Go out with the men to set snares
     text: "Выйти с мужчинами ставить силки"
   - en: "{name} set snares with the men in a hungry winter and brought home meat."
@@ -90,8 +90,8 @@ translations:
     text: "Уйти прочь"
   - en: "{name} walked away from the mockery of {rival}."
     text: "{name} {~ушёл|ушла} прочь от насмешек {rival:gen}."
-  - en: "{teacher} noticed you hanging about the door and offered to show you something of {teacher.his} work, if you would come in the evenings."
-    text: "{teacher} {teacher~заметил|заметила}, как ты торчишь у двери, и {teacher~предложил|предложила} показать кое-что из своего дела, если станешь приходить по вечерам."
+  - en: "You were {age}, and {teacher} noticed you hanging about the door. {teacher.He} offered to show you something of {teacher.his} work, if you would come in the evenings."
+    text: "Тебе было {age}, и {teacher} {teacher~заметил|заметила}, как ты торчишь у двери. {teacher~Он|Она} {teacher~предложил|предложила} показать кое-что из своего дела, если станешь приходить по вечерам."
   - en: Come every evening and listen
     text: "Приходить каждый вечер и слушать"
   - en: "{name} spent youthful evenings listening to {teacher} and learned much from {teacher.him}."
@@ -104,8 +104,8 @@ translations:
     text: "Отказаться: есть работа"
   - en: "{name} declined the lessons of {teacher} and took paid work instead."
     text: "{name} {~отказался|отказалась} от уроков {teacher:gen} и {~взялся|взялась} за оплачиваемую работу."
-  - en: A bad year, and the creditor came to your household. The family could pay only a part.
-    text: "Год выдался плохой, и в твой дом пришёл кредитор. Семья смогла заплатить лишь часть."
+  - en: A bad year, and the creditor came to your household. The family could pay only a part. You were {age}, old enough to understand what that meant.
+    text: "Год выдался плохой, и в твой дом пришёл кредитор. Семья смогла заплатить лишь часть. Тебе было {age} — достаточно, чтобы понять, что это значит."
   - en: Take the debt on yourself and work it off
     text: "Взять долг на себя и отрабатывать его"
   - en: "{name} took the family's debt upon {his} own shoulders and worked it off for years."
@@ -120,8 +120,8 @@ translations:
     text: "Пусть кредитор берёт что хочет, а ты промолчи"
   - en: "{name} watched a creditor carry off the household's goods and trusted few people after."
     text: "{name} {~смотрел|смотрела}, как кредитор уносит добро из дома, и после этого мало кому {~доверял|доверяла}."
-  - en: "{master} agreed to take you as an apprentice, for board and a promise of obedience."
-    text: "{master} {master~согласился|согласилась} взять тебя в ученики за стол и обещание послушания."
+  - en: "You were {age} when {master} agreed to take you as an apprentice, for board and a promise of obedience."
+    text: "Тебе было {age}, когда {master} {master~согласился|согласилась} взять тебя в ученики за стол и обещание послушания."
   - en: Learn the counting and the keeping of books
     text: "Учиться счёту и ведению книг"
   - en: "{name} was apprenticed to {master} for two years and learned to keep accounts."
@@ -164,8 +164,8 @@ translations:
     text: "Провести эти годы в дороге и по трактирам"
   - en: "{name} spent a year wandering from tavern to tavern and learned the ways of the road."
     text: "{name} год {~бродил|бродила} из трактира в трактир и {~узнал|узнала} повадки дороги."
-  - en: Nothing held you at home any longer. What drove you out?
-    text: "Больше ничто не держало тебя дома. Что гнало тебя прочь?"
+  - en: You were {age}, and nothing held you at home any longer. What drove you out?
+    text: "Тебе было {age}, и больше ничто не держало тебя дома. Что гнало тебя прочь?"
   - en: A hunger to see the world and be worth something in it
     text: "Жажда увидеть мир и чего-то стоить в нём"
   - en: "{name} set out to see the world and to find a place in it."
