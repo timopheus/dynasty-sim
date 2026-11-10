@@ -324,6 +324,13 @@ export const RU: Record<string, string> = {
   "How far your name has travelled. It opens doors and draws eyes; the house has its own [[house-renown|renown]].": "Как далеко разошлось твоё имя. Открывает двери и притягивает взгляды; у рода есть своя [[house-renown|слава]].",
   "How well the house is known, beyond the [[fame]] of its head.": "Насколько известен род, помимо [[fame|известности]] его главы.",
   "Where the house stands among the families of the land. It sets what the house must spend to keep its name.": "Где род стоит среди семей края. От этого зависит, во сколько обходится содержать имя.",
+  // more tips (TT.1)
+  "Open the window": "Открыть окно",
+  "{days} of road from here.": "{days} пути отсюда.",
+  "Time runs while you wait and stops when something needs your answer.": "Время идёт, пока ждёшь, и встаёт, когда нужен твой ответ.",
+  "Key: {key}": "Клавиша: {key}",
+  "Space": "Пробел",
+  "The date in the world. Time goes by in whole days.": "Дата в мире. Время идёт целыми днями.",
   // tips, header, menus, will, modal
   "base {n}": "основа {n}",
   "age": "возраст",
