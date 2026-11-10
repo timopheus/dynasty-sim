@@ -200,7 +200,7 @@ describe('the backstory on one clock (D-479)', () => {
       play(a, content, botCommand(a, content, botA));
       play(b, content, botCommand(b, content, botB));
     }
-    const c = deserialize(serialize(b, content), content);
+    const c = deserialize(serialize(b), content);
     while (a.backstory.running) {
       play(a, content, botCommand(a, content, botA));
       play(c, content, botCommand(c, content, botB));
