@@ -98,10 +98,10 @@ export function checkHealthConditions({ content }: Ctx, c: Character, when: Heal
   const has = (id: string) => c.conditions.some((hc) => hc.id === id);
   if (when.fit && isSeverelyIll(content, c)) out.push({ text: texts.unfit, hidden: false });
   if (when.conditions_any && !when.conditions_any.some(has)) {
-    out.push({ text: fillReason(texts.conditions_any, { conditions: joinOr(when.conditions_any.map(name)) }), hidden: false });
+    out.push({ text: fillReason(texts.conditions_any, { conditions: joinOr(when.conditions_any.map(name), content) }), hidden: false });
   }
   const held = (when.conditions_none ?? []).filter(has);
-  if (held.length > 0) out.push({ text: fillReason(texts.conditions_none, { conditions: joinOr(held.map(name)) }), hidden: false });
+  if (held.length > 0) out.push({ text: fillReason(texts.conditions_none, { conditions: joinOr(held.map(name), content) }), hidden: false });
   return out;
 }
 

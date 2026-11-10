@@ -77,7 +77,7 @@ export function eventView(ctx: Ctx): EventView | null {
         chance: percent === null ? null : { percent, band: chanceBand(percent) },
         icons: { check: percent !== null, cost: outcomes.cost.length > 0 || option.when?.can_afford !== undefined, trait: report !== null },
         outcomes,
-        nature: report ? { lines: natureLines(report), delta: report.delta } : null,
+        nature: report ? { lines: natureLines(content, report), delta: report.delta } : null,
         risk: option.risk === undefined ? null : partsText(render(option.risk, `${path}options.${index}.risk`)),
       });
     });

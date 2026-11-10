@@ -12,6 +12,7 @@ import type { Character, Ctx, Scope } from '../state';
 import { stats } from '../character/stats';
 import { checkedPerson, checkStat, checkTarget } from './checks';
 import type { OptionDef, OutcomeDef } from './content';
+import { crownsPhrase, localName, phrase } from '../lang/phrases';
 
 /**
  * What an option comes to, in words for the tooltip of its button (D-463, as in CK3): the price, what follows from a
@@ -55,18 +56,18 @@ function moneyWords(ctx: Ctx, c: Character, effects: Effects): string[] {
   const word = (ref: NonNullable<Effects['pay']>, sign: string) => {
     const { level, times } = priceParts(ref);
     const sum = LEVEL_WORDS[level] ?? level;
-    out.push(`${sign === '−' ? 'Pay' : 'Gain'} ${sum}${times > 1 ? ` ×${times}` : ''} (${priceCrowns(content, state, c, ref)} crowns)`);
+    out.push(phrase(content, sign === '−' ? 'Pay {sum}{times} ({crowns})' : 'Gain {sum}{times} ({crowns})', { sum: phrase(content, sum), times: times > 1 ? ` ×${times}` : '', crowns: crownsPhrase(content, priceCrowns(content, state, c, ref)) }));
   };
   if (effects.pay !== undefined) word(effects.pay, '−');
   if (effects.gain !== undefined) word(effects.gain, '+');
-  if (effects.money !== undefined && effects.money !== 0) out.push(`${effects.money < 0 ? 'Lose' : 'Gain'} ${Math.abs(effects.money)} crowns`);
+  if (effects.money !== undefined && effects.money !== 0) out.push(phrase(content, effects.money < 0 ? 'Lose {crowns}' : 'Gain {crowns}', { crowns: crownsPhrase(content, Math.abs(effects.money)) }));
   return out;
 }
 
 function nameOf(ctx: Ctx, scope: Scope, role: string): string | null {
   const id = scope[role];
   const person = id === undefined ? null : findCharacter(ctx.state, id);
-  return person ? fullName(person) : null;
+  return person ? localName(ctx.content, fullName(person)) : null;
 }
 
 /** Words for the effects on the hero (or on a person of a role): one short line per change. Pure. */
@@ -74,32 +75,32 @@ export function effectWords(ctx: Ctx, effects: Effects | undefined, c: Character
   if (!effects) return [];
   const { content } = ctx;
   const out: string[] = [...moneyWords(ctx, c, effects)];
-  for (const id of effects.traits?.add ?? []) out.push(`Become ${findTrait(content, id)?.name ?? id}`);
-  for (const id of effects.traits?.remove ?? []) out.push(`Lose the trait ${findTrait(content, id)?.name ?? id}`);
+  for (const id of effects.traits?.add ?? []) out.push(phrase(content, 'Become {trait}', { trait: findTrait(content, id)?.name ?? id }));
+  for (const id of effects.traits?.remove ?? []) out.push(phrase(content, 'Lose the trait {trait}', { trait: findTrait(content, id)?.name ?? id }));
   for (const id of STAT_IDS) {
     const step = effects.stats?.[id];
-    if (step) out.push(`${signed(step)} ${cap(id)}`);
+    if (step) out.push(`${signed(step)} ${phrase(content, cap(id))}`);
   }
-  if (effects.fame) out.push(effects.fame > 0 ? 'Your fame grows' : 'Your fame fades');
-  if (effects.wound !== undefined) out.push(`Wound: ${conditionDef(content, effects.wound).name}`);
-  if (effects.disease !== undefined) out.push(`Disease: ${conditionDef(content, effects.disease).name}`);
-  if (effects.heal !== undefined) out.push('You mend');
-  if (effects.kill !== undefined) out.push('You die');
-  if (effects.happiness) out.push(`Happiness ${signed(effects.happiness)}`);
-  if (effects.house_renown) out.push(effects.house_renown > 0 ? 'Your house gains renown' : 'Your house loses renown');
-  if (effects.marry !== undefined) out.push('Marriage');
-  if (effects.heirloom_create) out.push(`An heirloom: ${effects.heirloom_create.name}`);
-  if (effects.heirloom_give) out.push('An heirloom changes hands');
-  if (effects.heirloom_sell) out.push('An heirloom is sold');
-  if (effects.heirloom_lose) out.push('An heirloom is lost');
-  if (effects.secret) out.push('A secret is kept');
-  if (effects.story || effects.schedule) out.push('Something else may follow');
+  if (effects.fame) out.push(phrase(content, effects.fame > 0 ? 'Your fame grows' : 'Your fame fades'));
+  if (effects.wound !== undefined) out.push(phrase(content, 'Wound: {name}', { name: conditionDef(content, effects.wound).name }));
+  if (effects.disease !== undefined) out.push(phrase(content, 'Disease: {name}', { name: conditionDef(content, effects.disease).name }));
+  if (effects.heal !== undefined) out.push(phrase(content, 'You mend'));
+  if (effects.kill !== undefined) out.push(phrase(content, 'You die'));
+  if (effects.happiness) out.push(`${phrase(content, 'Happiness')} ${signed(effects.happiness)}`);
+  if (effects.house_renown) out.push(phrase(content, effects.house_renown > 0 ? 'Your house gains renown' : 'Your house loses renown'));
+  if (effects.marry !== undefined) out.push(phrase(content, 'Marriage'));
+  if (effects.heirloom_create) out.push(phrase(content, 'An heirloom: {name}', { name: effects.heirloom_create.name }));
+  if (effects.heirloom_give) out.push(phrase(content, 'An heirloom changes hands'));
+  if (effects.heirloom_sell) out.push(phrase(content, 'An heirloom is sold'));
+  if (effects.heirloom_lose) out.push(phrase(content, 'An heirloom is lost'));
+  if (effects.secret) out.push(phrase(content, 'A secret is kept'));
+  if (effects.story || effects.schedule) out.push(phrase(content, 'Something else may follow'));
   for (const e of effects.relation ?? []) {
     const who = nameOf(ctx, scope, e.with);
-    const kind = findRelationKind(content, e.start ?? e.end ?? '')?.name ?? 'a tie';
-    if (who) out.push(e.start !== undefined ? `${who} becomes your ${kind.toLowerCase()}` : `Your tie with ${who} ends`);
+    const kind = findRelationKind(content, e.start ?? e.end ?? '')?.name ?? phrase(content, 'a tie');
+    if (who) out.push(e.start !== undefined ? phrase(content, '{who} becomes your {kind}', { who, kind: kind.toLowerCase() }) : phrase(content, 'Your tie with {who} ends', { who }));
   }
-  if (effects.later?.length && !(effects.story || effects.schedule)) out.push('Something else may follow');
+  if (effects.later?.length && !(effects.story || effects.schedule)) out.push(phrase(content, 'Something else may follow'));
   return out;
 }
 
@@ -112,11 +113,11 @@ function roleWords(ctx: Ctx, outcome: OutcomeDef, scope: Scope): string[] {
     for (const e of (effects as Effects).opinion ?? []) {
       if (e.toward !== 'hero' && e.toward !== 'protagonist') continue;
       const value = e.value ?? findReason(ctx.content, e.reason)?.value ?? 0;
-      out.push(value < 0 ? `${who} will think worse of you` : `${who} will think better of you`);
+      out.push(phrase(ctx.content, value < 0 ? '{who} will think worse of you' : '{who} will think better of you', { who }));
     }
     for (const e of (effects as Effects).relation ?? []) {
-      const kind = findRelationKind(ctx.content, e.start ?? e.end ?? '')?.name ?? 'a tie';
-      out.push(e.start !== undefined ? `${who} becomes your ${kind.toLowerCase()}` : `Your tie with ${who} ends`);
+      const kind = findRelationKind(ctx.content, e.start ?? e.end ?? '')?.name ?? phrase(ctx.content, 'a tie');
+      out.push(e.start !== undefined ? phrase(ctx.content, '{who} becomes your {kind}', { who, kind: kind.toLowerCase() }) : phrase(ctx.content, 'Your tie with {who} ends', { who }));
     }
   }
   return out;
@@ -125,7 +126,7 @@ function roleWords(ctx: Ctx, outcome: OutcomeDef, scope: Scope): string[] {
 /** Everything one outcome says, with the hero's own effects first. */
 function outcomeWords(ctx: Ctx, outcome: OutcomeDef, hero: Character, scope: Scope): string[] {
   const out = [...effectWords(ctx, outcome.effects as Effects | undefined, hero, scope), ...roleWords(ctx, outcome, scope)];
-  if (outcome.next !== undefined) out.push('The matter goes on');
+  if (outcome.next !== undefined) out.push(phrase(ctx.content, 'The matter goes on'));
   // the same line from two effects (two opinions of one person) is said once
   return [...new Set(out)];
 }
@@ -141,9 +142,9 @@ function splitCost(ctx: Ctx, hero: Character, outcomes: OutcomeDef[]): { cost: s
   const sameLevel = pay !== undefined && refs.every((r) => r === refs[0]) && outcomes.every((o) => (o.effects as Effects | undefined)?.money === undefined);
   if (pay !== undefined && sameLevel) {
     const { level, times } = priceParts(pay);
-    return { cost: [`Costs ${LEVEL_WORDS[level] ?? level}${times > 1 ? ` ×${times}` : ''} (${-first} crowns)`], paid: first };
+    return { cost: [phrase(ctx.content, 'Costs {sum}{times} ({crowns})', { sum: phrase(ctx.content, LEVEL_WORDS[level] ?? level), times: times > 1 ? ` ×${times}` : '', crowns: crownsPhrase(ctx.content, -first) })], paid: first };
   }
-  return { cost: [`Costs ${-first} crowns`], paid: first };
+  return { cost: [phrase(ctx.content, 'Costs {crowns}', { crowns: crownsPhrase(ctx.content, -first) })], paid: first };
 }
 
 function withoutMoney(ctx: Ctx, hero: Character, words: string[], effects: Effects | undefined, paid: number): string[] {
@@ -171,8 +172,15 @@ export function optionOutcomes(ctx: Ctx, option: OptionDef, hero: Character, sco
   const person = checkedPerson(ctx, check, hero, scope);
   const bonus = stat - stats(ctx, person)[check.stat];
   const opponent = check.against ? nameOf(ctx, scope, check.against.role) : null;
-  const against = check.against ? `${opponent ?? 'the other'}'s ${cap(check.against.stat)} (${target})` : `difficulty ${target}`;
-  const basis = `${who ? `${who}'s ` : ''}${cap(check.stat)} (${stat}${bonus !== 0 ? `, of which ${signed(bonus)} from circumstances` : ''}) against ${against}`;
+  const content = ctx.content;
+  const statName = (s: string) => phrase(content, cap(s));
+  const against = check.against
+    ? phrase(content, "{who}'s {stat} ({n})", { who: opponent ?? phrase(content, 'the other'), stat: statName(check.against.stat), n: target })
+    : phrase(content, 'difficulty {n}', { n: target });
+  const own = bonus !== 0 ? phrase(content, '{n}, of which {bonus} from circumstances', { n: stat, bonus: signed(bonus) }) : String(stat);
+  const basis = who
+    ? phrase(content, "{who}'s {stat} ({own}) against {against}", { who, stat: statName(check.stat), own, against })
+    : phrase(content, '{stat} ({own}) against {against}', { stat: statName(check.stat), own, against });
   return {
     cost,
     result: [],

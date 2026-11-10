@@ -11,10 +11,12 @@
 import { z } from 'zod';
 import { backstoryConditionShape, checkBackstoryConditions } from './backstory/conditions';
 import { characterConditionShape, checkCharacterConditions } from './character/conditions';
+import { checkContractsConditions, contractsConditionShape } from './contracts/conditions';
 import { checkCommonConditions, commonConditionShape } from './conditions/conditions';
 import { checkEconomyConditions, economyConditionRoleRefs, economyConditionShape } from './economy/conditions';
 import { checkEraConditions, eraConditionRoleRefs, eraConditionShape } from './era/conditions';
 import { checkFamilyConditions, familyConditionRoleRefs, familyConditionShape } from './family/conditions';
+import { checkFavorsConditions, favorsConditionRoleRefs, favorsConditionShape } from './favors/conditions';
 import { checkHealthConditions, healthConditionShape } from './health/health';
 import { checkHeirloomConditions, heirloomConditionRoleRefs, heirloomConditionShape } from './heirloom/conditions';
 import { checkHouseConditions, houseConditionRoleRefs, houseConditionShape } from './house/conditions';
@@ -43,6 +45,8 @@ export const WhenSchema = z.strictObject({
   ...economyConditionShape,
   ...placeConditionShape,
   ...mindConditionShape,
+  ...contractsConditionShape,
+  ...favorsConditionShape,
 });
 
 export type When = z.infer<typeof WhenSchema>;
@@ -70,6 +74,8 @@ const CONDITION_CHECKS: readonly ((ctx: Ctx, c: Character, when: When, scope: Sc
   checkEconomyConditions,
   checkPlaceConditions,
   checkMindConditions,
+  checkContractsConditions,
+  checkFavorsConditions,
 ];
 
 /** Roles each module's keys refer to, for the cross-check of events. */
@@ -81,6 +87,7 @@ const CONDITION_ROLE_REFS: readonly ((when: When) => string[])[] = [
   heirloomConditionRoleRefs,
   eraConditionRoleRefs,
   economyConditionRoleRefs,
+  favorsConditionRoleRefs,
 ];
 
 export interface ConditionReport {

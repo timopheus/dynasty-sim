@@ -1,0 +1,50 @@
+# Russian translation of content/names.yaml (RU.1, D-476): the words around the names; the names themselves are declined
+# in declensions.yaml. Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+# The words of a stat are adverbs: they stand after a stat of any gender ("Дипломатия: хорошо").
+translations:
+  - en: Wretched
+    text: "Ужасно"
+  - en: Poor
+    text: "Слабо"
+  - en: Average
+    text: "Средне"
+  - en: Good
+    text: "Хорошо"
+  - en: Excellent
+    text: "Отлично"
+  - en: Masterful
+    text: "Мастерски"
+  - en: Private person
+    text: "Частное лицо"
+  - en: Local figure
+    text: "Местная знаменитость"
+  - en: Known across the realm
+    text: "Слава на всю державу"
+  - en: Known to all
+    text: "Слава на весь свет"
+  - en: Closed to women in this age.
+    text: "В этот век закрыто для женщин."
+  - en: Open only to women.
+    text: "Только для женщин."
+  - en: Diplomacy
+    text: "Дипломатия"
+  - en: Martial
+    text: "Военное дело"
+  - en: Stewardship
+    text: "Хозяйство"
+  - en: Intrigue
+    text: "Интриги"
+  - en: Learning
+    text: "Учёность"
+  - en: Prowess
+    text: "Доблесть"
+  - en: "Needs to be {traits}"
+    text: "Нужно быть: {traits}"
+  - en: "Not for someone who is {traits}"
+    text: "Не для того, кто {traits}"
+  - en: "Needs {stat} {value} or more"
+    text: "Нужно: {stat} {value} или больше"
+  - en: "Needs {stat} {value} or less"
+    text: "Нужно: {stat} {value} или меньше"
+  - en: "Needs to be: {fame}"
+    text: "Нужна известность: {fame}"

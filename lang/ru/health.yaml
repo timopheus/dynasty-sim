@@ -1,0 +1,94 @@
+# Russian translation of content/health.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Light wound
+    text: "Лёгкая рана"
+  - en: fresh
+    text: "свежая"
+  - en: festering
+    text: "гноится"
+  - en: "{name}'s wound began to fester."
+    text: "{name} {~заметил|заметила}, что рана начала гноиться."
+  - en: wound fever
+    text: "раневая горячка"
+  - en: Wound fever took hold of {name}.
+    text: "{name} {~слёг|слегла} в раневой горячке."
+  - en: "{name} was left with a scar."
+    text: "{name} {~остался|осталась} со шрамом."
+  - en: Severe wound
+    text: "Тяжёлая рана"
+  - en: "{name}'s wound festered."
+    text: "{name} {~увидел|увидела}, что рана загноилась."
+  - en: "{name}'s wound healed cleanly."
+    text: "{name} {~оправился|оправилась}: рана зажила чисто."
+  - en: "{name}'s wound healed into an ugly scar."
+    text: "{name} {~остался|осталась} с уродливым шрамом на месте раны."
+  - en: "{name}'s wound closed, but never quite healed."
+    text: "{name}: рана закрылась, но так и не зажила до конца."
+  - en: "{name} was left lame by the wound."
+    text: "{name} {~остался хромым|осталась хромой} после раны."
+  - en: "{name} lost an eye to the wound."
+    text: "{name} {~потерял|потеряла} глаз из-за раны."
+  - en: "{name} was left with a maimed hand."
+    text: "{name} {~остался|осталась} с изувеченной рукой."
+  - en: Old wound
+    text: "Старая рана"
+  - en: closed
+    text: "закрыта"
+  - en: reopened
+    text: "открылась вновь"
+  - en: "{name}'s old wound opened again."
+    text: "{name} {~почувствовал|почувствовала}, как старая рана открылась снова."
+  - en: Wound fever from the old wound took hold of {name}.
+    text: "{name} {~слёг|слегла} в горячке от старой раны."
+  - en: Fever
+    text: "Лихорадка"
+  - en: feverish
+    text: "в жару"
+  - en: crisis
+    text: "кризис"
+  - en: "{name}'s fever reached its crisis."
+    text: "{name} {~дошёл|дошла} до кризиса лихорадки."
+  - en: Consumption
+    text: "Чахотка"
+  - en: lingering cough
+    text: "затяжной кашель"
+  - en: wasting
+    text: "упадок сил"
+  - en: Consumption began to waste {name} away.
+    text: "{name} {~начал|начала} чахнуть."
+  - en: "{name}'s cough faded at last."
+    text: "{name} {~перестал|перестала} наконец кашлять."
+  - en: Frailty
+    text: "Немощь"
+  - en: frail
+    text: "немощь"
+  - en: "{name} came down with a cough that would not go away."
+    text: "{name} {~подхватил|подхватила} кашель, который не проходил."
+  - en: "Age caught up with {name}: {he} grew frail."
+    text: "Годы взяли своё: {name} {~одряхлел|одряхлела} и {~ослаб|ослабла}."
+  - en: Wound fever had carried {him} off.
+    text: "Раневая горячка унесла {~его|её}."
+  - en: A fever had carried {him} off.
+    text: "Лихорадка унесла {~его|её}."
+  - en: Consumption had wasted {him} away.
+    text: "Чахотка сгубила {~его|её}."
+  - en: Old age had worn {him} out.
+    text: "Старость источила {~его|её}."
+  - en: A sudden illness took {him}.
+    text: "Внезапная болезнь забрала {~его|её}."
+  - en: "{He} had fallen in a duel."
+    text: "{~Он пал|Она пала} на дуэли."
+  - en: "{He} had been killed."
+    text: "{~Он был убит|Она была убита}."
+  - en: "{He} had died in childbirth."
+    text: "{~Он умер|Она умерла} при родах."
+  - en: "{He} had been too frail to live."
+    text: "{~Он был слишком слаб|Она была слишком слаба} для жизни."
+  - en: "{name} was too ill to go on and had to take to bed."
+    text: "{name} {~был слишком болен|была слишком больна}, чтобы идти дальше, и {~слёг|слегла} в постель."
+  - en: Too ill or badly hurt
+    text: "Болезнь или тяжёлая рана"
+  - en: "Needs one of: {conditions}"
+    text: "Нужно одно из: {conditions}"
+  - en: Not while suffering from {conditions}
+    text: "Не при недуге: {conditions}"

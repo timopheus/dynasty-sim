@@ -4,6 +4,7 @@ import { findCharacter } from '../helpers';
 import { int, seedRng, type RngState } from '../rng';
 import type { Character, Ctx, Scope } from '../state';
 import { wordingText, wordingWhen, type GrammarDef } from './grammar';
+import { resolvePlaceholder, SEX_MARK } from './forms';
 import { parseTemplate, type TemplateNode } from './template';
 import type { TextPart } from './text';
 
@@ -53,7 +54,9 @@ export function renderTemplate(ctx: Ctx, template: string, scope: Scope, seq: nu
     if (!c) throw new Error(`Role "${role}" is not filled in "${template}"`);
     const mine = placeholderValues(c, state.day);
     values[role] = mine.name as TextPart;
-    for (const [key, value] of Object.entries(mine)) if (key !== 'name') values[`${role}.${key}`] = value;
+    // the sex of the role, for the forms of a language (`{role~он|она}`, RU.1)
+    values[`${role}${SEX_MARK}`] = mine[SEX_MARK] as TextPart;
+    for (const [key, value] of Object.entries(mine)) if (key !== 'name' && key !== SEX_MARK) values[`${role}.${key}`] = value;
   }
   const grammar: GrammarDef = { ...content.grammar, ...own };
   let rng: RngState | null = null;
@@ -69,7 +72,7 @@ export function renderTemplate(ctx: Ctx, template: string, scope: Scope, seq: nu
     for (const node of nodes) {
       if (node.t === 'text') push(parts, node.s);
       else if (node.t === 'ph') {
-        const value = Object.hasOwn(values, node.name) ? values[node.name] : undefined;
+        const value = resolvePlaceholder(node.name, values);
         if (value === undefined) throw new Error(`No value for placeholder {${node.name}} in "${template}"`);
         push(parts, value);
       } else if (node.t === 'opt') {

@@ -2,6 +2,7 @@ import type { Control } from './access';
 import { applyAttrs, el } from './dom';
 import type { Tip } from './tips';
 import { withTip } from './tooltip';
+import { tr } from './i18n';
 
 /** Small signs on a variant (D-463, as in CK3); plain symbols until the art bible gives icons (D-465). */
 export interface ChoiceIcons {
@@ -27,7 +28,7 @@ export function choiceNode(c: Control, onPick: (() => void) | null, extras: { ic
   if (signs.length) {
     head.append(el('span', { className: 'choice-icons' }, ...signs.map((i) => {
       const sign = el('span', { className: `sign sign-${i.key}`, role: 'img' }, i.sign);
-      sign.setAttribute('aria-label', i.word);
+      sign.setAttribute('aria-label', tr(i.word));
       return sign;
     })));
   }

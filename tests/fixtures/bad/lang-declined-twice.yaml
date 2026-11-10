@@ -1,0 +1,7 @@
+# expect-error: declensions[1] /declined twice/
+language: { id: ru, name: Русский }
+declensions:
+  - en: Thomas
+    forms: { nom: Томас, gen: Томаса, dat: Томасу, acc: Томаса, ins: Томасом, prep: Томасе }
+  - en: Thomas
+    forms: { nom: Томас, gen: Томаса, dat: Томасу, acc: Томаса, ins: Томасом, prep: Томасе }

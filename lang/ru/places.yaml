@@ -1,0 +1,290 @@
+# Russian translation of content/places.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: a city
+    text: "город"
+  - en: a town
+    text: "городок"
+  - en: a village
+    text: "деревня"
+  - en: on the road
+    text: "в пути"
+  - en: Ostmere
+    text: "Остмер"
+  - en: Haverland
+    text: "Хаверланд"
+  - en: Schlilerbach
+    text: "Шлилербах"
+  - en: Haverlanders
+    text: "хаверландцы"
+  - en: a river mouth among wet meadows
+    text: "устье реки среди сырых лугов"
+  - en: river port
+    text: "речной порт"
+  - en: exchange
+    text: "биржа"
+  - en: city walls
+    text: "городские стены"
+  - en: Canal water slaps the steps of every counting-house, and merchants talk in sums even on the church porch.
+    text: "Вода каналов плещет о ступени каждой конторы, и купцы говорят суммами даже на церковной паперти."
+  - en: Rohrbach
+    text: "Рорбах"
+  - en: Schwoberia
+    text: "Швоберия"
+  - en: a sea coast with a river mouth
+    text: "морской берег с устьем реки"
+  - en: seaport
+    text: "морской порт"
+  - en: citadel
+    text: "цитадель"
+  - en: temple
+    text: "храм"
+  - en: market
+    text: "рынок"
+  - en: Tar and cold fish at every breath, a ropewalk's long shed, and the Company's red seal on every warehouse door.
+    text: "Дёготь и холодная рыба на каждом вдохе, длинный навес канатной мастерской и красная печать Компании на каждой двери склада."
+  - en: Mullrosin
+    text: "Муллросин"
+  - en: rolling farmland above a river
+    text: "холмистые поля над рекой"
+  - en: toll bridge
+    text: "мытный мост"
+  - en: Slate roofs below a hill fort, and carters bawling weights at the toll bridge from first light.
+    text: "Шиферные крыши под холмовым фортом, и с первым светом возчики орут вес на мытном мосту."
+  - en: Teigach
+    text: "Тейгах"
+  - en: orchards and open fields on a rise
+    text: "сады и открытые поля на возвышенности"
+  - en: mill
+    text: "мельница"
+  - en: alehouse
+    text: "пивная"
+  - en: common pasture
+    text: "общий выгон"
+  - en: Plum orchards behind low hedges; one mill, one alehouse, and a tally cut in the miller's door-post.
+    text: "Сливовые сады за низкими изгородями; одна мельница, одна пивная и счётные зарубки на косяке мельника."
+  - en: Valmont
+    text: "Вальмон"
+  - en: Aurenne
+    text: "Оренн"
+  - en: Cevillonte
+    text: "Севийонт"
+  - en: Aurennais
+    text: "оренцы"
+  - en: vine slopes above a wide river
+    text: "виноградные склоны над широкой рекой"
+  - en: royal court
+    text: "королевский двор"
+  - en: Stone the colour of old honey, and a hush on the steps where those who want the king's favour stand and wait.
+    text: "Камень цвета старого мёда и тишина на ступенях, где стоят и ждут те, кто просит милости короля."
+  - en: Charoy
+    text: "Шарой"
+  - en: Chandadonia
+    text: "Шандадония"
+  - en: chalk hills and a river with stone bridges
+    text: "меловые холмы и река с каменными мостами"
+  - en: wine cellars
+    text: "винные погреба"
+  - en: Cellar doors stand open on every lane and the smell of must lingers until the garrison drums drown it.
+    text: "Двери погребов открыты на каждой улице, и запах сусла держится, пока его не заглушат гарнизонные барабаны."
+  - en: Marmant
+    text: "Мармант"
+  - en: Gaunenia
+    text: "Гаунения"
+  - en: a grey headland over a river
+    text: "серый мыс над рекой"
+  - en: abbey
+    text: "аббатство"
+  - en: Bells from the abbey answer one another over the roofs, and masons chip at blocks in every second yard.
+    text: "Колокола аббатства перекликаются над крышами, и каменотёсы тешут глыбы чуть ли не в каждом втором дворе."
+  - en: Bacres
+    text: "Бакр"
+  - en: Viendon
+    text: "Вьендон"
+  - en: wooded hills and small fields
+    text: "лесистые холмы и небольшие поля"
+  - en: The square is lined with tanners' stalls, and the intendant's clerk writes down every hide that crosses it.
+    text: "Площадь окружена лавками кожевников, и писарь интенданта записывает каждую шкуру, что её пересекает."
+  - en: Novomor
+    text: "Новомор"
+  - en: Borea
+    text: "Борея"
+  - en: Levitsk
+    text: "Левицк"
+  - en: Boreans
+    text: "борейцы"
+  - en: marshy lowland on a sea inlet
+    text: "болотистая низина у морского залива"
+  - en: palace
+    text: "дворец"
+  - en: New timber wharves smell of resin along the whole bank, and every beam of them was cut by decree.
+    text: "Новые бревенчатые пристани пахнут смолой по всему берегу, и каждое бревно в них срублено по указу."
+  - en: Meschevsk
+    text: "Мещевск"
+  - en: Stresia
+    text: "Стрезия"
+  - en: flat forest by a slow river
+    text: "ровный лес у медленной реки"
+  - en: shrine
+    text: "часовня"
+  - en: beeswax yard
+    text: "восковой двор"
+  - en: Log houses along a single street; the sledge road is kept up and the beeswax cart goes through twice a year.
+    text: "Бревенчатые дома вдоль единственной улицы; санный путь держат в порядке, и воз с воском проходит дважды в год."
+  - en: Kryvan
+    text: "Криван"
+  - en: Shigia
+    text: "Шигия"
+  - en: birch forest at the edge of the steppe
+    text: "берёзовый лес на краю степи"
+  - en: timber walls
+    text: "деревянные стены"
+  - en: fur sheds
+    text: "меховые амбары"
+  - en: Stockade logs gone silver with age, and furs hung in rows from the gallery rails like washing.
+    text: "Брёвна частокола посеребрены временем, а меха висят рядами на перилах галереи, как бельё."
+  - en: Ostkala
+    text: "Осткала"
+  - en: a wide river mouth with low banks
+    text: "широкое устье с низкими берегами"
+  - en: Log rafts knock together at the quay, and the customs house smells of wet bark and sealing wax.
+    text: "Брёвна плотов стукаются друг о друга у причала, а таможня пахнет мокрой корой и сургучом."
+  - en: Sarayhan
+    text: "Сарайхан"
+  - en: Izmara
+    text: "Измара"
+  - en: Beyka
+    text: "Бейка"
+  - en: Izmarans
+    text: "измарцы"
+  - en: a marshy coast with a deep harbour
+    text: "болотистый берег с глубокой гаванью"
+  - en: sultan's palace
+    text: "дворец султана"
+  - en: great bazaar
+    text: "великий базар"
+  - en: minarets
+    text: "минареты"
+  - en: From the minarets the call to prayer rolls over the roofs, one voice after another, never quite together.
+    text: "С минаретов призыв к молитве катится над крышами, голос за голосом, и никогда не в лад."
+  - en: Baharduman
+    text: "Бахардуман"
+  - en: a dry plain beside a river
+    text: "сухая равнина у реки"
+  - en: covered bazaar
+    text: "крытый базар"
+  - en: caravanserai
+    text: "караван-сарай"
+  - en: river crossing
+    text: "речная переправа"
+  - en: Covered lanes smell of cardamom, and a toll-farmer's clerk sits under every arch with his scales.
+    text: "Крытые ряды пахнут кардамоном, а под каждой аркой сидит писарь откупщика с весами."
+  - en: Aykut
+    text: "Айкут"
+  - en: a dry plain with one river
+    text: "сухая равнина с единственной рекой"
+  - en: dye works
+    text: "красильни"
+  - en: Camels kneel in a caravanserai yard, and the dyers' vats stain the gutter blue by the south gate.
+    text: "Верблюды стоят на коленях во дворе караван-сарая, а чаны красильщиков красят сток синим у южных ворот."
+  - en: Ur Nahlem
+    text: "Ур-Нахлем"
+  - en: Evehribia
+    text: "Эвехрибия"
+  - en: a reed shore beside a slow river
+    text: "тростниковый берег у медленной реки"
+  - en: landing
+    text: "пристань"
+  - en: ferry
+    text: "паром"
+  - en: Reed boats drawn up on the mud, nets drying on the roofs, and a ferry rope that every household takes its turn to haul.
+    text: "Тростниковые лодки вытащены на ил, сети сохнут на крышах, а канат парома по очереди тянет каждый двор."
+  - en: Only in {kinds}
+    text: "Только: {kinds}"
+  - en: Only in {places}
+    text: "Только: {places}"
+  - en: No road leads anywhere from here
+    text: "Отсюда никуда не ведёт дорога"
+  - en: small
+    text: "малый"
+  - en: middling
+    text: "средний"
+  - en: large
+    text: "крупный"
+  - en: great
+    text: "великий"
+  - en: sleet
+    text: "мокрый снег"
+  - en: fog
+    text: "туман"
+  - en: gale
+    text: "шторм"
+  - en: cold rain
+    text: "холодный дождь"
+  - en: rain
+    text: "дождь"
+  - en: mild and bright
+    text: "мягко и ясно"
+  - en: sea fog
+    text: "морской туман"
+  - en: warm and bright
+    text: "тепло и ясно"
+  - en: showers
+    text: "ливни"
+  - en: sea haze
+    text: "морская дымка"
+  - en: clear and cool
+    text: "ясно и прохладно"
+  - en: frost
+    text: "заморозки"
+  - en: grey and damp
+    text: "серо и сыро"
+  - en: snow
+    text: "снег"
+  - en: wind
+    text: "ветер"
+  - en: hot and clear
+    text: "жарко и ясно"
+  - en: thunderstorm
+    text: "гроза"
+  - en: warm and hazy
+    text: "тепло, дымка"
+  - en: mist
+    text: "лёгкий туман"
+  - en: clear and crisp
+    text: "ясно и свежо"
+  - en: hard frost
+    text: "сильный мороз"
+  - en: blizzard
+    text: "метель"
+  - en: thaw and mud
+    text: "оттепель и грязь"
+  - en: cold and bright
+    text: "холодно и ясно"
+  - en: hot and still
+    text: "жарко и тихо"
+  - en: first frost
+    text: "первые заморозки"
+  - en: mild and dry
+    text: "мягко и сухо"
+  - en: cool wind
+    text: "прохладный ветер"
+  - en: warm and dry
+    text: "тепло и сухо"
+  - en: dust wind
+    text: "пыльный ветер"
+  - en: scorching
+    text: "зной"
+  - en: dust haze
+    text: "пыльная мгла"
+  - en: hot and dry
+    text: "жарко и сухо"
+  - en: first rains
+    text: "первые дожди"
+  - en: "{name} came to {place}."
+    text: "{name} {~прибыл|прибыла} в {place:acc}."
+  - en: "{name} halted on the road between {from} and {to}."
+    text: "{name} {~остановился|остановилась} в пути между {from:ins} и {to:ins}."
+  - en: "{name} broke off the journey in {place}."
+    text: "{name} {~прервал|прервала} путь в {place:prep}."
+  - en: "{name} turned toward {place}."
+    text: "{name} {~повернул|повернула} к {place:dat}."

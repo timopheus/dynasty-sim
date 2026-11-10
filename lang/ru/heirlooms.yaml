@@ -1,0 +1,24 @@
+# Russian translation of content/heirlooms.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Sword
+    text: "Меч"
+  - en: Ring
+    text: "Кольцо"
+  - en: Bill of exchange
+    text: "Вексель"
+  - en: "{name} came into {heirloom}, a family {kind}."
+    text: "{name} {~получил|получила} {heirloom}, семейную реликвию ({kind})."
+  - en: "{name} gave {heirloom}, the family {kind}, to {to}."
+    text: "{name} {~отдал|отдала} {to:dat} {heirloom}, семейную реликвию ({kind})."
+  - en: "{name} sold {heirloom}, the family {kind}."
+    text: "{name} {~продал|продала} {heirloom}, семейную реликвию ({kind})."
+  - en: "{name} lost {heirloom}, the family {kind}, for good."
+    text: "{name} {~потерял|потеряла} {heirloom}, семейную реликвию ({kind}), навсегда."
+  - en: "{name} inherited {heirloom}, the family {kind}, from {deceased}."
+    text: "{name} {~унаследовал|унаследовала} {heirloom}, семейную реликвию ({kind}), от {deceased:gen}."
+  - en: "{name} was left {heirloom}, the family {kind}, by {deceased}."
+    text: "{name} {~получил|получила} по завещанию {deceased:gen} {heirloom}, семейную реликвию ({kind})."
+  - en: Needs a family {kind}.
+    text: "Нужна семейная реликвия: {kind}"
+  - en: Needs {n} family heirlooms.
+    text: "Нужно семейных реликвий: {n}"

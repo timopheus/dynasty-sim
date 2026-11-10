@@ -1,5 +1,6 @@
-import { partsText, type TextPart } from '../core/text/text';
+import type { TextPart } from '../core/text/text';
 import type { ActionRow } from './event';
+import { localText, tr } from './i18n';
 
 /**
  * Phone and accessibility rules of the screen as pure functions (D-248, D-262): nothing is reachable by hover only,
@@ -42,7 +43,7 @@ export function withNumber(word: string, value: number | null): string {
 /** A cause line of an opinion: text, year, "never fades", and the signed number when it is known (D-434). */
 export function opinionLineText(l: { text: string; year: number | null; lasting: boolean; value: number | null }): string {
   const number = l.value !== null ? ` (${l.value > 0 ? '+' : ''}${l.value})` : '';
-  return `${l.text}${l.year !== null ? `, ${l.year}` : ''}${l.lasting ? ' (never fades)' : ''}${number}`;
+  return `${l.text}${l.year !== null ? `, ${l.year}` : ''}${l.lasting ? ` (${tr('never fades')})` : ''}${number}`;
 }
 
 export interface Control {
@@ -73,7 +74,7 @@ export function control(prefix: string, position: number, name: string, note: st
   return {
     text: key ? `${key}. ${name}` : name,
     note,
-    reason: grey ? `Unavailable${reason ? `: ${reason}` : ''}` : '',
+    reason: grey ? `${tr('Unavailable')}${reason ? `: ${reason}` : ''}` : '',
     reasonId,
     noteId,
     attrs,
@@ -82,7 +83,7 @@ export function control(prefix: string, position: number, name: string, note: st
 }
 
 export function plainLabel(label: readonly TextPart[]): string {
-  return partsText(label);
+  return localText(label);
 }
 
 /**
@@ -101,5 +102,5 @@ export function pickableAt(rows: readonly { grey: boolean }[], position: number)
 
 /** Text for the live region when new chronicle lines were written. */
 export function chronicleAnnouncement(lines: readonly string[]): string {
-  return lines.length === 0 ? '' : `Chronicle: ${lines.join(' ')}`;
+  return lines.length === 0 ? '' : `${tr('Chronicle')}: ${lines.join(' ')}`;
 }

@@ -1,0 +1,10 @@
+# Russian translation of content/traits/injuries.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Scarred
+    text: "Со шрамами"
+  - en: One-eyed
+    text: "Одноглазый"
+  - en: Lame
+    text: "Хромой"
+  - en: Maimed hand
+    text: "Искалеченная рука"

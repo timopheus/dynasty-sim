@@ -11,13 +11,16 @@ import { initArchiveState, type ArchiveState } from './archive/chunks';
 import { initBackstoryState, type BackstoryState } from './backstory/backstory';
 import type { CharacterBase } from './character/character';
 import { initChronicleState, type ChronicleState } from './chronicle/log';
+import { initContractsState, type ContractsState } from './contracts/contracts';
 import type { Content } from './content/schema';
 import { initEconomyState, type EconomyState } from './economy/economy';
 import { initEventsState, type EventsState } from './events/events';
+import { initFavorsState, type FavorsState } from './favors/favors';
 import { initFamilyState, type FamilyCharacter, type FamilyState, type Marriage } from './family/family';
 import { initHealthState, type HealthPart, type HealthState } from './health/health';
 import { initHeirloomState, type HeirloomState } from './heirloom/heirloom';
 import { initHouseState, type HouseCharacter, type HouseState } from './house/house';
+import { initInteractionsState, type InteractionsState } from './interactions/interactions';
 import { initMindState, type MindState } from './mind/mind';
 import { initNarratorState, type NarratorState } from './narrator/narrator';
 import { initPlaceState, type PlaceState } from './place/place';
@@ -75,7 +78,10 @@ export type GameState = CoreState &
   SummaryState &
   EconomyState &
   PlaceState &
-  MindState;
+  MindState &
+  ContractsState &
+  FavorsState &
+  InteractionsState;
 
 /** What hooks, phases and effects get: the state to change and the content it runs on. */
 export interface Ctx {
@@ -119,6 +125,9 @@ export function initialState(seed: number): GameState {
     ...initEconomyState(),
     ...initPlaceState(),
     ...initMindState(),
+    ...initContractsState(),
+    ...initFavorsState(),
+    ...initInteractionsState(),
   };
 }
 

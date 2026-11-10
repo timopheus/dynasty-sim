@@ -1,5 +1,5 @@
 import { fullName } from '../character/character';
-import { placeholderValues } from '../character/text';
+import { personValues, placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
 import { conditionReport } from '../condition-keys';
 import { findCharacter, getPlayer } from '../helpers';
@@ -68,10 +68,6 @@ function shareMoney(ctx: Ctx, deceased: Character, heir: Character, kin: boolean
   heir.money += total - each * others.length;
 }
 
-function personPart(c: Character): TextPart {
-  return { id: c.id, name: fullName(c) };
-}
-
 /**
  * The guardian of a ward under `adultAge` takes charge (D-314, D-362): the relation `guardian` (the guardian is `a`)
  * and its line. A guardian from afar joins the circle while there is room: events take the guardian as a role.
@@ -87,7 +83,7 @@ function appoint(ctx: Ctx, ward: Character, guardian: Character | null): void {
   if (!kind || activeRelationBetween(state, guardian.id, ward.id, kind.id)) return;
   startRelation(ctx, kind.id, guardian.id, ward.id);
   if (kind.startsAsProtege === undefined) return;
-  const parts = fillTemplate(kind.startsAsProtege, { ...placeholderValues(ward, state.day), other: personPart(guardian) });
+  const parts = fillTemplate(kind.startsAsProtege, { ...placeholderValues(ward, state.day), ...personValues('other', guardian) });
   log(ctx, { subject: ward, kind: 'guardian', level: 'chronicle', parts });
 }
 
@@ -109,7 +105,7 @@ function endGuardianship(ctx: Ctx, hero: Character): void {
   if (!relation) return;
   endRelation(ctx, relation, 'came_of_age');
   if (kind.endsAsProtege === undefined) return;
-  const parts = fillTemplate(kind.endsAsProtege, { ...placeholderValues(hero, state.day), other: personPart(guardian) });
+  const parts = fillTemplate(kind.endsAsProtege, { ...placeholderValues(hero, state.day), ...personValues('other', guardian) });
   log(ctx, { subject: hero, kind: 'guardian', level: 'journal', parts });
 }
 
@@ -132,7 +128,7 @@ export function succeed(ctx: Ctx, deceased: Character, heir: Character): void {
   if (by === null || !pace) {
     log(ctx, { subject: heir, kind: 'succession', level: 'chronicle', template: content.settings.texts.succession });
   } else {
-    const parts = fillTemplate(by === 'will' ? pace.texts.byWill : pace.texts.byLaw, { ...placeholderValues(heir, state.day), deceased: personPart(deceased) });
+    const parts = fillTemplate(by === 'will' ? pace.texts.byWill : pace.texts.byLaw, { ...placeholderValues(heir, state.day), ...personValues('deceased', deceased) });
     log(ctx, { subject: heir, kind: 'succession', level: 'chronicle', parts });
   }
   if (by === 'will' && pace && firstByLaw && firstByLaw.id !== heir.id && findReason(content, pace.passedOverReason)) {
@@ -181,7 +177,7 @@ function markStale(ctx: Ctx, hero: Character, dead: Character | null): void {
   if (!first && dead === null) return;
   const { texts } = content.succession;
   const parts = dead
-    ? fillTemplate(texts.willStaleDeath, { ...placeholderValues(hero, state.day), other: personPart(dead) })
+    ? fillTemplate(texts.willStaleDeath, { ...placeholderValues(hero, state.day), ...personValues('other', dead) })
     : fillTemplate(texts.willStaleBirth, placeholderValues(hero, state.day));
   log(ctx, { subject: hero, kind: 'will', level: 'journal', parts });
 }
@@ -293,6 +289,6 @@ export function willCommand(ctx: Ctx, order: WillOrder): void {
   const duration = int(state.rng, action.duration.min, action.duration.max);
   state.willDraft = { heir: order.heir, guardian: order.guardian, items: order.items.map((i) => ({ item: i.item, to: i.to })) };
   stopJourney(ctx);
-  state.activeAction = { actionId: action.id, endDay: state.day + duration, target: null };
+  state.activeAction = { actionId: action.id, endDay: state.day + duration, target: null, contract: null };
   state.interruptRequest = null;
 }

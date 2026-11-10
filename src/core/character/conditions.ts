@@ -50,10 +50,10 @@ export function checkCharacterConditions(ctx: Ctx, c: Character, when: Character
   const secret = (ids: string[]) => ids.some((id) => findTrait(ctx.content, id)?.visibility === 'secret');
   if (when.sex !== undefined && c.sex !== when.sex) out.push({ text: names.requiresSex[when.sex], hidden: false });
   if (when.traits_any && !when.traits_any.some((id) => hasTrait(c, id))) {
-    out.push({ text: fillReason(names.reasons.traits_any, { traits: joinOr(when.traits_any.map(traitName)) }), hidden: secret(when.traits_any) });
+    out.push({ text: fillReason(names.reasons.traits_any, { traits: joinOr(when.traits_any.map(traitName), ctx.content) }), hidden: secret(when.traits_any) });
   }
   const held = (when.traits_none ?? []).filter((id) => hasTrait(c, id));
-  if (held.length > 0) out.push({ text: fillReason(names.reasons.traits_none, { traits: joinOr(held.map(traitName)) }), hidden: secret(held) });
+  if (held.length > 0) out.push({ text: fillReason(names.reasons.traits_none, { traits: joinOr(held.map(traitName), ctx.content) }), hidden: secret(held) });
   if (when.stats) {
     const have = stats(ctx, c);
     for (const id of STAT_IDS) {

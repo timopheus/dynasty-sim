@@ -4,6 +4,7 @@
  */
 import { parseDocument } from 'yaml';
 import type { z } from 'zod';
+import { translateContent } from '../lang/translate';
 import { ContentFileSchema, CROSS_CHECKS, LIST_KEYS, OPTIONAL_KEYS, SINGLE_KEYS, type Content, type ContentSources } from './schema';
 import type { ContentError } from './types';
 
@@ -101,5 +102,6 @@ export function loadContent(files: readonly SourceFile[]): LoadResult {
   for (const key of SINGLE_KEYS) content[key] = sources[key][0]?.item;
   for (const key of OPTIONAL_KEYS) content[key] = sources[key][0]?.item ?? null;
   for (const key of LIST_KEYS) content[key] = sources[key].map((s) => s.item);
-  return { ok: true, content: content as Content };
+  // a second language (RU.1, D-476): the texts are replaced once the English ones have passed the checks
+  return { ok: true, content: translateContent(content, ContentFileSchema) as Content };
 }

@@ -6,12 +6,15 @@ import { actionsInvariants } from './actions/actions';
 import { backstoryInvariants } from './backstory/backstory';
 import { characterInvariants } from './character/character';
 import { chronicleInvariants } from './chronicle/log';
+import { contractsInvariants } from './contracts/contracts';
 import type { Content } from './content/schema';
 import { eventsInvariants } from './events/events';
 import { familyInvariants } from './family/family';
+import { favorsInvariants } from './favors/favors';
 import { healthInvariants } from './health/health';
 import { heirloomInvariants } from './heirloom/heirloom';
 import { houseInvariants } from './house/house';
+import { interactionsInvariants } from './interactions/interactions';
 import { narratorInvariants } from './narrator/narrator';
 import { relationsInvariants } from './relations/relations';
 import { SAVE_VERSION } from './save/version';
@@ -72,6 +75,9 @@ const INVARIANTS: readonly Invariant[] = [
   economyInvariants,
   placeInvariants,
   mindInvariants,
+  contractsInvariants,
+  favorsInvariants,
+  interactionsInvariants,
 ];
 
 /** Returns a list of broken rules; empty means the state is consistent. */

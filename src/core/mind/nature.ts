@@ -1,5 +1,6 @@
 import { findTrait } from '../character/holding';
 import type { Content } from '../content/schema';
+import { phrase } from '../lang/phrases';
 import type { Character } from '../state';
 
 /**
@@ -36,10 +37,14 @@ export function natureOf(content: Content, hero: Character, acts: readonly strin
 }
 
 /** The lines of a tooltip about a report: the traits named, the happiness in numbers ("against your nature"). */
-export function natureLines(report: NatureReport): string[] {
+export function natureLines(content: Content, report: NatureReport): string[] {
   const out: string[] = [];
-  if (report.against.length > 0) out.push(`Against your nature (${report.against.map((a) => a.name).join(', ')}): happiness −${report.against.reduce((n, a) => n + a.cost, 0)}`);
-  if (report.by.length > 0) out.push(`True to your nature (${report.by.map((b) => b.name).join(', ')}): happiness +${report.by.reduce((n, b) => n + b.gain, 0)}`);
+  if (report.against.length > 0) {
+    out.push(phrase(content, 'Against your nature ({traits}): happiness −{n}', { traits: report.against.map((a) => a.name).join(', '), n: report.against.reduce((n, a) => n + a.cost, 0) }));
+  }
+  if (report.by.length > 0) {
+    out.push(phrase(content, 'True to your nature ({traits}): happiness +{n}', { traits: report.by.map((b) => b.name).join(', '), n: report.by.reduce((n, b) => n + b.gain, 0) }));
+  }
   return out;
 }
 

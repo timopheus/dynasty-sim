@@ -137,11 +137,11 @@ describe('moves', () => {
     expect(state.chronicle.filter((e) => e.kind === 'move')).toHaveLength(1);
     const after = [...state.circle];
     // Pretend the action is still active on its end day: the same move must not run again.
-    state.activeAction = { actionId: 'wait', endDay: state.lastMoveEndDay as number, target: null };
+    state.activeAction = { actionId: 'wait', endDay: state.lastMoveEndDay as number, target: null, contract: null };
     worldPhase.run(ctxOf(state));
     expect(state.circle).toEqual(after);
 
-    state.activeAction = { actionId: 'wait', endDay: state.day, target: null };
+    state.activeAction = { actionId: 'wait', endDay: state.day, target: null, contract: null };
     state.interruptRequest = { template: null };
     worldPhase.run(ctxOf(state));
     expect(state.circle).toEqual(after);

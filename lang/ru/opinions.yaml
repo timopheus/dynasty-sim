@@ -1,0 +1,124 @@
+# Russian translation of content/opinions.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Insulted in public
+    text: "Оскорбление при всех"
+  - en: Killed kin
+    text: "Убийство родича"
+  - en: Heir of my enemy
+    text: "Наследник моего врага"
+  - en: Heir of my kin killer
+    text: "Наследник убийцы моей родни"
+  - en: Heir of my debtor
+    text: "Наследник моего должника"
+  - en: Did me wrong
+    text: "Обида"
+  - en: Slighted me
+    text: "Пренебрежение"
+  - en: Gave a gift
+    text: "Подарок"
+  - en: Did me a service
+    text: "Услуга"
+  - en: Did good work for me
+    text: "Хорошая работа"
+  - en: Let me down on a job
+    text: "Подвёл в работе"
+  - en: Saved my life
+    text: "Спасение жизни"
+  - en: Owes me
+    text: "Должен мне"
+  - en: Shamed me
+    text: "Позор"
+  - en: Betrayed me
+    text: "Предательство"
+  - en: Humiliated me
+    text: "Унижение"
+  - en: Called me a coward
+    text: "Обвинение в трусости"
+  - en: Spared me
+    text: "Пощада"
+  - en: Taught me
+    text: "Учение"
+  - en: Friend since childhood
+    text: "Друг детства"
+  - en: Defeated me
+    text: "Поражение от него"
+  - en: Cheated me
+    text: "Обман"
+  - en: Stood beside me
+    text: "Плечом к плечу"
+  - en: Nursed me
+    text: "Уход за мной"
+  - en: Showed no spine
+    text: "Малодушие"
+  - en: Stood by me when it counted
+    text: "Поддержка в трудный час"
+  - en: Left me waiting
+    text: "Долгое ожидание"
+  - en: Passed over in the will
+    text: "Обойдён в завещании"
+  - en: hatred
+    text: "ненависть"
+  - en: dislike
+    text: "неприязнь"
+  - en: coolness
+    text: "холодок"
+  - en: indifference
+    text: "безразличие"
+  - en: liking
+    text: "симпатия"
+  - en: friendship
+    text: "дружба"
+  - en: devotion
+    text: "преданность"
+  - en: Friend
+    text: "Друг"
+  - en: "{name} befriended {other}."
+    text: "{name} {~подружился|подружилась} с {other:ins}."
+  - en: "{name} and {other} ceased to be friends."
+    text: "{name} и {other} больше не друзья."
+  - en: Rival
+    text: "Соперник"
+  - en: "{name} made a rival of {other}."
+    text: "{name} {~нажил|нажила} в {other:prep} соперника."
+  - en: "{name} and {other} ceased to be rivals."
+    text: "{name} и {other} перестали быть соперниками."
+  - en: Patron
+    text: "Покровитель"
+  - en: "{name} took {other} under {his} wing."
+    text: "{name} {~взял|взяла} {other:acc} под своё крыло."
+  - en: "{name} no longer looked after {other}."
+    text: "{name} больше не {~опекал|опекала} {other:acc}."
+  - en: "{other} became {name}'s patron."
+    text: "{other} {other~взял|взяла} {name:acc} под своё крыло."
+  - en: "{other} no longer looked after {name}."
+    text: "{other} больше не {other~опекал|опекала} {name:acc}."
+  - en: Lover
+    text: "Любовник"
+  - en: "{name} and {other} became lovers."
+    text: "{name} и {other} стали любовниками."
+  - en: "{name} and {other} parted as lovers."
+    text: "{name} и {other} расстались."
+  - en: Guardian
+    text: "Опекун"
+  - en: "{name} became the guardian of {other}."
+    text: "{name} {~стал опекуном|стала опекуншей} {other:gen}."
+  - en: "{name} was no longer the guardian of {other}."
+    text: "{name} больше не {~был опекуном|была опекуншей} {other:gen}."
+  - en: "{other} became the guardian of {name}."
+    text: "{other} {other~стал опекуном|стала опекуншей} {name:gen}."
+  - en: "{name} came of age and left the guardianship of {other}."
+    text: "{name} {~достиг|достигла} совершеннолетия и {~вышел|вышла} из-под опеки {other:gen}."
+  - en: "{name} became heir to the feud between {deceased} and {other}."
+    text: "{name} {~унаследовал|унаследовала} вражду между {deceased:ins} и {other:ins}."
+  - en: Needs {word} towards {name}
+    text: "К {name:dat}: нужно отношение «{word}»"
+  - en: Needs no more than {word} towards {name}
+    text: "К {name:dat}: отношение не выше «{word}»"
+  - en: "Needs a bond with {name}: {kind}"
+    text: "Нужна связь с {name:ins}: {kind}"
+  - en: Must not be bound to {name} as {kind}
+    text: "Не должно быть связи с {name:ins}: {kind}"
+  - en: You must know {name}
+    text: "Нужно знать {name:acc}"
+  - en: You must be close to {name}
+    text: "Нужно быть близким к {name:dat}"

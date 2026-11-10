@@ -6,6 +6,7 @@ import type { Character, GameState } from '../core/state';
 import { heirOf, willGuardians, willHeirs, willItems, willReceivers } from '../core/succession/law';
 import { willReasons } from '../core/succession/phases';
 import { ageYears } from '../core/time/calendar';
+import { ageText, localName, tr } from './i18n';
 
 export interface PersonChoice {
   id: string;
@@ -25,7 +26,7 @@ export interface HeirLine {
 export function heirLine(state: GameState): HeirLine | null {
   const found = heirOf(state, state.playerId);
   if (!found) return null;
-  const by = found.by === 'law' ? 'by law' : state.will?.stale ? 'by will, out of date' : 'by will';
+  const by = found.by === 'law' ? tr('by law') : state.will?.stale ? tr('by will, out of date') : tr('by will');
   return { id: found.heir.id, name: fullName(found.heir), by };
 }
 
@@ -55,7 +56,7 @@ export function willForm(state: GameState, content: Content): WillForm | null {
   const pace = content.succession;
   if (reasons === null || !pace) return null;
   const hero = getPlayer(state);
-  const choice = (c: Character): PersonChoice => ({ id: c.id, label: `${fullName(c)}, aged ${ageYears(c.birthDay, state.day)}` });
+  const choice = (c: Character): PersonChoice => ({ id: c.id, label: `${localName(fullName(c))}, ${ageText(ageYears(c.birthDay, state.day))}` });
   const will = state.will;
   return {
     reasons,

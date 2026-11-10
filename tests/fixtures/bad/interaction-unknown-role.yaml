@@ -1,0 +1,7 @@
+# expect-error: interactions.list[0] /unknown role "friend": an interaction knows hero, protagonist, target/
+interactions:
+  list:
+    - id: gossip
+      name: Gossip
+      when: { relation: { kind: friend, with: friend } }
+  reasons: { cooldown: Lately }

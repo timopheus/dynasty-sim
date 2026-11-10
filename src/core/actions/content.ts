@@ -28,9 +28,10 @@ export const ActionSchema = z.strictObject({
   idle: z.boolean().optional(),
   /**
    * The action goes somewhere (S.9a, D-461): `start` names the place, a road must lead there from where the hero stands,
-   * and the days of the road replace `duration` (which stays the measure of the narrator).
+   * and the days of the road replace `duration` (which stays the measure of the narrator). `contract` (CK.2a): `start`
+   * names an offer on the board where the hero stands; the days of its work, or of the road to it, replace `duration`.
    */
-  target: z.enum(['place']).optional(),
+  target: z.enum(['place', 'contract']).optional(),
   /**
    * The goal of the action (D-466): once `when` holds for the hero, the action ends as completed, before its last day —
    * its effects, and the line `text` instead of its own (`null`: no line, the event that reached the goal wrote one).

@@ -1,0 +1,82 @@
+# Contracts (CK.3, D-473, D-474): work offered on the boards of the places within reach of the hero. CK3 1.11 has no
+# contracts, so every number here is ours; the etalon is docs/reference/contracts.md. The pay goes by the level of the
+# work, not by the status of the hero. Format: docs/event-format.md, "Ключи этапа CK".
+contracts:
+  board:
+    range: 8                       # days from the hero: the boards he knows of (ours)
+    sizes:
+      - { kind: city, size: { min: 3, max: 6 } }
+      - { kind: town, size: { min: 2, max: 4 } }
+      - { kind: village, size: { min: 0, max: 2 } }
+    stay: { min: 30, max: 90 }     # days an offer stays on the board
+    pay: [5, 15, 30, 60]           # crowns by level 0-3: minor, notable, two months, major (D-441, D-474)
+    risks:
+      - { id: low, name: low, chance: 25 }
+      - { id: notable, name: notable, chance: 50 }
+      - { id: high, name: high, chance: 75 }
+  chronicle: { success: 2, failure: 1 }   # from which level an outcome goes to the chronicle, else the journal (D-203)
+  favorLevel: 2                    # a success from this level leaves the employer owing a favor (D-474)
+  kinds:
+    - id: day_labour
+      name: day labour
+      offer: { employers: [farmhand, craftsman, innkeeper, merchant, teamster], places: [city, town, village], levels: { min: 0, max: 0 }, days: { min: 3, max: 7 }, risk: low, weight: 4, complication: labour_quarrel }
+      success:
+        text: "{name} did a few days of labour for {employer}."
+        on: { employer: { opinion: [{ toward: hero, reason: contract_done }] } }
+      failure:
+        text: "{name} walked off a job of labour for {employer}."
+        on: { employer: { opinion: [{ toward: hero, reason: contract_failed }] } }
+    - id: letter
+      name: a letter to carry
+      offer: { employers: [clerk, merchant, priest, physician], places: [city, town], levels: { min: 1, max: 3 }, to: { min: 4, max: 14 }, risk: notable, weight: 3, complication: letter_riders, strongFavor: true }
+      success:
+        text: "{name} carried a letter for {employer} and put it in the right hands."
+        on: { employer: { opinion: [{ toward: hero, reason: contract_done }] } }
+      failure:
+        text: "{name} never delivered the letter of {employer}."
+        on: { employer: { opinion: [{ toward: hero, reason: contract_failed }] } }
+    - id: escort
+      name: guarding carts on the road
+      offer: { employers: [merchant, teamster], places: [city, town], levels: { min: 1, max: 2 }, to: { min: 4, max: 12 }, risk: high, weight: 2, complication: carts_ambush }
+      success:
+        text: "{name} brought the carts of {employer} through safe."
+        on: { employer: { opinion: [{ toward: hero, reason: contract_done }] } }
+      failure:
+        text: "{name} lost the carts of {employer} on the road."
+        on: { employer: { opinion: [{ toward: hero, reason: contract_failed }] } }
+    - id: debt
+      name: a debt to collect
+      offer: { employers: [merchant, innkeeper], places: [city, town], levels: { min: 1, max: 2 }, days: { min: 5, max: 10 }, risk: notable, weight: 2, complication: debtor_purse }
+      success:
+        text: "{name} collected a debt for {employer}."
+        on: { employer: { opinion: [{ toward: hero, reason: contract_done }] } }
+      failure:
+        text: "{name} came back to {employer} without the debt."
+        on: { employer: { opinion: [{ toward: hero, reason: contract_failed }] } }
+    - id: watch
+      name: a watch over a shop
+      offer: { employers: [craftsman, merchant, innkeeper], places: [city, town], levels: { min: 0, max: 1 }, days: { min: 7, max: 14 }, risk: low, weight: 3, complication: shutters_at_night }
+      success:
+        text: "{name} kept watch over the shop of {employer}."
+        on: { employer: { opinion: [{ toward: hero, reason: contract_done }] } }
+      failure:
+        text: "{name} let the shop of {employer} be robbed on {his} watch."
+        on: { employer: { opinion: [{ toward: hero, reason: contract_failed }] } }
+    - id: copy
+      name: papers to copy
+      offer: { employers: [clerk, priest, physician], places: [city], levels: { min: 1, max: 1 }, days: { min: 10, max: 20 }, risk: low, weight: 2, complication: page_not_for_you }
+      success:
+        text: "{name} copied a stack of papers for {employer}."
+        on: { employer: { opinion: [{ toward: hero, reason: contract_done }] } }
+      failure:
+        text: "{name} left the papers of {employer} half copied."
+        on: { employer: { opinion: [{ toward: hero, reason: contract_failed }] } }
+  texts:
+    left: "{name} left the work for {employer} unfinished."
+  reasons:
+    none: "No work on the board here"
+    busy: "You already have work"
+    taken: "Only while you have work"
+    free: "Only when you have no work"
+    kind: "Only at {kinds}"
+    level: "Only at work of level {level} or higher"

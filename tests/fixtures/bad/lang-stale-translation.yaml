@@ -1,0 +1,5 @@
+# expect-error: translations[0] /is not a text of the content/
+language: { id: ru, name: Русский }
+translations:
+  - en: "{name} sailed away."
+    text: "{name} {~уплыл|уплыла}."

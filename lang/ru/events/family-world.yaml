@@ -1,0 +1,28 @@
+# Russian translation of content/events/family-world.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: "{name} has kept company with {other} for a season; the families are talking."
+    text: "{name} уже сезон водит компанию с {other:ins}; семьи говорят об этом."
+  - en: Marry
+    text: "Пожениться"
+  - en: "{name} married {other}."
+    text: "{name} {~женился на|вышла замуж за} {other:acc}."
+  - en: Wait another year
+    text: "Подождать ещё год"
+  - en: "{name} put off marrying {other}."
+    text: "{name} {~отложил|отложила} свадьбу с {other:ins}."
+  - en: "{name} has been promised to {other}, and a better offer has come."
+    text: "{name} {~обещан|обещана} {other:dat}, и появилось предложение получше."
+  - en: Keep faith and marry {other}
+    text: "Сохранить верность и сыграть свадьбу с {other:ins}"
+  - en: "{name} kept faith and married {other}."
+    text: "{name} {~сохранил|сохранила} верность и {~женился на|вышла замуж за} {other:acc}."
+  - en: Break the engagement
+    text: "Расторгнуть помолвку"
+  - en: "{name} broke an engagement with {other} for a better offer."
+    text: "{name} {~расторг|расторгла} помолвку с {other:ins} ради лучшего предложения."
+  - en: "{name}'s child {child} is a few weeks old, and the priest asks when the christening is to be."
+    text: "Ребёнку {name:gen}, {child}, несколько недель, и священник спрашивает, когда будут крестины."
+  - en: Hold a christening feast
+    text: "Устроить крестильный пир"
+  - en: "{name} held a christening feast for {child}."
+    text: "{name} {~устроил|устроила} крестильный пир для {child:gen}."

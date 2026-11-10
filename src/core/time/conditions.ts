@@ -14,5 +14,5 @@ export function checkTimeConditions({ state, content }: Ctx, _c: Character, when
   if (!when.season || when.season.includes(seasonAt(content, state.day).id)) return [];
   const { seasons, reasons } = timeContent(content);
   const names = when.season.map((id) => (seasons.find((s) => s.id === id)?.name ?? id).toLowerCase());
-  return [{ text: fillReason(reasons.season, { seasons: joinOr(names) }), hidden: false }];
+  return [{ text: fillReason(reasons.season, { seasons: joinOr(names, content) }), hidden: false }];
 }

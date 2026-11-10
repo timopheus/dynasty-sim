@@ -1,0 +1,6 @@
+# expect-error: events[0].effects.favor_use /favors need the top-level key "favors"/
+events:
+  - id: ask
+    weight: 1
+    text: You call in an old debt.
+    effects: { favor_use: hero }

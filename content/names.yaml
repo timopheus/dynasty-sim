@@ -45,7 +45,7 @@ names:
     - { from: 8, word: Average }
     - { from: 12, word: Good }
     - { from: 16, word: Excellent }
-    - { from: 20, word: Brilliant }
+    - { from: 20, word: Masterful }
   # Fame steps, from a private person to someone known to all.
   fame:
     - Private person

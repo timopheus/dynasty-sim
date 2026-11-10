@@ -1,0 +1,42 @@
+# Russian translation of content/traits/education.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Courtly education I
+    text: "Придворное образование I"
+  - en: Courtly education II
+    text: "Придворное образование II"
+  - en: Courtly education III
+    text: "Придворное образование III"
+  - en: Courtly education IV
+    text: "Придворное образование IV"
+  - en: Military education I
+    text: "Военное образование I"
+  - en: Military education II
+    text: "Военное образование II"
+  - en: Military education III
+    text: "Военное образование III"
+  - en: Military education IV
+    text: "Военное образование IV"
+  - en: Counting-house education I
+    text: "Образование счётной конторы I"
+  - en: Counting-house education II
+    text: "Образование счётной конторы II"
+  - en: Counting-house education III
+    text: "Образование счётной конторы III"
+  - en: Counting-house education IV
+    text: "Образование счётной конторы IV"
+  - en: Street and chancery education I
+    text: "Образование улицы и канцелярии I"
+  - en: Street and chancery education II
+    text: "Образование улицы и канцелярии II"
+  - en: Street and chancery education III
+    text: "Образование улицы и канцелярии III"
+  - en: Street and chancery education IV
+    text: "Образование улицы и канцелярии IV"
+  - en: Learned education I
+    text: "Учёное образование I"
+  - en: Learned education II
+    text: "Учёное образование II"
+  - en: Learned education III
+    text: "Учёное образование III"
+  - en: Learned education IV
+    text: "Учёное образование IV"

@@ -1,0 +1,186 @@
+# Russian translation of content/events/general.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: The shivering began last night, and this morning you cannot stand. The fever has taken hold.
+    text: "Озноб начался ещё вчера вечером, а утром ты не можешь встать. Лихорадка взяла своё."
+  - en: "{physician?Send for {physician}}"
+    text: "{physician?Послать за {physician:ins}}"
+  - en: "{name} paid {physician?{physician}, a physician,} and got over a fever."
+    text: "{name} {~заплатил|заплатила} {physician?{physician:dat}, лекарю,} и {~перенёс|перенесла} лихорадку."
+  - en: "{name} paid {physician?{physician}, a physician,} in vain: the fever ran its course for weeks."
+    text: "{name} {~заплатил|заплатила} {physician?{physician:dat}, лекарю,} впустую: лихорадка тянулась ещё несколько недель."
+  - en: Buy a remedy from a travelling quack
+    text: "Купить снадобье у бродячего знахаря"
+  - en: "{name} bought a quack's remedy and got over a fever, more by luck than by the physic."
+    text: "{name} {~купил|купила} снадобье у знахаря и {~перенёс|перенесла} лихорадку — скорее по счастью, чем от лекарства."
+  - en: Rest and hope
+    text: "Лежать и надеяться"
+  - en: "{name} lay sick with fever for weeks."
+    text: "{name} несколько недель {~пролежал|пролежала} в лихорадке."
+  - en: At <inn_name>, {stranger} sets down a worn deck and invites you to a game of cards.
+    text: "В <inn_name> {stranger} кладёт на стол потёртую колоду и зовёт тебя сыграть в карты."
+  - en: Play for high stakes
+    text: "Играть по-крупному"
+  - en: "{name} caught {stranger} cheating at cards and took 25 crowns off {stranger.him}."
+    text: "{name} {~поймал|поймала} {stranger:acc} на шулерстве в карты и {~отыграл|отыграла} у {stranger~него|неё} 25 крон."
+  - en: "{name} lost heavily at cards to {stranger}."
+    text: "{name} {~проиграл|проиграла} {stranger:dat} крупную сумму в карты."
+  - en: Play a modest hand
+    text: "Сыграть по маленькой"
+  - en: "{name} won a few coins at cards from {stranger}."
+    text: "{name} {~выиграл|выиграла} у {stranger:gen} в карты несколько монет."
+  - en: Decline
+    text: "Отказаться"
+  - en: "{name} declined a game of cards with {stranger}."
+    text: "{name} {~отказался|отказалась} играть в карты с {stranger:ins}."
+  - en: "A letter finds you, in a clerk's hand: an old debt owed to your family has been repaid."
+    text: "Письмо от писаря: старый долг твоей семьи наконец возвращён."
+  - en: Buy new clothes
+    text: "Купить новое платье"
+  - en: "{name} spent a repaid family debt on new clothes."
+    text: "{name} {~потратил|потратила} возвращённый семейный долг на новое платье."
+  - en: Keep the money
+    text: "Оставить деньги себе"
+  - en: "{name} received a repaid family debt and kept it."
+    text: "{name} {~получил|получила} возвращённый семейный долг и {~оставил|оставила} деньги себе."
+  - en: Your old wound aches in the damp weather, a dull, deep pain.
+    text: "В сырую погоду старая рана ноет — тупо и глубоко."
+  - en: Ignore it
+    text: "Не обращать внимания"
+  - en: "{name} ignored an aching old wound."
+    text: "{name} {~не стал|не стала} обращать внимания на ноющую старую рану."
+  - en: Rest for a few days
+    text: "Отдохнуть несколько дней"
+  - en: "{name} rested an old wound for a few days."
+    text: "{name} несколько дней {~отлёживался|отлёживалась}, давая отдых старой ране."
+  - en: At the market you feel a hand slipping into your purse. You turn in time to see {thief} pulling away with it.
+    text: "На рынке ты чувствуешь, как чья-то рука лезет в твой кошелёк. Оборачиваешься и успеваешь увидеть, как {thief} уносит его."
+  - en: Give chase
+    text: "Броситься в погоню"
+  - en: "{name} ran down {thief}, a pickpocket, in the market and took the purse back."
+    text: "{name} {~догнал|догнала} на рынке {thief:acc}, карманника, и {~вернул|вернула} кошелёк."
+  - en: "{name} chased {thief} through the market in vain and lost a purse."
+    text: "{name} зря {~гонялся|гонялась} за {thief:ins} по рынку и {~лишился|лишилась} кошелька."
+  - en: Let it go
+    text: "Махнуть рукой"
+  - en: "{name} was robbed by {thief} at the market."
+    text: "{name} {~был обокраден|была обокрадена} на рынке: кошелёк унёс {thief}."
+  - en: A brawl breaks out in <inn_name>{brawler?, with {brawler} in the middle of it}, and a bench comes flying across the room.
+    text: "В <inn_name> вспыхивает драка{brawler?, и {brawler} в самой гуще}, через зал летит скамья."
+  - en: Join in
+    text: "Ввязаться"
+  - en: "{name} won a tavern brawl{brawler?, fighting at {brawler}'s side}."
+    text: "{name} {~выиграл|выиграла} трактирную драку{brawler?, сражаясь плечом к плечу с {brawler:ins}}."
+  - en: "{name} was bruised in a tavern brawl."
+    text: "{name} {~получил|получила} синяки в трактирной драке."
+  - en: Try to talk the room down
+    text: "Попробовать утихомирить зал"
+  - en: "{name} talked a tavern brawl down before blood was drawn."
+    text: "{name} {~уговорил|уговорила} драчунов в трактире, и обошлось без крови."
+  - en: "{name} tried to calm a tavern brawl and was knocked down for it."
+    text: "{name} {~пытался|пыталась} унять трактирную драку, и {~его|её} сбили с ног."
+  - en: Slip out
+    text: "Улизнуть"
+  - en: "{name} slipped out of a tavern brawl unharmed."
+    text: "{name} {~выбрался|выбралась} из трактирной драки целым и невредимым."
+  - en: At <inn_name>, {rival} says over a cup, loudly enough for the whole room, that you cheat at cards.
+    text: "В <inn_name> {rival} за кружкой говорит так, что слышит весь зал: ты передёргиваешь в карты."
+  - en: Throw down your glove
+    text: "Бросить перчатку"
+  - en: "{name} challenged {rival} to a duel over an insult at the inn."
+    text: "{name} {~вызвал|вызвала} {rival:acc} на дуэль за оскорбление в трактире."
+  - en: Answer with a cutting word
+    text: "Ответить хлёстким словом"
+  - en: "{name} answered {rival}'s insult so sharply that the whole room laughed at {rival.him}."
+    text: "{name} {~ответил|ответила} на оскорбление {rival:gen} так резко, что весь зал смеялся над {rival~ним|ней}."
+  - en: "{name} traded insults with {rival} at the inn and came off worse."
+    text: "{name} {~обменялся|обменялась} с {rival:ins} оскорблениями в трактире и {~остался|осталась} в проигрыше."
+  - en: Swallow the insult
+    text: "Проглотить обиду"
+  - en: "{name} let {rival}'s insult pass and drank in silence."
+    text: "{name} {~пропустил|пропустила} оскорбление {rival:gen} мимо ушей и молча {~допил|допила} кружку."
+  - en: <Dawn>, in a wet meadow outside the town. {rival} is already there, with a second and a surgeon's bag on the grass.
+    text: "<Dawn>, мокрый луг за городом. {rival} уже там, рядом секундант и хирургический саквояж на траве."
+  - en: Fight to first blood
+    text: "Драться до первой крови"
+  - en: "{name} wounded {rival} in a duel at dawn."
+    text: "{name} {~ранил|ранила} {rival:acc} на дуэли на рассвете."
+  - en: "{name} was wounded by {rival} in a duel at dawn."
+    text: "{name} {~был ранен|была ранена} {rival:ins} на дуэли на рассвете."
+  - en: Fight to the death
+    text: "Драться насмерть"
+  - en: "{name} killed {rival} in a duel at dawn."
+    text: "{name} {~убил|убила} {rival:acc} на дуэли на рассвете."
+  - en: "{name} was killed by {rival} in a duel at dawn."
+    text: "{name} {~был убит|была убита} {rival:ins} на дуэли на рассвете."
+  - en: Refuse to draw
+    text: "Отказаться от поединка"
+  - en: "{name} refused to face {rival} at dawn and went home in shame."
+    text: "{name} {~не вышел|не вышла} на рассвете к {rival:dat} и {~вернулся|вернулась} домой в позоре."
+  - en: "{debtor} takes you aside, hat in hand. A bad season, a bad debt: could you lend 25 crowns for a few weeks?"
+    text: "{debtor} отводит тебя в сторону, комкая шапку. Плохой год, плохой долг: не одолжишь ли 25 крон на несколько недель?"
+  - en: Lend the 25 crowns
+    text: "Одолжить 25 крон"
+  - en: "{name} lent {debtor} 25 crowns."
+    text: "{name} {~одолжил|одолжила} {debtor:dat} 25 крон."
+  - en: "{name} refused to lend {debtor} money."
+    text: "{name} {~отказал|отказала} {debtor:dat} в займе."
+  - en: "{debtor} finds you with a purse in hand: the 25 crowns, if the season has been kind enough to {debtor.him}."
+    text: "{debtor} находит тебя с кошельком в руке: вот 25 крон, если год был к {debtor~нему|ней} достаточно добр."
+  - en: Ask for the 25 crowns with something over for your patience
+    text: "Потребовать 25 крон и что-нибудь сверху за терпение"
+  - en: "{name} was repaid in full, with interest, by {debtor}."
+    text: "{name} {~получил|получила} от {debtor:gen} долг сполна, да ещё с процентами."
+  - en: "{name} got back only 8 of the 25 crowns lent to {debtor} and let the rest go."
+    text: "{name} {~вернул|вернула} от {debtor:gen} лишь 8 из 25 одолженных крон, остальное {~простил|простила}."
+  - en: Take the 25 and wave the rest away
+    text: "Взять 25 и махнуть рукой на остальное"
+  - en: "{name} took back the loan from {debtor} and waved the interest away."
+    text: "{name} {~взял|взяла} с {debtor:gen} долг назад и {~отказался|отказалась} от процентов."
+  - en: "{name} took the 8 crowns {debtor} could spare and forgave the rest."
+    text: "{name} {~взял|взяла} 8 крон, которые смог найти {debtor}, а остальное {~простил|простила}."
+  - en: The months have gone by and {debtor} has not come. Someone says {debtor.he} was seen spending coin at a fair two counties away.
+    text: "Прошли месяцы, а {debtor} не приходит. Кто-то говорит, что {debtor~его|её} видели на ярмарке за два графства отсюда: {debtor~он|она} {debtor~сорил|сорила} деньгами."
+  - en: Write the debt off
+    text: "Списать долг"
+  - en: "{name} wrote off a loan to {debtor} that was never repaid."
+    text: "{name} {~списал|списала} невозвращённый заём {debtor:dat}."
+  - en: Go after {debtor} for the money
+    text: "Пойти за деньгами к {debtor:dat}"
+  - en: "{name} ran {debtor} to ground and got the 25 crowns back."
+    text: "{name} {~выследил|выследила} {debtor:acc} и {~вернул|вернула} свои 25 крон."
+  - en: "{name} hunted {debtor} for a debt and came back with nothing but an enemy."
+    text: "{name} {~гонялся|гонялась} за {debtor:ins} ради долга и {~вернулся|вернулась} ни с чем, нажив лишь врага."
+  - en: You have not eaten properly in two days. {priest} stops you at the church door and looks at your coat, then at your face.
+    text: "Ты два дня не ел как следует. {priest} останавливает тебя у церковных дверей и смотрит сперва на твой плащ, потом на лицо."
+  - en: Accept the bread and the coins
+    text: "Принять хлеб и монеты"
+  - en: "{name}, with an empty purse, was given alms by {priest}."
+    text: "{name} с пустым кошельком {~получил|получила} подаяние от {priest:gen}."
+  - en: Ask for work instead of charity
+    text: "Попросить работы вместо милостыни"
+  - en: "{name} asked {priest} for work instead of alms and was given a copying job for the parish."
+    text: "{name} {~попросил|попросила} у {priest:gen} работу вместо милостыни и {~получил|получила} переписку бумаг для прихода."
+  - en: "{name} asked {priest} for work and was sent away with a few coins."
+    text: "{name} {~попросил|попросила} у {priest:gen} работу, но {~ушёл|ушла} лишь с несколькими монетами."
+  - en: Pass by with your head up
+    text: "Пройти мимо с поднятой головой"
+  - en: "{name} refused a priest's charity out of pride."
+    text: "{name} из гордости {~отказался|отказалась} от помощи священника."
+  - en: "{employer} has heard that you are looking for work. There is a roof to mend, a cellar to clear, a load to carry, and the pay is fair."
+    text: "{employer} {employer~слышал|слышала}, что ты ищешь работу. Надо починить крышу, расчистить погреб, перетаскать груз, и платят честно."
+  - en: Take the job
+    text: "Взяться за дело"
+  - en: "{name} did odd jobs for {employer} and was paid fairly for them."
+    text: "{name} {~подрабатывал|подрабатывала} у {employer:gen} и {~получил|получила} честную плату."
+  - en: Say that you are above such work
+    text: "Сказать, что такая работа тебе не к лицу"
+  - en: "{name} turned down honest work from {employer} and went hungry."
+    text: "{name} {~отказался|отказалась} от честной работы у {employer:gen} и {~остался|осталась} голодным."
+  - en: Among the stones of a dry ditch you find a purse someone lost. There is no name inside it, only twelve crowns.
+    text: "Среди камней сухой канавы ты находишь чей-то потерянный кошелёк. Имени внутри нет, только двенадцать крон."
+  - en: "{name} found a lost purse by the road."
+    text: "{name} {~нашёл|нашла} у дороги потерянный кошелёк."
+  - en: "A carter brings word from {comrade}: {comrade.he} has taken a small inn farther south, and there is always a bed for you."
+    text: "Возчик привозит весть от {comrade:gen}: {comrade~он|она} {comrade~взял|взяла} небольшой постоялый двор южнее, и для тебя там всегда найдётся постель."
+  - en: "{name} had word from {comrade}, who has settled at an inn."
+    text: "{name} {~получил|получила} весть от {comrade:gen}, {comrade~осевшего|осевшей} на постоялом дворе."

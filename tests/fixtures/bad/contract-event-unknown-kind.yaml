@@ -1,0 +1,13 @@
+# expect-error: events[0].contract[0] /unknown kind of contract "ferry"/
+contracts:
+  kinds:
+    - id: letter
+      name: a letter
+      success: { text: "{name} carried a letter." }
+      failure: { text: "{name} lost a letter." }
+  reasons: { none: None, busy: Busy, taken: Taken, free: Free, kind: "Only at {kinds}", level: "Level {level}" }
+events:
+  - id: thief
+    weight: 1
+    contract: [ferry]
+    text: A thief eyes the letter.

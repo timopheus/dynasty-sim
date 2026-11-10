@@ -1,0 +1,5 @@
+# The second language of the game (RU.1, D-476): Russian. The translations of the texts are in the other files of lang/ru/,
+# the forms of names in names.yaml. Etalon: docs/reference/russian-style.md.
+language:
+  id: ru
+  name: Русский
