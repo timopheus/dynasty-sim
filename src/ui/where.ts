@@ -1,5 +1,6 @@
 import { hrefOf } from './address';
 import { el } from './dom';
+import { withTip } from './tooltip';
 import type { WhereView } from './where-model';
 import './where.css';
 import { daysText, tr } from './i18n';
@@ -11,8 +12,9 @@ import { daysText, tr } from './i18n';
  */
 export function wherePanel(view: WhereView): HTMLElement {
   const table = el('dl', { className: 'place-table' }, ...view.table.map((r) => el('div', {}, el('dt', {}, tr(r.label)), el('dd', {}, r.value))));
-  const title = view.place ? el('a', { href: hrefOf(view.place.id), className: 'place-name' }, view.title) : el('span', { className: 'place-name' }, view.title);
-  const roads: (Node | string)[] = view.goTo.flatMap((g, i) => [i > 0 ? ' · ' : '', el('a', { href: hrefOf(g.id), className: 'place-link' }, g.name), ` ${daysText(g.days).replace(' ', '\u00a0')}`]);
+  const open = [{ button: 'left' as const, text: tr('Open the page of the place') }];
+  const title = view.place ? withTip(el('a', { href: hrefOf(view.place.id), className: 'place-name' }, view.title), { title: view.title, crumb: tr('Where you are'), text: '', mouse: open }) : el('span', { className: 'place-name' }, view.title);
+  const roads: (Node | string)[] = view.goTo.flatMap((g, i) => [i > 0 ? ' · ' : '', withTip(el('a', { href: hrefOf(g.id), className: 'place-link' }, g.name), { title: g.name, crumb: tr('Place'), text: tr('{days} of road from here.', { days: daysText(g.days) }), mouse: open }), ` ${daysText(g.days).replace(' ', '\u00a0')}`]);
   const block = el('section', { className: 'where', ariaLabel: tr('Where you are') },
     el('div', { className: 'place-picture', ariaHidden: 'true' }, tr('picture of the place')),
     el('div', { className: 'where-text' },

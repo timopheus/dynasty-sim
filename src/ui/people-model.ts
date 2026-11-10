@@ -5,10 +5,13 @@ import { proposalOptions } from '../core/family/proposals';
 import type { ProposeOrder } from '../core/family/phases';
 import { findCharacter, getPlayer } from '../core/helpers';
 import { acquaintanceLevel } from '../core/relations/acquaintance';
+import { phrase } from '../core/lang/phrases';
+import { findReason, opinionCauses, opinionValue, opinionWord } from '../core/relations/opinions';
 import type { Character, Ctx } from '../core/state';
 import { ageYears } from '../core/time/calendar';
 import { isNear } from '../core/world/world';
-import type { Tip } from './tips';
+import { conceptName } from './concepts';
+import { signedRow, type MouseHint, type Tip, type TipRow } from './tips';
 import { ageText, localName, tr, trSex } from './i18n';
 
 const STRANGER = 'A stranger to you';
@@ -30,9 +33,33 @@ export function kinship(ctx: Ctx, id: string): string {
   return trSex(level === 'close' ? 'A close acquaintance' : level === 'known' ? 'An acquaintance' : STRANGER, c.sex);
 }
 
+/** The opinion of a person of the hero as a line of the tip: in words, and with the numbers only for a close acquaintance (D-037). */
+function opinionRow(ctx: Ctx, c: Character): TipRow | null {
+  const { state, content } = ctx;
+  const hero = getPlayer(state);
+  if (!content.opinions || c.id === hero.id || c.deathDay !== null) return null;
+  const level = acquaintanceLevel(state, content, hero.id, c.id);
+  if (level === null) return null;
+  if (!isNear(state, c.id) && !state.opinionReasons.some((r) => r.holder === c.id && r.target === hero.id)) return null;
+  const value = opinionValue(ctx, c.id, hero.id);
+  const word = opinionWord(content, value);
+  const label = tr('[[opinion]] of you');
+  const tone = value > 0 ? 'good' : value < 0 ? 'bad' : 'zero';
+  if (level !== 'close') return { label, value: word, tone };
+  // the reasons of the opinion are a tip inside the tip: each with its number (D-434)
+  const rows: TipRow[] = opinionCauses(ctx, c.id, hero.id).map((cause) => {
+    const name = cause.id === 'background' ? phrase(content, 'Their own temper and yours') : cause.id === 'relation' ? phrase(content, 'The ties between you') : (findReason(content, cause.id)?.name ?? cause.id);
+    return signedRow(name, cause.value);
+  });
+  const sum = value < 0 ? `−${-value}` : `+${value}`;
+  const inner: Tip = { title: `${conceptName('opinion')}: ${sum}`, text: '', rows, total: { label: tr('Total'), value: sum, tone } };
+  return { label, value: `${word} (${sum})`, tone, tip: inner };
+}
+
 /**
- * Tooltip of a name anywhere on the screen (D-448): who it is to the hero, and the age of someone the hero knows. A
- * link to a house has none: its name says it all (D-465).
+ * Tooltip of a name anywhere on the screen (D-477): the full name, who it is to the hero and the age as the crumb, the
+ * opinion of the person with its reasons one tip deeper, and what the mouse does. A person opens a page on a left click
+ * and the menu of actions on a right one; a house opens a page only, and its name says it all.
  */
 export function personTip(ctx: Ctx, id: string): Tip | null {
   const c = anyCharacter(ctx.state, id);
@@ -40,7 +67,10 @@ export function personTip(ctx: Ctx, id: string): Tip | null {
   const who = kinship(ctx, id);
   const known = who !== trSex(STRANGER, c.sex);
   const age = known ? `, ${c.deathDay === null ? ageText(ageYears(c.birthDay, ctx.state.day)) : tr('dead')}` : c.deathDay !== null ? `, ${tr('dead')}` : '';
-  return { title: localName(fullName(c)), text: `${who}${age}.` };
+  const opinion = opinionRow(ctx, c);
+  const mouse: MouseHint[] = [{ button: 'left', text: tr('Open the page') }];
+  mouse.push({ button: 'right', text: tr('Actions') });
+  return { title: localName(fullName(c)), crumb: `${who}${age}`, text: '', ...(opinion ? { rows: [opinion] } : {}), mouse };
 }
 
 /** One line of the menu of a person (D-448): grey with the reason when it cannot be done now. */
