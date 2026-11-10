@@ -216,7 +216,14 @@ function place(level: Level, index: number): void {
   }
   let left: number;
   let top: number;
-  if (level.by === 'pointer' && mouse.x >= 0) {
+  const above = index > 0 ? stack[index - 1]?.box : undefined;
+  if (above) {
+    // a tip inside a tip stands beside the one it came from, level with its link, so the lines of the first stay readable
+    const p = above.getBoundingClientRect();
+    left = p.right + 4;
+    if (left + w > window.innerWidth - margin) left = p.left - 4 - w;
+    top = r.top;
+  } else if (level.by === 'pointer' && mouse.x >= 0) {
     // right and down of the pointer; at the right edge to the left of it, at the bottom above it
     left = mouse.x + OFFSET_PX;
     top = mouse.y + OFFSET_PX;
@@ -517,10 +524,11 @@ export function installTooltips(): void {
       // the focus was in the tip: it goes back to the thing the tip opened from
       if (inside && back?.isConnected) back.focus();
     }
-    if (e.key === 'Tab' && stack.length) tabThroughTip(e);
+    // first note the key, then move the focus by it: the focus that follows is the player's
     if (NAV_KEYS.has(e.key)) {
       focusIntent = null;
       lastNavKey = performance.now();
     }
+    if (e.key === 'Tab' && stack.length) tabThroughTip(e);
   }, true);
 }

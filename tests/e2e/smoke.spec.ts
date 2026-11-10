@@ -456,6 +456,27 @@ test('money: the breakdown, frozen by the ring, a blue concept opens a nested ti
   expect(problems).toEqual([]);
 });
 
+test('by the keyboard alone: the tip freezes, Tab goes into its blue words, a nested tip opens, Esc closes all and gives the focus back (D-444, D-477)', async ({ page }) => {
+  const problems = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?seed=7');
+  await growUp(page);
+  await page.mouse.move(700, 300);
+  await page.locator('.avatar-button').focus();
+  await tabToTip(page, /Crowns in your purse/, 60);
+  const tip = page.locator('#tooltip');
+  await expect(tip).toHaveClass(/locked/, { timeout: 5_000 });
+  const figure = await page.evaluate<string>(`document.activeElement.getAttribute('data-focus')`);
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#tooltip .tip-concept:focus')).toHaveCount(1);
+  await expect(page.locator('#tooltip-2')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#tooltip-2')).toBeHidden();
+  await expect(tip).toBeHidden();
+  expect(await page.evaluate<string>(`document.activeElement.getAttribute('data-focus')`)).toBe(figure);
+  expect(problems).toEqual([]);
+});
+
 test('a middle click freezes a tip at once; leaving it closes the stack after a moment (D-477)', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
