@@ -19,8 +19,7 @@ export interface ParentFate {
  * deck `backstory`, one after another, before the first action; heirs never do.
  *
  * One clock (D-479, `backstory.fromBirth`): the founder is born on day 0 and the world lives between the scenes; the
- * founder waits for the next scene in the hidden action `early_years`. Without `fromBirth` (the old way, until T.4)
- * the scenes are told on day 0 and the lines are dated afterwards (`lines`, D-324).
+ * founder waits for the next scene in the hidden action `early_years`. Every line is dated the day it is written.
  */
 export interface BackstoryState {
   backstory: {
@@ -34,17 +33,11 @@ export interface BackstoryState {
     offered: string[];
     /** Scenes started so far, in order: a scene is never shown twice. */
     played: string[];
-    /**
-     * The old way only (no `fromBirth`; goes with it in T.4): where the lines of the backstory begin in
-     * `state.chronicle` while it runs (D-324): `lines[0]` is the founder's first line ("start"), `lines[i + 1]` the
-     * first line of stage i. The end of the backstory dates them by the age of the stage and empties the list.
-     */
-    lines: number[];
-    /** One clock (D-479): the day of the first scene of each stage begun so far, in order of the stages. */
+    /** The day of the first scene of each stage begun so far, in order of the stages. */
     dates: number[];
-    /** One clock: the day the founder waits for — of the next scene, or of going out into the world; null otherwise. */
+    /** The day the founder waits for — of the next scene, or of going out into the world; null otherwise. */
     next: number | null;
-    /** One clock: no scene comes before this day — the years of study or service (`years`) pass in living time. */
+    /** No scene comes before this day — the years of study or service (`years`) pass in living time. */
     notBefore: number;
     /** Fates of the founder's parents (D-481): drawn at the birth on the clock, one per parent alive then. */
     fates: ParentFate[];
@@ -53,7 +46,7 @@ export interface BackstoryState {
 
 export function initBackstoryState(): BackstoryState {
   return {
-    backstory: { running: false, founder: null, stage: 0, inStage: 0, offered: [], played: [], lines: [], dates: [], next: null, notBefore: 0, fates: [] },
+    backstory: { running: false, founder: null, stage: 0, inStage: 0, offered: [], played: [], dates: [], next: null, notBefore: 0, fates: [] },
   };
 }
 
@@ -61,11 +54,11 @@ export function initBackstoryState(): BackstoryState {
 export const EARLY_YEARS = 'early_years';
 
 /**
- * The founder's childhood on the clock (D-480, T.3): the backstory runs with `fromBirth`. Meanwhile the founder never
+ * The founder's childhood on the clock (D-480, T.3): the backstory runs. Meanwhile the founder never
  * dies, pays no monthly costs, sees no boards of work, gets no events but the scenes and starts no occupation.
  */
 export function inChildhood(ctx: Ctx): boolean {
-  return ctx.state.backstory.running && ctx.content.backstory?.fromBirth === true;
+  return ctx.state.backstory.running;
 }
 
 /** The person is the founder in his childhood on the clock (D-480): death passes him by. */
@@ -96,20 +89,10 @@ export const backstoryInvariants: Invariant = ({ state, content }) => {
     if (st.dates.length > bs.stages.length) problems.push('backstory: more stage dates than stages');
   } else if (st.running) problems.push('backstory: running without a backstory in the content');
   const founderAlive = state.characters.some((c) => c.id === st.founder && c.deathDay === null);
-  // the founder never dies in his childhood on the clock (D-480); the old way a founder who died is dropped by the next choice
-  if (st.running && bs?.fromBirth === true && st.founder !== null && !founderAlive) problems.push('backstory: the founder died in his childhood (D-480)');
+  // the founder never dies in his childhood (D-480)
+  if (st.running && st.founder !== null && !founderAlive) problems.push('backstory: the founder died in his childhood (D-480)');
   if (st.running && founderAlive && st.founder !== state.playerId) problems.push('backstory: running for someone who is not the hero');
-  if (!st.running && st.lines.length > 0) problems.push('backstory: line marks left after the end');
-  let prev = 0;
-  for (const i of st.lines) {
-    if (!isInt(i) || i < prev || i > state.chronicle.length) problems.push(`backstory: line mark ${String(i)} is out of order`);
-    prev = i;
-  }
-  if (bs && st.lines.length > bs.stages.length + 1) problems.push('backstory: more line marks than stages');
-  // one clock (D-479): the stages come in living time, never back; the day waited for is ahead
-  const fromBirth = bs?.fromBirth === true;
-  if (fromBirth && st.lines.length > 0) problems.push('backstory: line marks on the clock (D-479 dates no line afterwards)');
-  if (!fromBirth && (st.dates.length > 0 || st.next !== null)) problems.push('backstory: stage dates without the clock');
+  // the stages come in living time, never back; the day waited for is ahead (D-479)
   let last = 0;
   for (const d of st.dates) {
     if (!isInt(d) || d < last || d > (st.running ? Number.MAX_SAFE_INTEGER : state.day)) problems.push(`backstory: stage date ${String(d)} is out of order`);

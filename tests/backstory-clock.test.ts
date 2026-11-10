@@ -100,7 +100,6 @@ describe('the backstory on one clock (D-479)', () => {
     expect(hero.birthDay).toBe(0);
     expect(state.day).toBe(0);
     expect(state.backstory.running).toBe(true);
-    expect(state.backstory.lines).toEqual([]);
     if (state.pendingEvent === null) {
       expect(state.status).toBe('running');
       expect(state.activeAction?.actionId).toBe(EARLY_YEARS);
@@ -167,9 +166,8 @@ describe('the backstory on one clock (D-479)', () => {
     expect(seen).toBeGreaterThan(0);
   });
 
-  it('dates no line afterwards: the old re-dating is not run on the clock', () => {
+  it('dates no line afterwards: the old re-dating is gone (T.4)', () => {
     for (const run of runs) {
-      expect(run.state.backstory.lines).toEqual([]);
       // the scene lines carry the days of the scenes, not the birthdays of the stages
       const birthdays = new Set(stages.flatMap((s) => (s.age === undefined ? [] : [shiftYears(0, s.age)])));
       const sceneDays = run.scenes.map((s) => s.day);
@@ -259,8 +257,8 @@ describe('the backstory on one clock (D-479)', () => {
     expect(c.day).toBe(a.day);
   });
 
-  it('keeps the old way in the real content until T.4: fromBirth is off', () => {
-    expect(realContent().backstory?.fromBirth).not.toBe(true);
+  it('runs the real content on the clock (T.4): fromBirth is on', () => {
+    expect(realContent().backstory?.fromBirth).toBe(true);
   });
 });
 

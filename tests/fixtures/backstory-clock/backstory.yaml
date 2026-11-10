@@ -1,5 +1,5 @@
 # Backstory on the clock (D-479, T.1): the founder is born on day 0 and the world lives between the scenes. Goes on top
-# of base, population and opinions, instead of tests/fixtures/backstory. Real content keeps fromBirth off until T.4.
+# of base, population and opinions, instead of tests/fixtures/backstory.
 backstory:
   fromBirth: true
   base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }

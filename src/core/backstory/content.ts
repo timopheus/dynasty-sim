@@ -12,10 +12,8 @@ const StageSchema = z.strictObject({
   /** How many scenes of this stage the founder lives through; 1 by default. */
   scenes: Int.min(1).max(3).optional(),
   /**
-   * Age of the founder, in full years, of the stage. On the clock (`fromBirth`, D-479) the first scene of the stage
-   * falls on a day of that year of his life, by chance (D-445); a stage without it comes right after the one before.
-   * The old way the chronicle lines of the stage are dated at it (D-324), and without it at the start of the game;
-   * stages with an age come first and stay below settings.startAge.min. The ages never fall.
+   * Age of the founder, in full years, of the stage: its first scene falls on a day of that year of his life, by chance
+   * (D-445, D-479); a stage without it comes right after the one before. The ages never fall.
    */
   age: Int.min(0).optional(),
   /**
@@ -29,7 +27,8 @@ const StageSchema = z.strictObject({
  * Fates of the founder's parents (D-481, T.3): at the birth each parent alive gets a fate on a day of the founder's
  * childhood, between the ages `ages.min` and `ages.max` (full years, below START_AGE_MIN, so before he goes out). With
  * `missingPct` percent it is a disappearance (the cause `vanished`), else a death with one of `causes` by chance (ids
- * of `health.causes`). The line in the chronicle is about the founder: `{name}` and his pronouns, `{parent}` the parent.
+ * of `health.causes`). The line in the chronicle is about the founder: `{name}`, `{age}` (his real age on that day) and
+ * his pronouns, `{parent}` the parent.
  */
 const FatesSchema = z.strictObject({
   ages: z.strictObject({ min: Int.min(0), max: Int.min(0) }),
@@ -47,15 +46,15 @@ const FATE_PLACEHOLDERS = [...PLACEHOLDERS, 'parent'];
 /** Top-level content key `backstory`: stages and number of scenes, the neutral base of the founder (D-167, 3.11). */
 export const BackstoryContentSchema = z.strictObject({
   /**
-   * One clock (D-479): the game begins at the founder's birth on day 0 and the world lives between the scenes. Without
-   * it the founder is made at `settings.startAge` and the scenes are told at the start (the old way, until T.4).
+   * One clock (D-479): the game begins at the founder's birth on day 0 and the world lives between the scenes. Must be
+   * true: the old way (scenes told at the start, lines dated afterwards, D-324) is gone (T.4).
    */
   fromBirth: z.boolean().optional(),
   /** Base of every stat before the first scene; no traits and no education (D-167). */
   base: z.strictObject(Object.fromEntries(STAT_IDS.map((id) => [id, Int.min(0).max(BASE_STAT_MAX)])) as Record<StatId, z.ZodInt>),
   /** Stages in order; a scene of the deck `backstory` names its stage. */
   stages: z.array(StageSchema).min(1),
-  /** Fates of the parents on the clock (D-481); `fromBirth` needs them. */
+  /** Fates of the parents (D-481). */
   fates: FatesSchema.optional(),
   texts: z.strictObject({
     /** The chronicle line after the last scene: the hero goes out into the world. */
@@ -96,7 +95,7 @@ const EARLY_YEARS = 'early_years';
 const NOT_IN_SCENES = ['kill', 'later', 'schedule', 'story', 'end_action'] as const;
 const ONLY_IN_SCENES = ['years', 'stats_roll'] as const;
 
-export const checkBackstory: CrossCheck = ({ backstory, events, actions, settings, health }) => {
+export const checkBackstory: CrossCheck = ({ backstory, events, actions, health }) => {
   const errors: ContentError[] = [];
   const content = backstory[0];
   const scenes = events.filter((e) => e.item.deck === 'backstory');
@@ -151,9 +150,9 @@ export const checkBackstory: CrossCheck = ({ backstory, events, actions, setting
     most.sort((a, b) => b - a);
     return most.slice(0, stage.scenes ?? 1).reduce((a, b) => a + b, 0);
   };
-  if (bs.fromBirth) errors.push(...checkClock(file, bs, actions.some((a) => a.item.id === EARLY_YEARS), stageYears));
-  else errors.push(...checkAtOnce(file, bs, settings[0]?.item.startAge, stageYears));
-  if (bs.fromBirth && !bs.fates) errors.push({ file, path: 'backstory.fates', message: 'the clock needs the fates of the parents (D-481)' });
+  if (bs.fromBirth !== true) errors.push({ file, path: 'backstory.fromBirth', message: 'the backstory runs on the clock (D-479): fromBirth: true' });
+  errors.push(...checkClock(file, bs, actions.some((a) => a.item.id === EARLY_YEARS), stageYears));
+  if (!bs.fates) errors.push({ file, path: 'backstory.fates', message: 'the clock needs the fates of the parents (D-481)' });
   if (bs.fates) errors.push(...checkFates(file, bs.fates, new Set((health[0]?.item.causes ?? []).map((c) => c.id))));
 
   const offeredUsed = new Set<string>();
@@ -230,31 +229,6 @@ function checkFates(file: string, fates: z.infer<typeof FatesSchema>, causes: Re
   for (const [key, text] of Object.entries(fates.texts)) {
     const problem = checkReason(text, FATE_PLACEHOLDERS);
     if (problem) errors.push({ file, path: `backstory.fates.texts.${key}`, message: problem });
-  }
-  return errors;
-}
-
-/** The old way (until T.4): the lines are dated by the ages of the stages (D-324); the scenes make the founder older. */
-function checkAtOnce(file: string, bs: BackstoryContent, age: { min: number; max: number } | undefined, stageYears: (s: BackstoryStage) => number): ContentError[] {
-  const errors: ContentError[] = [];
-  let lastAge = 0;
-  let undated: string | null = null;
-  bs.stages.forEach((stage, i) => {
-    if (stage.age === undefined) {
-      undated ??= stage.id;
-      return;
-    }
-    const at = `backstory.stages[${i}].age`;
-    if (undated !== null) errors.push({ file, path: at, message: `stage "${undated}" before it has no age: its lines are dated at the start of the game` });
-    else if (stage.age < lastAge) errors.push({ file, path: at, message: `age ${stage.age} is below ${lastAge} of a stage before it` });
-    if (age !== undefined && stage.age >= age.min) errors.push({ file, path: at, message: `age ${stage.age} is not below settings.startAge.min ${age.min}` });
-    lastAge = Math.max(lastAge, stage.age);
-  });
-  // The age the hero goes out at: start age plus the most the scenes can add (D-038).
-  if (age && age.min < START_AGE_MIN) errors.push({ file, path: 'backstory.stages', message: `settings.startAge.min: with a backstory the founder starts at ${START_AGE_MIN} or older` });
-  const ageShift = bs.stages.reduce((sum, stage) => sum + stageYears(stage), 0);
-  if (age && age.max + ageShift > START_AGE_MAX) {
-    errors.push({ file, path: 'backstory.stages', message: `settings.startAge.max ${age.max} plus up to ${ageShift} years from the scenes goes past ${START_AGE_MAX}` });
   }
   return errors;
 }

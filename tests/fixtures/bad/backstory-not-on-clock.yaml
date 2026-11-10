@@ -1,9 +1,9 @@
-# expect-error: backstory.stages[0].age /age 20 is not below settings.startAge.min 20/
+# expect-error: backstory.fromBirth /the backstory runs on the clock \(D-479\): fromBirth: true/
 backstory:
   base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
   stages:
     - id: origin
-      age: 20
+      age: 0
   texts: { leave: "{name} went out." }
 events:
   - id: scene
