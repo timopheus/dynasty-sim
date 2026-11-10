@@ -1,7 +1,7 @@
 # Global simulation settings. Schema: src/core/content/schema.ts (SettingsSchema).
 # Text placeholders: {name}, {age}, and pronouns for the same character: {he} {him} {his} {He} {His}.
 settings:
-  # The age the story starts at; the scenes of the backstory add up to 3 years (age_years), so the hero
+  # The age the story starts at; the scenes of the backstory add up to 3 years (`years`), so the hero
   # goes out into the world at 16-21 (D-038, checkBackstory).
   startAge: { min: 16, max: 18 }
   adultAge: 16 # coming of age (D-313, D-314)

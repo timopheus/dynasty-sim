@@ -1,0 +1,12 @@
+# expect-error: backstory.stages /go out into the world at 22, past 21/
+backstory:
+  fromBirth: true
+  base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
+  stages:
+    - id: training
+      age: 17
+  texts: { leave: "{name} went out." }
+actions:
+  - { id: early_years, name: Early years, category: self, duration: { min: 1, max: 1 }, when: { backstory_only: true }, idle: true, text: "{name} grew up." }
+events:
+  - { id: training_scene, deck: backstory, stage: training, weight: 1, text: "Service.", options: [{ text: Go, effects: { years: 5 }, result: "{name} served." }] }
