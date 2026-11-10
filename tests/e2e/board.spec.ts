@@ -1,16 +1,28 @@
 import { expect, test, type Page } from '@playwright/test';
 
-/** Answers the scenes of the backstory (first answer) until the hero is free and the clock stands. */
+/**
+ * Answers the scenes of the backstory (first answer), the years running between them on the clock (D-479), until the
+ * early years are over and no window is up.
+ */
 async function growUp(page: Page): Promise<void> {
   await expect(page.locator('.backstory-screen, .clock').first()).toBeVisible();
+  const choice = page.locator('.modal-layer .option button.choice').first();
   for (let i = 0; i < 60; i++) {
-    if ((await page.locator('.modal-layer').count()) > 0) {
-      await page.locator('.modal-layer .option button.choice').first().click({ timeout: 2_000 }).catch(() => undefined);
-      continue;
-    }
-    return;
+    if ((await page.locator('.backstory-screen').count()) === 0 && (await page.locator('.modal-layer').count()) === 0) return;
+    await choice.click({ timeout: 2_000 }).catch(() => undefined);
   }
   throw new Error('the hero never became free to act');
+}
+
+/** Lets one day pass on the clock and stops it: the boards fill the day after the founder goes out (D-480). */
+async function oneDay(page: Page): Promise<void> {
+  const date = page.locator('.clock .date');
+  const before = await date.textContent();
+  await page.locator('.clock .clock-toggle').click();
+  await expect.poll(async () => (await page.locator('.modal-layer').count()) > 0 || (await date.textContent()) !== before, { timeout: 10_000 }).toBe(true);
+  if ((await page.locator('.modal-layer').count()) === 0) await page.locator('.clock .clock-toggle').click();
+  for (let i = 0; i < 10 && (await page.locator('.modal-layer').count()) > 0; i++) await page.locator('.modal-layer button.choice').first().click();
+  await expect(page.locator('.clock .clock-toggle')).not.toHaveText('Pause');
 }
 
 test('the work board: J opens it, Esc closes it, the work is taken and the block "where I am" says so (CK.4)', async ({ page }) => {
@@ -19,6 +31,7 @@ test('the work board: J opens it, Esc closes it, the work is taken and the block
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/?seed=1');
   await growUp(page);
+  await oneDay(page);
   const button = page.locator('[data-action="board"]');
   await expect(button).toContainText('Work board (J)');
   await expect(button).toContainText('here');

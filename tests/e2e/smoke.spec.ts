@@ -364,19 +364,32 @@ test('a choice that says it all has no tip; a window that opens under a still po
   const first = page.locator('.modal-layer .option button.choice').first();
   // a choice that is words only has nothing to explain (D-465); one with a chance or a price does (D-463): look for a plain one
   const plain = page.locator('.modal-layer .option button.choice:not([data-tip])').first();
-  for (let i = 0; i < 12 && (await plain.count()) === 0; i++) await first.click({ timeout: 2_000 }).catch(() => undefined);
+  // the years run between the scenes (D-479): wait for each scene before answering it
+  const answer = async () => {
+    await expect(first).toBeVisible({ timeout: 30_000 });
+    await first.click();
+  };
+  await expect(first).toBeVisible({ timeout: 30_000 });
+  for (let i = 0; i < 12 && (await plain.count()) === 0; i++) {
+    await answer();
+    await expect(first).toBeVisible({ timeout: 30_000 });
+  }
   await plain.hover();
   await page.waitForTimeout(TIP_WAIT);
   await expect(tip).toBeHidden();
   await expect(page.locator('.tip-ring')).toHaveCount(0);
   // a scene with a name in its words: the name explains itself after the delay
   const named = page.locator('.modal-layer .event-text [data-tip]');
-  for (let i = 0; i < 8 && (await named.count()) === 0; i++) await first.click({ timeout: 2_000 }).catch(() => undefined);
+  for (let i = 0; i < 8 && (await named.count()) === 0; i++) {
+    await answer();
+    await expect(first).toBeVisible({ timeout: 30_000 });
+  }
   await named.first().hover();
   await expect(tip).toBeVisible();
   const title = await page.locator('.modal-title').textContent();
   await first.click();
   // the next scene is there, the pointer has not moved: nothing is explained over its choices
+  await expect(first).toBeVisible({ timeout: 30_000 });
   await expect(page.locator('.modal-title')).not.toHaveText(title ?? '');
   await page.waitForTimeout(TIP_WAIT);
   await expect(tip).toBeHidden();
