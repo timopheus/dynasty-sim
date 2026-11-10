@@ -15,6 +15,7 @@ import { runSim } from '../src/core/sim';
 import type { GameState } from '../src/core/state';
 import { ageYears } from '../src/core/time/calendar';
 import { readContentFiles } from '../tools/content-files';
+import { loadContent } from '../src/core/content/load';
 import { BASE_FILES, loadOrThrow, realContent } from './fixtures/content';
 
 /**
@@ -368,14 +369,22 @@ describe('the founder\'s childhood (D-480, D-481, T.3)', () => {
   });
 
   it('draws the fates from a stream of their own: the world draws the same without them', () => {
-    const without = { ...content, backstory: { ...content.backstory!, fates: undefined } };
+    const without = { ...withFamily, backstory: { ...withFamily.backstory!, fates: undefined } };
     for (const seed of [1, 2, 3]) {
-      const a = newGame(seed, content);
+      const a = newGame(seed, withFamily);
       const b = newGame(seed, without);
+      expect(a.backstory.fates.length).toBeGreaterThan(0);
       expect(a.rng).toEqual(b.rng);
       expect(b.backstory.fates).toEqual([]);
-      expect(newGame(seed, content).backstory.fates).toEqual(a.backstory.fates);
+      expect(newGame(seed, withFamily).backstory.fates).toEqual(a.backstory.fates);
     }
+  });
+
+  it('needs the cause "vanished" in health.causes for a disappearance', () => {
+    const base = BASE_FILES.map((f) => ({ ...f, text: f.text.replace(/^.*id: vanished.*$/m, '') }));
+    const result = loadContent([...base, ...readContentFiles('tests/fixtures/population'), ...readContentFiles('tests/fixtures/opinions'), ...readContentFiles('tests/fixtures/backstory-clock')]);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors.map((e) => e.message)).toContain('a disappearance needs the cause "vanished" in health.causes');
   });
 
   it('drops a death ordered for the founder in his childhood; his heirs and the grown founder have no such safety', () => {

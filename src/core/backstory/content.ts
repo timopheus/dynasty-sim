@@ -152,9 +152,9 @@ export const checkBackstory: CrossCheck = ({ backstory, events, actions, setting
     return most.slice(0, stage.scenes ?? 1).reduce((a, b) => a + b, 0);
   };
   if (bs.fromBirth) errors.push(...checkClock(file, bs, actions.some((a) => a.item.id === EARLY_YEARS), stageYears));
+  else errors.push(...checkAtOnce(file, bs, settings[0]?.item.startAge, stageYears));
   if (bs.fromBirth && !bs.fates) errors.push({ file, path: 'backstory.fates', message: 'the clock needs the fates of the parents (D-481)' });
   if (bs.fates) errors.push(...checkFates(file, bs.fates, new Set((health[0]?.item.causes ?? []).map((c) => c.id))));
-  else errors.push(...checkAtOnce(file, bs, settings[0]?.item.startAge, stageYears));
 
   const offeredUsed = new Set<string>();
   for (const { file: eventFile, index, item } of scenes) {
