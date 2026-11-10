@@ -511,6 +511,31 @@ test('a tip of the focus freezes while the clock runs, and Tab out of its last l
   expect(problems).toEqual([]);
 });
 
+test('Esc from inside a frozen tip gives the focus back to its thing while the clock runs (D-444, D-477)', async ({ page }) => {
+  const problems = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?seed=7');
+  await growUp(page);
+  const date = () => page.locator('.clock .date').textContent();
+  await page.mouse.move(700, 300);
+  await page.keyboard.press('Space');
+  const first = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(first);
+  await page.locator('.avatar-button').focus();
+  await tabToTip(page, /Crowns in your purse/, 60);
+  await expect(page.locator('#tooltip')).toHaveClass(/locked/, { timeout: 6_000 });
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#tooltip-2')).toBeVisible();
+  // days pass with the focus inside the tip, then Esc
+  const before = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(before);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#tooltip')).toBeHidden();
+  await expect(page.locator('#tooltip-2')).toBeHidden();
+  expect(await page.evaluate<boolean>(`(document.activeElement?.getAttribute('data-tip') ?? '').includes('Crowns in your purse')`)).toBe(true);
+  expect(problems).toEqual([]);
+});
+
 test('a middle click freezes a tip at once; leaving it closes the stack after a moment (D-477)', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });

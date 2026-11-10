@@ -325,6 +325,8 @@ export const RU: Record<string, string> = {
   "How well the house is known, beyond the [[fame]] of its head.": "Насколько известен род, помимо [[fame|известности]] его главы.",
   "Where the house stands among the families of the land. It sets what the house must spend to keep its name.": "Где род стоит среди семей края. От этого зависит, во сколько обходится содержать имя.",
   // more tips (TT.1)
+  "Menu": "Меню",
+  "A new game, the language and the other settings of the game.": "Новая игра, язык и другие настройки игры.",
   "Open the window": "Открыть окно",
   "{days} of road from here.": "{days} пути отсюда.",
   "Time runs while you wait and stops when something needs your answer.": "Время идёт, пока ждёшь, и встаёт, когда нужен твой ответ.",

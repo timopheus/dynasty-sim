@@ -24,6 +24,7 @@ export function menuNode({ menuOpen, onMenuToggle, items, devNotes }: Pick<Heade
   button.setAttribute('aria-expanded', String(menuOpen));
   button.setAttribute('aria-controls', 'menu-list');
   button.setAttribute('data-focus', 'menu');
+  withTip(button, { title: tr('Menu'), text: tr('A new game, the language and the other settings of the game.') });
   const node = el('div', { className: 'menu' }, button);
   if (menuOpen) {
     node.append(el('div', { className: 'menu-list', id: 'menu-list' },
