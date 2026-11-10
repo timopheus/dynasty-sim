@@ -37,7 +37,7 @@ export function checkEraConditions(ctx: Ctx, _c: Character, when: EraWhen, _scop
     const current = eraOf(ctx, ctx.state.day);
     if (!current || !when.era.includes(current.id)) {
       const names = when.era.map((id) => ctx.content.eras?.list.find((e) => e.id === id)?.name ?? id);
-      texts.push(fillReason(reasons?.era ?? 'Only in {eras}', { eras: joinOr(names) }));
+      texts.push(fillReason(reasons?.era ?? 'Only in {eras}', { eras: joinOr(names, ctx.content) }));
     }
   }
   return texts.map((text) => ({ text, hidden: false }));

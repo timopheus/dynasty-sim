@@ -4,6 +4,7 @@ import { getPlayer } from './helpers';
 import { BOT_CHARACTERS, HAPPINESS_WEIGHT, isBotCharacter, scoreOf, type BotCharacter } from './bots/characters';
 import { actionFeatures, optionFeatures } from './bots/features';
 import type { Content } from './content/schema';
+import { offersHere } from './contracts/contracts';
 import { pendingEventDef } from './events/events';
 import { routesFrom } from './place/place';
 import { sceneOf, type OptionDef } from './events/content';
@@ -34,6 +35,10 @@ function bestOf<T>(rng: RngState, items: readonly T[], score: (item: T) => numbe
 /** Chances per decision, out of 100, that a bot of any character goes to the notary or proposes a match (4.6, D-365). */
 const WILL_PER_100 = 3;
 const PROPOSE_PER_100 = 5;
+/** How often a bot with a character takes work from the board when there is some (CK.3): a leaning, not a rule. */
+const CONTRACT_PER_100 = 35;
+/** Order of the risks of work, the safest first (`contracts.board.risks`). */
+const RISK_ORDER = ['low', 'notable', 'high'];
 
 /**
  * Between actions the bot sometimes writes a will (none yet, or an out-of-date one; there is kin to name) or proposes a
@@ -101,6 +106,8 @@ export function botCommand(state: GameState, content: Content, rng: RngState, ch
   if (house) return house;
   const actions = availableActions(ctx);
   if (character === 'random') return startCommand(ctx, rng, pick(rng, actions));
+  const work = actions.find((a) => a.target === 'contract');
+  if (work && chancePer(rng, CONTRACT_PER_100, 100)) return { type: 'start', actionId: work.id, target: bestOffer(ctx, character) };
   // An action is a leaning, not a rule: a bot that always took the best-scored one would repeat it for a lifetime.
   // It draws among the better half, and a hero in debt weighs money more.
   const debt = getPlayer(state).money < 0;
@@ -115,10 +122,29 @@ export function botCommand(state: GameState, content: Content, rng: RngState, ch
 }
 
 /**
- * The command that starts the action; an action that goes somewhere takes a place it can reach (D-462), drawn from the
- * bot's own generator (S.9a). Without such actions in the content the generator is used as before.
+ * The offer on the board here a bot of a character takes (CK.3): the cautious one the safest, then the best paid; the
+ * others the best paid, the duelist the riskiest among equals. Ties go to the offer posted first.
+ */
+function bestOffer(ctx: Ctx, character: Exclude<BotCharacter, 'random'>): string {
+  const risk = (kind: string) => RISK_ORDER.indexOf(ctx.content.contracts?.kinds.find((k) => k.id === kind)?.offer?.risk ?? 'notable');
+  const offers = offersHere(ctx.state, ctx.content).map((o, i) => ({ o, i }));
+  offers.sort((a, b) => {
+    if (character === 'cautious') return risk(a.o.kind) - risk(b.o.kind) || b.o.pay - a.o.pay || a.i - b.i;
+    if (character === 'duelist') return b.o.pay - a.o.pay || risk(b.o.kind) - risk(a.o.kind) || a.i - b.i;
+    return b.o.pay - a.o.pay || a.i - b.i;
+  });
+  const best = offers[0];
+  if (!best) throw new Error('A contract action without an offer on the board');
+  return best.o.id;
+}
+
+/**
+ * The command that starts the action; an action that goes somewhere takes a place it can reach (D-462), one that serves a
+ * contract an offer on the board here (CK.2a), drawn from the bot's own generator (S.9a). Without such actions in the
+ * content the generator is used as before.
  */
 function startCommand(ctx: Ctx, rng: RngState, action: ActionDef): Command {
+  if (action.target === 'contract') return { type: 'start', actionId: action.id, target: pick(rng, offersHere(ctx.state, ctx.content)).id };
   if (action.target !== 'place') return { type: 'start', actionId: action.id };
   return { type: 'start', actionId: action.id, target: pick(rng, routesFrom(ctx.state, ctx.content)).to };
 }

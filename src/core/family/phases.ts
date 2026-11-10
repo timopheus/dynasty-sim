@@ -90,8 +90,8 @@ export function giveBirth(ctx: Ctx, family: FamilyContent, p: Pregnancy): Charac
   child.birthDay = state.day;
   inheritStatsAndTraits(ctx, child, father, mother);
   const texts = family.texts;
-  if (mother.id === state.playerId) logAboutHero(ctx, 'birth', texts.bornToHer, { child, kind: childWord(child) });
-  else if (father.id === state.playerId) logAboutHero(ctx, 'birth', texts.born, { other: mother, child, kind: childWord(child) });
+  if (mother.id === state.playerId) logAboutHero(ctx, 'birth', texts.bornToHer, { child, kind: childWord(ctx, child) });
+  else if (father.id === state.playerId) logAboutHero(ctx, 'birth', texts.born, { other: mother, child, kind: childWord(ctx, child) });
   if (chancePer(state.rng, family.childbirthDeathPer10k, 10000)) state.deathRequests.push({ characterId: mother.id, cause: 'childbirth' });
   // a child of the hero, or a brother or sister born to the hero's parents, is family at once
   introduceKin(ctx);

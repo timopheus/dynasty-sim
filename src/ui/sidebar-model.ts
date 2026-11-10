@@ -1,3 +1,4 @@
+import { placeActions, type PlaceActions } from './actions-model';
 import type { ChronicleEntry } from '../core/chronicle/log';
 import type { Content } from '../core/content/schema';
 import { findCharacter } from '../core/helpers';
@@ -15,6 +16,7 @@ import type { Tip } from './tips';
 import { anyCharacter } from '../core/archive/archive';
 import { kinship } from './people-model';
 import { heirLine } from './will';
+import { crownsText, localName, tr } from './i18n';
 
 /** What a page of the side panel is made of. Pure data: the panel draws it, tests read it. */
 export type Block =
@@ -24,7 +26,9 @@ export type Block =
   | { type: 'traits'; items: { name: string; tip: Tip | null }[] }
   | { type: 'chronicle'; entries: ChronicleEntry[]; own: string | null }
   /** The link to the whole chronicle of the page (D-448: the page is one sheet, the rest is behind a link). */
-  | { type: 'whole' };
+  | { type: 'whole' }
+  /** What a place offers: its deeds where the hero stands, the way there elsewhere (playtest 09.11). */
+  | { type: 'actions'; place: PlaceActions };
 
 /** The tabs of the panel are kinds of pages (D-448): the person, their house. `id` null: that kind has nothing to show. */
 export interface KindTab {
@@ -51,12 +55,12 @@ export interface SidebarPage {
 /** How many of the latest lines the sheet shows before the link to the whole chronicle. */
 export const SHEET_LINES = 5;
 
-const sexWord = (p: PersonPage) => (p.sex === 'male' ? 'man' : 'woman');
+const sexWord = (p: PersonPage) => (p.sex === 'male' ? tr('man') : tr('woman'));
 
 function relationRows(lines: RelationLine[]): { label: string; parts: TextPart[]; tip?: Tip }[] {
   return lines.map((l) => {
-    const end = l.person.dead ? ' (dead)' : l.endYear !== null ? ` (ended ${l.endYear})` : '';
-    return { label: l.kind, parts: [{ id: l.person.id, name: l.person.name }, `${end}, since ${l.startYear}`] };
+    const end = l.person.dead ? ` (${tr('dead')})` : l.endYear !== null ? ` (${tr('ended {year}', { year: l.endYear })})` : '';
+    return { label: l.kind, parts: [{ id: l.person.id, name: l.person.name }, `${end}, ${tr('since {year}', { year: l.startYear })}`] };
   });
 }
 
@@ -65,9 +69,9 @@ function heirRow(ctx: Ctx): { label: string; parts: TextPart[]; tip?: Tip } {
   const line = heirLine(ctx.state);
   if (!line) {
     const placeholder = ctx.content.succession?.temporaryHeir ?? true;
-    return { label: 'Heir', parts: [placeholder ? 'nobody of the blood; a namesake from afar would take up the house' : 'nobody — the house would end with you'] };
+    return { label: 'Heir', parts: [placeholder ? tr('nobody of the blood; a namesake from afar would take up the house') : tr('nobody — the house would end with you')] };
   }
-  return { label: 'Heir', parts: [{ id: line.id, name: line.name }, ` (${line.by})`] };
+  return { label: 'Heir', parts: [{ id: line.id, name: line.name }, ` (${line.by === 'will' ? tr('by will') : line.by === 'law' ? tr('by law') : line.by})`] };
 }
 
 /** Names of the education traits among the names of a person's traits, from the content. */
@@ -78,14 +82,14 @@ function splitTraits(content: Content, names: string[]): { education: string[]; 
 
 function chronicleBlocks(chronicle: ChronicleEntry[], own: string | null, events: ChronicleEntry[]): Block[] {
   const blocks: Block[] = [{ type: 'heading', text: 'Chronicle' }];
-  blocks.push(chronicle.length ? { type: 'chronicle', entries: chronicle.slice().reverse(), own } : { type: 'text', text: 'Nothing recorded yet.' });
+  blocks.push(chronicle.length ? { type: 'chronicle', entries: chronicle.slice().reverse(), own } : { type: 'text', text: tr('Nothing recorded yet.') });
   if (events.length) blocks.push({ type: 'heading', text: 'All events' }, { type: 'chronicle', entries: events.slice().reverse(), own: null });
   return blocks;
 }
 
 /** The last lines of the chronicle and the link to all of it. */
 function latelyBlocks(chronicle: ChronicleEntry[], own: string | null, more = false): Block[] {
-  if (chronicle.length === 0) return [{ type: 'heading', text: 'Lately' }, { type: 'text', text: 'Nothing recorded yet.' }, ...(more ? [{ type: 'whole' } as Block] : [])];
+  if (chronicle.length === 0) return [{ type: 'heading', text: 'Lately' }, { type: 'text', text: tr('Nothing recorded yet.') }, ...(more ? [{ type: 'whole' } as Block] : [])];
   return [
     { type: 'heading', text: 'Lately' },
     { type: 'chronicle', entries: chronicle.slice(-SHEET_LINES).reverse(), own },
@@ -98,15 +102,15 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
   const house = page.sections.find((s) => s.id === 'house');
   const family = page.sections.find((s) => s.id === 'family');
   const c = anyCharacter(ctx.state, page.id);
-  const row = (label: string, parts: TextPart[]) => ({ label, parts, ...(ROW_TIPS[label] ? { tip: { text: ROW_TIPS[label] } } : {}) });
+  const row = (label: string, parts: TextPart[]) => ({ label, parts, ...(ROW_TIPS[label] ? { tip: { text: tr(ROW_TIPS[label] ?? '') } } : {}) });
   const rows: { label: string; parts: TextPart[]; tip?: Tip }[] = [
-    row('Age', [[sexWord(page), page.life, page.alive ? '' : 'dead'].filter(Boolean).join(' · ')]),
+    row('Age', [[sexWord(page), page.life, page.alive ? '' : tr('dead')].filter(Boolean).join(' · ')]),
   ];
   if (page.occupation) rows.push(row('Occupation', [page.occupation]));
   for (const l of house?.lines ?? []) rows.push(row(l.label, l.parts));
   if (page.fame) rows.push(row('Fame', [page.fame]));
-  if (page.conditions !== null) rows.push(row('Health', [page.conditions || 'healthy']));
-  if (page.money !== null) rows.push(row('Money', [`${page.money} crowns`]));
+  if (page.conditions !== null) rows.push(row('Health', [page.conditions || tr('healthy')]));
+  if (page.money !== null) rows.push(row('Money', [crownsText(page.money)]));
   for (const s of page.stats ?? []) {
     const shown = withNumber(s.word, s.value);
     const tip = statTip(ctx, s.value !== null ? c : null, s.id);
@@ -116,14 +120,14 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
   if (page.death) rows.push({ label: 'Death', parts: [`${page.death.year}${page.death.cause ? `. ${page.death.cause}` : ''}`] });
   const blocks: Block[] = [{ type: 'facts', rows }];
   if (page.traits.length) blocks.push({ type: 'heading', text: 'Traits' }, { type: 'traits', items: page.traits.map((name) => ({ name, tip: traitTip(ctx.content, name) })) });
-  if (page.secrets.length) blocks.push({ type: 'text', text: `Secrets you know: ${page.secrets.join(', ')}.` });
+  if (page.secrets.length) blocks.push({ type: 'text', text: tr('Secrets you know: {list}.', { list: page.secrets.join(', ') }) });
   if (page.opinion) {
     const o = page.opinion;
     blocks.push({ type: 'heading', text: 'Opinion of you' }, { type: 'text', text: withNumber(o.word, o.value) });
     if (o.lines.length) blocks.push({ type: 'facts', rows: o.lines.map((l) => ({ label: '', parts: [opinionLineText(l)] })) });
   }
   const kin = (family?.lines ?? []).filter((l) => proposalLabels.indexOf(l.label) < 0);
-  if (kin.length) blocks.push({ type: 'heading', text: 'Family' }, { type: 'facts', rows: kin.map((l) => ({ label: l.label, parts: l.parts, ...(ROW_TIPS[l.label] ? { tip: { text: ROW_TIPS[l.label] ?? '' } } : {}) })) });
+  if (kin.length) blocks.push({ type: 'heading', text: 'Family' }, { type: 'facts', rows: kin.map((l) => ({ label: l.label, parts: l.parts, ...(ROW_TIPS[l.label] ? { tip: { text: tr(ROW_TIPS[l.label] ?? '') ?? '' } } : {}) })) });
   if (page.allies.length) blocks.push({ type: 'heading', text: 'Allies' }, { type: 'facts', rows: relationRows(page.allies) });
   if (page.rivals.length) blocks.push({ type: 'heading', text: 'Rivals' }, { type: 'facts', rows: relationRows(page.rivals) });
   // the small events of the journal are behind the link too, however few lines the chronicle has
@@ -140,7 +144,7 @@ function houseSheet(ctx: Ctx, id: string, facts: { label: string; parts: TextPar
   if (house) {
     const word = renownWord(content, house.renown);
     const at = overview.findIndex((f) => f.label === 'Status');
-    overview.splice(at + 1, 0, { label: 'Renown', parts: [withNumber(word || 'Unknown', house.renown)] });
+    overview.splice(at + 1, 0, { label: 'Renown', parts: [withNumber(word || tr('Unknown'), house.renown)] });
   }
   const heads = (house?.heads ?? []).map((h) => ({
     label: `${toYmd(h.from).year}–${h.to === null ? '' : toYmd(h.to).year}`,
@@ -150,9 +154,9 @@ function houseSheet(ctx: Ctx, id: string, facts: { label: string; parts: TextPar
     const holder = holderOf(state, h);
     const who = holder === null ? null : findCharacter(state, holder);
     if (!who || who.house !== id) return [];
-    return [{ label: 'Held', parts: [{ id: h.id, name: h.name }, ' — with ', { id: who.id, name: `${who.givenName} ${who.surname}` }] as TextPart[] }];
+    return [{ label: 'Held', parts: [{ id: h.id, name: h.name }, ` — ${tr('with')} `, { id: who.id, name: `${who.givenName} ${who.surname}` }] as TextPart[] }];
   });
-  const blocks: Block[] = [{ type: 'facts', rows: overview.map((r) => ({ ...r, ...(ROW_TIPS[r.label] ? { tip: { text: ROW_TIPS[r.label] ?? '' } } : {}) })) }];
+  const blocks: Block[] = [{ type: 'facts', rows: overview.map((r) => ({ ...r, ...(ROW_TIPS[r.label] ? { tip: { text: tr(ROW_TIPS[r.label] ?? '') } } : {}) })) }];
   if (heads.length) blocks.push({ type: 'heading', text: 'Heads' }, { type: 'facts', rows: heads });
   if (things.length) blocks.push({ type: 'heading', text: 'Heirlooms' }, { type: 'facts', rows: things });
   blocks.push(...latelyBlocks(chronicle, null));
@@ -166,13 +170,13 @@ function houseSheet(ctx: Ctx, id: string, facts: { label: string; parts: TextPar
 export function sidebarPage(ctx: Ctx, id: string, lastPerson: string = ctx.state.playerId): SidebarPage {
   const found = entityPage(ctx, id);
   const none = { whole: [], tabs: [], interact: false };
-  if (!found) return { id, kind: 'Page', title: 'Nobody by that name', subtitle: '', blocks: [{ type: 'text', text: 'There is nothing at this address.' }], ...none };
+  if (!found) return { id, kind: 'Page', title: tr('Nobody by that name'), subtitle: '', blocks: [{ type: 'text', text: tr('There is nothing at this address.') }], ...none };
   if (found.type === 'person') {
     const p = found.page;
     const houseId = anyCharacter(ctx.state, id)?.house ?? null;
     const tabs: KindTab[] = [{ label: 'Person', id, active: true }, ...(houseId ? [{ label: 'House', id: houseId, active: false }] : [])];
     return {
-      id, kind: 'Person', title: p.name, subtitle: kinship(ctx, id), blocks: personSheet(ctx, p),
+      id, kind: 'Person', title: localName(p.name), subtitle: kinship(ctx, id), blocks: personSheet(ctx, p),
       whole: chronicleBlocks(p.chronicle, p.id, p.journal), tabs, interact: id !== ctx.state.playerId && p.alive,
     };
   }
@@ -182,8 +186,11 @@ export function sidebarPage(ctx: Ctx, id: string, lastPerson: string = ctx.state
     return { id, kind: 'House', title: e.title, subtitle: e.subtitle, blocks: houseSheet(ctx, id, e.facts, e.chronicle), whole: chronicleBlocks(e.chronicle, null, []), tabs, interact: false };
   }
   const blocks: Block[] = [{ type: 'facts', rows: e.facts }];
+  const offers = e.kind === 'place' ? placeActions(ctx, id) : null;
+  if (offers) blocks.push({ type: 'heading', text: offers.here ? 'Here you can' : 'Go there' }, { type: 'actions', place: offers });
   if (e.chronicle.length) blocks.push({ type: 'heading', text: 'Chronicle' }, { type: 'chronicle', entries: e.chronicle.slice().reverse(), own: null });
-  return { id, kind: 'Heirloom', title: e.title, subtitle: e.subtitle, blocks, whole: [], tabs: [], interact: false };
+  const tabs: KindTab[] = e.kind === 'place' ? [{ label: 'Person', id: lastPerson, active: false }, { label: 'Place', id, active: true }] : [];
+  return { id, kind: e.kind === 'place' ? 'Place' : 'Heirloom', title: e.title, subtitle: e.subtitle, blocks, whole: [], tabs, interact: false };
 }
 
 /** Moves the trail of visited pages to `id`: the same page stays, an earlier one cuts the trail back to it, a new one is added. */

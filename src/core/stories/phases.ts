@@ -1,5 +1,5 @@
 import { fullName } from '../character/character';
-import { placeholderValues } from '../character/text';
+import { personValues, placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
 import { conditionReport } from '../condition-keys';
 import type { EventDef } from '../events/content';
@@ -68,7 +68,7 @@ function missing(ctx: Ctx, given: Scope): Character | null {
 function cancel(ctx: Ctx, f: Followup, protagonist: Character): void {
   const other = missing(ctx, f.given);
   const values = placeholderValues(protagonist, ctx.state.day);
-  const parts = other ? fillTemplate(CANCELLED_WITH, { ...values, other: { id: other.id, name: fullName(other) } }) : fillTemplate(CANCELLED, values);
+  const parts = other ? fillTemplate(CANCELLED_WITH, { ...values, ...personValues('other', other) }) : fillTemplate(CANCELLED, values);
   log(ctx, { subject: protagonist, kind: 'followup_cancelled', level: 'journal', parts });
 }
 

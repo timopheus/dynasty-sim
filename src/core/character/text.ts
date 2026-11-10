@@ -1,4 +1,5 @@
 import { ageYears } from '../time/calendar';
+import { SEX_MARK } from '../text/forms';
 import type { TextPart } from '../text/text';
 import type { Sex } from './content';
 import { fullName, type CharacterBase } from './character';
@@ -11,11 +12,20 @@ function pronouns(sex: Sex): Record<string, string> {
   return { he: male ? 'he' : 'she', him: male ? 'him' : 'her', his: male ? 'his' : 'her', He: male ? 'He' : 'She', His: male ? 'His' : 'Her' };
 }
 
-/** Values of the placeholders for a character on a day; names become references (D-020, D-057). */
+/**
+ * Values of the placeholders for a character on a day; names become references (D-020, D-057). `~` is the sex of the
+ * character for the forms of a language (`{~он|она}`, RU.1): `m` or `f`.
+ */
 export function placeholderValues(c: CharacterBase, day: number): Record<string, TextPart> {
   return {
     name: { id: c.id, name: fullName(c) },
     age: String(ageYears(c.birthDay, day)),
     ...pronouns(c.sex),
+    [SEX_MARK]: c.sex === 'male' ? 'm' : 'f',
   };
+}
+
+/** The values of a template for another person in a role: the name, and the sex for the forms `{role~…|…}` (RU.1). */
+export function personValues(role: string, c: CharacterBase): Record<string, TextPart> {
+  return { [role]: { id: c.id, name: fullName(c) }, [`${role}${SEX_MARK}`]: c.sex === 'male' ? 'm' : 'f' };
 }

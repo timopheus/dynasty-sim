@@ -1,10 +1,13 @@
 import { actionAvailability } from '../core/actions/actions';
+import { offersByPlace } from './contracts-model';
 import type { ActionCategory, ActionDef } from '../core/actions/content';
 import { getPlayer } from '../core/helpers';
 import { priceCrowns, workCrowns } from '../core/economy/economy';
+import { placeDef, routesFrom, standingIn } from '../core/place/place';
 import type { Ctx } from '../core/state';
 import { ageYears } from '../core/time/calendar';
 import type { WillForm } from './will';
+import { crownsText, daysRangeText, daysText as dayCount, localName, tr } from './i18n';
 
 /** A button of the actions panel (D-443): everything the player reads about the action is in it (D-448). */
 export interface ActionButton {
@@ -16,6 +19,20 @@ export interface ActionButton {
   grey: boolean;
   /** Why not now, as text. */
   reason: string;
+  /**
+   * An action that goes somewhere (`target: place`, S.9) is a menu of directions: one entry per place the hero can go to
+   * from where he is now, the nearest first. Not for a grey button.
+   */
+  destinations?: Destination[];
+}
+
+/** A direction of the menu "Travel": the place (record id), the days of the shortest way, and whether it is the end of the journey now under way. */
+export interface Destination {
+  to: string;
+  name: string;
+  days: number;
+  /** The hero is already going there. */
+  going: boolean;
 }
 
 export interface Shelf {
@@ -33,9 +50,23 @@ export const SHELVES: { category: ActionCategory; title: string }[] = [
 
 export const WILL_ID = 'will';
 
+/** The button of the board of work (CK.4): opens the window, takes no time. */
+export const BOARD_ID = 'board';
+
+/** What the button of the board says: offers on the boards within reach, and on the board where the hero stands. */
+export interface BoardCount {
+  offers: number;
+  here: number;
+}
+
+/** Reasons side by side: the full stops of the texts are cut so that they do not read ".;". */
+function joinReasons(reasons: string[]): string {
+  return reasons.map((r) => r.replace(/\.$/, '')).join('; ');
+}
+
 function daysText(a: ActionDef): string {
   const { min, max } = a.duration;
-  return min === max ? `${min} days` : `${min}–${max} days`;
+  return min === max ? dayCount(min) : daysRangeText(min, max);
 }
 
 /** Cost and income the action shows, from what the content says it does (S.7); nothing it does not say. */
@@ -43,9 +74,9 @@ function moneyInfo(ctx: Ctx, a: ActionDef): string[] {
   const hero = getPlayer(ctx.state);
   const out: string[] = [];
   const cost = (a.effects?.pay !== undefined ? priceCrowns(ctx.content, ctx.state, hero, a.effects.pay) : 0) + Math.max(0, -(a.effects?.money ?? 0));
-  if (cost > 0) out.push(`costs ${cost} crowns`);
+  if (cost > 0) out.push(tr('costs {crowns}', { crowns: crownsText(cost) }));
   const monthly = workCrowns(ctx.content, a.id);
-  if (monthly > 0) out.push(`+${monthly} / month`);
+  if (monthly > 0) out.push(tr('{sum} / month', { sum: `+${monthly}` }));
   return out;
 }
 
@@ -58,6 +89,15 @@ export function outgrown(ctx: Ctx, a: ActionDef): boolean {
   return max !== undefined && ageYears(getPlayer(ctx.state).birthDay, ctx.state.day) > max;
 }
 
+/** The places the hero can go to now, the nearest first; ties in the order of the content. */
+function destinations(ctx: Ctx): Destination[] {
+  const going = ctx.state.activeAction?.target ?? null;
+  return routesFrom(ctx.state, ctx.content)
+    .map((r, i) => ({ r, i }))
+    .sort((a, b) => a.r.days - b.r.days || a.i - b.i)
+    .map(({ r }) => ({ to: r.to, name: placeDef(ctx.state, ctx.content, r.to)?.name ?? r.to, days: r.days, going: r.to === going }));
+}
+
 export interface Panel {
   shelves: Shelf[];
   /** Why nothing can be done now (the house is over, a window waits): above the shelves, or alone when there are none. */
@@ -68,28 +108,99 @@ export interface Panel {
  * The right panel (D-443): the actions of the hero by shelf. The will is a button of the interface (4.6); it stands on
  * the shelf "Family & house". While a window holds the hero, the buttons are grey and `note` says why. Pure.
  */
-export function actionShelves(ctx: Ctx, will: WillForm | null): Panel {
+export function actionShelves(ctx: Ctx, will: WillForm | null, board: BoardCount | null = null): Panel {
   const { state } = ctx;
-  if (state.status === 'ended') return { shelves: [], note: 'The house has come to an end.' };
-  if (state.backstory.running) return { shelves: [], note: 'Nothing to do until you have grown up.' };
+  if (state.status === 'ended') return { shelves: [], note: tr('The house has come to an end.') };
+  if (state.backstory.running) return { shelves: [], note: tr('Nothing to do until you have grown up.') };
   // an action under way may be changed for another (S.6): only a window that waits for an answer holds the hero
   const choosing = state.status === 'awaiting_action' || state.status === 'running';
-  const held = !choosing || state.pendingEvent !== null ? 'Answer the window first' : '';
+  const held = !choosing || state.pendingEvent !== null ? tr('Answer the window first') : '';
   const underWay = state.activeAction?.actionId ?? null;
-  const shelves: Shelf[] = SHELVES.map((s) => ({ ...s, buttons: [] }));
+  const shelves: Shelf[] = SHELVES.map((s) => ({ ...s, title: tr(s.title), buttons: [] }));
   for (const { action, unmet, hidden } of actionAvailability(ctx)) {
-    if (hidden || outgrown(ctx, action)) continue;
+    // work is taken from the board of a place (CK.4), not from the panel
+    if (hidden || outgrown(ctx, action) || action.target === 'contract') continue;
     const shelf = shelves.find((s) => s.category === action.category);
-    const reasons = held ? [] : action.id === underWay ? ['you are doing this now'] : unmet;
-    shelf?.buttons.push({ id: action.id, name: action.name, info: [daysText(action), ...moneyInfo(ctx, action)], grey: held !== '' || reasons.length > 0, reason: reasons.join('; ') });
+    // a journey under way may be turned toward another place (D-462): its menu stays open
+    const turnable = action.target !== undefined;
+    const reasons = held ? [] : action.id === underWay && !turnable ? [tr('you are doing this now')] : unmet;
+    const grey = held !== '' || reasons.length > 0;
+    const button: ActionButton = { id: action.id, name: action.name, info: [...(turnable ? [] : [daysText(action)]), ...moneyInfo(ctx, action)], grey, reason: joinReasons(reasons) };
+    if (turnable && !grey) button.destinations = destinations(ctx);
+    shelf?.buttons.push(button);
+  }
+  if (board) {
+    // the board of work (CK.4) heads the shelf of livelihood: it is how the hero finds work
+    const info = board.offers === 0 ? [tr('nothing within reach')] : [tr('{n} within reach', { n: board.offers }), ...(board.here > 0 ? [tr('{n} here', { n: board.here })] : [])];
+    shelves.find((s) => s.category === 'livelihood')?.buttons.unshift({ id: BOARD_ID, name: tr('Work board (J)'), info, grey: held !== '', reason: '' });
   }
   if (will) {
     const atNotary = underWay !== null && underWay === ctx.content.succession?.willAction;
-    const reasons = held ? [] : atNotary ? ['you are at the notary now'] : will.reasons;
+    const reasons = held ? [] : atNotary ? [tr('you are at the notary now')] : will.reasons;
     shelves.find((s) => s.category === 'family')?.buttons.push({
-      id: WILL_ID, name: 'Draw up a will', info: ['at the notary', `${will.cost} crowns`], grey: held !== '' || reasons.length > 0, reason: reasons.join('; '),
+      id: WILL_ID, name: tr('Draw up a will'), info: [tr('at the notary'), crownsText(will.cost)], grey: held !== '' || reasons.length > 0, reason: joinReasons(reasons),
     });
   }
   // one line above the panel instead of the same reason on every button
   return { shelves: shelves.filter((s) => s.buttons.length > 0), note: held || null };
+}
+
+/** What the page of a place offers (playtest 09.11, the window of a holding in CK3): the deeds of the place, or the way there. */
+export interface PlaceActions {
+  /** The hero stands in this place. */
+  here: boolean;
+  /** Elsewhere: the journey there, one button with its place; null in the hero's own place. */
+  travel: (ActionButton & { target: string }) | null;
+  /** Here: the actions done in a place (bound to kinds of places), as the actions panel has them, grey with the reason. */
+  buttons: ActionButton[];
+  /** Elsewhere: the names of what one can do in a place of that kind. */
+  there: string[];
+  /** Offers on the board of the place, when it is within reach (CK.4); 0 for none. */
+  work: number;
+  /** Why the board cannot be opened now (a window holds the hero); empty when it can. */
+  workHeld: string;
+}
+
+/** The actions done in a place: those the content binds to kinds of places, not the journey itself. */
+function placeBound(ctx: Ctx): ActionDef[] {
+  return ctx.content.actions.filter((a) => a.target === undefined && (a.when?.at_place_kind?.some((k) => k !== 'road') ?? false));
+}
+
+/** A window waits for an answer: nothing on a page opens another one. */
+function heldReason(ctx: Ctx): string {
+  const { state } = ctx;
+  return (state.status === 'awaiting_action' || state.status === 'running') && state.pendingEvent === null ? '' : tr('answer the window first');
+}
+
+/** Offers on the board of a place within reach (CK.4). */
+function workAt(ctx: Ctx, placeId: string): number {
+  return offersByPlace(ctx).get(placeId) ?? 0;
+}
+
+/** What a place offers the hero now (playtest 09.11). Pure. */
+export function placeActions(ctx: Ctx, placeId: string): PlaceActions | null {
+  const { state, content } = ctx;
+  const def = placeDef(state, content, placeId);
+  if (!def || state.backstory.running || state.status === 'ended') return null;
+  const bound = placeBound(ctx);
+  if (standingIn(state, content) === placeId) {
+    // what this kind of place never allows is left off, as the panel leaves off what is outgrown (D-443)
+    const ids = new Set(bound.filter((a) => a.when?.at_place_kind?.includes(def.kind)).map((a) => a.id));
+    const buttons = actionShelves(ctx, null).shelves.flatMap((s) => s.buttons).filter((b) => ids.has(b.id));
+    return { here: true, travel: null, buttons, there: [], work: workAt(ctx, placeId), workHeld: heldReason(ctx) };
+  }
+  const there = bound.filter((a) => a.when?.at_place_kind?.includes(def.kind)).map((a) => a.name);
+  const journey = content.actions.find((a) => a.target === 'place') ?? null;
+  if (!journey) return { here: false, travel: null, buttons: [], there, work: workAt(ctx, placeId), workHeld: heldReason(ctx) };
+  const going = state.activeAction?.target ?? null;
+  const days = routesFrom(state, content).find((r) => r.to === placeId)?.days;
+  const name = going !== null && going !== placeId ? tr('Turn toward {place}', { place: localName(def.name, 'dat') }) : tr('Travel to {place}', { place: localName(def.name, 'acc') });
+  const info = [...(days !== undefined ? [dayCount(days)] : []), ...moneyInfo(ctx, journey)];
+  const choosing = state.status === 'awaiting_action' || state.status === 'running';
+  const availability = actionAvailability(ctx).find((x) => x.action.id === journey.id);
+  const reasons = !choosing || state.pendingEvent !== null ? [tr('answer the window first')]
+    : going === placeId ? [tr('you are going there')]
+    : days === undefined ? [tr('no road leads there from here')]
+    : availability?.hidden ? [tr('not now')] : (availability?.unmet ?? []);
+  return { here: false, travel: { id: journey.id, target: placeId, name, info, grey: reasons.length > 0, reason: joinReasons(reasons) }, buttons: [], there, work: workAt(ctx, placeId), workHeld: heldReason(ctx) };
 }

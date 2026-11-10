@@ -1,0 +1,24 @@
+# Russian translation of content/events/heredity.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: '{physician} looks {child} over for a long while. "I could tell you more about {child.his} blood, if you wish."'
+    text: "{physician} долго осматривает {child:acc}. «Я мог бы рассказать больше о {child~его|её} крови, если пожелаешь.»"
+  - en: Pay for the physician's word
+    text: "Заплатить за слово лекаря"
+  - en: "{name} paid {physician}, who said that {child} had inherited a sickly frame."
+    text: "{name} {~заплатил|заплатила} {physician:dat}, и тот {physician~сказал|сказала}, что {child} {child~унаследовал|унаследовала} хилое сложение."
+  - en: Let it lie
+    text: "Оставить как есть"
+  - en: "{name} let {physician}'s remark about {child} pass."
+    text: "{name} {~пропустил|пропустила} мимо ушей слова {physician:gen} о {child:prep}."
+  - en: '{physician} looks {child} over and nods. "I could tell you more about {child.his} blood, if you wish."'
+    text: "{physician} осматривает {child:acc} и кивает. «Я мог бы рассказать больше о {child~его|её} крови, если пожелаешь.»"
+  - en: "{name} paid {physician}, who said that {child} had a long life in the blood."
+    text: "{name} {~заплатил|заплатила} {physician:dat}, и тот {physician~сказал|сказала}, что в крови {child:gen} долгая жизнь."
+  - en: '{physician} speaks of {match}, should you ever think of marriage. "I know something of {match.his} blood."'
+    text: "{physician} заговаривает о {match:prep}, если ты когда-нибудь подумаешь о браке. «Я кое-что знаю о {match~его|её} крови.»"
+  - en: "{name} paid {physician}, who warned that {match} had a sickly frame that could pass to children."
+    text: "{name} {~заплатил|заплатила} {physician:dat}, и тот {physician~предупредил|предупредила}, что у {match:gen} хилое сложение, которое может передаться детям."
+  - en: "{name} let {physician}'s remark about {match} pass."
+    text: "{name} {~пропустил|пропустила} мимо ушей слова {physician:gen} о {match:prep}."
+  - en: "{name} paid {physician}, who said that {match} had a long life in the blood."
+    text: "{name} {~заплатил|заплатила} {physician:dat}, и тот {physician~сказал|сказала}, что в крови {match:gen} долгая жизнь."

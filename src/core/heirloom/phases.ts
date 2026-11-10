@@ -1,5 +1,5 @@
 import { fullName, isAlive } from '../character/character';
-import { placeholderValues } from '../character/text';
+import { personValues, placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
 import { findCharacter } from '../helpers';
 import { addOpinionReason } from '../relations/opinions';
@@ -52,7 +52,7 @@ function hand(ctx: Ctx, h: Heirloom, to: Character, deceased: Character, bequeat
     ...placeholderValues(to, state.day),
     heirloom: { id: h.id, name: h.name },
     kind: kindName(content, h.kind),
-    deceased: { id: deceased.id, name: fullName(deceased) },
+    ...personValues('deceased', deceased),
   });
   log(ctx, { subject: to, kind: 'heirloom', level: 'chronicle', parts });
 }

@@ -1,0 +1,60 @@
+# Russian translation of content/events/family-basic.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Look for a spouse
+    text: "Поискать супруга"
+  - en: "{name} spent some weeks among matchmakers and families with daughters and sons to marry."
+    text: "{name} несколько недель {~ходил|ходила} по сватам и по семьям, где есть дочери и сыновья на выданье."
+  - en: A go-between brings word of {match}, {match.age}, who is said to be of a mind to marry, and whose family would hear an offer.
+    text: "Сват приносит весть о {match:prep}, {match.age}: говорят, {match~он|она} не прочь жениться, и семья выслушает предложение."
+  - en: Ask for the hand yourself
+    text: "Просить руки самому"
+  - en: "{name} won the hand of {match}."
+    text: "{name} {~добился|добилась} руки {match:gen}."
+  - en: "{name} asked for the hand of {match} and was refused."
+    text: "{name} {~просил|просила} руки {match:gen}, но {~получил|получила} отказ."
+  - en: Win the family over with a gift of 30 crowns
+    text: "Расположить семью подарком в 30 крон"
+  - en: "{name} won over the family of {match} with a handsome gift."
+    text: "{name} щедрым подарком {~расположил|расположила} к себе семью {match:gen}."
+  - en: Look elsewhere
+    text: "Поискать в другом месте"
+  - en: "{name} turned down a match with {match}."
+    text: "{name} {~отклонил|отклонила} сватовство к {match:dat}."
+  - en: At a crowded fair you keep meeting the eyes of {match}. {match.He} does not look away.
+    text: "В ярмарочной толпе ты то и дело встречаешься глазами с {match:ins}. {match~Он|Она} не отводит взгляда."
+  - en: Seek an introduction
+    text: "Найти, кто познакомит"
+  - en: "{name} was introduced to {match} at a fair."
+    text: "{name} на ярмарке {~свёл|свела} знакомство с {match:ins}."
+  - en: Court boldly and ask at once
+    text: "Ухаживать смело и сразу просить руки"
+  - en: "{name} courted {match} in a whirlwind and married within the month."
+    text: "{name} вихрем {~поухаживал|поухаживала} за {match:ins} и {~вступил|вступила} в брак в течение месяца."
+  - en: "{name} courted {match} too boldly at a fair and was laughed away."
+    text: "{name} слишком смело {~ухаживал|ухаживала} за {match:ins} на ярмарке, и {~его|её} подняли на смех."
+  - en: Let it pass
+    text: "Пусть пройдёт"
+  - en: "{name} let a glance at the fair come to nothing."
+    text: "{name} {~позволил|позволила} ярмарочному взгляду ничем не кончиться."
+  - en: a match between {suitor} and {target}
+    text: "сватовство {suitor} и {target}"
+  - en: your own suit
+    text: "твоё сватовство"
+  - en: the hand of {target}
+    text: "руки {target:gen}"
+  - en: The family of {target} will hear <offer>. A good word, a known name or a full purse may carry it.
+    text: "Семья {target:gen} выслушает <offer>. Доброе слово, известное имя или тугой кошелёк могут решить дело."
+  - en: Make the offer
+    text: "Сделать предложение"
+  - en: "{name} sought <sought>, and the offer was accepted."
+    text: "{name} {~добивался|добивалась} <sought>, и предложение приняли."
+  - en: "{name} sought <sought>, and was refused."
+    text: "{name} {~добивался|добивалась} <sought>, и {~получил|получила} отказ."
+  - en: Settle 50 crowns on the match
+    text: "Назначить на брак 50 крон"
+  - en: "{name} sought <sought> with 50 crowns settled on the match, and the offer was accepted."
+    text: "{name} {~добивался|добивалась} <sought>, назначив на брак 50 крон, и предложение приняли."
+  - en: Withdraw the offer
+    text: "Отозвать предложение"
+  - en: "{name} thought better of <sought>."
+    text: "{name} {~передумал|передумала} насчёт <sought>."

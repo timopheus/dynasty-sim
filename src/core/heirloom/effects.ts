@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { fullName, isAlive } from '../character/character';
-import { placeholderValues } from '../character/text';
+import { personValues, placeholderValues } from '../character/text';
 import { grantTrait } from '../character/holding';
 import { log } from '../chronicle/log';
 import { Id, Int, Text } from '../content/types';
@@ -64,7 +64,7 @@ export function applyHeirloomEffects(ctx: Ctx, c: Character, effects: HeirloomEf
     const h = heldBy(state, c, give.kind)[0];
     if (h && to && to.id !== c.id && isAlive(to)) {
       passTo(state, h, to, fullName(to));
-      log(ctx, { subject: c, kind: 'heirloom', level: 'chronicle', parts: fillTemplate(cfg.texts.given, { ...values(ctx, c, h), to: { id: to.id, name: fullName(to) } }) });
+      log(ctx, { subject: c, kind: 'heirloom', level: 'chronicle', parts: fillTemplate(cfg.texts.given, { ...values(ctx, c, h), ...personValues('to', to) }) });
     }
   }
   const sell = effects.heirloom_sell;

@@ -8,6 +8,7 @@ import type { TextPart } from '../text/text';
 import { isNear } from '../world/world';
 import { toYmd } from '../time/calendar';
 import { houseById, nicknameOf, renownWord, statusName } from './house';
+import { localName, phrase } from '../lang/phrases';
 
 /** Section of the page of a person about their house and nickname (4.7). Both are public: any level sees them. */
 export const houseSection: PersonSection = (ctx, c): PageSection | null => {
@@ -63,8 +64,8 @@ export function housePage(ctx: Ctx, id: string): EntityPage | null {
       if (i > 0) parts.push(', ');
       parts.push({ id: c.id, name: fullName(c) });
     });
-    if (living.length > MEMBER_LIMIT) parts.push(` and ${living.length - MEMBER_LIMIT} more`);
+    if (living.length > MEMBER_LIMIT) parts.push(` ${phrase(ctx.content, 'and {count} more', { count: living.length - MEMBER_LIMIT })}`);
     facts.push({ label: 'Living', parts });
   }
-  return { id, kind: 'house', title: `House ${house.name}`, subtitle: status, facts, chronicle: houseChronicle(ctx, id) };
+  return { id, kind: 'house', title: phrase(ctx.content, 'House {name}', { name: localName(ctx.content, house.name) }), subtitle: status, facts, chronicle: houseChronicle(ctx, id) };
 }

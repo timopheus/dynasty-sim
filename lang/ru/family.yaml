@@ -1,0 +1,28 @@
+# Russian translation of content/family.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: "{name}'s wife {other} gave birth to a {kind}, {child}."
+    text: "Жена {name:gen}, {other}, родила {kind} {child:acc}."
+  - en: "{name} gave birth to a {kind}, {child}."
+    text: "{name} {~родил|родила} {kind} {child:acc}."
+  - en: "{name} lost {his} {kind} {other}."
+    text: "{name} {~потерял|потеряла} {kind} {other:acc}."
+  - en: "{name} was widowed by the death of {other}."
+    text: "{name} {~овдовел|овдовела} со смертью {other:gen}."
+  - en: Only for the married
+    text: "Только для женатых"
+  - en: Only for the unmarried
+    text: "Только для неженатых"
+  - en: Only for {name}'s {kind}
+    text: "Только для того, кто {name:dat} {kind}"
+  - en: Needs at least {count} living children
+    text: "Нужно не меньше {count} живых детей"
+  - en: Cannot marry {name}
+    text: "Брак с {name:ins} невозможен"
+  - en: spouse
+    text: "супруг"
+  - en: child
+    text: "ребёнок"
+  - en: parent
+    text: "родитель"
+  - en: brother or sister
+    text: "брат или сестра"

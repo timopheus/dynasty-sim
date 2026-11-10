@@ -1,0 +1,289 @@
+# Places of the region and the roads between them (D-437, D-439, S.9). Schema: PlacesContentSchema (place/content.ts).
+# Sixteen places of the map `map/region.json`, four in each of the four realms: the capital and cities, a town, a village or
+# two. The roads are the trails and sea routes of the map, with days at about 22 km a day on land and by sea at the speed of
+# a coaster (a day of sea is more than three of land); a place with no road of the map to a neighbour gets the road nearest
+# to it. The hero goes to any place by the shortest way (D-462).
+# `population` is in inhabitants (from the map, in thousands there). `description` is the one line of the table (D-447, D-467,
+# docs/reference/places-style.md): tone A (a travel journal) on villages, tone B (a traveller's note) on cities and towns.
+# It names no place, kind, realm or weather, which the table already shows.
+places:
+  kinds:
+    - { id: city, name: a city }
+    - { id: town, name: a town }
+    - { id: village, name: a village }
+  road: on the road
+  sizes:
+    - { min: 0, name: small }
+    - { min: 5000, name: middling }
+    - { min: 15000, name: large }
+    - { min: 50000, name: great }
+  start: ostmere
+  reasons:
+    kind: "Only in {kinds}"
+    place: "Only in {places}"
+    no_road: "No road leads anywhere from here"
+  texts:
+    arrive: "{name} came to {place}."
+    stopped: "{name} halted on the road between {from} and {to}."
+    stayed: "{name} broke off the journey in {place}."
+    turned: "{name} turned toward {place}."
+  list:
+    # Haverland: the republic of cities and merchant houses; people count.
+    - id: ostmere
+      name: Ostmere
+      kind: city
+      realm: Haverland
+      province: Schlilerbach
+      people: Haverlanders
+      population: 60000
+      landscape: a river mouth among wet meadows
+      has: [river port, exchange, city walls]
+      climate: maritime
+      description: Canal water slaps the steps of every counting-house, and merchants talk in sums even on the church porch.
+    - id: rohrbach
+      name: Rohrbach
+      kind: city
+      realm: Haverland
+      province: Schwoberia
+      people: Haverlanders
+      population: 20300
+      landscape: a sea coast with a river mouth
+      has: [seaport, citadel, city walls, temple, market]
+      climate: maritime
+      description: Tar and cold fish at every breath, a ropewalk's long shed, and the Company's red seal on every warehouse door.
+    - id: mullrosin
+      name: Mullrosin
+      kind: town
+      realm: Haverland
+      province: Mullrosin
+      people: Haverlanders
+      population: 15000
+      landscape: rolling farmland above a river
+      has: [citadel, market, toll bridge]
+      climate: maritime
+      description: Slate roofs below a hill fort, and carters bawling weights at the toll bridge from first light.
+    - id: teigach
+      name: Teigach
+      kind: village
+      realm: Haverland
+      province: Mullrosin
+      people: Haverlanders
+      population: 1700
+      landscape: orchards and open fields on a rise
+      has: [mill, alehouse, common pasture]
+      climate: maritime
+      description: Plum orchards behind low hedges; one mill, one alehouse, and a tally cut in the miller's door-post.
+    # Aurenne: the kingdom of the court and bought offices; people wait and scheme.
+    - id: valmont
+      name: Valmont
+      kind: city
+      realm: Aurenne
+      province: Cevillonte
+      people: Aurennais
+      population: 90000
+      landscape: vine slopes above a wide river
+      has: [royal court, citadel, city walls, market]
+      climate: temperate
+      description: Stone the colour of old honey, and a hush on the steps where those who want the king's favour stand and wait.
+    - id: charoy
+      name: Charoy
+      kind: city
+      realm: Aurenne
+      province: Chandadonia
+      people: Aurennais
+      population: 34100
+      landscape: chalk hills and a river with stone bridges
+      has: [citadel, city walls, market, wine cellars]
+      climate: temperate
+      description: Cellar doors stand open on every lane and the smell of must lingers until the garrison drums drown it.
+    - id: marmant
+      name: Marmant
+      kind: city
+      realm: Aurenne
+      province: Gaunenia
+      people: Aurennais
+      population: 27700
+      landscape: a grey headland over a river
+      has: [abbey, city walls, market]
+      climate: temperate
+      description: Bells from the abbey answer one another over the roofs, and masons chip at blocks in every second yard.
+    - id: bacres
+      name: Bacres
+      kind: town
+      realm: Aurenne
+      province: Viendon
+      people: Aurennais
+      population: 8900
+      landscape: wooded hills and small fields
+      has: [market, mill]
+      climate: temperate
+      description: The square is lined with tanners' stalls, and the intendant's clerk writes down every hide that crosses it.
+    # Borea: the empire of rivers and furs; people endure and suspect.
+    - id: novomor
+      name: Novomor
+      kind: city
+      realm: Borea
+      province: Levitsk
+      people: Boreans
+      population: 17500
+      landscape: marshy lowland on a sea inlet
+      has: [seaport, palace, market]
+      climate: continental
+      description: New timber wharves smell of resin along the whole bank, and every beam of them was cut by decree.
+    - id: meschevsk
+      name: Meschevsk
+      kind: village
+      realm: Borea
+      province: Stresia
+      people: Boreans
+      population: 1700
+      landscape: flat forest by a slow river
+      has: [shrine, beeswax yard]
+      climate: continental
+      description: Log houses along a single street; the sledge road is kept up and the beeswax cart goes through twice a year.
+    - id: kryvan
+      name: Kryvan
+      kind: town
+      realm: Borea
+      province: Shigia
+      people: Boreans
+      population: 13100
+      landscape: birch forest at the edge of the steppe
+      has: [timber walls, market, fur sheds]
+      climate: continental
+      description: Stockade logs gone silver with age, and furs hung in rows from the gallery rails like washing.
+    - id: ostkala
+      name: Ostkala
+      kind: city
+      realm: Borea
+      province: Ostkala
+      people: Boreans
+      population: 19300
+      landscape: a wide river mouth with low banks
+      has: [river port, citadel, city walls]
+      climate: continental
+      description: Log rafts knock together at the quay, and the customs house smells of wet bark and sealing wax.
+    # Izmara: the sultanate of caravans and bazaars; people bargain.
+    - id: sarayhan
+      name: Sarayhan
+      kind: city
+      realm: Izmara
+      province: Beyka
+      people: Izmarans
+      population: 110000
+      landscape: a marshy coast with a deep harbour
+      has: [seaport, sultan's palace, great bazaar, minarets]
+      climate: hot
+      description: From the minarets the call to prayer rolls over the roofs, one voice after another, never quite together.
+    - id: baharduman
+      name: Baharduman
+      kind: city
+      realm: Izmara
+      province: Baharduman
+      people: Izmarans
+      population: 7400
+      landscape: a dry plain beside a river
+      has: [covered bazaar, caravanserai, river crossing]
+      climate: hot
+      description: Covered lanes smell of cardamom, and a toll-farmer's clerk sits under every arch with his scales.
+    - id: aykut
+      name: Aykut
+      kind: town
+      realm: Izmara
+      province: Baharduman
+      people: Izmarans
+      population: 6300
+      landscape: a dry plain with one river
+      has: [caravanserai, dye works, market]
+      climate: hot
+      description: Camels kneel in a caravanserai yard, and the dyers' vats stain the gutter blue by the south gate.
+    - id: ur_nahlem
+      name: Ur Nahlem
+      kind: village
+      realm: Izmara
+      province: Evehribia
+      people: Izmarans
+      population: 2000
+      landscape: a reed shore beside a slow river
+      has: [landing, ferry]
+      climate: hot
+      description: Reed boats drawn up on the mud, nets drying on the roofs, and a ferry rope that every household takes its turn to haul.
+  # Days of the road between two places (D-462). Haverland — Aurenne by the trail Mullrosin — Bacres; Haverland — Izmara by sea
+  # from Rohrbach; Izmara — Borea by sea from Ur Nahlem. Aurenne has no trails of the map between its cities: the roads here
+  # follow the map's distances.
+  roads:
+    - { between: [ostmere, rohrbach], days: 2 }
+    - { between: [ostmere, teigach], days: 9 }
+    - { between: [teigach, mullrosin], days: 11 }
+    - { between: [mullrosin, bacres], days: 6 }
+    - { between: [bacres, marmant], days: 10 }
+    - { between: [marmant, charoy], days: 12 }
+    - { between: [charoy, valmont], days: 6 }
+    - { between: [rohrbach, sarayhan], days: 7 }
+    - { between: [sarayhan, baharduman], days: 12 }
+    - { between: [baharduman, aykut], days: 4 }
+    - { between: [aykut, ur_nahlem], days: 13 }
+    - { between: [ur_nahlem, ostkala], days: 12 }
+    - { between: [ostkala, novomor], days: 11 }
+    - { between: [novomor, meschevsk], days: 5 }
+    - { between: [meschevsk, kryvan], days: 9 }
+  # Weather by climate and season: one of these for a place and a week, by the seed (S.9, place/table.ts).
+  climates:
+    - id: maritime
+      weather:
+        - { season: winter, name: sleet, weight: 3 }
+        - { season: winter, name: fog, weight: 3 }
+        - { season: winter, name: gale, weight: 2 }
+        - { season: winter, name: cold rain, weight: 3 }
+        - { season: spring, name: rain, weight: 4 }
+        - { season: spring, name: mild and bright, weight: 3 }
+        - { season: spring, name: sea fog, weight: 2 }
+        - { season: summer, name: warm and bright, weight: 4 }
+        - { season: summer, name: showers, weight: 3 }
+        - { season: summer, name: sea haze, weight: 2 }
+        - { season: autumn, name: rain, weight: 4 }
+        - { season: autumn, name: gale, weight: 2 }
+        - { season: autumn, name: fog, weight: 3 }
+        - { season: autumn, name: clear and cool, weight: 2 }
+    - id: temperate
+      weather:
+        - { season: winter, name: frost, weight: 3 }
+        - { season: winter, name: grey and damp, weight: 3 }
+        - { season: winter, name: snow, weight: 2 }
+        - { season: spring, name: showers, weight: 3 }
+        - { season: spring, name: mild and bright, weight: 4 }
+        - { season: spring, name: wind, weight: 2 }
+        - { season: summer, name: hot and clear, weight: 4 }
+        - { season: summer, name: thunderstorm, weight: 2 }
+        - { season: summer, name: warm and hazy, weight: 3 }
+        - { season: autumn, name: mist, weight: 3 }
+        - { season: autumn, name: rain, weight: 3 }
+        - { season: autumn, name: clear and crisp, weight: 3 }
+    - id: continental
+      weather:
+        - { season: winter, name: hard frost, weight: 4 }
+        - { season: winter, name: snow, weight: 4 }
+        - { season: winter, name: blizzard, weight: 2 }
+        - { season: spring, name: thaw and mud, weight: 4 }
+        - { season: spring, name: cold and bright, weight: 3 }
+        - { season: spring, name: rain, weight: 2 }
+        - { season: summer, name: hot and still, weight: 3 }
+        - { season: summer, name: warm and bright, weight: 3 }
+        - { season: summer, name: thunderstorm, weight: 2 }
+        - { season: autumn, name: cold rain, weight: 4 }
+        - { season: autumn, name: first frost, weight: 3 }
+        - { season: autumn, name: clear and cool, weight: 2 }
+    - id: hot
+      weather:
+        - { season: winter, name: mild and dry, weight: 4 }
+        - { season: winter, name: rain, weight: 3 }
+        - { season: winter, name: cool wind, weight: 2 }
+        - { season: spring, name: warm and dry, weight: 4 }
+        - { season: spring, name: dust wind, weight: 2 }
+        - { season: spring, name: showers, weight: 2 }
+        - { season: summer, name: scorching, weight: 5 }
+        - { season: summer, name: dust haze, weight: 3 }
+        - { season: summer, name: hot and still, weight: 3 }
+        - { season: autumn, name: hot and dry, weight: 4 }
+        - { season: autumn, name: first rains, weight: 3 }
+        - { season: autumn, name: dust wind, weight: 2 }

@@ -21,5 +21,5 @@ export function checkRolesConditions({ content }: Ctx, c: Character, when: Roles
   const population = content.population;
   if (!population) throw new Error('The condition "occupation" needs the population section');
   const names = when.occupation.map((id) => population.occupations.find((o) => o.id === id)?.name ?? id);
-  return [{ text: fillReason(population.occupationReason, { occupations: joinOr(names) }), hidden: false }];
+  return [{ text: fillReason(population.occupationReason, { occupations: joinOr(names, content) }), hidden: false }];
 }

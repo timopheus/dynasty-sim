@@ -1,5 +1,6 @@
 import { el } from './dom';
 import './modal.css';
+import { tr } from './i18n';
 
 export interface ModalOptions {
   /** Heading of the window; also its accessible name. */
@@ -23,7 +24,7 @@ export function modalFrame(options: ModalOptions, ...body: (Node | string)[]): H
   const head = el('div', { className: 'modal-head' }, heading);
   if (options.badge) head.append(el('span', { className: 'modal-badge' }, options.badge));
   if (!options.pinned && options.onClose) {
-    head.append(el('button', { className: 'modal-close', type: 'button', onclick: options.onClose, ariaLabel: 'Close' }, '×'));
+    head.append(el('button', { className: 'modal-close', type: 'button', onclick: options.onClose, ariaLabel: tr('Close') }, '×'));
   }
   const dialog = el('div', { className: `modal ${options.kind}`, role: 'dialog' }, head, ...body);
   dialog.setAttribute('aria-modal', 'true');

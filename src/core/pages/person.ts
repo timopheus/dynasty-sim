@@ -15,6 +15,8 @@ import type { Character, Ctx } from '../state';
 import { renderText, type TextPart } from '../text/text';
 import { ageYears, toYmd } from '../time/calendar';
 import { isNear } from '../world/world';
+import { phrase } from '../lang/phrases';
+import type { Content } from '../content/schema';
 
 /**
  * Data of the page of a person (2.10, GDD 8.8-8.9, D-150). A pure query: no randomness, no changes to the state.
@@ -124,15 +126,19 @@ function year(day: number): number {
   return toYmd(day).year;
 }
 
-function roughAge(age: number): string {
-  return age < 5 ? 'a small child' : `about ${Math.round(age / 5) * 5}`;
+function roughAge(content: Content, age: number): string {
+  return age < 5 ? phrase(content, 'a small child') : phrase(content, 'about {age}', { age: Math.round(age / 5) * 5 });
 }
 
-function lifeText(c: Character, day: number, exact: boolean): string {
+function lifeText(content: Content, c: Character, day: number, exact: boolean): string {
   const born = year(c.birthDay);
   // The exact year comes with the exact age (D-324): today for the living, at death for the dead.
-  if (exact) return c.deathDay === null ? `b. ${born}, aged ${ageYears(c.birthDay, day)}` : `${born}–${year(c.deathDay)}, died aged ${ageYears(c.birthDay, c.deathDay)}`;
-  return c.deathDay === null ? roughAge(ageYears(c.birthDay, day)) : `died ${year(c.deathDay)}`;
+  if (exact) {
+    return c.deathDay === null
+      ? phrase(content, 'b. {born}, aged {age}', { born, age: ageYears(c.birthDay, day) })
+      : phrase(content, '{born}–{died}, died aged {age}', { born, died: year(c.deathDay), age: ageYears(c.birthDay, c.deathDay) });
+  }
+  return c.deathDay === null ? roughAge(content, ageYears(c.birthDay, day)) : phrase(content, 'died {year}', { year: year(c.deathDay) });
 }
 
 function relationLines(ctx: Ctx, c: Character): { allies: RelationLine[]; rivals: RelationLine[] } {
@@ -155,8 +161,6 @@ function relationLines(ctx: Ctx, c: Character): { allies: RelationLine[]; rivals
   return { allies, rivals };
 }
 
-const BACKGROUND_TEXT = 'Their own temper and yours';
-const TIES_TEXT = 'The ties between you';
 
 function opinionOfHero(ctx: Ctx, c: Character, numbers: boolean): PersonPage['opinion'] {
   const { state, content } = ctx;
@@ -167,8 +171,8 @@ function opinionOfHero(ctx: Ctx, c: Character, numbers: boolean): PersonPage['op
   const value = opinionValue(ctx, c.id, hero);
   const lines = numbers
     ? opinionCauses(ctx, c.id, hero).map((cause): OpinionLine => {
-        if (cause.id === 'background') return { text: BACKGROUND_TEXT, year: null, value: cause.value, lasting: true };
-        if (cause.id === 'relation') return { text: TIES_TEXT, year: null, value: cause.value, lasting: false };
+        if (cause.id === 'background') return { text: phrase(content, 'Their own temper and yours'), year: null, value: cause.value, lasting: true };
+        if (cause.id === 'relation') return { text: phrase(content, 'The ties between you'), year: null, value: cause.value, lasting: false };
         const records = state.opinionReasons.filter((r) => r.holder === c.id && r.target === hero && r.reason === cause.id);
         const latest = records.reduce((a, b) => (b.day > a.day ? b : a), records[0] ?? { day: state.day });
         return {
@@ -233,7 +237,7 @@ export function personPage(ctx: Ctx, id: string): PersonPage | null {
     level,
     sex: c.sex,
     alive: isAlive(c),
-    life: lifeText(c, state.day, exactYears),
+    life: lifeText(content, c, state.day, exactYears),
     fame: fameWord(content, c),
     occupation: acquainted || fameStep >= 1 ? occupation : null,
     traits: visibleTraits(ctx, c, level),

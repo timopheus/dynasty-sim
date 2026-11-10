@@ -14,6 +14,7 @@
     "typecheck": "tsc -p src/core && tsc -p src/ui && tsc -p .",
     "test": "vitest run",
     "validate": "tsx tools/validate.ts",
+    "map-build": "tsx tools/map-build.ts",
     "sim": "tsx tools/sim.ts",
     "gates": "tsx tools/gates.ts",
     "replay": "tsx tools/replay.ts",

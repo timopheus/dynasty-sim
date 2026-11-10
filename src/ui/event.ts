@@ -2,11 +2,12 @@ import { actionAvailability } from '../core/actions/actions';
 import type { ChanceBand } from '../core/events/checks';
 import { eventView, type OptionView } from '../core/events/view';
 import type { Ctx } from '../core/state';
-import { partsText, type TextPart } from '../core/text/text';
+import type { TextPart } from '../core/text/text';
 import { control, plainLabel, type Control } from './access';
 import type { Tip } from './tips';
+import { daysRangeText, localText, tr } from './i18n';
 
-/** Words of the chance bands (D-042, D-175): the core gives ids, the screen words them. */
+/** Words of the chance bands (D-042, D-175), in English: the core gives ids, the screen words them (`chanceWord`). */
 export const CHANCE_WORDS: Record<ChanceBand, string> = {
   hopeless: 'almost hopeless',
   risky: 'risky',
@@ -14,6 +15,11 @@ export const CHANCE_WORDS: Record<ChanceBand, string> = {
   likely: 'likely',
   certain: 'almost certain',
 };
+
+/** The word of a chance band in the language chosen. */
+export function chanceWord(band: ChanceBand): string {
+  return tr(CHANCE_WORDS[band]);
+}
 
 export const CONTINUE_LABEL = 'Continue';
 
@@ -47,10 +53,10 @@ export function eventScreen(ctx: Ctx): EventScreen | null {
     text: view.text,
     options: view.options.map((o) => ({
       index: o.index,
-      label: o.text ?? [CONTINUE_LABEL],
+      label: o.text ?? [tr(CONTINUE_LABEL)],
       grey: !o.available,
       reason: o.reasons.join('; '),
-      chance: o.chance ? { word: CHANCE_WORDS[o.chance.band], percent: o.chance.percent, title: `${o.chance.percent}%` } : null,
+      chance: o.chance ? { word: chanceWord(o.chance.band), percent: o.chance.percent, title: `${o.chance.percent}%` } : null,
       icons: o.icons,
       tip: optionTip(o),
     })),
@@ -66,18 +72,18 @@ export function optionTip(o: OptionView): Tip | null {
   const groups: string[][] = [];
   const list = (head: string, items: string[]): string[] => (items.length === 1 ? [`${head} ${items[0]}`] : [head, ...items.map((i) => ` • ${i}`)]);
   if (o.available) {
-    if (o.chance) groups.push([`Chance: ${CHANCE_WORDS[o.chance.band]}, ${o.chance.percent}%`, ...o.outcomes.chanceBasis]);
+    if (o.chance) groups.push([tr('Chance: {word}, {percent}%', { word: chanceWord(o.chance.band), percent: o.chance.percent }), ...o.outcomes.chanceBasis]);
     const outcomes: string[] = [];
-    if (o.outcomes.success.length) outcomes.push(...list('If it works:', o.outcomes.success));
-    if (o.outcomes.failure.length) outcomes.push(...list('If it fails:', o.outcomes.failure));
-    if (o.outcomes.result.length) outcomes.push(...list('Result:', o.outcomes.result));
+    if (o.outcomes.success.length) outcomes.push(...list(tr('If it works:'), o.outcomes.success));
+    if (o.outcomes.failure.length) outcomes.push(...list(tr('If it fails:'), o.outcomes.failure));
+    if (o.outcomes.result.length) outcomes.push(...list(tr('Result:'), o.outcomes.result));
     if (outcomes.length) groups.push(outcomes);
     const price: string[] = [...o.outcomes.cost];
-    if (o.risk) price.push(`Risk: ${o.risk}`);
+    if (o.risk) price.push(tr('Risk: {risk}', { risk: o.risk }));
     if (price.length) groups.push(price);
     if (o.nature) groups.push(o.nature.lines);
   } else if (o.reasons.length) {
-    groups.push([`Unavailable: ${o.reasons.join('; ')}`]);
+    groups.push([tr('Unavailable: {reasons}', { reasons: o.reasons.join('; ') })]);
   }
   return groups.length ? { text: groups.map((g) => g.join('\n')).join('\n\n') } : null;
 }
@@ -97,7 +103,7 @@ export function actionRows(ctx: Ctx): ActionRow[] {
     .map(({ action, unmet }) => ({
       id: action.id,
       name: action.name,
-      days: `${action.duration.min}–${action.duration.max} days`,
+      days: daysRangeText(action.duration.min, action.duration.max),
       grey: unmet.length > 0,
       reason: unmet.join('; '),
     }));
@@ -120,7 +126,7 @@ export function optionControl(o: OptionRow, position: number): Control {
 /** Text for the live region when a new event page appears: the event, then its options with keys. */
 export function eventAnnouncement(text: readonly TextPart[], controls: readonly Control[]): string {
   const options = controls.map((c) => `${c.text}${c.note ? ` ${c.note}` : ''}${c.reason ? `. ${c.reason}` : ''}`).join('. ');
-  return `New event. ${partsText(text)} Choices: ${options}.`;
+  return tr('New event. {text} Choices: {options}.', { text: localText(text), options });
 }
 
 /** Identity of an event page, so a page is announced once (D-264). */
@@ -137,7 +143,7 @@ export function eventTitle(ctx: Ctx, screen: EventScreen): string {
   const { state, content } = ctx;
   if (state.backstory.running) {
     const age = content.backstory?.stages[state.backstory.stage]?.age;
-    return age === undefined ? 'Growing up' : `Age ${String(age)}`;
+    return age === undefined ? tr('Growing up') : tr('Age {age}', { age });
   }
-  return screen.options.every((o) => o.label.length === 1 && o.label[0] === CONTINUE_LABEL) ? 'News' : 'A decision';
+  return screen.options.every((o) => o.label.length === 1 && o.label[0] === tr(CONTINUE_LABEL)) ? tr('News') : tr('A decision');
 }

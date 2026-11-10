@@ -12,8 +12,9 @@ import { fullName } from '../core/character/character';
 import { eventView } from '../core/events/view';
 import { currentScene, pendingEventDef } from '../core/events/events';
 import { ownOutcome } from '../core/events/content';
-import { partsText, type TextPart } from '../core/text/text';
+import type { TextPart } from '../core/text/text';
 import { withNumber } from './access';
+import { crownsText, localName, localText, tr } from './i18n';
 
 /**
  * The outcome of a choice with something at stake (D-440): what was written that day and what changed in the hero.
@@ -96,7 +97,7 @@ function isWeighty(ctx: Ctx, option: number): boolean {
 /** The label of the option, without links; empty for a notice. */
 function chosenLabel(ctx: Ctx, option: number): string {
   const text = eventView(ctx)?.options.find((o) => o.index === option)?.text;
-  return text ? partsText(text) : '';
+  return text ? localText(text) : '';
 }
 
 /** Taken just before the `choose` command for option `option` is applied. */
@@ -114,10 +115,10 @@ export function beforeChoice(ctx: Ctx, option: number): BeforeChoice {
 
 function diff(content: Content, before: HeroSnapshot, after: HeroSnapshot): Change[] {
   const out: Change[] = [];
-  if (before.money !== after.money) out.push({ label: 'Money', from: `${before.money} crowns`, to: `${after.money} crowns` });
+  if (before.money !== after.money) out.push({ label: 'Money', from: crownsText(before.money), to: crownsText(after.money) });
   for (const t of after.traits) if (!before.traits.includes(t)) out.push({ label: 'Trait gained', from: '', to: t });
   for (const t of before.traits) if (!after.traits.includes(t)) out.push({ label: 'Trait lost', from: t, to: '' });
-  if (before.conditions !== after.conditions) out.push({ label: 'Health', from: before.conditions || 'healthy', to: after.conditions || 'healthy' });
+  if (before.conditions !== after.conditions) out.push({ label: 'Health', from: before.conditions || tr('healthy'), to: after.conditions || tr('healthy') });
   if (before.happiness !== null && after.happiness !== null && before.happiness !== after.happiness) {
     out.push({ label: 'Happiness', from: withNumber(happinessWord(content, before.happiness), before.happiness), to: withNumber(happinessWord(content, after.happiness), after.happiness) });
   }
@@ -153,7 +154,7 @@ export function outcomeOf(ctx: Ctx, before: BeforeChoice): Outcome | null {
   const dead = old !== null && old.deathDay === day;
   if (dead) {
     const heir = state.status === 'ended' || state.playerId === before.hero.id ? null : fullName(getPlayer(state));
-    return { lines: own, changes: [], aftermath: aftermathOf(ctx), died: { name: old ? fullName(old) : 'The hero', heir } };
+    return { lines: own, changes: [], aftermath: aftermathOf(ctx), died: { name: old ? localName(fullName(old)) : tr('The hero'), heir: heir === null ? null : localName(heir) } };
   }
   const changes = state.day === day && state.playerId === before.hero.id ? diff(ctx.content, before.hero, heroSnapshot(ctx)) : [];
   const hurt = changes.some((c) => c.label === 'Health');
@@ -163,9 +164,9 @@ export function outcomeOf(ctx: Ctx, before: BeforeChoice): Outcome | null {
 
 /** A change as a few words for the news: "+12 crowns", "Trait gained: Brave". */
 function changeWords(c: Change, before: HeroSnapshot, after: HeroSnapshot): string {
-  if (c.label === 'Happiness') return `Happiness ${(after.happiness ?? 0) - (before.happiness ?? 0) > 0 ? '+' : '−'}${Math.abs((after.happiness ?? 0) - (before.happiness ?? 0))}`;
-  if (c.label === 'Money') return `${after.money - before.money > 0 ? '+' : '−'}${Math.abs(after.money - before.money)} crowns`;
-  return c.to ? `${c.label}: ${c.to}` : `${c.label}: ${c.from} gone`;
+  if (c.label === 'Happiness') return `${tr('Happiness')} ${(after.happiness ?? 0) - (before.happiness ?? 0) > 0 ? '+' : '−'}${Math.abs((after.happiness ?? 0) - (before.happiness ?? 0))}`;
+  if (c.label === 'Money') return `${after.money - before.money > 0 ? '+' : '−'}${crownsText(Math.abs(after.money - before.money))}`;
+  return c.to ? `${tr(c.label)}: ${c.to}` : tr('{label}: {what} gone', { label: tr(c.label), what: c.from });
 }
 
 /**
@@ -179,7 +180,7 @@ export function newsOf(ctx: Ctx, before: BeforeChoice): string | null {
   const after = heroSnapshot(ctx);
   const changes = state.day === day && state.playerId === before.hero.id ? diff(ctx.content, before.hero, after) : [];
   const aftermath = aftermathOf(ctx);
-  const story = aftermath ? partsText(aftermath) : before.choice;
+  const story = aftermath ? localText(aftermath) : before.choice;
   const words = [story, ...changes.map((c) => changeWords(c, before.hero, after))].filter(Boolean);
   return words.length ? words.join(' · ') : null;
 }

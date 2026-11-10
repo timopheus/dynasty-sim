@@ -51,9 +51,10 @@ export function checkRelationsConditions(ctx: Ctx, c: Character, when: Relations
   const unknownToHero = c.id !== hero && acquaintanceLevel(state, content, hero, c.id) === null;
   const unmet: Unmet[] = [];
   const person = (role: string) => scope[role];
-  const nameOf = (id: string) => {
+  // the person a reason names: the name, and the sex for the forms of the language (RU.1)
+  const nameOf = (id: string): Record<string, string> => {
     const other = characterById(state, id);
-    return other ? fullName(other) : id;
+    return other ? { name: fullName(other), '~': other.sex === 'male' ? 'm' : 'f' } : { name: id };
   };
 
   if (when.opinion) {
@@ -64,8 +65,8 @@ export function checkRelationsConditions(ctx: Ctx, c: Character, when: Relations
     else {
       const value = opinionValue(ctx, c.id, other);
       const hidden = unknownToHero;
-      if (min !== undefined && value < min) unmet.push({ text: fillReason(texts.opinionMin, { word: opinionWord(content, min), name: nameOf(other) }), hidden });
-      if (max !== undefined && value > max) unmet.push({ text: fillReason(texts.opinionMax, { word: opinionWord(content, max), name: nameOf(other) }), hidden });
+      if (min !== undefined && value < min) unmet.push({ text: fillReason(texts.opinionMin, { word: opinionWord(content, min), ...nameOf(other) }, content), hidden });
+      if (max !== undefined && value > max) unmet.push({ text: fillReason(texts.opinionMax, { word: opinionWord(content, max), ...nameOf(other) }, content), hidden });
     }
   }
   const links: [RelationsWhen['relation'], boolean][] = [[when.relation, true], [when.relation_none, false]];
@@ -78,12 +79,12 @@ export function checkRelationsConditions(ctx: Ctx, c: Character, when: Relations
     }
     if ((activeRelationBetween(state, c.id, other, link.kind) !== null) === wanted) continue;
     const kind = (findRelationKind(content, link.kind)?.name ?? link.kind).toLowerCase();
-    unmet.push({ text: fillReason(wanted ? texts.relation : texts.relationNone, { kind, name: nameOf(other) }), hidden: unknownToHero });
+    unmet.push({ text: fillReason(wanted ? texts.relation : texts.relationNone, { kind, ...nameOf(other) }, content), hidden: unknownToHero });
   }
   if (when.acquainted !== undefined && c.id !== hero) {
     const level = acquaintanceLevel(state, content, hero, c.id);
     const met = level === 'close' || (level === 'known' && when.acquainted === 'known');
-    if (!met) unmet.push({ text: fillReason(when.acquainted === 'known' ? texts.acquaintedKnown : texts.acquaintedClose, { name: nameOf(c.id) }), hidden: false });
+    if (!met) unmet.push({ text: fillReason(when.acquainted === 'known' ? texts.acquaintedKnown : texts.acquaintedClose, nameOf(c.id), content), hidden: false });
   }
   return unmet;
 }

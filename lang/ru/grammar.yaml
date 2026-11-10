@@ -1,0 +1,26 @@
+# Russian translation of content/grammar.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: at first light
+    text: "на рассвете"
+  - en: in the grey before dawn
+    text: "в сером предрассветном сумраке"
+  - en: in driving snow
+    text: "в метель"
+  - en: in a cold rain
+    text: "под холодным дождём"
+  - en: the Black Swan
+    text: "«Чёрный лебедь»"
+  - en: the Crooked Anchor
+    text: "«Кривой якорь»"
+  - en: the Three Bells
+    text: "«Три колокола»"
+  - en: the Grey Goose
+    text: "«Серый гусь»"
+  - en: the Ploughman's Rest
+    text: "«Отдых пахаря»"
+  - en: in the first snow
+    text: "в первый снег"
+  - en: under a burning sun
+    text: "под палящим солнцем"
+  - en: on a grey morning
+    text: "серым утром"

@@ -15,10 +15,10 @@ export interface EntityKind {
 }
 
 /**
- * Prefixes taken by other things (D-311): `r` relation and `s` secret are records without pages; `n` realm, `d` debt,
- * `o` organization are reserved for stages 5-6. `p` place is a kind since the slice (D-439, S.9a).
+ * Prefixes taken by other things (D-311): `r` relation, `s` secret and `k` contract (CK.2a) are records without pages;
+ * `n` realm, `d` debt, `o` organization are reserved for stages 5-6. `p` place is a kind since the slice (D-439, S.9a).
  */
-export const RESERVED_PREFIXES: readonly string[] = ['r', 's', 'n', 'd', 'o'];
+export const RESERVED_PREFIXES: readonly string[] = ['r', 's', 'k', 'n', 'd', 'o'];
 
 export type EntityRegistry = readonly EntityKind[];
 

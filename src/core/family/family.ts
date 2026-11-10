@@ -1,9 +1,10 @@
 import { fullName } from '../character/character';
-import { placeholderValues } from '../character/text';
+import { personValues, placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
 import { findCharacter, isInt } from '../helpers';
 import type { Character, CreateHook, Ctx, DeathHook, Invariant, RefsFn } from '../state';
 import { fillTemplate } from '../text/text';
+import { phrase } from '../lang/phrases';
 import { isCloseKin } from './kin';
 
 /**
@@ -78,13 +79,13 @@ export function logAboutHero(ctx: Ctx, kind: string, template: string, values: R
   const { state } = ctx;
   const hero = findCharacter(state, state.playerId);
   if (!hero || hero.deathDay !== null) return;
-  const filled = Object.fromEntries(Object.entries(values).map(([k, v]) => [k, typeof v === 'string' ? v : { id: v.id, name: fullName(v) }]));
+  const filled = Object.fromEntries(Object.entries(values).flatMap(([k, v]) => (typeof v === 'string' ? [[k, v]] : Object.entries(personValues(k, v)))));
   log(ctx, { subject: hero, kind, level: 'chronicle', parts: fillTemplate(template, { ...placeholderValues(hero, state.day), ...filled }) });
 }
 
-/** "son" or "daughter". */
-export function childWord(c: Character): string {
-  return c.sex === 'male' ? 'son' : 'daughter';
+/** "son" or "daughter", in the language of the content; the lines that use it take the word as an object (RU.1). */
+export function childWord(ctx: Ctx, c: Character): string {
+  return c.sex === 'male' ? phrase(ctx.content, 'son') : phrase(ctx.content, 'daughter');
 }
 
 /**
@@ -109,7 +110,7 @@ export const familyOnDeath: DeathHook = (ctx, c) => {
   const texts = content.family?.texts;
   if (!texts || c.id === hero) return;
   if (widowed) logAboutHero(ctx, 'family', texts.spouseDied, { other: c });
-  else if (c.father === hero || c.mother === hero) logAboutHero(ctx, 'family', texts.childDied, { other: c, kind: childWord(c) });
+  else if (c.father === hero || c.mother === hero) logAboutHero(ctx, 'family', texts.childDied, { other: c, kind: childWord(ctx, c) });
 };
 
 /**

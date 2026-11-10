@@ -1,0 +1,64 @@
+# Russian translation of content/mind.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Despairing
+    text: "Отчаяние"
+  - en: Miserable
+    text: "Горе"
+  - en: Unhappy
+    text: "Тоска"
+  - en: Content
+    text: "Довольство"
+  - en: Happy
+    text: "Счастье"
+  - en: Joyful
+    text: "Ликование"
+  - en: a lie or a swindle
+    text: "ложь или обман"
+  - en: running away
+    text: "бегство"
+  - en: courting danger
+    text: "игра с опасностью"
+  - en: betraying a trust
+    text: "предательство доверия"
+  - en: giving of your own
+    text: "щедрость за свой счёт"
+  - en: holding fast to your own
+    text: "упорство в своём"
+  - en: lowering yourself
+    text: "унижение себя"
+  - en: demanding your due
+    text: "требование своего"
+  - en: breaking your word
+    text: "нарушенное слово"
+  - en: forgiving
+    text: "прощение"
+  - en: settling a score
+    text: "сведение счётов"
+  - en: lashing out
+    text: "срыв на других"
+  - en: holding your temper
+    text: "обузданный гнев"
+  - en: shirking
+    text: "уклонение от дела"
+  - en: working beyond need
+    text: "работа сверх нужды"
+  - en: taking on trust
+    text: "вера на слово"
+  - en: checking up
+    text: "проверка"
+  - en: reaching higher
+    text: "стремление выше"
+  - en: settling for less
+    text: "согласие на меньшее"
+  - en: hurting the helpless
+    text: "обида беззащитных"
+  - en: "{name} broke under the weight of it all and could not be roused for weeks."
+    text: "{name} {~сломился|сломилась} под тяжестью всего и несколько недель не {~приходил|приходила} в себя."
+  - en: Requires happiness of at least {value}
+    text: "Нужно счастье не ниже {value}"
+  - en: Requires happiness of at most {value}
+    text: "Нужно счастье не выше {value}"
+  - en: Despondent
+    text: "Уныние"
+  - en: "{name} sank into a settled gloom."
+    text: "{name} {~погрузился|погрузилась} в беспросветную тоску."

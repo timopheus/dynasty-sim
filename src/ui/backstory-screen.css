@@ -1,0 +1,96 @@
+/* The early years on a screen of their own (playtest 09.11): a page, not a window over the game. */
+.backstory-screen {
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--bg) 100%, transparent) 0%, color-mix(in srgb, var(--bg) 82%, var(--fg)) 100%);
+}
+
+.backstory-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 2px solid var(--fg);
+  background: var(--bg);
+}
+
+.backstory-title h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+}
+
+.backstory-title p {
+  margin: 0.1rem 0 0;
+  color: var(--muted);
+}
+
+.backstory-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.5rem 1rem 2rem;
+  gap: 1rem;
+}
+
+.backstory-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: min(38rem, 100%);
+}
+
+.backstory-age {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.backstory-steps {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.backstory-steps li {
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 2px solid var(--fg);
+  border-radius: 50%;
+}
+
+.backstory-steps li.done {
+  background: var(--fg);
+}
+
+.backstory-steps li.current {
+  background: var(--accent, var(--fg));
+  border-color: var(--accent, var(--fg));
+}
+
+/* the scene window sits on the page: no backdrop, no fixed layer */
+.backstory-screen .modal-layer {
+  position: static;
+  padding: 0;
+  background: none;
+  pointer-events: auto;
+  overflow: visible;
+  width: min(38rem, 100%);
+}
+
+.backstory-screen .modal {
+  width: 100%;
+  max-height: none;
+}
+
+.backstory-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}

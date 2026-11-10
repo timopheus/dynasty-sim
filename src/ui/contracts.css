@@ -1,0 +1,136 @@
+/* The board of work (CK.4): a wide window over the free map, the list of offers on the left, the one chosen on the right. */
+/* the window keeps to the free map: under the header and the modes (frame.css), above the block "where I am" */
+.modal.board {
+  display: flex;
+  flex-direction: column;
+  width: min(52rem, 100%);
+  max-height: calc(100vh - var(--frame-m) - var(--frame-top) - var(--frame-g) - var(--frame-modes) - var(--frame-g) - var(--free-bottom, 18rem));
+  min-height: 16rem;
+  overflow: hidden;
+}
+
+.board-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) minmax(16rem, 1.2fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.board-details {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.board-details-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.board-level-word {
+  color: var(--muted);
+  font-weight: normal;
+  font-size: 0.9rem;
+}
+
+.board-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.board-place h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.board-offer {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.5rem;
+  width: 100%;
+  margin: 0 0 0.25rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.board-offer .note {
+  grid-column: 1 / -1;
+  font-size: 0.85rem;
+}
+
+.board-offer:hover,
+.board-offer:focus-visible {
+  border-color: var(--fg);
+}
+
+.board-offer.selected {
+  border: 2px solid var(--accent);
+  padding: calc(0.35rem - 1px) calc(0.5rem - 1px);
+  background: rgb(122 59 29 / 0.06);
+}
+
+.board-offer-title {
+  grid-column: 1 / -1;
+  font-weight: bold;
+}
+
+.board-offer .board-offer-pay {
+  justify-self: end;
+}
+
+.board-offer-level {
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.board-offer-pay {
+  white-space: nowrap;
+}
+
+.board-details h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.board-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.75rem;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.board-facts dt {
+  color: var(--muted);
+}
+
+.board-facts dd {
+  margin: 0;
+}
+
+.board-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.board-current,
+.board-empty {
+  padding: 0.4rem 0.6rem;
+  border-left: 3px solid var(--accent);
+  background: rgb(122 59 29 / 0.06);
+}
+

@@ -9,14 +9,18 @@ import { z } from 'zod';
 import { ActionSchema, checkActions } from '../actions/content';
 import { BackstoryContentSchema, checkBackstory } from '../backstory/content';
 import { checkCharacter, NamesSchema, TraitSchema } from '../character/content';
+import { checkContracts, ContractsContentSchema } from '../contracts/content';
 import { checkChronicle, ChronicleContentSchema } from '../chronicle/content';
 import { checkEconomy, EconomyContentSchema } from '../economy/content';
 import { checkEras, ErasContentSchema } from '../era/content';
 import { checkEvents, EventSchema } from '../events/content';
 import { checkFamily, FamilyContentSchema } from '../family/content';
+import { checkFavors, FavorsContentSchema } from '../favors/content';
 import { checkHealth, HealthContentSchema } from '../health/content';
 import { checkHeirlooms, HeirloomsContentSchema } from '../heirloom/content';
 import { checkHouse, HouseContentSchema } from '../house/content';
+import { checkInteractions, InteractionsContentSchema } from '../interactions/content';
+import { DeclensionSchema, LanguageSchema, makeCheckLanguage, TranslationSchema } from '../lang/content';
 import { checkMind, MindContentSchema } from '../mind/content';
 import { checkNarrator, NarratorContentSchema } from '../narrator/content';
 import { checkPlaces, PlacesContentSchema } from '../place/content';
@@ -62,8 +66,12 @@ export const OPTIONAL_KEYS = [
   'economy',
   'places',
   'mind',
+  'contracts',
+  'favors',
+  'interactions',
+  'language',
 ] as const;
-export const LIST_KEYS = ['actions', 'events', 'traits'] as const;
+export const LIST_KEYS = ['actions', 'events', 'traits', 'translations', 'declensions'] as const;
 
 export const ContentFileSchema = z.strictObject({
   settings: SettingsSchema.optional(),
@@ -84,9 +92,15 @@ export const ContentFileSchema = z.strictObject({
   economy: EconomyContentSchema.optional(),
   places: PlacesContentSchema.optional(),
   mind: MindContentSchema.optional(),
+  contracts: ContractsContentSchema.optional(),
+  favors: FavorsContentSchema.optional(),
+  interactions: InteractionsContentSchema.optional(),
+  language: LanguageSchema.optional(),
   actions: z.array(ActionSchema).optional(),
   events: z.array(EventSchema).optional(),
   traits: z.array(TraitSchema).optional(),
+  translations: z.array(TranslationSchema).optional(),
+  declensions: z.array(DeclensionSchema).optional(),
 });
 
 export type Settings = z.infer<typeof SettingsSchema>;
@@ -142,4 +156,8 @@ export const CROSS_CHECKS: readonly CrossCheck[] = [
   checkEconomy,
   checkPlaces,
   checkMind,
+  checkContracts,
+  checkFavors,
+  checkInteractions,
+  makeCheckLanguage(ContentFileSchema),
 ];

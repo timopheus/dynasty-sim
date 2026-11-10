@@ -26,5 +26,5 @@ describe('headless simulation', () => {
       expect(violations, `seed ${seed}`).toEqual([]);
       expect(state.day).toBeGreaterThanOrEqual(18262); // 1 January 1750
     }
-  }, 120_000); // ~15 s before families (2.5), ~55 s with living families (4.5) under parallel workers
+  }, 240_000); // ~15 s before families (2.5), ~55 s with living families (4.5), ~140 s with journeys of the places (S.9) on a loaded cloud machine
 });

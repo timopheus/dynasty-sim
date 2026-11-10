@@ -34,6 +34,14 @@ async function growUp(page: Page): Promise<void> {
   await expect(page.locator('.modal-layer')).toHaveCount(0);
 }
 
+/**
+ * The text of the window, or null when none is open, read in one step: asking first whether the window is there and then
+ * for its text races with a window that closes in between, and the second question waits for a node that is gone.
+ */
+function windowText(page: Page): Promise<string | null> {
+  return page.evaluate<string | null>(`(() => { const w = document.querySelector('.modal-layer'); return w instanceof HTMLElement ? w.innerText : null; })()`);
+}
+
 test('"Play" moves the date, an event stops the clock; keys pick speed, answer and pause; reload keeps the day', async ({ page }) => {
   test.setTimeout(180_000);
   const problems = watch(page);
@@ -79,13 +87,13 @@ test('"Play" moves the date, an event stops the clock; keys pick speed, answer a
   // in the window a digit answers it and does not change the speed (D-263, D-448)
   const shown = await page.locator('.modal-layer').innerText();
   await page.keyboard.press('1');
-  await expect.poll(async () => (await page.locator('.modal-layer').count()) === 0 || (await page.locator('.modal-layer').innerText()) !== shown).toBe(true);
+  await expect.poll(() => windowText(page)).not.toBe(shown);
   await expect(page.locator('.clock .speed.current')).toHaveText('×5');
   // close any outcome or further page of the event
   for (let i = 0; i < 10 && (await page.locator('.modal-layer').count()) > 0; i++) {
     const text = await page.locator('.modal-layer').innerText();
     await page.locator('.modal-layer button.choice').first().click();
-    await expect.poll(async () => (await page.locator('.modal-layer').count()) === 0 || (await page.locator('.modal-layer').innerText()) !== text).toBe(true);
+    await expect.poll(() => windowText(page)).not.toBe(text);
   }
 
   // the clock's buttons keep the focus when pressed from the keyboard. Each try starts paused with no window; an event
@@ -96,7 +104,7 @@ test('"Play" moves the date, an event stops the clock; keys pick speed, answer a
     if ((await page.locator('.modal-layer').count()) > 0) {
       const text = await page.locator('.modal-layer').innerText();
       await page.locator('.modal-layer button.choice').first().click();
-      await expect.poll(async () => (await page.locator('.modal-layer').count()) === 0 || (await page.locator('.modal-layer').innerText()) !== text).toBe(true);
+      await expect.poll(() => windowText(page)).not.toBe(text);
       continue;
     }
     const mode = (await page.locator(CLOCK).getAttribute('class')) ?? '';
@@ -131,7 +139,7 @@ test('"Play" moves the date, an event stops the clock; keys pick speed, answer a
     if ((await page.locator('.modal-layer').count()) > 0) {
       const text = await page.locator('.modal-layer').innerText();
       await page.locator('.modal-layer button.choice').first().click();
-      await expect.poll(async () => (await page.locator('.modal-layer').count()) === 0 || (await page.locator('.modal-layer').innerText()) !== text).toBe(true);
+      await expect.poll(() => windowText(page)).not.toBe(text);
       continue;
     }
     if (!(await page.locator(CLOCK).getAttribute('class'))?.includes('running')) {

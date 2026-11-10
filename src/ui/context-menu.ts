@@ -1,6 +1,7 @@
 import { applyAttrs, el } from './dom';
 import type { MenuItem, PersonMenu } from './people-model';
 import './context-menu.css';
+import { tr } from './i18n';
 
 /** Where the menu of a person is open (session state): at a point of the screen, for a person, and who opened it. */
 export interface MenuAnchor {
@@ -28,7 +29,7 @@ export function personOf(target: EventTarget | null): string | null {
 /** The menu of a person (D-448). Grey lines stay in it with their reason; arrows move, Enter chooses, Esc closes. */
 export function personMenuNode(menu: PersonMenu, anchor: MenuAnchor, onChoose: (item: MenuItem) => void): HTMLElement {
   const list = el('div', { className: 'person-menu', role: 'menu' }, el('p', { className: 'menu-title' }, menu.title));
-  list.setAttribute('aria-label', `What to do with ${menu.title}`);
+  list.setAttribute('aria-label', tr('What to do with {name}', { name: menu.title }));
   list.style.left = `${anchor.x}px`;
   list.style.top = `${anchor.y}px`;
   menu.items.forEach((item, i) => {

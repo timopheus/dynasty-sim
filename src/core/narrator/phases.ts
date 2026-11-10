@@ -6,6 +6,7 @@ import { eventWeight, findEvent, fireEvent, type FireResult } from '../events/ev
 import { runNpcEvent } from '../events/npc';
 import { findCharacter, getPlayer } from '../helpers';
 import { chancePer, pick, weightedPick } from '../rng';
+import { contractUnderWay } from '../contracts/contracts';
 import { baseScope } from '../roles/roles';
 import type { Character, Ctx, DayPhase, GameState, Scope } from '../state';
 import { ageYears } from '../time/calendar';
@@ -101,7 +102,9 @@ function candidates(ctx: Ctx, pace: NarratorContent, hero: Character, bottom: bo
     if (Object.hasOwn(state.lastFired, event.id) && state.day - (state.lastFired[event.id] ?? 0) < cooldown) continue;
     const severity = event.severity ?? 'light';
     if (high && severity === 'heavy') continue;
-    const given = event.story === undefined ? {} : ownGiven(event, storyGiven(state, hero.id, event.story));
+    // a story event gets the people of its story (D-178), a contract event the employer of the contract (CK.2a)
+    const employer = event.contract ? contractUnderWay(state)?.employer : undefined;
+    const given = event.story !== undefined ? ownGiven(event, storyGiven(state, hero.id, event.story)) : employer !== undefined ? ownGiven(event, { employer }) : {};
     let weight = eventWeight(ctx, event, hero, given);
     if (weight <= 0) continue;
     if (event.story !== undefined) {
@@ -111,7 +114,7 @@ function candidates(ctx: Ctx, pace: NarratorContent, hero: Character, bottom: bo
     }
     if (high && severity === 'light' && pace.tension) weight = scale(weight, pace.tension.lightFactor);
     if (bottom && pace.bottom && event.tags?.includes('way_up')) weight = scale(weight, pace.bottom.wayUpFactor);
-    if (weight > 0) deck.push({ event, weight, given: {} });
+    if (weight > 0) deck.push({ event, weight, given });
   }
   return { deck, stories };
 }
@@ -134,7 +137,7 @@ function npcPool(ctx: Ctx, person: Character): Candidate[] {
   const pool: Candidate[] = [];
   for (const event of content.events) {
     if (event.who === undefined || event.who === 'hero') continue;
-    if (event.followup_only || event.deck === 'backstory' || event.story !== undefined || event.actions || event.places || event.once === 'life') continue;
+    if (event.followup_only || event.deck === 'backstory' || event.story !== undefined || event.actions || event.places || event.contract || event.once === 'life') continue;
     if (event.once === 'game' && Object.hasOwn(state.lastFired, event.id)) continue;
     if (event.cooldown_days !== undefined && Object.hasOwn(state.lastFired, event.id) && state.day - (state.lastFired[event.id] ?? 0) < event.cooldown_days) continue;
     const weight = eventWeight(ctx, event, person);

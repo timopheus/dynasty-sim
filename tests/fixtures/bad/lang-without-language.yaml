@@ -1,0 +1,4 @@
+# expect-error: translations[0] /need the top-level key "language"/
+translations:
+  - en: "{name} waited."
+    text: "{name} {~ждал|ждала}."

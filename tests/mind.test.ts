@@ -33,7 +33,7 @@ describe('deeds by and against the nature (D-457, D-460, D-467)', () => {
     const { content, hero } = setup(['brave']);
     const against = natureOf(content, hero, ['flee']);
     expect(against).toMatchObject({ delta: -20, against: [{ trait: 'brave', cost: 20 }] });
-    expect(natureLines(against!)[0]).toBe('Against your nature (Brave): happiness −20');
+    expect(natureLines(content, against!)[0]).toBe('Against your nature (Brave): happiness −20');
     hero.traits = ['craven'];
     expect(natureOf(content, hero, ['flee'])).toMatchObject({ delta: 3, by: [{ trait: 'craven', gain: 3 }] });
     hero.traits = ['strong'];

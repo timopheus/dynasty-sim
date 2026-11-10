@@ -1,0 +1,7 @@
+# expect-error: translations[1] /a second translation/
+language: { id: ru, name: Русский }
+translations:
+  - en: "{name} waited."
+    text: "{name} {~ждал|ждала}."
+  - en: "{name} waited."
+    text: "{name} {~выжидал|выжидала}."

@@ -1,0 +1,72 @@
+# Russian translation of content/traits/character.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Proud
+    text: "Гордый"
+  - en: "{name} grew proud and stopped bowing to anyone."
+    text: "{name} {~возгордился|возгордилась} и перестал{~|а} кому-либо кланяться."
+  - en: Humble
+    text: "Смирный"
+  - en: "{name} put pride aside and learned to be humble."
+    text: "{name} {~оставил|оставила} гордость и {~научился|научилась} смирению."
+  - en: Brave
+    text: "Храбрый"
+  - en: "{name} found courage that {he} had not known before."
+    text: "{name} {~обрёл|обрела} мужество, которого прежде в себе не знал{~|а}."
+  - en: Craven
+    text: "Трусливый"
+  - en: "{name} lost {his} nerve and could not shake the fear."
+    text: "{name} {~потерял|потеряла} присутствие духа и не {~смог|смогла} избавиться от страха."
+  - en: Honest
+    text: "Честный"
+  - en: "{name} came to value plain dealing above profit."
+    text: "{name} {~стал|стала} ценить прямоту выше выгоды."
+  - en: Deceitful
+    text: "Лживый"
+  - en: "{name} learned that a convenient lie can be worth more than the truth."
+    text: "{name} {~понял|поняла}, что удобная ложь порой стоит дороже правды."
+  - en: Generous
+    text: "Щедрый"
+  - en: "{name} became open-handed with {his} purse."
+    text: "{name} {~стал щедр|стала щедра} на кошелёк."
+  - en: Greedy
+    text: "Жадный"
+  - en: "{name} grew tight-fisted and counted every coin."
+    text: "{name} {~стал прижимист|стала прижимиста} и {~считал|считала} каждую монету."
+  - en: Vengeful
+    text: "Мстительный"
+  - en: "{name} swore never to forget a wrong."
+    text: "{name} {~поклялся|поклялась} не забывать обид."
+  - en: Forgiving
+    text: "Отходчивый"
+  - en: "{name} learned to let old wrongs lie."
+    text: "{name} {~научился|научилась} оставлять старые обиды в покое."
+  - en: Ambitious
+    text: "Честолюбивый"
+  - en: "{name} began to look for a place higher than {his} own."
+    text: "{name} {~стал|стала} искать место повыше своего."
+  - en: "{name} stopped chasing advancement and settled into what {he} had."
+    text: "{name} {~перестал|перестала} гнаться за возвышением и {~смирился|смирилась} с тем, что имеет."
+  - en: Wrathful
+    text: "Вспыльчивый"
+  - en: "{name} lost {his} temper once too often and became known for it."
+    text: "{name} {~вышел|вышла} из себя в очередной раз, и за {~ним|ней} закрепилась слава вспыльчивого."
+  - en: Calm
+    text: "Спокойный"
+  - en: "{name} cooled {his} temper and met trouble with a steady head."
+    text: "{name} {~остудил|остудила} нрав и {~встречал|встречала} беды с ясной головой."
+  - en: Diligent
+    text: "Усердный"
+  - en: "{name} turned to steady work and kept at it."
+    text: "{name} {~взялся|взялась} за упорный труд и не {~бросал|бросала} его."
+  - en: Lazy
+    text: "Ленивый"
+  - en: "{name} fell into idle habits and let work slide."
+    text: "{name} {~впал|впала} в праздность и {~забросил|забросила} дела."
+  - en: Trusting
+    text: "Доверчивый"
+  - en: "{name} began to take people at their word."
+    text: "{name} {~стал|стала} верить людям на слово."
+  - en: Suspicious
+    text: "Подозрительный"
+  - en: "{name} learned to trust no one without cause."
+    text: "{name} {~научился|научилась} никому не верить без причины."

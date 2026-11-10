@@ -1,0 +1,160 @@
+# Russian translation of content/events/batch2.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: Laid up in bed, you have little to do but listen. {gossip} sits by the window and lets slip which house in the street keeps a purse of ready money and which one is only keeping up appearances.
+    text: "Ты слёг в постель, и делать остаётся только слушать. {gossip} сидит у окна и проговаривается, в каком доме на улице водятся наличные, а какой только держит лицо."
+  - en: Listen closely and remember it
+    text: "Слушать внимательно и запомнить"
+  - en: "{name} picked up a useful piece of gossip from {gossip} while resting and turned it to profit."
+    text: "{name} {~узнал|узнала} от {gossip:gen} полезную сплетню, пока {~лежал|лежала} больным, и {~обратил|обратила} её в выгоду."
+  - en: "{name} acted on bad gossip from {gossip} and lost a few crowns."
+    text: "{name} {~поверил|поверила} дурной сплетне {gossip:gen} и {~потерял|потеряла} несколько крон."
+  - en: Change the subject
+    text: "Сменить тему"
+  - en: "{name} would hear no gossip from {gossip} while resting."
+    text: "{name} {~не стал|не стала} слушать сплетни {gossip:gen} во время болезни."
+  - en: "Meltwater is coming through the ceiling of your room and has soaked the bedding. {landlord} shrugs: mending the roof is the tenant's business, or so the lease says."
+    text: "Талая вода течёт сквозь потолок твоей комнаты и промочила постель. {landlord} пожимает плечами: чинить крышу дело жильца, так сказано в договоре."
+  - en: Hire a man to mend it
+    text: "Нанять человека для починки"
+  - en: "{name} paid to have the roof of the winter lodgings mended."
+    text: "{name} {~заплатил|заплатила} за починку крыши зимнего жилья."
+  - en: Climb up and patch it yourself
+    text: "Залезть и залатать самому"
+  - en: "{name} patched the roof of the winter lodgings and earned the thanks of {landlord}."
+    text: "{name} {~залатал|залатала} крышу зимнего жилья и {~заслужил|заслужила} благодарность {landlord:gen}."
+  - en: "{name} fell from the roof while patching it in the cold."
+    text: "{name} {~упал|упала} с крыши, латая её на морозе."
+  - en: Argue that the landlord must pay
+    text: "Доказывать, что платить должен хозяин"
+  - en: "{name} made {landlord} pay for the mending and take a little off the rent."
+    text: "{name} {~заставил|заставила} {landlord:acc} оплатить починку и сбросить немного с платы."
+  - en: "{name} quarrelled with {landlord} over a leaking roof and got nothing."
+    text: "{name} {~поссорился|поссорилась} с {landlord:ins} из-за протекающей крыши и {~остался|осталась} ни с чем."
+  - en: "A lean hound has been trailing you through the woods since morning, a good one, by the look of the collar. It is plainly lost, and you know whose dog it is: {owner}'s."
+    text: "Тощая гончая с утра идёт за тобой по лесу: судя по ошейнику, хорошая. Она явно потерялась, и ты знаешь, чья это собака: {owner}."
+  - en: Take the hound back to {owner}
+    text: "Вернуть гончую {owner:dat}"
+  - en: "{name} brought a lost hound home to {owner} and was rewarded with a few coins."
+    text: "{name} {~привёл|привела} потерянную гончую домой к {owner:dat} и {~получил|получила} несколько монет."
+  - en: Keep it for the hunt
+    text: "Оставить для охоты"
+  - en: "{name} kept {owner}'s hound for the hunt and took a good bag with it."
+    text: "{name} {~оставил|оставила} гончую {owner:gen} для охоты и {~взял|взяла} с ней хорошую добычу."
+  - en: Shoo it off and go on
+    text: "Прогнать и идти дальше"
+  - en: "{name} sent a stray hound away on the hunt."
+    text: "{name} {~прогнал|прогнала} приблудную гончую с охоты."
+  - en: "{inspector} comes down the row of stalls with a bag of brass weights and a ledger, stopping at each and frowning at the scales. Yours is next."
+    text: "{inspector} идёт вдоль ряда лотков с мешком медных гирь и книгой, у каждого хмурится на весы. Твой следующий."
+  - en: Submit to the inspection
+    text: "Принять проверку"
+  - en: "{name} passed the inspection of {inspector} and had the seal on the scales as proof of honest dealing."
+    text: "{name} {~прошёл|прошла} проверку {inspector:gen}, и печать на весах стала доказательством честной торговли."
+  - en: "{name} was fined by {inspector} for a short weight at the market."
+    text: "{name} {~был оштрафован|была оштрафована} {inspector:ins} за недовес на рынке."
+  - en: Slip {inspector} a coin
+    text: "Сунуть {inspector:dat} монету"
+  - en: "{name} bought off {inspector} with a coin and went on selling."
+    text: "{name} {~откупился|откупилась} от {inspector:gen} монетой и {~продолжил|продолжила} торговать."
+  - en: "{name} was caught trying to bribe {inspector} in front of the whole market."
+    text: "{name} {~был уличён|была уличена} в попытке подкупить {inspector:acc} на глазах у всего рынка."
+  - en: Pack up and leave for the day
+    text: "Свернуться и уйти на день"
+  - en: "{name} packed up the stall rather than face the weights inspector."
+    text: "{name} {~свернул|свернула} лоток, лишь бы не встречаться с проверкой гирь."
+  - en: Making your rounds before dawn, you find {recruit} asleep on the post with a musket across {recruit.his} knees. The officers are not far behind you.
+    text: "Обходя посты до рассвета, ты находишь {recruit:acc} спящим на посту с мушкетом на коленях. Офицеры идут следом."
+  - en: Wake {recruit.him} and cover for {recruit.him}
+    text: "Разбудить и прикрыть {recruit~его|её}"
+  - en: "{name} covered for {recruit}, who had fallen asleep on guard, and made a friend of {recruit.him}."
+    text: "{name} {~прикрыл|прикрыла} {recruit:acc}, уснувшего на посту, и {~сдружился|сдружилась} с {recruit:ins}."
+  - en: "{name} was docked pay along with {recruit} when the officers found the post asleep."
+    text: "{name} {~лишился|лишилась} части жалованья вместе с {recruit:ins}, когда офицеры застали пост спящим."
+  - en: Report it
+    text: "Донести"
+  - en: "{name} reported {recruit} for sleeping on guard."
+    text: "{name} {~донёс|донесла} на {recruit:acc} за сон на посту."
+  - en: Walk on and say nothing
+    text: "Пройти мимо и промолчать"
+  - en: "{name} walked past {recruit}, asleep on guard, and said nothing."
+    text: "{name} {~прошёл|прошла} мимо {recruit:gen}, спящего на посту, и {~промолчал|промолчала}."
+  - en: "{sender} presses a sealed letter into your hand. It must reach a house in the next town by the end of the week, and {sender.he} will pay fifteen crowns for it."
+    text: "{sender} вкладывает тебе в руку запечатанное письмо. Оно должно попасть в дом в соседнем городе до конца недели, и {sender~он|она} заплатит за это пятнадцать крон."
+  - en: Carry it faithfully
+    text: "Донести честно"
+  - en: "{name} delivered a sealed letter for {sender}."
+    text: "{name} {~доставил|доставила} запечатанное письмо для {sender:gen}."
+  - en: Break the seal and read it first
+    text: "Сломать печать и прочесть первым"
+  - en: "{name} read a sealed letter from {sender} unseen and sold what it said."
+    text: "{name} {~прочёл|прочла} запечатанное письмо {sender:gen} и {~продал|продала} то, что в нём было."
+  - en: "{name} was caught with the broken seal of a letter from {sender}."
+    text: "{name} {~был пойман|была поймана} со сломанной печатью письма {sender:gen}."
+  - en: Say you have no time
+    text: "Сказать, что нет времени"
+  - en: "{name} refused to carry a letter for {sender}."
+    text: "{name} {~отказался|отказалась} везти письмо для {sender:gen}."
+  - en: Smoke rolls out of a thatched roof along the street and a bell starts to ring. {neighbour} is on the doorstep, shouting for buckets.
+    text: "Из соломенной крыши на улице валит дым, и начинает звонить колокол. {neighbour} стоит на пороге и кричит, требуя вёдер."
+  - en: Join the bucket chain
+    text: "Встать в цепочку с вёдрами"
+  - en: "{name} helped save a burning house in the street, and {neighbour} paid {him} for it."
+    text: "{name} {~помог|помогла} спасти горящий дом на улице, и {neighbour} {neighbour~заплатил|заплатила} {name:dat} за это."
+  - en: "{name} was burnt on the hand fighting a fire in the street."
+    text: "{name} {~обжёг|обожгла} руку, когда {~тушил|тушила} пожар на улице."
+  - en: Bring the parish fire cart
+    text: "Привезти приходскую пожарную телегу"
+  - en: "{name} fetched the fire cart in time to save the street."
+    text: "{name} {~успел|успела} привезти пожарную телегу и {~спас|спасла} улицу."
+  - en: "{name} fetched the fire cart too late to save a house."
+    text: "{name} {~опоздал|опоздала} с пожарной телегой, и дом сгорел."
+  - en: Keep out of the way
+    text: "Не лезть"
+  - en: "{name} stood back and watched a house in the street burn."
+    text: "{name} {~стоял|стояла} в стороне и {~смотрел|смотрела}, как горит дом на улице."
+  - en: '{bailiff} takes you by the sleeve. "There you are," {bailiff.he} says. "The one who owes the tailor thirty crowns, with your height and your coat." The crowd is turning to look.'
+    text: "{bailiff} хватает тебя за рукав. «Вот ты где, — говорит {bailiff~он|она}. — Тот, кто должен портному тридцать крон, с твоим ростом и в твоём кафтане». Толпа оборачивается."
+  - en: Prove who you are
+    text: "Доказать, кто ты"
+  - en: "{name} talked {bailiff} out of an arrest for someone else's debt."
+    text: "{name} {~отговорил|отговорила} {bailiff:acc} от ареста за чужой долг."
+  - en: "{name} could not prove who {he} was and paid a debtor's fine to settle it."
+    text: "{name} {~не смог|не смогла} доказать, кто {~он|она} такой, и {~заплатил|заплатила} штраф должника, чтобы покончить с этим."
+  - en: Play along and talk the tailor down
+    text: "Подыграть и сбить цену у портного"
+  - en: "{name} played the debtor {bailiff} was looking for and haggled the tailor's thirty crowns down to ten."
+    text: "{name} {~сыграл|сыграла} должника, которого искал {bailiff}, и {~сторговал|сторговала} тридцать крон портного до десяти."
+  - en: "{name} was exposed by {bailiff} for playing the debtor and was fined for the trick."
+    text: "{name} {~был изобличён|была изобличена} {bailiff:ins} в подмене должника и {~оштрафован|оштрафована} за обман."
+  - en: Slip away through the crowd
+    text: "Ускользнуть через толпу"
+  - en: "{name} slipped away from {bailiff} through the crowd."
+    text: "{name} {~ускользнул|ускользнула} от {bailiff:gen} через толпу."
+  - en: "{name} meets {creditor}, to whom {name} has owed ten crowns since last harvest."
+    text: "{name} встречает {creditor:acc}: с прошлой жатвы {~он|она} {~должен|должна} {creditor~ему|ей} десять крон."
+  - en: Pay it in full
+    text: "Заплатить сполна"
+  - en: "{name} paid an old debt of ten crowns to {creditor}."
+    text: "{name} {~вернул|вернула} старый долг в десять крон {creditor:dat}."
+  - en: Ask for more time
+    text: "Попросить отсрочки"
+  - en: "{name} begged {creditor} for more time over a debt."
+    text: "{name} {~выпросил|выпросила} у {creditor:gen} отсрочку по долгу."
+  - en: Pretend to have forgotten it
+    text: "Сделать вид, что забыл"
+  - en: "{name} pretended to have forgotten a debt owed to {creditor}."
+    text: "{name} {~притворился|притворилась}, что {~забыл|забыла} долг {creditor:dat}."
+  - en: "{name} has been unwell since the cold came, and a neighbour speaks of a shrine three days' walk away where the sick are healed."
+    text: "{name} {~нездоров|нездорова} с наступлением холодов, и сосед рассказывает о святыне в трёх днях пути, где исцеляют больных."
+  - en: Walk to the shrine
+    text: "Идти к святыне"
+  - en: "{name} walked to a distant shrine and came back stronger."
+    text: "{name} {~дошёл|дошла} до дальней святыни и {~вернулся|вернулась} {~окрепшим|окрепшей}."
+  - en: Spend the money on wine instead
+    text: "Потратить деньги на вино"
+  - en: "{name} spent the shrine money on wine."
+    text: "{name} {~потратил|потратила} деньги, отложенные на святыню, на вино."
+  - en: Stay home and wait it out
+    text: "Остаться дома и переждать"
+  - en: "{name} stayed at home and waited out a sickness."
+    text: "{name} {~остался|осталась} дома и {~переждал|переждала} болезнь."

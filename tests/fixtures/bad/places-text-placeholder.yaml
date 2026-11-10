@@ -1,0 +1,13 @@
+# expect-error: places.texts.arrive /unknown placeholder {he}/
+places:
+  kinds:
+    - { id: town, name: a town }
+  road: on the road
+  list:
+    - { id: ostmere, name: Ostmere, kind: town }
+    - { id: valmont, name: Valmont, kind: town }
+  roads:
+    - { between: [ostmere, valmont], days: 6 }
+  start: ostmere
+  reasons: { kind: "Only in {kinds}", place: "Only in {places}", no_road: "No road" }
+  texts: { arrive: "{name} came, {he} said.", stopped: "{name} {from} {to}", stayed: "{name} {place}", turned: "{name} {place}" }

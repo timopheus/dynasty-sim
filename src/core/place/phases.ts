@@ -19,7 +19,7 @@ export const placeOnNewGame: NewGameHook = (ctx) => {
  * Arrival (S.9a, D-462): on the last day of a journey, before the end of the action (`actionEndPhase`, right after this
  * phase in DAY_PHASES), the hero is in the place it led to. A journey broken off (`interruptRequest`) is stopped by the
  * end of the action: he stands where the days have brought him (`stopJourney`). Returns false: the end of the action
- * hands control back. S.9 writes the line of arrival here.
+ * hands control back. The line of arrival goes to the journal (S.9).
  */
 export const placePhase: DayPhase = {
   id: 'place',
@@ -27,7 +27,7 @@ export const placePhase: DayPhase = {
     const { state } = ctx;
     const active = state.activeAction;
     if (!active || active.target === null || state.interruptRequest || state.day < active.endDay) return false;
-    arrive(state, active.target);
+    arrive(ctx, active.target);
     return false;
   },
 };

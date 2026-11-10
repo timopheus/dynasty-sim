@@ -1,0 +1,20 @@
+# expect-error: contracts.kinds[0].offer.complication /is not bound to the kind "letter"/
+contracts:
+  board:
+    range: 5
+    sizes: [{ kind: town, size: { min: 1, max: 2 } }]
+    stay: { min: 10, max: 20 }
+    pay: [5, 15, 30, 60]
+    risks: [{ id: low, name: low, chance: 25 }, { id: notable, name: notable, chance: 50 }, { id: high, name: high, chance: 75 }]
+  kinds:
+    - id: letter
+      name: a letter
+      offer: { employers: [porter], places: [town], levels: { min: 1, max: 1 }, days: { min: 2, max: 3 }, risk: low, weight: 1, complication: riders }
+      success: { text: "{name} carried a letter." }
+      failure: { text: "{name} lost a letter." }
+  reasons: { none: None, busy: Busy, taken: Taken, free: Free, kind: "Only at {kinds}", level: "Level {level}" }
+events:
+  - id: riders
+    weight: 1
+    followup_only: true
+    text: Riders close in.

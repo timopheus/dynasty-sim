@@ -1,0 +1,4 @@
+# Russian translation of content/backstory/backstory.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
+translations:
+  - en: "{name}, aged {age}, went out into the world."
+    text: "{name}, {~которому|которой} было {age}, {~вышел|вышла} в большой мир."

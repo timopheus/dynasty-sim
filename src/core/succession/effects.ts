@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { placeholderValues } from '../character/text';
+import { personValues, placeholderValues } from '../character/text';
 import { fullName } from '../character/character';
 import { log } from '../chronicle/log';
 import { findCharacter } from '../helpers';
@@ -39,7 +39,7 @@ function signWill(ctx: Ctx, hero: Character): void {
   state.will = { day: state.day, heir, guardian, items, stale: false };
   const named = heir === null ? null : findCharacter(state, heir);
   const parts = named
-    ? fillTemplate(pace.texts.willSigned, { ...placeholderValues(hero, state.day), heir: { id: named.id, name: fullName(named) } })
+    ? fillTemplate(pace.texts.willSigned, { ...placeholderValues(hero, state.day), ...personValues('heir', named) })
     : fillTemplate(pace.texts.willSignedNoHeir, placeholderValues(hero, state.day));
   log(ctx, { subject: hero, kind: 'will', level: 'journal', parts });
 }

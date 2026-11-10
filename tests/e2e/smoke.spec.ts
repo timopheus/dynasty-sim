@@ -7,13 +7,18 @@ const TURNS = 50;
 const DATE = '.clock .date';
 const HERO = '.avatar .name';
 const LATELY = '.sidebar .chronicle';
-const GAME = '.game';
+// the game screen, or the screen of the early years before it (playtest 09.11): both carry the seed under ?dev=1
+const GAME = '.game, .backstory-screen';
 
 const shot = (page: Page, seed: number, name: string) => page.screenshot({ path: `out/e2e/seed${String(seed)}-${name}.png`, fullPage: true });
 
-/** The buttons a player can press now: the window over the centre if there is one, else the actions panel at the right. */
+/**
+ * The buttons a player can press now: the window over the centre if there is one, else the actions panel at the right.
+ * The directions of the journey fold into a menu (S.9): a folded button cannot be pressed, the place spec opens it.
+ */
 async function choices(page: Page) {
-  return (await page.locator('.modal-layer').count()) > 0 ? page.locator('.modal-layer .option button.choice') : page.locator('.actions-panel button.action:not(.grey)');
+  // the button of the work board opens a window and takes no turn (CK.4): the board has its own test
+  return (await page.locator('.modal-layer').count()) > 0 ? page.locator('.modal-layer .option button.choice') : page.locator('.actions-panel button.action:not(.grey):not([data-action="board"]):visible');
 }
 
 /**
@@ -45,13 +50,13 @@ async function letTimeRun(page: Page, from: string): Promise<void> {
   }
 }
 
-/** What a player sees: the date, the hero's caption and the latest lines of the chronicle. */
-async function snapshot(page: Page): Promise<{ date: string; hero: string; chronicle: string }> {
-  return {
-    date: (await page.locator(DATE).first().textContent()) ?? '',
-    hero: (await page.locator(HERO).first().textContent()) ?? '',
-    chronicle: (await page.locator(LATELY).textContent()) ?? '',
-  };
+/**
+ * What a player sees: the date, the hero's caption and the latest lines of the chronicle; during the early years, which
+ * have a screen of their own (playtest 09.11), the scene instead.
+ */
+async function snapshot(page: Page): Promise<{ date: string; hero: string; chronicle: string; scene: string }> {
+  const text = async (selector: string) => ((await page.locator(selector).count()) > 0 ? ((await page.locator(selector).first().textContent()) ?? '') : '');
+  return { date: await text(DATE), hero: await text(HERO), chronicle: await text(LATELY), scene: await text('.backstory-screen .event-text') };
 }
 
 /** Console errors, page errors and browser dialogs of a test; the last are never wanted: the game asks inside the page. */
@@ -71,6 +76,10 @@ for (const seed of SEEDS) {
     // ?dev=1 shows the seed: the player's page never does
     await page.goto(`/?seed=${String(seed)}&dev=1`);
     await expect(page.locator(GAME)).toHaveAttribute('data-seed', String(seed));
+    // the early years are a screen of their own (playtest 09.11): the turns are counted in the game after them, the
+    // chronicle from the very start
+    const early = await snapshot(page);
+    await growUp(page);
     await expect(page.locator(DATE).first()).toBeVisible();
     const start = await snapshot(page);
     await shot(page, seed, '1-start');
@@ -107,7 +116,7 @@ for (const seed of SEEDS) {
     const end = await snapshot(page);
     await shot(page, seed, '3-end');
     expect(end.date, 'game date did not move').not.toBe(start.date);
-    expect(end.chronicle, 'chronicle did not grow').not.toBe(start.chronicle);
+    expect(end.chronicle, 'chronicle did not grow').not.toBe(early.chronicle);
 
     // the bare address, without the seed: only a real continue of the autosave can show the same game
     await page.goto('/?dev=1');
@@ -122,8 +131,10 @@ for (const seed of SEEDS) {
 
 /** Answers the scenes of the backstory and stands the clock still, so the panel is free and the screen does not change. */
 async function growUp(page: Page): Promise<void> {
+  // the first draw: the screen of the early years, or the game itself after a reload
+  await expect(page.locator('.backstory-screen, .clock').first()).toBeVisible();
   for (let i = 0; i < 40; i++) {
-    if ((await page.locator('.modal-layer').count()) > 0) {
+    if ((await page.locator('.modal-layer').count()) > 0 || (await page.locator('.backstory-screen').count()) > 0) {
       await page.locator('.modal-layer .option button.choice').first().click({ timeout: 2_000 }).catch(() => undefined);
       continue;
     }
@@ -168,16 +179,9 @@ for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]
     const problems = watch(page);
     await page.setViewportSize(size);
     await page.goto('/?seed=7');
-    for (const selector of ['.topbar', '.sidebar.open', '.center .where', '.center .map-slot', '.avatar', '.clock .date', '.actions-panel']) {
-      await expect(page.locator(selector).first(), selector).toBeVisible();
-    }
-    // the time player (S.8): during the backstory the clock stands, the speeds are there
-    await expect(page.locator('.clock')).toHaveClass(/\bdecision\b/);
-    await expect(page.locator('.clock .speed')).toHaveText(['×1', '×2', '×5']);
-    // the profile of the hero is one sheet in the panel, numbers in brackets (D-434, D-448)
-    await expect(page.locator('.sidebar h1')).toBeVisible();
-    await expect(page.locator('.sidebar .sheet .facts').first()).toContainText(/\(\d+\)/);
-    await expect(page.locator('.sidebar .tabs .tab.active')).toHaveText('Person');
+    // the early years first, on a screen of their own (playtest 09.11): none of the game's panels behind them
+    await expect(page.locator('.backstory-screen')).toBeVisible();
+    for (const selector of ['.topbar', '.sidebar', '.map-view', '.actions-panel', '.clock']) await expect(page.locator(selector), selector).toHaveCount(0);
     // a scene of the backstory is a window that holds the decision: Escape does not close it, and it names the age
     const modal = page.locator('.modal.event');
     await expect(modal).toBeVisible();
@@ -190,23 +194,46 @@ for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]
     for (const n of notes) expect(n).toMatch(/^\(.+, \d+%\)$/);
     if (size.width === 1440) await page.screenshot({ path: 'out/e2e/layout-1440-window.png' });
     await growUp(page);
+    for (const selector of ['.topbar', '.sidebar.open', '.center .where', '.map-view .map-canvas', '.avatar', '.clock .date', '.actions-panel']) {
+      await expect(page.locator(selector).first(), selector).toBeVisible();
+    }
+    // the time player (S.8): the speeds are there
+    await expect(page.locator('.clock .speed')).toHaveText(['×1', '×2', '×5']);
+    // the profile of the hero is one sheet in the panel, numbers in brackets (D-434, D-448)
+    await expect(page.locator('.sidebar h1')).toBeVisible();
+    await expect(page.locator('.sidebar .sheet .facts').first()).toContainText(/\(\d+\)/);
+    await expect(page.locator('.sidebar .tabs .tab.active')).toHaveText('Person');
+    // the panels are cards on one grid (playtest 09.11): one margin from the window, the same edges side by side
+    const edge = (selector: string) => page.locator(selector).first().evaluate((n) => { const r = n.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right }; });
+    const left = await edge('.left-column');
+    const top = await edge('.topbar');
+    const right = await edge('.right-column');
+    const bottom = await edge('.center .where');
+    expect(Math.abs(left.left - 12), 'the left column keeps the margin').toBeLessThan(2);
+    expect(Math.abs(size.width - right.right - 12), 'the right column keeps the margin').toBeLessThan(2);
+    expect(Math.abs(top.top - left.top), 'the header and the page start on one line').toBeLessThan(2);
+    expect(Math.abs(top.right - right.right), 'the header and the right column end on one line').toBeLessThan(2);
+    expect(Math.abs(bottom.bottom - left.bottom), 'the block and the left column end on one line').toBeLessThan(2);
+    expect(Math.abs(right.left - 12 - bottom.right), 'the block keeps the gap to the right column').toBeLessThan(2);
+    expect(Math.abs(top.left - bottom.left), 'the header and the block start on one line').toBeLessThan(2);
     // the actions are on shelves, with their information inside the button and no digit before the name
     await expect(page.locator('.actions-panel .shelf h2').first()).toHaveText('Livelihood');
-    const first = page.locator('.actions-panel button.action').first();
+    const first = page.locator('.actions-panel button.action:not([data-action="board"])').first();
     await expect(first).toContainText(/\d+(–\d+)? days/);
     for (const name of await page.locator('.actions-panel .action-name').allTextContents()) expect(name).not.toMatch(/^\d/);
-    // no empty space in the centre: the map fills what the block "where I am" leaves, the block ends at the bottom
+    // the map fills the whole window under the panels, as in CK3 (M.1, D-469); the block "where I am" ends at the bottom
     const box = (selector: string) => page.locator(selector).first().evaluate((n) => {
       const r = n.getBoundingClientRect();
       return { top: r.top, bottom: r.bottom, left: r.left, right: r.right };
     });
     const centre = await box('.center');
-    const map = await box('.map-slot');
+    const map = await box('.map-view');
     const where = await box('.where');
-    expect(map.top - centre.top, 'map starts at the top of the centre').toBeLessThan(40);
-    expect(where.top - map.bottom, 'no gap between the map and the block').toBeLessThan(24);
+    expect(map.left, 'the map starts at the left edge').toBeLessThan(2);
+    expect(map.top, 'the map starts at the top edge').toBeLessThan(2);
+    expect(size.width - map.right, 'the map ends at the right edge').toBeLessThan(2);
+    expect(size.height - map.bottom, 'the map ends at the bottom edge').toBeLessThan(2);
     expect(centre.bottom - where.bottom, 'the block ends at the bottom of the centre').toBeLessThan(24);
-    expect(map.bottom - map.top, 'the map is the largest thing of the centre').toBeGreaterThan(where.bottom - where.top);
     // the table of the place has no row with a dash (D-447)
     await expect(page.locator('.place-table')).not.toContainText(/—|–\s*$/);
     await page.screenshot({ path: `out/e2e/layout-${String(size.width)}.png` });

@@ -1,5 +1,6 @@
 import { allChronicle } from '../archive/archive';
 import type { ChronicleEntry } from '../chronicle/log';
+import { phrase } from '../lang/phrases';
 import type { EntityPage } from '../pages/entity';
 import type { Ctx } from '../state';
 import { toYmd } from '../time/calendar';
@@ -32,7 +33,7 @@ export function heirloomPage(ctx: Ctx, id: string): EntityPage | null {
   const facts: EntityPage['facts'] = [];
   const kind = kindName(content, h.kind);
   facts.push({ label: 'Kind', parts: [kind] });
-  const status = h.status === 'held' ? 'Held' : h.status === 'sold' ? `Sold in ${year(h.ended ?? h.made)}` : `Lost in ${year(h.ended ?? h.made)}`;
+  const status = h.status === 'held' ? phrase(content, 'Held') : phrase(content, h.status === 'sold' ? 'Sold in {year}' : 'Lost in {year}', { year: year(h.ended ?? h.made) });
   facts.push({ label: 'State', parts: [status] });
   facts.push({ label: 'Came', parts: [h.origin === '' ? year(h.made) : `${year(h.made)}: ${h.origin}`] });
   for (const o of h.owners) {

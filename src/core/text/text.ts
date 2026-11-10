@@ -1,18 +1,23 @@
 import { PLACEHOLDERS, placeholderValues } from '../character/text';
 import type { CharacterBase } from '../character/character';
+import { placeholderBase, resolvePlaceholder, type Case } from './forms';
 
 /**
  * Text of a chronicle entry is kept in parts (D-057): plain strings and references
- * to entities with the name they had when the line was written.
+ * to entities with the name they had when the line was written; `case` — the case a translation put the name in
+ * (`{employer:gen}`, RU.1), so the screen declines it.
  */
-export type TextPart = string | { id: string; name: string };
+export type TextPart = string | { id: string; name: string; case?: Case };
 
 const PLACEHOLDER_RE = /\{([^{}]*)\}/g;
 
 /** Returns an error message if the template has unknown placeholders or stray braces. */
 export function checkTemplate(template: string): string | null {
   for (const match of template.matchAll(PLACEHOLDER_RE)) {
-    const name = match[1] ?? '';
+    const base = placeholderBase(match[1] ?? '');
+    // a form of a language (`{~он|она}`, RU.1) names the subject
+    if (base === null) continue;
+    const name = base;
     if (!(PLACEHOLDERS as readonly string[]).includes(name)) {
       return `unknown placeholder {${name}}; allowed: ${PLACEHOLDERS.map((p) => `{${p}}`).join(', ')}`;
     }
@@ -33,7 +38,7 @@ export function fillTemplate(template: string, values: Record<string, TextPart>)
   for (const match of template.matchAll(PLACEHOLDER_RE)) {
     push(template.slice(at, match.index));
     const name = match[1] ?? '';
-    const value = Object.hasOwn(values, name) ? values[name] : undefined;
+    const value = resolvePlaceholder(name, values);
     if (value === undefined) throw new Error(`No value for placeholder {${name}} in "${template}"`);
     push(value);
     at = match.index + match[0].length;

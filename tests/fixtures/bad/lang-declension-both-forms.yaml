@@ -1,0 +1,6 @@
+# expect-error: declensions[0] /a name has forms, or the forms of a man and a woman/
+language: { id: ru, name: Русский }
+declensions:
+  - en: Calder
+    forms: { nom: Колдер, gen: Колдера, dat: Колдеру, acc: Колдера, ins: Колдером, prep: Колдере }
+    m: { nom: Колдер, gen: Колдера, dat: Колдеру, acc: Колдера, ins: Колдером, prep: Колдере }

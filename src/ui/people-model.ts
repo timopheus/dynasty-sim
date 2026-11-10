@@ -9,22 +9,25 @@ import type { Character, Ctx } from '../core/state';
 import { ageYears } from '../core/time/calendar';
 import { isNear } from '../core/world/world';
 import type { Tip } from './tips';
+import { ageText, localName, tr, trSex } from './i18n';
+
+const STRANGER = 'A stranger to you';
 
 /** Who a person is to the hero, in words: "Your father", "A close acquaintance". Only what the hero may know (D-037). */
 export function kinship(ctx: Ctx, id: string): string {
   const { state, content } = ctx;
   const hero = getPlayer(state);
-  if (id === hero.id) return 'You';
+  if (id === hero.id) return tr('You');
   const c = anyCharacter(state, id);
-  if (!c) return 'Nobody known';
+  if (!c) return tr('Nobody known');
   const word = (m: string, f: string) => (c.sex === 'male' ? m : f);
-  if (hero.father === id || hero.mother === id) return `Your ${word('father', 'mother')}`;
-  if (c.father === hero.id || c.mother === hero.id) return `Your ${word('son', 'daughter')}`;
-  if (hero.spouse === id) return `Your ${word('husband', 'wife')}`;
+  if (hero.father === id || hero.mother === id) return word(tr('Your father'), tr('Your mother'));
+  if (c.father === hero.id || c.mother === hero.id) return word(tr('Your son'), tr('Your daughter'));
+  if (hero.spouse === id) return word(tr('Your husband'), tr('Your wife'));
   const shares = (hero.father !== null && c.father === hero.father) || (hero.mother !== null && c.mother === hero.mother);
-  if (shares) return `Your ${word('brother', 'sister')}`;
+  if (shares) return word(tr('Your brother'), tr('Your sister'));
   const level = acquaintanceLevel(state, content, hero.id, id);
-  return level === 'close' ? 'A close acquaintance' : level === 'known' ? 'An acquaintance' : 'A stranger to you';
+  return trSex(level === 'close' ? 'A close acquaintance' : level === 'known' ? 'An acquaintance' : STRANGER, c.sex);
 }
 
 /**
@@ -35,9 +38,9 @@ export function personTip(ctx: Ctx, id: string): Tip | null {
   const c = anyCharacter(ctx.state, id);
   if (!c) return null;
   const who = kinship(ctx, id);
-  const known = who !== 'A stranger to you';
-  const age = known ? `, ${c.deathDay === null ? `aged ${ageYears(c.birthDay, ctx.state.day)}` : 'dead'}` : c.deathDay !== null ? ', dead' : '';
-  return { title: fullName(c), text: `${who}${age}.` };
+  const known = who !== trSex(STRANGER, c.sex);
+  const age = known ? `, ${c.deathDay === null ? ageText(ageYears(c.birthDay, ctx.state.day)) : tr('dead')}` : c.deathDay !== null ? `, ${tr('dead')}` : '';
+  return { title: localName(fullName(c)), text: `${who}${age}.` };
 }
 
 /** One line of the menu of a person (D-448): grey with the reason when it cannot be done now. */
@@ -62,12 +65,13 @@ const BARS: Record<string, string> = {
   married: 'one of you is married',
   kin: 'too close kin',
 };
+// the words of the bars go through tr() when shown, not here: the language is chosen after this module loads
 
 function whyNotWed(ctx: Ctx, hero: Character, person: Character): string {
   const bar = marriageBar(ctx, hero, person);
-  if (bar !== null) return BARS[bar] ?? 'not possible';
-  if (ctx.state.status !== 'awaiting_action' && ctx.state.status !== 'running') return 'not now';
-  return isNear(ctx.state, person.id) ? 'not possible now' : 'not near you';
+  if (bar !== null) return tr(BARS[bar] ?? 'not possible');
+  if (ctx.state.status !== 'awaiting_action' && ctx.state.status !== 'running') return tr('not now');
+  return isNear(ctx.state, person.id) ? tr('not possible now') : tr('not near you');
 }
 
 /**
@@ -79,7 +83,7 @@ export function personMenu(ctx: Ctx, id: string): PersonMenu | null {
   const person = anyCharacter(state, id);
   if (!person) return null;
   const hero = getPlayer(state);
-  const items: MenuItem[] = [{ label: 'Open the page', note: '', grey: false, reason: '', action: { type: 'open', id } }];
+  const items: MenuItem[] = [{ label: tr('Open the page'), note: '', grey: false, reason: '', action: { type: 'open', id } }];
   if (id !== hero.id && person.deathDay === null) {
     const options = proposalOptions(ctx, id);
     for (const o of options) {
@@ -88,16 +92,16 @@ export function personMenu(ctx: Ctx, id: string): PersonMenu | null {
       if (!suitor || !target) continue;
       const own = o.suitor === hero.id;
       items.push({
-        label: own ? `Propose marriage to ${fullName(target)}` : `Propose a match: ${fullName(suitor)} and ${fullName(target)}`,
-        note: 'they decide · the answer comes as an event',
+        label: own ? tr('Propose marriage to {name}', { name: localName(fullName(target), 'dat') }) : tr('Propose a match: {a} and {b}', { a: localName(fullName(suitor)), b: localName(fullName(target)) }),
+        note: tr('they decide · the answer comes as an event'),
         grey: false,
         reason: '',
         action: { type: 'propose', order: { suitor: o.suitor, target: o.target } },
       });
     }
     if (options.length === 0) {
-      items.push({ label: 'Propose marriage', note: '', grey: true, reason: whyNotWed(ctx, hero, person), action: { type: 'open', id } });
+      items.push({ label: tr('Propose marriage'), note: '', grey: true, reason: whyNotWed(ctx, hero, person), action: { type: 'open', id } });
     }
   }
-  return { id, title: fullName(person), items };
+  return { id, title: localName(fullName(person)), items };
 }

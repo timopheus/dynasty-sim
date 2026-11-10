@@ -1,0 +1,6 @@
+# expect-error: events[0].contract[0] /contracts need the top-level key "contracts"/
+events:
+  - id: thief
+    weight: 1
+    contract: [letter]
+    text: A thief eyes the letter.

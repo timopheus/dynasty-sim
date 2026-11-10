@@ -1,5 +1,5 @@
 import { fullName } from '../character/character';
-import { placeholderValues } from '../character/text';
+import { personValues, placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
 import { findCharacter } from '../helpers';
 import { heirOf } from '../succession/law';
@@ -72,8 +72,8 @@ export function inheritEnmity(ctx: Ctx, deceased: Character, heir: Character): v
     startRelation(ctx, feud.feudRelation, heir.id, other.id);
     const parts = fillTemplate(feud.feudText, {
       ...placeholderValues(heir, state.day),
-      other: { id: other.id, name: fullName(other) },
-      deceased: { id: deceased.id, name: fullName(deceased) },
+      ...personValues('other', other),
+      ...personValues('deceased', deceased),
     });
     log(ctx, { subject: heir, kind: 'feud_inherited', level: 'chronicle', parts });
   }
