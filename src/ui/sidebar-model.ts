@@ -11,7 +11,7 @@ import type { Ctx } from '../core/state';
 import type { TextPart } from '../core/text/text';
 import { toYmd } from '../core/time/calendar';
 import { opinionLineText, withNumber } from './access';
-import { ROW_TIPS, statTip, traitTip } from './tips';
+import { rowTip, statTip, traitTip } from './tips';
 import type { Tip } from './tips';
 import { anyCharacter } from '../core/archive/archive';
 import { kinship } from './people-model';
@@ -69,9 +69,9 @@ function heirRow(ctx: Ctx): { label: string; parts: TextPart[]; tip?: Tip } {
   const line = heirLine(ctx.state);
   if (!line) {
     const placeholder = ctx.content.succession?.temporaryHeir ?? true;
-    return { label: 'Heir', parts: [placeholder ? tr('nobody of the blood; a namesake from afar would take up the house') : tr('nobody — the house would end with you')] };
+    return { label: 'Heir', ...tipField(rowTip('Heir')), parts: [placeholder ? tr('nobody of the blood; a namesake from afar would take up the house') : tr('nobody — the house would end with you')] };
   }
-  return { label: 'Heir', parts: [{ id: line.id, name: line.name }, ` (${line.by === 'will' ? tr('by will') : line.by === 'law' ? tr('by law') : line.by})`] };
+  return { label: 'Heir', parts: [{ id: line.id, name: line.name }, ` (${line.by === 'will' ? tr('by will') : line.by === 'law' ? tr('by law') : line.by})`], ...tipField(rowTip('Heir')) };
 }
 
 /** Names of the education traits among the names of a person's traits, from the content. */
@@ -86,6 +86,8 @@ function chronicleBlocks(chronicle: ChronicleEntry[], own: string | null, events
   if (events.length) blocks.push({ type: 'heading', text: 'All events' }, { type: 'chronicle', entries: events.slice().reverse(), own: null });
   return blocks;
 }
+
+const tipField = (tip: Tip | null): { tip?: Tip } => (tip ? { tip } : {});
 
 /** The last lines of the chronicle and the link to all of it. */
 function latelyBlocks(chronicle: ChronicleEntry[], own: string | null, more = false): Block[] {
@@ -102,7 +104,7 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
   const house = page.sections.find((s) => s.id === 'house');
   const family = page.sections.find((s) => s.id === 'family');
   const c = anyCharacter(ctx.state, page.id);
-  const row = (label: string, parts: TextPart[]) => ({ label, parts, ...(ROW_TIPS[label] ? { tip: { text: tr(ROW_TIPS[label] ?? '') } } : {}) });
+  const row = (label: string, parts: TextPart[]) => ({ label, parts, ...tipField(rowTip(label)) });
   const rows: { label: string; parts: TextPart[]; tip?: Tip }[] = [
     row('Age', [[sexWord(page), page.life, page.alive ? '' : tr('dead')].filter(Boolean).join(' · ')]),
   ];
@@ -127,7 +129,7 @@ function personSheet(ctx: Ctx, page: PersonPage): Block[] {
     if (o.lines.length) blocks.push({ type: 'facts', rows: o.lines.map((l) => ({ label: '', parts: [opinionLineText(l)] })) });
   }
   const kin = (family?.lines ?? []).filter((l) => proposalLabels.indexOf(l.label) < 0);
-  if (kin.length) blocks.push({ type: 'heading', text: 'Family' }, { type: 'facts', rows: kin.map((l) => ({ label: l.label, parts: l.parts, ...(ROW_TIPS[l.label] ? { tip: { text: tr(ROW_TIPS[l.label] ?? '') ?? '' } } : {}) })) });
+  if (kin.length) blocks.push({ type: 'heading', text: 'Family' }, { type: 'facts', rows: kin.map((l) => ({ label: l.label, parts: l.parts, ...tipField(rowTip(l.label)) })) });
   if (page.allies.length) blocks.push({ type: 'heading', text: 'Allies' }, { type: 'facts', rows: relationRows(page.allies) });
   if (page.rivals.length) blocks.push({ type: 'heading', text: 'Rivals' }, { type: 'facts', rows: relationRows(page.rivals) });
   // the small events of the journal are behind the link too, however few lines the chronicle has
@@ -156,7 +158,7 @@ function houseSheet(ctx: Ctx, id: string, facts: { label: string; parts: TextPar
     if (!who || who.house !== id) return [];
     return [{ label: 'Held', parts: [{ id: h.id, name: h.name }, ` — ${tr('with')} `, { id: who.id, name: `${who.givenName} ${who.surname}` }] as TextPart[] }];
   });
-  const blocks: Block[] = [{ type: 'facts', rows: overview.map((r) => ({ ...r, ...(ROW_TIPS[r.label] ? { tip: { text: tr(ROW_TIPS[r.label] ?? '') } } : {}) })) }];
+  const blocks: Block[] = [{ type: 'facts', rows: overview.map((r) => ({ ...r, ...tipField(rowTip(r.label)) })) }];
   if (heads.length) blocks.push({ type: 'heading', text: 'Heads' }, { type: 'facts', rows: heads });
   if (things.length) blocks.push({ type: 'heading', text: 'Heirlooms' }, { type: 'facts', rows: things });
   blocks.push(...latelyBlocks(chronicle, null));

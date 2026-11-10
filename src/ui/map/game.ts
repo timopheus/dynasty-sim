@@ -149,6 +149,30 @@ export function mapProps(ctx: Ctx, model: MapModel, handlers: { open: (id: strin
   const cost = money < 0 ? -money : 0;
   const dayWord = (n: number) => daysText(n);
 
+  /** What a tip of a place says in pieces: the crumb (kind, realm, land), the line of the board, the way there. */
+  const parts = (id: string): { head: string; crumb: string; offers: string; tail: string } | null => {
+    const def = placeDef(state, content, id);
+    if (!def) return null;
+    const kind = kinds.get(def.kind) ?? def.kind;
+    const what = `${kind[0]?.toUpperCase() ?? ''}${kind.slice(1)}`;
+    const where = def.realm ? tr('{kind} of {realm}', { kind: what, realm: def.realm }) : what;
+    const at = points.get(id);
+    const cell = at ? cellAt(model, at) : -1;
+    const landWord = cell >= 0 ? LAND_WORDS[model.terrains[model.terrain[cell] as number] ?? ''] : undefined;
+    const land = landWord === undefined ? undefined : tr(landWord);
+    const count = work.get(id) ?? 0;
+    const offers = count > 0 ? tr('Work on the board: {offers}.', { offers: offersText(count) }) : '';
+    const head = `${land ? `${where}, ${land}.` : `${where}.`}${offers ? ` ${offers}` : ''}`;
+    const crumb = land ? `${where} · ${land}` : where;
+    const days = routes.get(id);
+    const arrival = (n: number) => tr('arriving about {date}', { date: dateText(state.day + n) });
+    let tail: string;
+    if (id === here) tail = tr('You are here.');
+    else if (id === going && days !== undefined) tail = tr('On your way: {days} left, {arrival}.', { days: dayWord(days), arrival: arrival(days) });
+    else tail = days === undefined ? tr('No road leads there from here.') : tr('{days} of road, {arrival}.', { days: dayWord(days), arrival: arrival(days) });
+    return { head, crumb, offers, tail };
+  };
+
   return {
     places,
     roads,
@@ -157,22 +181,19 @@ export function mapProps(ctx: Ctx, model: MapModel, handlers: { open: (id: strin
     peoples,
     // the tip of a place in the form of CK3's: what and whose, the land around, then the way there and the arrival
     describe: (id) => {
-      const def = placeDef(state, content, id);
-      if (!def) return '';
-      const kind = kinds.get(def.kind) ?? def.kind;
-      const what = `${kind[0]?.toUpperCase() ?? ''}${kind.slice(1)}`;
-      const where = def.realm ? tr('{kind} of {realm}', { kind: what, realm: def.realm }) : what;
-      const at = points.get(id);
-      const cell = at ? cellAt(model, at) : -1;
-      const landWord = cell >= 0 ? LAND_WORDS[model.terrains[model.terrain[cell] as number] ?? ''] : undefined;
-      const land = landWord === undefined ? undefined : tr(landWord);
-      const offers = work.get(id) ?? 0;
-      const head = `${land ? `${where}, ${land}.` : `${where}.`}${offers > 0 ? ` ${tr('Work on the board: {offers}.', { offers: offersText(offers) })}` : ''}`;
-      if (id === here) return `${head} ${tr('You are here.')}`;
-      const days = routes.get(id);
-      const arrival = (n: number) => tr('arriving about {date}', { date: dateText(state.day + n) });
-      if (id === going && days !== undefined) return `${head} ${tr('On your way: {days} left, {arrival}.', { days: dayWord(days), arrival: arrival(days) })}`;
-      return days === undefined ? `${head} ${tr('No road leads there from here.')}` : `${head} ${tr('{days} of road, {arrival}.', { days: dayWord(days), arrival: arrival(days) })}`;
+      const p = parts(id);
+      return p ? [p.head, p.tail].filter(Boolean).join(' ') : '';
+    },
+    // the tip of a place in CK3's form (TT.1): the kind and the realm as the crumb, the way there, what the mouse does
+    tip: (id) => {
+      const p = parts(id);
+      if (!p) return null;
+      return {
+        title: placeDef(state, content, id)?.name ?? id,
+        crumb: p.crumb,
+        text: [p.offers, p.tail].filter(Boolean).join('\n'),
+        mouse: [{ button: 'left', text: tr('Open the page of the place') }, { button: 'right', text: tr('Actions') }],
+      };
     },
     travel: (id) => {
       const name = placeDef(state, content, id)?.name ?? id;

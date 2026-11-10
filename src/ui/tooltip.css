@@ -1,75 +1,267 @@
+/*
+ * The tooltip (TT.1, D-477): a dark panel with a bronze frame over the light interface, as in CK3. The tips nest up to
+ * three deep, each a step darker. A frozen tip gets a second, inner frame. Colours are the tokens of the reference
+ * `docs/reference/tooltips-ck3.md`, §4.
+ */
+:root {
+  --tip-bg: rgb(28 24 19 / 0.97);
+  --tip-bg-2: #16130f;
+  --tip-bg-3: #110e0b;
+  --tip-border: #9c7a43;
+  --tip-lock: #d8b46a;
+  --tip-fg: #ebe2cf;
+  --tip-muted: #a89d88;
+  --tip-title: #f5e9c9;
+  --tip-rule: #4f412b;
+  --tip-good: #8fcf8a;
+  --tip-bad: #e27b6b;
+  --tip-concept: #8cc8f5;
+  --tip-link: #e0b56c;
+}
+
 .tooltip {
   position: fixed;
   z-index: 60;
-  max-width: 20rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.5rem 0.7rem;
-  background: var(--fg);
-  color: var(--bg);
-  font-size: 0.85rem;
-  line-height: 1.35;
+  box-sizing: border-box;
+  max-width: 28rem;
+  padding: 10px 12px;
+  background: var(--tip-bg);
+  color: var(--tip-fg);
+  border: 1px solid var(--tip-border);
+  border-radius: 2px;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.45);
+  font-size: 14px;
+  line-height: 1.4;
   pointer-events: none;
+  animation: tip-in 80ms ease-out;
 }
 
-.tooltip[hidden] {
-  display: none;
+.tooltip.object {
+  max-width: 25rem;
 }
 
-/* the ring that fills at the pointer while a tip waits (D-465, as in CK3) */
-.tip-timer {
-  position: fixed;
+.tooltip.tip-l2 {
+  background: var(--tip-bg-2);
   z-index: 61;
+}
+
+.tooltip.tip-l3 {
+  background: var(--tip-bg-3);
+  z-index: 62;
+}
+
+/* frozen: the pointer may enter, and the second frame shows within 150 ms */
+.tooltip.locked {
+  pointer-events: auto;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 1px solid var(--tip-lock);
+  border-radius: 1px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease-out;
+}
+
+.tooltip.locked::after {
+  opacity: 1;
+}
+
+@keyframes tip-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.tip-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tip-title);
+  /* the ring stands in the top right corner */
+  padding-right: 22px;
+}
+
+.tip-crumb {
+  color: var(--tip-muted);
+  font-size: 13px;
+}
+
+.tip-rule {
+  border: 0;
+  border-top: 1px solid var(--tip-rule);
+  margin: 6px 0;
+}
+
+.tip-rule.thin {
+  margin: 4px 0;
+}
+
+.tip-text {
+  white-space: pre-line;
+}
+
+/* the ring of the freeze: 20 × 20, top right of the tip, filling clockwise from twelve */
+.tip-ring {
+  position: absolute;
+  top: 6px;
+  right: 6px;
   width: 20px;
   height: 20px;
   pointer-events: none;
 }
 
-.tip-timer svg {
+.tip-ring svg {
   display: block;
   width: 100%;
   height: 100%;
   transform: rotate(-90deg);
 }
 
-.tip-timer .ground {
-  fill: var(--bg);
-  stroke: var(--line);
-  stroke-width: 1;
-}
-
-.tip-timer .track,
-.tip-timer .fill {
+.tip-ring circle {
   fill: none;
   stroke-width: 3;
 }
 
-.tip-timer .track {
-  stroke: var(--line);
+.tip-ring .track {
+  stroke: var(--tip-rule);
 }
 
-.tip-timer .fill {
-  stroke: var(--accent);
+.tip-ring .fill {
+  stroke: var(--tip-lock);
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
-  animation: tip-timer var(--tip-delay, 500ms) linear forwards;
+  animation: tip-ring var(--tip-lock-time, 2000ms) linear forwards;
 }
 
-@keyframes tip-timer {
+@keyframes tip-ring {
   to {
     stroke-dashoffset: 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tip-timer .fill {
+  .tooltip {
+    animation: none;
+  }
+
+  .tip-ring .fill {
     animation: none;
     stroke-dashoffset: 50;
   }
 }
 
-/* a tip of several facts: one line each */
-.tooltip span {
-  white-space: pre-line;
+/* a concept of the dictionary and a line with a tip of its own */
+.tip-concept {
+  color: var(--tip-concept);
+  cursor: default;
+}
+
+.tooltip.locked .tip-concept {
+  cursor: help;
+}
+
+.tooltip.locked .tip-concept:hover,
+.tooltip.locked .tip-concept:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
+/* the breakdown of a number: source on the left, signed value on the right */
+.tip-rows {
+  display: grid;
+  gap: 1px 0;
+}
+
+.tip-rows.two {
+  grid-template-columns: 1fr 1fr;
+  column-gap: 20px;
+}
+
+.tip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tip-rows.two .tip-row {
+  min-width: 11rem;
+}
+
+.tip-row.total {
+  font-weight: 700;
+}
+
+.tip-value {
+  white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tip-value.good {
+  color: var(--tip-good);
+}
+
+.tip-value.bad {
+  color: var(--tip-bad);
+}
+
+.tip-value.zero {
+  color: var(--tip-muted);
+}
+
+.tip-conds {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tip-conds .ok {
+  color: var(--tip-good);
+}
+
+.tip-conds .no {
+  color: var(--tip-bad);
+}
+
+/* what the mouse does: small grey lines at the bottom, each with the drawing of its button */
+.tip-mouse {
+  color: var(--tip-muted);
+  font-size: 13px;
+}
+
+.tip-mouse > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tip-mouse-icon svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+}
+
+.tip-mouse-icon .body {
+  fill: none;
+  stroke: var(--tip-muted);
+  stroke-width: 1;
+}
+
+.tip-mouse-icon .line {
+  fill: none;
+  stroke: var(--tip-muted);
+  stroke-width: 0.8;
+}
+
+.tip-mouse-icon .on {
+  fill: var(--tip-lock);
+  stroke: none;
+}
+
+/* the name of a person or a place inside a tip */
+.tip-link {
+  color: var(--tip-link);
 }

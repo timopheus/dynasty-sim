@@ -1,5 +1,6 @@
-import type { ActionButton, Panel } from './actions-model';
+import { BOARD_ID, WILL_ID, type ActionButton, type Panel } from './actions-model';
 import { el } from './dom';
+import { withTip } from './tooltip';
 import './actions-panel.css';
 import { daysText, localName, tr } from './i18n';
 
@@ -24,8 +25,13 @@ export function buttonNode(b: ActionButton, onStart: ActionsProps['onStart'], ta
   if (target !== undefined) node.setAttribute('data-target', target);
   // the clock redraws the screen every day: this is how the focus finds its button again (keepView)
   node.setAttribute('data-focus', `action-${b.id}`);
-  // the button says all there is (D-448): the name, the days, the price, the reason; so no tip repeats it (D-465)
-  return node;
+  // the tip of CK3's kind (D-477): the name, what it takes and brings, the reasons it cannot be done now with a cross, what a click does
+  return withTip(node, {
+    title: b.name,
+    text: b.info.join('\n'),
+    ...(b.grey && b.reason ? { conds: b.reason.split('; ').map((text) => ({ ok: false, text })) } : {}),
+    ...(b.grey ? {} : { mouse: [{ button: 'left' as const, text: b.id === BOARD_ID || b.id === WILL_ID ? tr('Open the window') : tr('Start') }] }),
+  });
 }
 
 /**

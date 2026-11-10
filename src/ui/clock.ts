@@ -25,6 +25,12 @@ function stateText(mode: ClockMode, canPlay: boolean, held: string | null): stri
   return canPlay ? tr('Stopped: choose what to do, or play') : tr('Stopped: choose what to do');
 }
 
+function dateNode(date: string): HTMLElement {
+  const node = el('span', { className: 'date' }, date);
+  node.setAttribute('data-focus', 'clock-date');
+  return node;
+}
+
 /**
  * The date and the time player at the bottom right (D-438, S.8): "Play"/"Pause" and the speeds ×1, ×2, ×5. Space
  * pauses, 1/2/3 pick the speed (D-448); the screen does not write the keys (D-465: they belong to the tutorial), only
@@ -34,6 +40,7 @@ export function clockPanel({ date, mode, speed, canPlay, onToggle, onSpeed, held
   const running = mode === 'running';
   const toggle = el('button', { className: 'clock-button clock-toggle', type: 'button', onclick: onToggle, disabled: !running && !canPlay }, running ? tr('Pause') : tr('Play'));
   toggle.setAttribute('aria-keyshortcuts', 'Space');
+  withTip(toggle, { title: running ? tr('Pause') : tr('Play'), text: `${tr('Time runs while you wait and stops when something needs your answer.')}\n${tr('Key: {key}', { key: tr('Space') })}` });
   toggle.setAttribute('data-focus', 'clock-toggle');
   // a window holds the clock: the speeds wait for the answer, so they are off and say nothing else
   const off = mode === 'decision' || mode === 'ended';
@@ -43,13 +50,13 @@ export function clockPanel({ date, mode, speed, canPlay, onToggle, onSpeed, held
     b.setAttribute('aria-keyshortcuts', String(i + 1));
     b.setAttribute('aria-label', tr('Speed ×{s}', { s }));
     b.setAttribute('data-focus', `clock-speed-${s}`);
-    withTip(b, { text: s === 1 ? tr('A day a second.') : tr('{days} a second.', { days: daysText(s) }) });
+    withTip(b, { title: tr('Speed ×{s}', { s }), text: `${s === 1 ? tr('A day a second.') : tr('{days} a second.', { days: daysText(s) })}\n${tr('Key: {key}', { key: i + 1 })}` });
     return b;
   });
   // the buttons stay in one place whatever the date and the state say: the words go to a row of their own below
   return el('div', { className: `clock ${mode}`, role: 'group', ariaLabel: tr('Time') },
     el('div', { className: 'clock-row' },
-      el('span', { className: 'date' }, date),
+      withTip(dateNode(date), { title: date, text: tr('The date in the world. Time goes by in whole days.') }),
       el('span', { className: 'clock-buttons' }, toggle, ...speeds)),
     el('div', { className: 'clock-row clock-words' },
       el('span', { className: 'clock-state' }, stateText(mode, canPlay, held)),

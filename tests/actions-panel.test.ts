@@ -100,7 +100,7 @@ describe('people on the screen (D-448)', () => {
     expect(kinship(ctx, hero.mother ?? '')).toBe('Your mother');
     const sibling = ctx.state.characters.find((c) => c.id !== hero.id && c.mother === hero.mother);
     expect(kinship(ctx, sibling?.id ?? '')).toMatch(/^Your (brother|sister)$/);
-    expect(personTip(ctx, hero.mother ?? '')?.text).toMatch(/^Your mother, (aged \d+|dead)\./);
+    expect(personTip(ctx, hero.mother ?? '')?.crumb).toMatch(/^Your mother, (aged \d+|dead)$/);
   });
 
   it('the menu of a person has the page first and the greyed marriage with the reason', () => {
