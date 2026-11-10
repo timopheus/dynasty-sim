@@ -1,6 +1,7 @@
 import { el } from './dom';
 import './backstory-screen.css';
-import { currentLang, localName, ruPlural, tr } from './i18n';
+import { backstoryHead } from './backstory-clock-model';
+import { localName, tr } from './i18n';
 
 export interface BackstoryProps {
   /** The founder's name and house, as the game will know him. */
@@ -17,12 +18,6 @@ export interface BackstoryProps {
   scene: HTMLElement;
   /** The menu of the screen (New game), the same as the header's. */
   menu: HTMLElement;
-}
-
-/** "1707 · you are 7" / "1707 · тебе 7 лет". */
-export function backstoryHead(year: number, age: number): string {
-  const years = currentLang() === 'ru' ? `${age} ${ruPlural(age, 'год', 'года', 'лет')}` : String(age);
-  return tr('{year} · you are {years}', { year, years });
 }
 
 /**

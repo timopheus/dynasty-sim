@@ -5,6 +5,7 @@ import type { Journal } from '../core/save/journal';
 import { toYmd, ageYears } from '../core/time/calendar';
 import { getPlayer } from '../core/helpers';
 import { tick } from './clock-model';
+import { currentLang, ruPlural, tr } from './i18n';
 
 /**
  * The backstory on one clock (D-479, T.5): between the scenes the screen feeds the game time itself, a chunk of days
@@ -48,3 +49,9 @@ export function backstoryFrame(journal: Journal, state: GameState, content: Cont
   return { passed: state.day - start, stopped };
 }
 
+
+/** "1707 · you are 7" / "1707 · тебе 7 лет". */
+export function backstoryHead(year: number, age: number): string {
+  const years = currentLang() === 'ru' ? `${age} ${ruPlural(age, 'год', 'года', 'лет')}` : String(age);
+  return tr('{year} · you are {years}', { year, years });
+}
