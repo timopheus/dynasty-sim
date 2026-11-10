@@ -6,7 +6,7 @@
  */
 import { actionEndPhase, startAction } from './actions/actions';
 import { archivePhase } from './archive/phases';
-import { backstoryAfterChoice, backstoryOnNewGame } from './backstory/phases';
+import { backstoryAfterChoice, backstoryOnNewGame, backstoryPhase } from './backstory/phases';
 import { log } from './chronicle/log';
 import type { Content } from './content/schema';
 import { dropContract } from './contracts/contracts';
@@ -68,6 +68,7 @@ export const DAY_PHASES: readonly DayPhase[] = [
   archivePhase,
   placePhase,
   contractsPhase,
+  backstoryPhase,
   actionEndPhase,
   storiesPhase,
   narratorPhase,
@@ -88,7 +89,8 @@ export function newGame(seed: number, content: Content): GameState {
   const state = initialState(seed);
   const ctx: Ctx = { state, content };
   const surname = pick(state.rng, content.names.surnames);
-  const founder = createCharacter(ctx, { surname, age: content.settings.startAge });
+  // one clock (D-479): with `backstory.fromBirth` the founder is born today, day 0, and grows up in living time
+  const founder = createCharacter(ctx, { surname, age: content.backstory?.fromBirth ? { min: 0, max: 0 } : content.settings.startAge });
   founder.money = content.settings.startMoney;
   state.playerId = founder.id;
   log(ctx, { subject: founder, kind: 'start', level: 'chronicle', template: content.settings.texts.start });

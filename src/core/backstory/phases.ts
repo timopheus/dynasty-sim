@@ -3,7 +3,7 @@ import { eventWeight, fireEvent } from '../events/events';
 import type { EventDef } from '../events/content';
 import { findCharacter, getPlayer } from '../helpers';
 import { pick, weightedPick } from '../rng';
-import type { AfterChoiceHook, Ctx, NewGameHook } from '../state';
+import type { AfterChoiceHook, Ctx, DayPhase, NewGameHook } from '../state';
 import { shiftYears } from './effects';
 
 /** Scenes of a stage that can be shown now, with weights; never consumes randomness. */
@@ -110,3 +110,13 @@ export const backstoryAfterChoice: AfterChoiceHook = (ctx) => {
   }
   advance(ctx);
 };
+
+/**
+ * The day phase of the backstory (D-479, slot of T.0): on the day of the next scene it starts the scene and stops the
+ * day, as the narrator does. Empty until T.1 puts the backstory on the clock.
+ */
+export const backstoryPhase: DayPhase = {
+  id: 'backstory',
+  run: () => false,
+};
+
