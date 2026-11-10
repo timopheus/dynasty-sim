@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Тёмная бронза</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&amp;family=PT+Serif:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#e0b56c}a:hover{color:#f3d08f}
+.a-root{position:relative;width:1440px;height:900px;overflow:hidden;font-family:'PT Serif',Georgia,serif;font-size:14px;color:#e9dfc8;background:#2f4a52}
+.a-panel{position:absolute;box-sizing:border-box;background:linear-gradient(180deg,#2a2219 0%,#211a13 100%);border:1px solid #8a6a3a;box-shadow:inset 0 0 0 3px #1a140e,inset 0 0 0 4px #5e4826,0 8px 22px rgba(0,0,0,.55);border-radius:3px}
+.a-title{font-family:'Cormorant Garamond',serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:13px;color:#c9a464}
+.a-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:28px;color:#f3e6c4}
+.a-row{display:grid;grid-template-columns:120px 1fr;gap:6px;padding:3px 0;border-bottom:1px solid rgba(138,106,58,.25)}
+.a-dt{color:#a8987a}
+.a-chip{display:inline-block;padding:3px 8px;margin:0 6px 6px 0;border:1px solid #8a6a3a;background:#3a2e20;border-radius:2px;color:#ecd9b0}
+.a-btn{display:block;box-sizing:border-box;width:100%;text-align:left;margin:0 0 6px;padding:8px 10px;border:1px solid #6e5430;background:linear-gradient(180deg,#3b3022,#2c2318);color:#f0e2c2;font-family:inherit;font-size:14px;border-radius:2px}
+.a-note{display:block;font-size:12px;color:#a8987a;margin-top:2px}
+.a-tip{position:absolute;box-sizing:border-box;background:rgba(28,24,19,.97);border:1px solid #9c7a43;box-shadow:0 6px 18px rgba(0,0,0,.45);border-radius:2px;padding:10px 12px;color:#ebe2cf;line-height:1.4}
+.a-tip h4{margin:0 0 4px;font-size:15px;color:#f5e9c9}
+.a-rule{height:1px;background:#4f412b;margin:6px 0}
+.a-line{display:flex;justify-content:space-between;gap:16px}
+.a-good{color:#8fcf8a}.a-bad{color:#e27b6b}.a-concept{color:#8cc8f5;border-bottom:1px dotted #8cc8f5}
+.a-mouse{font-size:12px;color:#a89d88;display:flex;align-items:center;gap:6px}
+</style>
+</helmet>
+<div class="a-root">
+  <div aria-hidden="true" style="position:absolute;inset:0;background:radial-gradient(ellipse 420px 300px at 720px 420px,#6f7a4e 0%,#5d6a43 55%,transparent 56%),radial-gradient(ellipse 300px 220px at 1000px 300px,#7d7650 0%,#6b6644 58%,transparent 59%),radial-gradient(ellipse 260px 360px at 420px 520px,#66724a 0%,#58633f 57%,transparent 58%),radial-gradient(circle at 50% 50%,#3c5c63,#24393f)"></div>
+  <div aria-hidden="true" style="position:absolute;left:700px;top:380px;width:10px;height:10px;border-radius:50%;background:#f0d48a;box-shadow:0 0 0 3px #3b2a14"></div>
+  <div aria-hidden="true" style="position:absolute;left:716px;top:372px;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:16px;color:#2a1d0c;text-shadow:0 0 3px #e9dcb8">Остмер</div>
+  <div aria-hidden="true" style="position:absolute;left:560px;top:250px;font-family:'Cormorant Garamond',serif;font-weight:700;letter-spacing:.4em;font-size:30px;color:rgba(40,28,14,.75)">ХАВЕРЛАНД</div>
+
+  <div class="a-panel" style="left:384px;top:12px;width:1044px;height:64px;display:flex;align-items:center;gap:28px;padding:0 18px">
+    <div aria-hidden="true" style="width:40px;height:46px;background:linear-gradient(180deg,#7a2a22,#4e1913);border:2px solid #b08a4a;border-radius:0 0 20px 20px"></div>
+    <div><div style="font-size:18px;color:#f3e6c4">55 крон</div><div class="a-note">деньги · ▲ +2 в месяц</div></div>
+    <div><div style="font-size:18px;color:#f3e6c4">Частное лицо (0)</div><div class="a-note">известность</div></div>
+    <div><div style="font-size:18px;color:#f3e6c4">Неприметный (0)</div><div class="a-note">слава рода</div></div>
+    <div><div style="font-size:18px;color:#f3e6c4">Простолюдины</div><div class="a-note">положение рода</div></div>
+    <button class="a-btn" type="button" style="width:auto;margin:0 0 0 auto">Меню ▾</button>
+  </div>
+
+  <div class="a-panel" style="left:12px;top:12px;width:360px;height:690px;padding:18px">
+    <div class="a-title">Человек</div>
+    <div class="a-name" style="margin:6px 0 2px">Уолтер Мэррик</div>
+    <div style="color:#a8987a;margin-bottom:12px">Ты · мужчина, 21 год</div>
+    <div class="a-row"><span class="a-dt">Здоровье</span><span>здоров</span></div>
+    <div class="a-row"><span class="a-dt">Дипломатия</span><span>Слабо (5)</span></div>
+    <div class="a-row"><span class="a-dt">Военное дело</span><span>Слабо (6)</span></div>
+    <div class="a-row"><span class="a-dt">Хозяйство</span><span>Слабо (7)</span></div>
+    <div class="a-row"><span class="a-dt">Интриги</span><span>Слабо (5)</span></div>
+    <div class="a-row"><span class="a-dt">Учёность</span><span>Хорошо (12)</span></div>
+    <div class="a-row"><span class="a-dt">Доблесть</span><span>Слабо (6)</span></div>
+    <div class="a-row"><span class="a-dt">Наследник</span><span><a href="#">Роджер Мэррик</a></span></div>
+    <div class="a-title" style="margin:16px 0 8px">Черты</div>
+    <span class="a-chip">Учёное образование II</span><span class="a-chip">Честолюбивый</span>
+    <div class="a-title" style="margin:14px 0 8px">Семья</div>
+    <div class="a-row"><span class="a-dt">Отец</span><span><a href="#">Уильям Мэррик</a></span></div>
+    <div class="a-row"><span class="a-dt">Мать</span><span><a href="#">Энн Колдер</a></span></div>
+  </div>
+
+  <div class="a-panel" style="left:12px;top:716px;width:140px;height:172px;display:flex;align-items:flex-end;justify-content:center;padding:8px;background:linear-gradient(180deg,#5b4a35,#2c2318)">
+    <div style="font-size:13px;color:#f3e6c4">Уолтер, 21</div>
+  </div>
+
+  <div class="a-panel" style="left:1068px;top:88px;width:360px;height:614px;padding:16px">
+    <div class="a-title" style="margin-bottom:8px">Заработок</div>
+    <button class="a-btn" type="button">Доска поручений (J)<span class="a-note">10 рядом · 4 здесь</span></button>
+    <button class="a-btn" type="button">Служить по найму<span class="a-note">60–180 дней · +15 в месяц</span></button>
+    <button class="a-btn" type="button">Попробовать мелкую торговлю<span class="a-note">20–60 дней · +15 в месяц</span></button>
+    <div class="a-title" style="margin:12px 0 8px">Дорога и место</div>
+    <button class="a-btn" type="button">▶ Странствовать по дорогам<span class="a-note">стоит 5 крон</span></button>
+    <div class="a-title" style="margin:12px 0 8px">Семья и род</div>
+    <button class="a-btn" type="button">Поискать супруга<span class="a-note">20–60 дней · стоит 10 крон</span></button>
+  </div>
+
+  <div class="a-panel" style="left:1068px;top:716px;width:360px;height:172px;padding:16px">
+    <div style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:24px;color:#f3e6c4">3 марта 1716</div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="a-btn" type="button" style="width:auto">Пауза</button>
+      <button class="a-btn" type="button" style="width:auto;border-color:#d8b46a">×1</button>
+      <button class="a-btn" type="button" style="width:auto">×2</button>
+      <button class="a-btn" type="button" style="width:auto">×5</button>
+    </div>
+  </div>
+
+  <div class="a-panel" style="left:384px;top:716px;width:672px;height:172px;padding:16px 20px">
+    <div><a href="#" style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:22px">Остмер</a> <span style="color:#a8987a">— ты здесь</span></div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 24px;margin-top:8px">
+      <div class="a-row"><span class="a-dt">Место</span><span>великий город</span></div>
+      <div class="a-row"><span class="a-dt">Держава</span><span>Хаверланд</span></div>
+      <div class="a-row"><span class="a-dt">Погода</span><span>мокрый снег</span></div>
+      <div class="a-row"><span class="a-dt">Время года</span><span>весна, март</span></div>
+    </div>
+  </div>
+
+  <div class="a-panel" style="left:470px;top:150px;width:500px;height:400px;padding:22px 26px;background:linear-gradient(180deg,#e9dcbd,#d9c9a3);color:#2b2015;border-color:#9c7a43">
+    <div style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:24px;color:#3a2a17">Всадники у брода</div>
+    <div style="height:1px;background:#a88b56;margin:8px 0 12px"></div>
+    <p style="margin:0 0 16px;line-height:1.5">Двое всадников держатся рядом с самого брода. На узком повороте они сходятся ближе, и один слишком любезно спрашивает, во сколько ты ценишь письмо <a href="#" style="color:#7a3b1d">Томаса Холлоуэя</a>.</p>
+    <button class="a-btn" type="button" style="background:linear-gradient(180deg,#f3e8cc,#e3d3ad);color:#2b2015;border-color:#a88b56">Пришпорить коня ⚂</button>
+    <button class="a-btn" type="button" style="background:linear-gradient(180deg,#f3e8cc,#e3d3ad);color:#2b2015;border-color:#a88b56">Отдать кошелёк ◎</button>
+    <button class="a-btn" type="button" style="background:linear-gradient(180deg,#f3e8cc,#e3d3ad);color:#2b2015;border-color:#a88b56">Положить руку на шпагу ✦ ⚂</button>
+  </div>
+
+  <div class="a-tip" style="left:400px;top:80px;width:360px">
+    <div aria-hidden="true" style="position:absolute;right:8px;top:8px;width:18px;height:18px;border-radius:50%;background:conic-gradient(#d8b46a 0 70%,#4f412b 70% 100%)"></div>
+    <h4>Деньги в месяц: <span class="a-good">+2</span></h4>
+    <div style="color:#a89d88;font-size:12px">55 крон в кошельке</div>
+    <div class="a-rule"></div>
+    <div class="a-line"><span>Служба по найму</span><span class="a-good">+15</span></div>
+    <div class="a-line"><span>Комната на постоялом дворе</span><span class="a-bad">−8</span></div>
+    <div class="a-line"><span>Еда и одежда</span><span class="a-bad">−5</span></div>
+    <div class="a-rule"></div>
+    <div class="a-line"><span>Итого</span><span class="a-good">+2</span></div>
+    <div style="margin-top:6px">Больше приносит <span class="a-concept">Хозяйство</span> и служба выше уровнем.</div>
+    <div class="a-rule"></div>
+    <div class="a-mouse"><svg aria-hidden="true" width="12" height="16" viewBox="0 0 12 16" fill="none" stroke="#a89d88" stroke-width="1.2"><rect x="1" y="1" width="10" height="14" rx="5"></rect><path d="M6 1v6M1 7h5" stroke="#d8b46a"></path></svg>ЛКМ: открыть хозяйство</div>
+  </div>
+  <div class="a-tip" style="left:690px;top:250px;width:300px;background:rgba(22,19,15,.98)">
+    <h4>Хозяйство</h4>
+    <div style="color:#a89d88;font-size:12px">Характеристика</div>
+    <div class="a-rule"></div>
+    <div>Умение вести счёт деньгам и делам: доход службы и торговли, цены у торговцев.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

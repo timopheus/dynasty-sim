@@ -6,6 +6,8 @@ const hook = vi.hoisted(() => ({ after: (_ctx: Ctx): void => {} }));
 vi.mock('../src/core/backstory/phases', () => ({
   backstoryOnNewGame: () => {},
   backstoryAfterChoice: (ctx: Ctx) => hook.after(ctx),
+  // the day phase of one clock (D-479, T.0): empty here, as it is until T.1
+  backstoryPhase: { id: 'backstory', run: () => false },
 }));
 
 const { apply, newGame } = await import('../src/core/game');

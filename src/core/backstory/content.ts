@@ -24,6 +24,11 @@ const StageSchema = z.strictObject({
 
 /** Top-level content key `backstory`: stages and number of scenes, the neutral base of the founder (D-167, 3.11). */
 export const BackstoryContentSchema = z.strictObject({
+  /**
+   * One clock (D-479): the game begins at the founder's birth on day 0 and the world lives between the scenes. Without
+   * it the founder is made at `settings.startAge` and the scenes are told at the start (the old way, until T.1).
+   */
+  fromBirth: z.boolean().optional(),
   /** Base of every stat before the first scene; no traits and no education (D-167). */
   base: z.strictObject(Object.fromEntries(STAT_IDS.map((id) => [id, Int.min(0).max(BASE_STAT_MAX)])) as Record<StatId, z.ZodInt>),
   /** Stages in order; a scene of the deck `backstory` names its stage. */
