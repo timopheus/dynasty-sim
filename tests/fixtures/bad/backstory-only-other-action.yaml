@@ -1,0 +1,3 @@
+# expect-error: actions /backstory_only: true \} is for the action early_years alone/
+actions:
+  - { id: secret_walk, name: Walk, category: self, duration: { min: 1, max: 1 }, when: { backstory_only: true }, text: "{name} walked." }
