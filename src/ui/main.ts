@@ -620,8 +620,10 @@ async function runBackstoryFrame(session: Session): Promise<void> {
     const { passed, stopped } = backstoryFrame(session.journal, session.state, session.content);
     session.clock.unsaved += passed;
     if (stopped || session.clock.unsaved >= BACKSTORY_SAVE_EVERY_DAYS) await saveNow(session);
-    if (stopped) session.focusAfterRender = true;
-    render(session);
+    if (stopped) {
+      session.focusAfterRender = true;
+      render(session);
+    } else keepView(() => render(session));
   } finally {
     session.busy = false;
   }
@@ -906,6 +908,9 @@ window.addEventListener('keydown', (e) => {
       return;
     }
   }
+  // the early years on one clock have no pause and no speeds (D-479): their keys do nothing there
+  const yearsRun = current.state.backstory.running && current.content.backstory?.fromBirth === true && !current.windowOpen;
+  if (yearsRun) return;
   if (isPauseKey({ key: e.key, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey, repeat: e.repeat, target })) {
     e.preventDefault();
     void togglePause(current);
