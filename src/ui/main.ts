@@ -19,6 +19,7 @@ import { boardView, offersByPlace } from './contracts-model';
 import { actionsPanel } from './actions-panel';
 import { avatarPanel } from './avatar';
 import { choiceNode } from './choice';
+import { backstoryDate, backstoryFrame, backstoryRuns, BACKSTORY_FRAME_MS, BACKSTORY_SAVE_EVERY_DAYS } from './backstory-clock-model';
 import { clockPanel } from './clock';
 import { keepInView, personMenuNode, personOf, type MenuAnchor } from './context-menu';
 import { clockMode, idleAction, isPauseKey, newClock, SAVE_EVERY_DAYS, speedForKey, tick, tickMs, type Clock, type Speed } from './clock-model';
@@ -306,7 +307,8 @@ function render(session: Session): void {
 
   // the early years are a screen of their own (playtest 09.11): no panels, no map, no profile of a grown man behind them
   if (state.backstory.running) {
-    session.windowOpen = true;
+    session.windowOpen = modal !== null;
+    const onClock = content.backstory?.fromBirth === true;
     const stages = content.backstory?.stages ?? [];
     const stage = Math.min(state.backstory.stage, Math.max(0, stages.length - 1));
     const page = backstoryScreen({
@@ -314,6 +316,8 @@ function render(session: Session): void {
       house: houseOf(state, hero)?.name ?? hero.surname,
       step: stage + 1,
       steps: stages.length,
+      date: onClock ? backstoryDate(state) : null,
+      running: modal === null && backstoryRuns(state, content),
       scene: modal ?? el('div', { className: 'modal-layer' }),
       menu: menuNode(menuProps),
     });
@@ -509,6 +513,15 @@ function keepView(redraw: () => void): void {
 
 /** Sets the timer of the next day while time runs, clears it when it does not; a running timer is left alone. */
 function schedule(session: Session): void {
+  // the early years on one clock (D-479): the screen hands time to the game itself, the speeds and the pause do not apply
+  if (session.state.backstory.running && session.content.backstory?.fromBirth === true) {
+    const go = !session.windowOpen && backstoryRuns(session.state, session.content);
+    if (!go) {
+      if (session.timer !== null) clearTimeout(session.timer);
+      session.timer = null;
+    } else if (session.timer === null) session.timer = setTimeout(() => { void runBackstoryFrame(session); }, BACKSTORY_FRAME_MS);
+    return;
+  }
   const mode = clockMode(session.state, session.clock, session.windowOpen);
   if (mode !== 'running') {
     if (session.timer !== null) clearTimeout(session.timer);
@@ -585,6 +598,28 @@ async function runDay(session: Session): Promise<void> {
     } else {
       keepView(() => render(session));
     }
+  } finally {
+    session.busy = false;
+  }
+  schedule(session);
+}
+
+/** One frame of the early years: a chunk of days, a save on a scene or every so often (D-439), the screen again. */
+async function runBackstoryFrame(session: Session): Promise<void> {
+  session.timer = null;
+  if (current !== session) return;
+  if (session.windowOpen || !backstoryRuns(session.state, session.content)) return;
+  if (session.busy || pointerHeld) {
+    schedule(session);
+    return;
+  }
+  session.busy = true;
+  try {
+    const { passed, stopped } = backstoryFrame(session.journal, session.state, session.content);
+    session.clock.unsaved += passed;
+    if (stopped || session.clock.unsaved >= BACKSTORY_SAVE_EVERY_DAYS) await saveNow(session);
+    if (stopped) session.focusAfterRender = true;
+    render(session);
   } finally {
     session.busy = false;
   }

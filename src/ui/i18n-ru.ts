@@ -166,6 +166,7 @@ export const RU: Record<string, string> = {
   "Cancel": "Отмена",
   "Your will": "Твоё завещание",
   "Scene {step} of {steps}": "Сцена {step} из {steps}",
+  "{year} · you are {years}": "{year} · тебе {years}",
   "The early years": "Ранние годы",
   "{name} of the house of {house}": "{name} из рода {house}",
   "Answer each scene: they make the person who will go out into the world.": "Отвечай в каждой сцене: из них складывается человек, который выйдет в мир.",
