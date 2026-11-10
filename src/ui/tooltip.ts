@@ -80,10 +80,14 @@ const NAV_KEYS = new Set(['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRigh
 
 const idOf = (node: Element): TipId => ({ title: node.getAttribute(ATTR_TITLE), text: node.getAttribute(ATTR), key: node.getAttribute('data-focus') });
 
-/** Whether a node is the same thing as the one described: the same focus key, and the same title or the same text. */
+/** A title with its numbers cut: a sum or a date that changes with the day is not another thing. */
+const bare = (title: string | null): string => (title ?? '').replace(/[\d+\-−().,%]+/g, '').replace(/\s+/g, ' ').trim();
+
+/** Whether a node is the same thing as the one described: the same focus key, and the same title (numbers aside) or the same text. */
 function sameTip(node: Element | null, id: TipId): boolean {
   if (!node || node.getAttribute('data-focus') !== id.key) return false;
-  return (id.title !== null && node.getAttribute(ATTR_TITLE) === id.title) || (id.text !== null && node.getAttribute(ATTR) === id.text);
+  const title = node.getAttribute(ATTR_TITLE);
+  return (id.title !== null && (title === id.title || (bare(id.title) !== '' && bare(title) === bare(id.title)))) || (id.text !== null && node.getAttribute(ATTR) === id.text);
 }
 
 const LINKS = '[data-concept], [data-inner]';
