@@ -237,6 +237,9 @@ export const backstoryPhase: DayPhase = {
       return state.status !== 'running';
     }
     if (st.next === null || st.next > state.day || state.pendingEvent) return false;
+    // an occupation of his own that ends today ends first (the phase of the end of the action comes later); the scene comes tomorrow
+    const own = state.activeAction;
+    if (own !== null && own.actionId !== EARLY_YEARS && own.endDay <= state.day) return false;
     advanceOnClock(ctx);
     if (state.pendingEvent) return true;
     if (st.running) return false;

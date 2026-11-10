@@ -198,6 +198,33 @@ describe('the backstory on one clock (D-479)', () => {
     expect(checkInvariants(state, content)).toEqual([]);
   });
 
+  it('lets an occupation of his own that ends on the day of the scene end first; the scene comes the next day', () => {
+    const state = newGame(4, content);
+    const bot = seedRng(4, 7);
+    let guard = 0;
+    while (state.backstory.played.length < 1 || state.status !== 'running') {
+      if (++guard > 5000) throw new Error('no wait before the childhood scene');
+      apply(state, content, state.status === 'running' ? { type: 'wait', days: 1 } : botCommand(state, content, bot));
+    }
+    const next = state.backstory.next!;
+    state.activeAction = { actionId: 'rest', endDay: next, target: null, contract: null };
+    while (state.status === 'running') {
+      apply(state, content, { type: 'wait', days: 1 });
+      expect(checkInvariants(state, content)).toEqual([]);
+    }
+    // the rest ended on its day and the player was asked; the scene is still waited for
+    expect(state.day).toBe(next);
+    expect(state.status).toBe('awaiting_action');
+    expect(state.activeAction).toBeNull();
+    expect(state.backstory.next).toBe(next);
+    // whatever the child does next, the scene comes the next day
+    apply(state, content, { type: 'start', actionId: 'rest' });
+    apply(state, content, { type: 'wait', days: 1 });
+    expect(state.day).toBe(next + 1);
+    expect(state.pendingEvent?.eventId).toMatch(/^childhood_/);
+    expect(checkInvariants(state, content)).toEqual([]);
+  });
+
   it('play() and the bot live through the childhood by themselves; the run keeps its invariants', () => {
     const state = newGame(5, content);
     const bot = seedRng(5, 7);
