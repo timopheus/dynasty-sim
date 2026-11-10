@@ -217,10 +217,16 @@ describe('the backstory on one clock (D-479)', () => {
     expect(state.status).toBe('awaiting_action');
     expect(state.activeAction).toBeNull();
     expect(state.backstory.next).toBe(next);
-    // whatever the child does next, the scene comes the next day
-    apply(state, content, { type: 'start', actionId: 'rest' });
+    // even a one-day occupation of his own ends first; then the scene comes, late but on a living day
+    state.activeAction = { actionId: 'rest', endDay: next + 1, target: null, contract: null };
+    state.status = 'running';
     apply(state, content, { type: 'wait', days: 1 });
     expect(state.day).toBe(next + 1);
+    expect(state.status).toBe('awaiting_action');
+    expect(checkInvariants(state, content)).toEqual([]);
+    apply(state, content, { type: 'start', actionId: 'rest' });
+    apply(state, content, { type: 'wait', days: 1 });
+    expect(state.day).toBe(next + 2);
     expect(state.pendingEvent?.eventId).toMatch(/^childhood_/);
     expect(checkInvariants(state, content)).toEqual([]);
   });

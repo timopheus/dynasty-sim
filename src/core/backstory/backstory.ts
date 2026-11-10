@@ -98,7 +98,9 @@ export const backstoryInvariants: Invariant = ({ state, content }) => {
     if (!isInt(d) || d < last || d > (st.running ? Number.MAX_SAFE_INTEGER : state.day)) problems.push(`backstory: stage date ${String(d)} is out of order`);
     last = d;
   }
-  if (st.next !== null && (!st.running || !isInt(st.next) || st.next < state.day)) problems.push(`backstory: waits for day ${String(st.next)} on day ${state.day}`);
+  // a scene may be late only while an occupation of the hero's own put it off (it ended on the day of the scene)
+  const late = st.next !== null && st.next < state.day && state.activeAction?.actionId === 'early_years';
+  if (st.next !== null && (!st.running || !isInt(st.next) || late)) problems.push(`backstory: waits for day ${String(st.next)} on day ${state.day}`);
   if (!isInt(st.notBefore) || st.notBefore < 0) problems.push('backstory: notBefore is not a day');
   return problems;
 };
