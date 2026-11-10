@@ -2,3 +2,11 @@
 translations:
   - en: "{name}, aged {age}, went out into the world."
     text: "{name}, {~которому|которой} было {age}, {~вышел|вышла} в большой мир."
+  - en: "{name} lost {his} father, {parent}."
+    text: "{name} {~лишился|лишилась} отца: {parent} умер."
+  - en: "{name} lost {his} mother, {parent}."
+    text: "{name} {~лишился|лишилась} матери: {parent} умерла."
+  - en: "{name}'s father, {parent}, went away one day and never came back."
+    text: "Отец {name:gen}, {parent}, однажды ушёл из дома и не вернулся."
+  - en: "{name}'s mother, {parent}, went away one day and never came back."
+    text: "Мать {name:gen}, {parent}, однажды ушла из дома и не вернулась."

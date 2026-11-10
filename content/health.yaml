@@ -194,6 +194,8 @@ health:
     - { id: killed, text: "{He} had been killed." }
     - { id: childbirth, text: "{He} had died in childbirth." }
     - { id: infancy, text: "{He} had been too frail to live." }
+    # a parent of the founder who went missing (D-481): for the rules a death
+    - { id: vanished, text: "{He} had gone missing and was never found." }
 
   rest:
     actions: [rest, winter_quarters]

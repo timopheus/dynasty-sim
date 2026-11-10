@@ -1,10 +1,10 @@
 import { isInt } from '../helpers';
-import type { Invariant, RefsFn } from '../state';
+import type { Ctx, Invariant, RefsFn } from '../state';
 
 /**
- * The fate of a parent of the founder (D-481), drawn at the birth and carried out on its day in the childhood. A stub of
- * T.1 for T.3: the list stays empty until T.3 fills it. `kind` "missing" is, for the rules, a death with the cause
- * "went missing".
+ * The fate of a parent of the founder (D-481), drawn at the birth and carried out on its day in the childhood (T.3).
+ * `kind` "missing" is, for the rules, a death with the cause `vanished`; `cause` is the cause of the death either way.
+ * `done` once its day has come, or once the parent died before it (the earlier death stays).
  */
 export interface ParentFate {
   person: string;
@@ -46,7 +46,7 @@ export interface BackstoryState {
     next: number | null;
     /** One clock: no scene comes before this day — the years of study or service (`years`) pass in living time. */
     notBefore: number;
-    /** Fates of the founder's parents (D-481), filled by T.3. */
+    /** Fates of the founder's parents (D-481): drawn at the birth on the clock, one per parent alive then. */
     fates: ParentFate[];
   };
 }
@@ -55,6 +55,22 @@ export function initBackstoryState(): BackstoryState {
   return {
     backstory: { running: false, founder: null, stage: 0, inStage: 0, offered: [], played: [], lines: [], dates: [], next: null, notBefore: 0, fates: [] },
   };
+}
+
+/** The hidden action the founder waits in for the next scene (D-479): no events, never started by the player. */
+export const EARLY_YEARS = 'early_years';
+
+/**
+ * The founder's childhood on the clock (D-480, T.3): the backstory runs with `fromBirth`. Meanwhile the founder never
+ * dies, pays no monthly costs, sees no boards of work, gets no events but the scenes and starts no occupation.
+ */
+export function inChildhood(ctx: Ctx): boolean {
+  return ctx.state.backstory.running && ctx.content.backstory?.fromBirth === true;
+}
+
+/** The person is the founder in his childhood on the clock (D-480): death passes him by. */
+export function shieldedFounder(ctx: Ctx, id: string): boolean {
+  return inChildhood(ctx) && ctx.state.backstory.founder === id;
 }
 
 /** The founder whose scenes these are and the parents whose fates wait for their day (D-312). */
@@ -79,8 +95,9 @@ export const backstoryInvariants: Invariant = ({ state, content }) => {
     if (st.running && st.stage > bs.stages.length) problems.push(`backstory: stage ${st.stage} is past the last one`);
     if (st.dates.length > bs.stages.length) problems.push('backstory: more stage dates than stages');
   } else if (st.running) problems.push('backstory: running without a backstory in the content');
-  // a founder who died today is dropped by the next phase of the backstory or the next choice (until T.3 keeps him alive, D-480)
   const founderAlive = state.characters.some((c) => c.id === st.founder && c.deathDay === null);
+  // the founder never dies in his childhood on the clock (D-480); the old way a founder who died is dropped by the next choice
+  if (st.running && bs?.fromBirth === true && st.founder !== null && !founderAlive) problems.push('backstory: the founder died in his childhood (D-480)');
   if (st.running && founderAlive && st.founder !== state.playerId) problems.push('backstory: running for someone who is not the hero');
   if (!st.running && st.lines.length > 0) problems.push('backstory: line marks left after the end');
   let prev = 0;
@@ -99,8 +116,19 @@ export const backstoryInvariants: Invariant = ({ state, content }) => {
     last = d;
   }
   // a scene may be late only while an occupation of the hero's own put it off (it ended on the day of the scene)
-  const late = st.next !== null && st.next < state.day && state.activeAction?.actionId === 'early_years';
+  const late = st.next !== null && st.next < state.day && state.activeAction?.actionId === EARLY_YEARS;
   if (st.next !== null && (!st.running || !isInt(st.next) || late)) problems.push(`backstory: waits for day ${String(st.next)} on day ${state.day}`);
   if (!isInt(st.notBefore) || st.notBefore < 0) problems.push('backstory: notBefore is not a day');
+  // fates of the parents (D-481): one per parent, on a day of the childhood; carried out by the time he goes out
+  const seen = new Set<string>();
+  for (const f of st.fates) {
+    const parent = state.characters.find((c) => c.id === f.person);
+    if (!parent) problems.push(`backstory: fate of unknown person ${f.person}`);
+    if (seen.has(f.person)) problems.push(`backstory: two fates for ${f.person}`);
+    seen.add(f.person);
+    if (!isInt(f.day) || f.day < 0) problems.push(`backstory: fate of ${f.person} on day ${String(f.day)}`);
+    if (f.done && parent && parent.deathDay === null) problems.push(`backstory: fate of ${f.person} done, but alive`);
+    if (!f.done && !st.running && founderAlive) problems.push(`backstory: fate of ${f.person} left undone after the backstory`);
+  }
   return problems;
 };

@@ -29,6 +29,7 @@ health:
     - { id: killed_in_duel, text: "{He} fell in a duel." }
     - { id: killed, text: "{He} was killed." }
     - { id: childbirth, text: "{He} died in childbirth." }
+    - { id: vanished, text: "{He} went missing." }
   rest: { actions: [rest], better: 100, worse: 100 }
   road: { actions: [], better: 100, worse: 100 }
   texts:

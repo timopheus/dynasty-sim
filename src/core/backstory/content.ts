@@ -3,6 +3,8 @@ import { BASE_STAT_MAX, STAT_IDS, type StatId } from '../character/stat-ids';
 import type { CrossCheck } from '../content/schema';
 import { Id, Int, Text, type ContentError } from '../content/types';
 import { offeredOnlyOptions } from '../events/content';
+import { checkReason } from '../conditions/reasons';
+import { PLACEHOLDERS } from '../character/text';
 import { checkTemplate } from '../text/text';
 
 const StageSchema = z.strictObject({
@@ -23,6 +25,25 @@ const StageSchema = z.strictObject({
   offer: z.strictObject({ count: Int.min(1), variants: z.array(Id).min(2) }).optional(),
 });
 
+/**
+ * Fates of the founder's parents (D-481, T.3): at the birth each parent alive gets a fate on a day of the founder's
+ * childhood, between the ages `ages.min` and `ages.max` (full years, below START_AGE_MIN, so before he goes out). With
+ * `missingPct` percent it is a disappearance (the cause `vanished`), else a death with one of `causes` by chance (ids
+ * of `health.causes`). The line in the chronicle is about the founder: `{name}` and his pronouns, `{parent}` the parent.
+ */
+const FatesSchema = z.strictObject({
+  ages: z.strictObject({ min: Int.min(0), max: Int.min(0) }),
+  missingPct: Int.min(0).max(100),
+  causes: z.array(Id).min(1),
+  texts: z.strictObject({ father_died: Text, mother_died: Text, father_vanished: Text, mother_vanished: Text }),
+});
+
+/** The cause of death of a parent who went missing (D-481): for the rules a death. */
+export const VANISHED = 'vanished';
+
+/** Placeholders of the lines of the fates: those of the founder and the parent. */
+const FATE_PLACEHOLDERS = [...PLACEHOLDERS, 'parent'];
+
 /** Top-level content key `backstory`: stages and number of scenes, the neutral base of the founder (D-167, 3.11). */
 export const BackstoryContentSchema = z.strictObject({
   /**
@@ -34,6 +55,8 @@ export const BackstoryContentSchema = z.strictObject({
   base: z.strictObject(Object.fromEntries(STAT_IDS.map((id) => [id, Int.min(0).max(BASE_STAT_MAX)])) as Record<StatId, z.ZodInt>),
   /** Stages in order; a scene of the deck `backstory` names its stage. */
   stages: z.array(StageSchema).min(1),
+  /** Fates of the parents on the clock (D-481); `fromBirth` needs them. */
+  fates: FatesSchema.optional(),
   texts: z.strictObject({
     /** The chronicle line after the last scene: the hero goes out into the world. */
     leave: Text,
@@ -73,7 +96,7 @@ const EARLY_YEARS = 'early_years';
 const NOT_IN_SCENES = ['kill', 'later', 'schedule', 'story', 'end_action'] as const;
 const ONLY_IN_SCENES = ['years', 'stats_roll'] as const;
 
-export const checkBackstory: CrossCheck = ({ backstory, events, actions, settings }) => {
+export const checkBackstory: CrossCheck = ({ backstory, events, actions, settings, health }) => {
   const errors: ContentError[] = [];
   const content = backstory[0];
   const scenes = events.filter((e) => e.item.deck === 'backstory');
@@ -130,6 +153,8 @@ export const checkBackstory: CrossCheck = ({ backstory, events, actions, setting
   };
   if (bs.fromBirth) errors.push(...checkClock(file, bs, actions.some((a) => a.item.id === EARLY_YEARS), stageYears));
   else errors.push(...checkAtOnce(file, bs, settings[0]?.item.startAge, stageYears));
+  if (bs.fromBirth && !bs.fates) errors.push({ file, path: 'backstory.fates', message: 'the clock needs the fates of the parents (D-481)' });
+  if (bs.fates) errors.push(...checkFates(file, bs.fates, new Set((health[0]?.item.causes ?? []).map((c) => c.id))));
 
   const offeredUsed = new Set<string>();
   for (const { file: eventFile, index, item } of scenes) {
@@ -190,6 +215,22 @@ function checkClock(file: string, bs: BackstoryContent, hasWait: boolean, stageY
     reach += stageYears(stage);
   });
   if (reach > START_AGE_MAX) errors.push({ file, path: 'backstory.stages', message: `the founder can go out into the world at ${reach}, past ${START_AGE_MAX} (D-038)` });
+  return errors;
+}
+
+/** Ages within the childhood, causes known, `vanished` among the causes of death, lines well formed (D-481). */
+function checkFates(file: string, fates: z.infer<typeof FatesSchema>, causes: ReadonlySet<string>): ContentError[] {
+  const errors: ContentError[] = [];
+  if (fates.ages.min > fates.ages.max) errors.push({ file, path: 'backstory.fates.ages', message: 'min is above max' });
+  if (fates.ages.max >= START_AGE_MIN) errors.push({ file, path: 'backstory.fates.ages.max', message: `a fate comes before the founder goes out: below ${START_AGE_MIN}` });
+  fates.causes.forEach((c, i) => {
+    if (!causes.has(c)) errors.push({ file, path: `backstory.fates.causes[${i}]`, message: `unknown cause "${c}": not in health.causes` });
+  });
+  if (fates.missingPct > 0 && !causes.has(VANISHED)) errors.push({ file, path: 'backstory.fates.missingPct', message: `a disappearance needs the cause "${VANISHED}" in health.causes` });
+  for (const [key, text] of Object.entries(fates.texts)) {
+    const problem = checkReason(text, FATE_PLACEHOLDERS);
+    if (problem) errors.push({ file, path: `backstory.fates.texts.${key}`, message: problem });
+  }
   return errors;
 }
 

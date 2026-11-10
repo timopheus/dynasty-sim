@@ -15,6 +15,16 @@ backstory:
     - id: training
       age: 15
     - id: leaving
+  # Fates of the parents (D-481, T.3).
+  fates:
+    ages: { min: 2, max: 14 }
+    missingPct: 25
+    causes: [illness, killed]
+    texts:
+      father_died: "{name} lost {his} father, {parent}."
+      mother_died: "{name} lost {his} mother, {parent}."
+      father_vanished: "{name}'s father, {parent}, went away one day and never came back."
+      mother_vanished: "{name}'s mother, {parent}, went away one day and never came back."
   texts:
     leave: "{name}, aged {age}, went out."
 
@@ -105,7 +115,7 @@ events:
     text: "The market calls."
     options:
       - text: Haggle
-        effects: { stats_roll: { stewardship: { min: 1, max: 1 } } }
+        effects: { stats_roll: { stewardship: { min: 1, max: 1 } }, money: 4 }
         result: "{name} haggled at the market."
         chronicle: true
 
