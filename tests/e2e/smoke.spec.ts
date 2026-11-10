@@ -477,6 +477,33 @@ test('by the keyboard alone: the tip freezes, Tab goes into its blue words, a ne
   expect(problems).toEqual([]);
 });
 
+test('a tip of the focus freezes while the clock runs, and Tab out of its last link goes on to the next thing (D-444, D-477)', async ({ page }) => {
+  const problems = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/?seed=7');
+  await growUp(page);
+  await page.mouse.move(700, 300);
+  await page.locator('.avatar-button').focus();
+  await tabToTip(page, /Crowns in your purse/, 60);
+  // the clock runs: a day is a second, the ring takes two, and the redraw of each day must not start it again
+  await page.locator('.clock-toggle').click();
+  const tip = page.locator('#tooltip');
+  await expect(tip).toHaveClass(/locked/, { timeout: 6_000 });
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#tooltip .tip-concept:focus')).toHaveCount(1);
+  // a day passes with the focus in the tip: the tip and the focus stay
+  const date = () => page.locator('.clock .date').textContent();
+  const before = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(before);
+  await expect(page.locator('#tooltip .tip-concept:focus')).toHaveCount(1);
+  // the last link: Tab goes on to a thing outside the tips, and the tips close
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await expect(tip).toBeHidden();
+  expect(await page.evaluate<boolean>(`document.activeElement !== document.body && !document.activeElement.closest('.tooltip')`)).toBe(true);
+  expect(problems).toEqual([]);
+});
+
 test('a middle click freezes a tip at once; leaving it closes the stack after a moment (D-477)', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });

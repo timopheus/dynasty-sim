@@ -398,10 +398,18 @@ export function syncTip(): void {
   if (!target && first.by === 'pointer' && first.locked && heldLevel(document.elementFromPoint(mouse.x, mouse.y)) >= 0) {
     target = [...document.querySelectorAll<HTMLElement>(`[${ATTR}]`)].find((n) => sameTip(n, first.id)) ?? null;
   }
-  if (!target) {
-    hideTip();
+  if (target) {
+    retarget(first, target);
     return;
   }
+  // the focus comes back to its node only after the redraw (`keepView`, then `focusin`): the tip stays for it, and goes
+  // if the focus does not come back
+  if (first.by === 'focus') window.setTimeout(checkFocus, 0);
+  else hideTip();
+}
+
+/** The first tip follows the new copy of its node after a redraw, with its frozen state, ring and the tips inside it. */
+function retarget(first: Level, target: HTMLElement): void {
   const raw = target.getAttribute(ATTR_DATA);
   first.source = target;
   first.id = idOf(target);
@@ -416,33 +424,57 @@ export function syncTip(): void {
   first.raw = raw;
 }
 
+/** After a moment: a tip of the focus stays only if the focus is on its thing, or in its boxes. */
+function checkFocus(): void {
+  const first = stack[0];
+  if (!first || first.by !== 'focus') return;
+  const active = document.activeElement;
+  if (levelOfBox(active) >= 0 || stack.some((l) => l.source === active)) return;
+  const copy = holder(active);
+  if (copy && !first.source.isConnected && sameTip(copy, first.id)) {
+    retarget(first, copy);
+    return;
+  }
+  hideTip();
+}
+
 /** Tab and Shift+Tab with a frozen tip: the links of its box follow its thing in the order, then the order goes on. */
 function tabThroughTip(e: KeyboardEvent): void {
   const active = document.activeElement;
   if (!(active instanceof HTMLElement)) return;
-  const at = stack.findIndex((l) => l.source === active);
-  if (at >= 0 && !e.shiftKey) {
-    const level = stack[at];
-    const first = level?.locked && at + 1 < TIP_MAX_LEVELS ? level.box.querySelector<HTMLElement>(LINKS) : null;
+  const linksOf = (level: Level): HTMLElement[] => [...level.box.querySelectorAll<HTMLElement>(LINKS)].filter((l) => l.tabIndex >= 0);
+  const inBox = levelOfBox(active);
+  const own = stack.findIndex((l) => l.source === active);
+  // forward, from a thing or a link that has a frozen tip with links of its own: into that tip
+  if (!e.shiftKey && own >= 0) {
+    const level = stack[own];
+    const first = level && level.locked && own + 1 < TIP_MAX_LEVELS ? linksOf(level)[0] : undefined;
     if (first) {
       e.preventDefault();
       first.focus();
+      return;
     }
-    return;
   }
-  const inBox = levelOfBox(active);
   if (inBox < 0) return;
   const level = stack[inBox];
   if (!level) return;
-  const links = [...level.box.querySelectorAll<HTMLElement>(LINKS)].filter((l) => l.tabIndex >= 0);
+  const links = linksOf(level);
   const i = links.indexOf(active);
   if (i < 0) return;
   if (e.shiftKey && i === 0) {
     e.preventDefault();
     level.source.focus();
   } else if (!e.shiftKey && i === links.length - 1) {
-    // the focus goes back to the thing, and the browser takes the next step from there
-    level.source.focus();
+    // the last link: the focus goes back up to the thing the order goes on from, and the browser takes the next step
+    let k = inBox;
+    let back = level.source;
+    while (k > 0) {
+      const above = linksOf(stack[k - 1] as Level);
+      if (above[above.length - 1] !== back) break;
+      k--;
+      back = (stack[k] as Level).source;
+    }
+    back.focus();
   }
 }
 
@@ -481,6 +513,10 @@ export function installTooltips(): void {
       if (first?.source === t) lock(first);
     }
   });
+  // the middle click of a link would open it in a new tab: it freezes the tip instead
+  document.addEventListener('auxclick', (e) => {
+    if (e.button === 1 && holder(e.target)) e.preventDefault();
+  });
   // a redraw moves the focus off a node and back: only a tip that the focus itself opened closes with it
   document.addEventListener('focusin', (e) => {
     const inBox = levelOfBox(e.target);
@@ -493,6 +529,12 @@ export function installTooltips(): void {
     // a focus the program gives back after a redraw is not the player's: only a key that moves the focus opens a tip
     const kept = t !== null && focusIntent !== null && sameTip(t, focusIntent);
     if (stack.some((l) => l.source === e.target)) return;
+    // the redraw gave the focus back to the new copy of the thing whose tip is open: the tip, frozen or not, follows it
+    const first = stack[0];
+    if (t && first?.by === 'focus' && !first.source.isConnected && sameTip(t, first.id)) {
+      retarget(first, t);
+      return;
+    }
     if (t && kept) {
       // the tip was open: it opens again at once; it was waiting: the wait goes on with the new copy
       if (pending?.by === 'focus') pending.target = t;
@@ -511,7 +553,8 @@ export function installTooltips(): void {
     if (stack[0]?.by !== 'focus') return;
     const next = e.relatedTarget;
     if (next instanceof Node && (levelOfBox(next) >= 0 || stack.some((l) => l.source.contains(next)))) return;
-    hideTip();
+    // a redraw takes the focus off its node and gives it back at once: look again when it has settled
+    window.setTimeout(checkFocus, 0);
   });
   // a click did what the tip said: it must not lie over what the click opened; a click inside a tip leaves it be
   document.addEventListener('click', (e) => {
