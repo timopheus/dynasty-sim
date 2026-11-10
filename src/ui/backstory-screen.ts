@@ -1,5 +1,6 @@
 import { el } from './dom';
 import './backstory-screen.css';
+import type { TextPart } from '../core/text/text';
 import { backstoryHead } from './backstory-clock-model';
 import { localName, tr } from './i18n';
 
@@ -15,11 +16,16 @@ export interface BackstoryProps {
   /** The years run by between the scenes: the head shows it and the scene's place is empty. */
   running?: boolean;
   /** The lines of the years run so far, newest last: what the world did while the years ran by. */
-  log?: { year: number; text: string }[];
+  log?: { year: number; parts: readonly TextPart[] }[];
   /** The window of the scene (an event window, D-438), drawn on this screen instead of over the game. */
   scene: HTMLElement;
   /** The menu of the screen (New game), the same as the header's. */
   menu: HTMLElement;
+}
+
+/** A line of the log as plain text: references by the name in the language chosen, in the case the line put it in (RU.1). */
+function logText(parts: readonly TextPart[]): string {
+  return parts.map((p) => (typeof p === 'string' ? p : localName(p.name, p.case ?? 'nom'))).join('');
 }
 
 /**
@@ -48,7 +54,7 @@ export function backstoryScreen(props: BackstoryProps): HTMLElement {
       el('div', { className: 'backstory-slot' },
         props.scene,
         props.running && props.log && props.log.length > 0
-          ? el('ul', { className: 'backstory-log' }, ...props.log.map((l) => el('li', {}, el('span', { className: 'backstory-log-year' }, String(l.year)), ` ${l.text}`)))
+          ? el('ul', { className: 'backstory-log' }, ...props.log.map((l) => el('li', {}, el('span', { className: 'backstory-log-year' }, String(l.year)), ` ${logText(l.parts)}`)))
           : ''),
       el('p', { className: props.running ? 'backstory-note hidden' : 'backstory-note' }, tr('Answer each scene: they make the person who will go out into the world.'))));
 }
