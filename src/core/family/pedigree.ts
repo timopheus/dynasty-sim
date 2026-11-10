@@ -94,7 +94,7 @@ function build(ctx: Ctx, family: FamilyContent, person: Character): void {
   const siblings = int(r, p.siblings.min, p.siblings.max);
   for (let i = 0; i < siblings; i++) {
     // A newborn has only older brothers and sisters: the younger ones are born to the parents in living time.
-    const siblingAge = Math.min(youngestParent - adult, Math.max(newborn ? 1 : 0, age + int(r, newborn ? 1 : -p.siblingSpread, p.siblingSpread)));
+    const siblingAge = Math.min(youngestParent - adult, Math.max(newborn ? 1 : 0, age + int(r, newborn ? Math.min(1, p.siblingSpread) : -p.siblingSpread, p.siblingSpread)));
     if (siblingAge < (newborn ? 1 : 0) || !alive(ctx, family, siblingAge)) continue;
     const sex: Sex = chancePer(r, 1, 2) ? 'male' : 'female';
     relative(ctx, sex, siblingAge, person.surname, { ...(father ? { father: father.id } : {}), ...(mother ? { mother: mother.id } : {}) });

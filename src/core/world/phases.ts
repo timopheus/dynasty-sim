@@ -1,3 +1,4 @@
+import { inChildhood } from '../backstory/backstory';
 import { log } from '../chronicle/log';
 import { ANNUAL_DEATH_DENOMINATOR, annualDeathChance, mortalityRow } from '../health/mortality';
 import { getPlayer } from '../helpers';
@@ -34,9 +35,14 @@ function isPeer(ctx: Ctx, c: Character, heroAge: number): boolean {
   return Math.abs(ageYears(c.birthDay, ctx.state.day) - heroAge) <= PEER_SPREAD;
 }
 
+/**
+ * The age of the hero while peers are kept for them: the founder's childhood on the clock (D-479) only. Child heirs of
+ * the old way get none, so the events written for grown-ups never meet a three-year-old of the circle.
+ */
 function heroAgeIfChild(ctx: Ctx): number | null {
+  if (!inChildhood(ctx)) return null;
   const hero = ctx.state.characters.find((c) => c.id === ctx.state.playerId);
-  if (!hero) return null;
+  if (!hero || hero.deathDay !== null) return null;
   const age = ageYears(hero.birthDay, ctx.state.day);
   return age < ctx.content.settings.adultAge ? age : null;
 }
@@ -54,7 +60,7 @@ function ensurePeers(ctx: Ctx, population: PopulationContent): void {
     const c = state.characters.find((x) => x.id === id);
     return c !== undefined && c.deathDay === null && isPeer(ctx, c, heroAge);
   }).length;
-  if (peers >= PEERS.min) return;
+  if (peers >= PEERS.min || state.circle.length >= population.circle.max) return;
   const want = int(state.rng, PEERS.min, PEERS.max);
   const ages = { min: Math.max(0, heroAge - PEER_SPREAD), max: heroAge + PEER_SPREAD };
   for (let i = peers; i < want && state.circle.length < population.circle.max; i++) {
