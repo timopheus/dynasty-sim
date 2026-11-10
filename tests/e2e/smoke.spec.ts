@@ -603,6 +603,10 @@ test('Escape closes the tip of the focus and it stays closed while the clock run
   const date = () => page.locator('.clock .date').textContent();
   await page.mouse.move(700, 300);
   await page.keyboard.press('Space');
+  // the command that starts living has its own redraw, which moves the focus to the heading: wait until the days run,
+  // else a Tab that came before it loses its tip with the focus (a race that shows on a slow machine)
+  const started = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(started);
   const tip = page.locator('#tooltip');
   await tabToTip(page);
   await page.keyboard.press('Escape');
