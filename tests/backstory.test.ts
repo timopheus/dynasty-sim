@@ -193,10 +193,10 @@ describe('the backstory of the first hero (D-167)', () => {
       const yearOf = (re: RegExp) => toYmd(mine.find((e) => re.test(entryText(e)))!.day).year - toYmd(birth).year;
       expect(mine[0]!.kind).toBe('start');
       expect(mine[0]!.day).toBe(0);
-      expect(yearOf(/was born in|nowhere/)).toBeLessThanOrEqual(1);
-      expect(yearOf(/learned from|ran off|quiet year/)).toBeGreaterThanOrEqual(7);
-      expect(yearOf(/learned from|ran off|quiet year/)).toBeLessThanOrEqual(8);
-      expect(yearOf(/went to school/)).toBeGreaterThanOrEqual(15);
+      // born on 1 January: the year of life of a stage is its calendar year
+      expect(yearOf(/was born in|nowhere/)).toBe(0);
+      expect(yearOf(/learned from|ran off|quiet year/)).toBe(7);
+      expect(yearOf(/went to school/)).toBe(15);
       expect(mine.at(-1)!.kind).toBe('backstory_end');
       expect(mine.at(-1)!.day).toBe(state.day);
       const days = allChronicle(state).map((e) => e.day);

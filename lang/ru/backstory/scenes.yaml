@@ -73,7 +73,7 @@ translations:
   - en: "{name} helped at a stall during the fair and earned a few coins."
     text: "{name} {~помог|помогла} у лотка на ярмарке и {~заработал|заработала} несколько монет."
   - en: "{rival} had long made a habit of mocking you in front of others. Today it was in front of a crowd."
-    text: "{rival} давно взял за обыкновение смеяться над тобой при людях. Сегодня это случилось на глазах у толпы."
+    text: "{rival} давно {rival~взял|взяла} за обыкновение смеяться над тобой при людях. Сегодня это случилось на глазах у толпы."
   - en: Answer with fists
     text: "Ответить кулаками"
   - en: "{name} beat {rival} in a fight before a crowd, and {rival} did not forgive it."

@@ -6,7 +6,7 @@ backstory:
   fromBirth: true
   base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
   # `age`: the first scene of the stage falls on a day of that year of the founder's life; `leaving` has none and comes
-  # after the years of study, not before 16 (D-038).
+  # right after the stage before it and the years of study; he goes out into the world not before 16 (D-038).
   stages:
     # The player is offered 3 of the 6 variants by chance and picks one (D-167, D-188).
     - id: origin
@@ -28,9 +28,10 @@ backstory:
     missingPct: 25
     causes: [illness, fever, killed]
     texts:
-      father_died: "{name} was {age} when {his} father, {parent}, was buried."
-      mother_died: "{name} was {age} when {his} mother, {parent}, was buried."
-      father_vanished: "{name} was {age} when {his} father, {parent}, went out one morning and never came back."
-      mother_vanished: "{name} was {age} when {his} mother, {parent}, went out one morning and never came back."
+      # each starts with {name} and a verb: the section of the founder cuts the name off (ownLine, D-162)
+      father_died: "{name} lost {his} father, {parent}, at {age}."
+      mother_died: "{name} lost {his} mother, {parent}, at {age}."
+      father_vanished: "{name} lost {his} father at {age}: {parent} went out one morning and never came back."
+      mother_vanished: "{name} lost {his} mother at {age}: {parent} went out one morning and never came back."
   texts:
     leave: "{name}, aged {age}, went out into the world."

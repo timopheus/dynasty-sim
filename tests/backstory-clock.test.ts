@@ -16,6 +16,7 @@ import type { GameState } from '../src/core/state';
 import { ageYears } from '../src/core/time/calendar';
 import { readContentFiles } from '../tools/content-files';
 import { loadContent } from '../src/core/content/load';
+import { ownLine, partsText } from '../src/core/text/text';
 import { BASE_FILES, loadOrThrow, realContent } from './fixtures/content';
 
 /**
@@ -422,4 +423,56 @@ describe('the founder\'s childhood in the real content with fromBirth on (T.3)',
     const sim = runSim(clock, { seed: 42, years: 30 });
     expect(sim.violations).toEqual([]);
   }, 120_000);
+});
+
+/**
+ * T.4: the real scenes by real ages. Peers of the child founder come by `age_near` (D-479); the lines of the parents'
+ * fates read in the founder's own section, where the name is cut off (ownLine, D-162), in both languages (D-476).
+ */
+describe('the real scenes by real ages (T.4)', () => {
+  const real = realContent();
+  const files = readContentFiles();
+  const loadedRu = loadContent([...files, ...readContentFiles('lang/ru')]);
+  if (!loadedRu.ok) throw new Error('the Russian content does not load');
+  const russian = loadedRu.content;
+
+  it('a friend at 7 and a rival at 12 are within three years of the founder, on 15 seeds', () => {
+    let seen = 0;
+    for (let seed = 1; seed <= 15; seed++) {
+      const state = newGame(seed, real);
+      while (state.backstory.running) {
+        if (state.status === 'running') {
+          apply(state, real, { type: 'wait', days: 3650 });
+          continue;
+        }
+        const p = state.pendingEvent!;
+        const hero = ageYears(getPlayer(state).birthDay, state.day);
+        for (const role of ['friend', 'rival']) {
+          const id = p.scope[role];
+          if (id === undefined) continue;
+          seen += 1;
+          const other = ageYears(state.characters.find((c) => c.id === id)!.birthDay, state.day);
+          expect(Math.abs(other - hero), `seed ${seed} ${role}`).toBeLessThanOrEqual(3);
+        }
+        play(state, real, botCommand(state, real, seedRng(seed, 5)));
+      }
+    }
+    expect(seen).toBeGreaterThanOrEqual(5);
+  }, 120_000);
+
+  it('the fate lines start with a verb once the name is cut off, in English and in Russian', () => {
+    for (const [content, lang] of [[real, 'en'], [russian, 'ru']] as const) {
+      let lines = 0;
+      for (let seed = 1; seed <= 12; seed++) {
+        const { state } = runSim(content, { seed, years: 17 });
+        for (const line of allChronicle(state).filter((e) => e.kind === 'backstory_fate')) {
+          const own = partsText(ownLine(line.parts, line.subject));
+          expect(own, `${lang} seed ${seed}`).toMatch(lang === 'en' ? /^Lost (his|her) (father|mother)/ : /^(Лишился|Лишилась|Остался|Осталась) /);
+          expect(own).toMatch(/\d/);
+          lines += 1;
+        }
+      }
+      expect(lines, lang).toBeGreaterThanOrEqual(12);
+    }
+  }, 300_000);
 });
