@@ -1,7 +1,7 @@
 # Russian translation of content/backstory/scenes.yaml (RU.1, D-476). Etalon: docs/reference/russian-style.md. Check: npx tsx tools/lang.ts check ru
 translations:
   - en: The house where you were born stood among others like it, and everything you know began under its roof. Whose roof was it?
-    text: "Дом, где ты родился, стоял среди таких же, и всё, что ты знаешь, началось под его крышей. Чья это была крыша?"
+    text: "Дом, где ты {~родился|родилась}, стоял среди таких же, и всё, что ты знаешь, началось под его крышей. Чья это была крыша?"
   - en: A guild house, where the ledger was read aloud at supper
     text: "Цеховой дом, где за ужином вслух читали счётную книгу"
   - en: "{name} was born in a guild house and learned early what a ledger was worth."
@@ -179,7 +179,7 @@ translations:
   - en: "{name} left home to earn money for the family."
     text: "{name} {~ушёл|ушла} из дома заработать денег для семьи."
   - en: On the last evening {patron}, whom everyone in the district knew, took you aside to give you some advice.
-    text: "В последний вечер {patron}, которого знал весь округ, {patron~отвёл|отвела} тебя в сторону, чтобы дать совет."
+    text: "В последний вечер {patron}, {patron~которого|которую} знал весь округ, {patron~отвёл|отвела} тебя в сторону, чтобы дать совет."
   - en: Listen and take the gift {patron.he} offers
     text: "Выслушать и принять дар, который {patron~он|она} предлагает"
   - en: "{name} took a farewell gift from {patron}, who promised to keep an eye on {him}."
@@ -189,6 +189,6 @@ translations:
   - en: "{name} refused a farewell gift from {patron} and left with nothing but pride."
     text: "{name} {~отказался|отказалась} от прощального дара {patron:gen} и {~ушёл|ушла} ни с чем, кроме гордости."
   - en: Leave unseen before dawn
-    text: "Уйти незамеченным до рассвета"
+    text: "Уйти {~незамеченным|незамеченной} до рассвета"
   - en: "{name} left before dawn and said no farewells."
     text: "{name} {~ушёл|ушла} до рассвета, не прощаясь."
