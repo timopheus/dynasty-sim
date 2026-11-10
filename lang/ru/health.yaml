@@ -92,3 +92,5 @@ translations:
     text: "Нужно одно из: {conditions}"
   - en: Not while suffering from {conditions}
     text: "Не при недуге: {conditions}"
+  - en: "{He} had gone missing and was never found."
+    text: "{~Он пропал|Она пропала} без вести, и {~его|её} так и не нашли."

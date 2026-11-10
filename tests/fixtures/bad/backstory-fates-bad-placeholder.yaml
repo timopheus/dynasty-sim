@@ -1,0 +1,17 @@
+# expect-error: backstory.fates.texts.father_died /unknown placeholder \{mother\}/
+backstory:
+  fromBirth: true
+  base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
+  stages:
+    - id: training
+      age: 15
+  fates:
+    ages: { min: 2, max: 14 }
+    missingPct: 0
+    causes: [illness]
+    texts: { father_died: "{name} lost {mother}.", mother_died: "x", father_vanished: "x", mother_vanished: "x" }
+  texts: { leave: "{name} went out." }
+actions:
+  - { id: early_years, name: Early years, category: self, duration: { min: 1, max: 1 }, when: { backstory_only: true }, idle: true, text: "{name} grew up." }
+events:
+  - { id: training_scene, deck: backstory, stage: training, weight: 1, text: "Service.", options: [{ text: Go, result: "{name} served." }] }

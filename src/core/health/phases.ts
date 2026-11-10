@@ -1,4 +1,5 @@
 import { interruptAction } from '../actions/actions';
+import { EARLY_YEARS, shieldedFounder } from '../backstory/backstory';
 import { kill } from '../lifecycle';
 import { chancePer } from '../rng';
 import type { Character, Ctx, DayPhase } from '../state';
@@ -15,7 +16,8 @@ function healthWeek(ctx: Ctx, c: Character): boolean {
   const { state, content } = ctx;
   // A copy: recovery removes the condition, and a condition that follows waits for next week.
   for (const hc of [...c.conditions]) {
-    if (weeklyTransition(ctx, c, hc)) {
+    // the founder's childhood (D-480): an illness never comes to death, it stays at its stage and rolls again next week
+    if (weeklyTransition(ctx, c, hc) && !shieldedFounder(ctx, c.id)) {
       kill(ctx, c, conditionDef(content, hc.id).cause);
       return true;
     }
@@ -46,7 +48,9 @@ export const healthPhase: DayPhase = {
       if (playerDied) return true;
     }
     const active = state.activeAction;
-    if (active && !content.health.rest.actions.includes(active.actionId)) {
+    // the founder's early years (D-479) are no occupation an illness breaks off: he waits for the next scene at home
+    const childhood = active?.actionId === EARLY_YEARS && shieldedFounder(ctx, state.playerId);
+    if (active && !childhood && !content.health.rest.actions.includes(active.actionId)) {
       const hero = detailedCharacters(state).find((c) => c.id === state.playerId);
       if (hero && isSeverelyIll(content, hero)) {
         interruptAction(ctx, content.health.texts.interrupted);
@@ -70,7 +74,8 @@ function deathRequests(ctx: Ctx): boolean {
   let playerDied = false;
   for (const r of requests) {
     const c = state.characters.find((x) => x.id === r.characterId);
-    if (!c || c.deathDay !== null) continue;
+    // the founder never dies in his childhood (D-480): a death ordered for him is dropped
+    if (!c || c.deathDay !== null || shieldedFounder(ctx, c.id)) continue;
     if (c.id === playerId) playerDied = true;
     kill(ctx, c, r.cause);
   }
@@ -88,7 +93,8 @@ export const deathPhase: DayPhase = {
     if (deathRequests(ctx)) return true;
     let playerDied = false;
     for (const c of detailedCharacters(state)) {
-      if (chancePer(state.rng, dailyDeathChance(ctx, c), DAILY_DEATH_DENOMINATOR)) {
+      // the roll is made for the founder in his childhood too, so the world draws the same; death passes him by (D-480)
+      if (chancePer(state.rng, dailyDeathChance(ctx, c), DAILY_DEATH_DENOMINATOR) && !shieldedFounder(ctx, c.id)) {
         if (c.id === state.playerId) playerDied = true;
         kill(ctx, c, deathCause(ctx, c));
       }

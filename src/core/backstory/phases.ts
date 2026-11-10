@@ -1,10 +1,14 @@
+import { personValues, placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
 import { eventWeight, fireEvent } from '../events/events';
 import type { EventDef } from '../events/content';
 import { findCharacter, getPlayer } from '../helpers';
-import { int, pick, weightedPick } from '../rng';
-import type { AfterChoiceHook, Ctx, DayPhase, NewGameHook } from '../state';
-import { START_AGE_MIN, type BackstoryStage } from './content';
+import { kill } from '../lifecycle';
+import { chancePer, int, pick, seedRng, weightedPick } from '../rng';
+import type { AfterChoiceHook, Character, Ctx, DayPhase, NewGameHook } from '../state';
+import { fillTemplate } from '../text/text';
+import { EARLY_YEARS, type ParentFate } from './backstory';
+import { START_AGE_MIN, VANISHED, type BackstoryContent, type BackstoryStage } from './content';
 import { shiftYears } from './effects';
 
 /** Scenes of a stage that can be shown now, with weights; never consumes randomness. */
@@ -17,8 +21,7 @@ function candidates(ctx: Ctx, stageId: string): { event: EventDef; weight: numbe
     .filter((c) => c.weight > 0);
 }
 
-/** The hidden action the founder waits in for the next scene (D-479): no events, never started by the player. */
-export const EARLY_YEARS = 'early_years';
+export { EARLY_YEARS };
 
 /** Draws `count` of the variants of the stage's offer by chance (D-167), kept in the order of the content. */
 function drawOffer(ctx: Ctx, stage: BackstoryStage): void {
@@ -30,10 +33,56 @@ function drawOffer(ctx: Ctx, stage: BackstoryStage): void {
   state.backstory.offered.push(...stage.offer.variants.filter((v) => drawn.has(v)));
 }
 
+/** Stream of the fates of the parents in `seedRng(seed, stream)` (D-481): the world stream is not touched. */
+const FATES_STREAM = 0x46415445;
+
+/**
+ * Draws the fates of the founder's parents at his birth (D-481): for each parent alive, father first, a day of the
+ * childhood between the ages of `fates.ages`, a disappearance with `missingPct` percent, else a death with a cause of
+ * `fates.causes`. From a stream of its own: the world is the same whatever the fates.
+ */
+function drawFates(ctx: Ctx, founder: Character, fates: NonNullable<BackstoryContent['fates']>): ParentFate[] {
+  const { state } = ctx;
+  const rng = seedRng(state.seed, FATES_STREAM);
+  const out: ParentFate[] = [];
+  const lo = Math.max(state.day + 1, shiftYears(founder.birthDay, fates.ages.min));
+  const hi = Math.max(lo, shiftYears(founder.birthDay, fates.ages.max + 1) - 1);
+  for (const id of [founder.father, founder.mother]) {
+    const parent = id === null ? null : findCharacter(state, id);
+    if (!parent || parent.deathDay !== null) continue;
+    const day = int(rng, lo, hi);
+    const missing = chancePer(rng, fates.missingPct, 100);
+    out.push({ person: parent.id, day, kind: missing ? 'missing' : 'death', cause: missing ? VANISHED : pick(rng, fates.causes), done: false });
+  }
+  return out;
+}
+
+/**
+ * Carries out the fates of the parents whose day has come (D-481): the line about the founder, dated today, then the
+ * death with its cause (a disappearance is a death with the cause `vanished`). A parent who died before keeps that death.
+ */
+function runFates(ctx: Ctx): void {
+  const { state, content } = ctx;
+  const fates = content.backstory?.fates;
+  const founder = state.backstory.founder === null ? null : findCharacter(state, state.backstory.founder);
+  for (const f of state.backstory.fates) {
+    if (f.done || f.day > state.day) continue;
+    f.done = true;
+    const parent = findCharacter(state, f.person);
+    if (!fates || !founder || !parent || parent.deathDay !== null) continue;
+    const key = `${parent.sex === 'male' ? 'father' : 'mother'}_${f.kind === 'missing' ? 'vanished' : 'died'}` as const;
+    const parts = fillTemplate(fates.texts[key], { ...placeholderValues(founder, state.day), ...personValues('parent', parent) });
+    log(ctx, { subject: founder, kind: 'backstory_fate', level: 'chronicle', parts });
+    kill(ctx, parent, f.cause ?? VANISHED);
+  }
+}
+
 /** Ends the backstory with the line "went out into the world", dated today (D-167, D-479). */
 function goOut(ctx: Ctx, leave: string): void {
   const { state } = ctx;
   const st = state.backstory;
+  // every fate falls before START_AGE_MIN (checkBackstory); one put off by a stopped day comes now, not never
+  runFates(ctx);
   st.running = false;
   st.next = null;
   st.lines = [];
@@ -189,7 +238,9 @@ export const backstoryOnNewGame: NewGameHook = (ctx) => {
   const first = ctx.state.chronicle.findIndex((e) => e.kind === 'start' && e.subject === founder.id);
   // on the clock no line is dated afterwards (D-479): each is dated the day it is written
   const lines = bs.fromBirth ? [] : [first === -1 ? ctx.state.chronicle.length : first];
-  ctx.state.backstory = { running: true, founder: founder.id, stage: 0, inStage: 0, offered: [], played: [], lines, dates: [], next: null, notBefore: 0, fates: [] };
+  // the fates of the parents are drawn at the birth, on the clock only (D-481)
+  const fates = bs.fromBirth && bs.fates ? drawFates(ctx, founder, bs.fates) : [];
+  ctx.state.backstory = { running: true, founder: founder.id, stage: 0, inStage: 0, offered: [], played: [], lines, dates: [], next: null, notBefore: 0, fates };
   advance(ctx);
 };
 
@@ -236,6 +287,7 @@ export const backstoryPhase: DayPhase = {
       drop(ctx);
       return state.status !== 'running';
     }
+    runFates(ctx);
     if (st.next === null || st.next > state.day || state.pendingEvent) return false;
     // an occupation of his own that ends today ends first (the phase of the end of the action comes later); the scene comes tomorrow
     const own = state.activeAction;

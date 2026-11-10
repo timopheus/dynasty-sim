@@ -1,4 +1,5 @@
 import { findAction } from '../actions/actions';
+import { inChildhood } from '../backstory/backstory';
 import { conditionReport } from '../condition-keys';
 import { factorParts, type FactorValue } from '../content/types';
 import type { EventDef } from '../events/content';
@@ -180,7 +181,8 @@ export const narratorPhase: DayPhase = {
     const pace = narratorContent(ctx.content);
     if (!state.pendingEvent) rollNpcEvent(ctx, pace);
     const active = state.activeAction;
-    if (!active) return false;
+    // the founder's childhood (D-479, T.3): only the scenes, at any age; the world around him lives on
+    if (!active || inChildhood(ctx)) return false;
     syncLife(state);
     const hero = getPlayer(state);
     const days = nominalDays(ctx, active.actionId);
