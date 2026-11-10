@@ -1,6 +1,6 @@
-import { partsText, type TextPart } from '../core/text/text';
+import type { TextPart } from '../core/text/text';
 import type { ActionRow } from './event';
-import { tr } from './i18n';
+import { localText, tr } from './i18n';
 
 /**
  * Phone and accessibility rules of the screen as pure functions (D-248, D-262): nothing is reachable by hover only,
@@ -83,7 +83,7 @@ export function control(prefix: string, position: number, name: string, note: st
 }
 
 export function plainLabel(label: readonly TextPart[]): string {
-  return partsText(label);
+  return localText(label);
 }
 
 /**

@@ -9,7 +9,9 @@ import type { Character, Ctx } from '../core/state';
 import { ageYears } from '../core/time/calendar';
 import { isNear } from '../core/world/world';
 import type { Tip } from './tips';
-import { localName, tr } from './i18n';
+import { ageText, localName, tr, trSex } from './i18n';
+
+const STRANGER = 'A stranger to you';
 
 /** Who a person is to the hero, in words: "Your father", "A close acquaintance". Only what the hero may know (D-037). */
 export function kinship(ctx: Ctx, id: string): string {
@@ -25,7 +27,7 @@ export function kinship(ctx: Ctx, id: string): string {
   const shares = (hero.father !== null && c.father === hero.father) || (hero.mother !== null && c.mother === hero.mother);
   if (shares) return word(tr('Your brother'), tr('Your sister'));
   const level = acquaintanceLevel(state, content, hero.id, id);
-  return level === 'close' ? tr('A close acquaintance') : level === 'known' ? tr('An acquaintance') : tr('A stranger to you');
+  return trSex(level === 'close' ? 'A close acquaintance' : level === 'known' ? 'An acquaintance' : STRANGER, c.sex);
 }
 
 /**
@@ -36,8 +38,8 @@ export function personTip(ctx: Ctx, id: string): Tip | null {
   const c = anyCharacter(ctx.state, id);
   if (!c) return null;
   const who = kinship(ctx, id);
-  const known = who !== tr('A stranger to you');
-  const age = known ? `, ${c.deathDay === null ? tr('aged {age}', { age: ageYears(c.birthDay, ctx.state.day) }) : tr('dead')}` : c.deathDay !== null ? `, ${tr('dead')}` : '';
+  const known = who !== trSex(STRANGER, c.sex);
+  const age = known ? `, ${c.deathDay === null ? ageText(ageYears(c.birthDay, ctx.state.day)) : tr('dead')}` : c.deathDay !== null ? `, ${tr('dead')}` : '';
   return { title: localName(fullName(c)), text: `${who}${age}.` };
 }
 

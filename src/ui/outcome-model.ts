@@ -12,9 +12,9 @@ import { fullName } from '../core/character/character';
 import { eventView } from '../core/events/view';
 import { currentScene, pendingEventDef } from '../core/events/events';
 import { ownOutcome } from '../core/events/content';
-import { partsText, type TextPart } from '../core/text/text';
+import type { TextPart } from '../core/text/text';
 import { withNumber } from './access';
-import { crownsText, localName, tr } from './i18n';
+import { crownsText, localName, localText, tr } from './i18n';
 
 /**
  * The outcome of a choice with something at stake (D-440): what was written that day and what changed in the hero.
@@ -97,7 +97,7 @@ function isWeighty(ctx: Ctx, option: number): boolean {
 /** The label of the option, without links; empty for a notice. */
 function chosenLabel(ctx: Ctx, option: number): string {
   const text = eventView(ctx)?.options.find((o) => o.index === option)?.text;
-  return text ? partsText(text) : '';
+  return text ? localText(text) : '';
 }
 
 /** Taken just before the `choose` command for option `option` is applied. */
@@ -180,7 +180,7 @@ export function newsOf(ctx: Ctx, before: BeforeChoice): string | null {
   const after = heroSnapshot(ctx);
   const changes = state.day === day && state.playerId === before.hero.id ? diff(ctx.content, before.hero, after) : [];
   const aftermath = aftermathOf(ctx);
-  const story = aftermath ? partsText(aftermath) : before.choice;
+  const story = aftermath ? localText(aftermath) : before.choice;
   const words = [story, ...changes.map((c) => changeWords(c, before.hero, after))].filter(Boolean);
   return words.length ? words.join(' · ') : null;
 }

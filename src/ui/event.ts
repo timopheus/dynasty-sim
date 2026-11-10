@@ -2,10 +2,10 @@ import { actionAvailability } from '../core/actions/actions';
 import type { ChanceBand } from '../core/events/checks';
 import { eventView, type OptionView } from '../core/events/view';
 import type { Ctx } from '../core/state';
-import { partsText, type TextPart } from '../core/text/text';
+import type { TextPart } from '../core/text/text';
 import { control, plainLabel, type Control } from './access';
 import type { Tip } from './tips';
-import { daysRangeText, tr } from './i18n';
+import { daysRangeText, localText, tr } from './i18n';
 
 /** Words of the chance bands (D-042, D-175), in English: the core gives ids, the screen words them (`chanceWord`). */
 export const CHANCE_WORDS: Record<ChanceBand, string> = {
@@ -126,7 +126,7 @@ export function optionControl(o: OptionRow, position: number): Control {
 /** Text for the live region when a new event page appears: the event, then its options with keys. */
 export function eventAnnouncement(text: readonly TextPart[], controls: readonly Control[]): string {
   const options = controls.map((c) => `${c.text}${c.note ? ` ${c.note}` : ''}${c.reason ? `. ${c.reason}` : ''}`).join('. ');
-  return tr('New event. {text} Choices: {options}.', { text: partsText(text), options });
+  return tr('New event. {text} Choices: {options}.', { text: localText(text), options });
 }
 
 /** Identity of an event page, so a page is announced once (D-264). */

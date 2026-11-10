@@ -1,6 +1,7 @@
 import type { Content } from '../core/content/schema';
 import { localName as coreLocalName } from '../core/lang/phrases';
 import type { Case } from '../core/text/forms';
+import type { TextPart } from '../core/text/text';
 import { toYmd } from '../core/time/calendar';
 import { RU, RU_MAP_NAMES } from './i18n-ru';
 
@@ -58,6 +59,20 @@ export function ruPlural(n: number, one: string, few: string, many: string): str
   return many;
 }
 
+/**
+ * A text of the interface about a person, in the form of the person's sex: the Russian for a woman is keyed
+ * `<English>~f` in `i18n-ru.ts` ("Знакомая"), and falls back to the common one; English needs none.
+ */
+export function trSex(text: string, sex: 'male' | 'female'): string {
+  if (lang === 'ru' && sex === 'female' && RU[`${text}~f`] !== undefined) return RU[`${text}~f`] as string;
+  return tr(text);
+}
+
+/** "aged 21" / "21 год". */
+export function ageText(n: number): string {
+  return lang === 'ru' ? `${n} ${ruPlural(n, 'год', 'года', 'лет')}` : `aged ${n}`;
+}
+
 /** "3 days" / "3 дня". */
 export function daysText(n: number): string {
   return lang === 'ru' ? `${n} ${ruPlural(n, 'день', 'дня', 'дней')}` : `${n} ${n === 1 ? 'day' : 'days'}`;
@@ -112,6 +127,11 @@ let russian: Content | null = null;
 /** The names of people and places of the language of `content` (its `declensions`), for `localName`. */
 export function useNames(content: Content): void {
   russian = content;
+}
+
+/** Parts of a line as plain text in the language chosen: every name in its case (RU.1). */
+export function localText(parts: readonly TextPart[]): string {
+  return parts.map((p) => (typeof p === 'string' ? p : localName(p.name, p.case ?? 'nom'))).join('');
 }
 
 /** A name in the language chosen and in a case (RU.1), by the forms of the language (`core/lang/phrases.ts`). */

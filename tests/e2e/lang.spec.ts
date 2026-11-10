@@ -34,11 +34,18 @@ async function choices(page: Page) {
   return (await page.locator('.modal-layer').count()) > 0 ? page.locator('.modal-layer .option button.choice') : page.locator('.actions-panel button.action:not(.grey):not([data-action="board"]):visible');
 }
 
-/** Answers the scenes of the early years until the game screen is there. */
-async function growUp(page: Page): Promise<void> {
+/**
+ * Answers the scenes of the early years until the game screen is there, reading every scene for Latin first: the
+ * names in a scene and in its choices are those of the family (a choice once showed "Isabel Merrick").
+ */
+async function growUp(page: Page, seen: Set<string>): Promise<void> {
   for (let i = 0; i < 40; i++) {
     if ((await page.locator('.backstory-screen').count()) === 0 && (await page.locator('.modal-layer').count()) === 0) return;
-    await page.locator('.modal-layer .option button.choice').first().click({ timeout: 2_000 }).catch(() => undefined);
+    for (const w of await latin(page)) seen.add(w);
+    // a different choice each scene, so the scenes that name people come up too
+    const buttons = page.locator('.modal-layer .option button.choice');
+    const n = await buttons.count();
+    await buttons.nth(n > 0 ? i % n : 0).click({ timeout: 2_000 }).catch(() => undefined);
   }
   throw new Error('the hero never grew up');
 }
@@ -47,7 +54,8 @@ test('menu → Russian → 50 turns: no English on the screen, the choice holds 
   test.setTimeout(240_000);
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=1&dev=1');
+  // seed 3: the second scene of the early years names a friend in its choices
+  await page.goto('/?seed=3&dev=1');
   await expect(page.locator('.backstory-screen')).toBeVisible();
   await expect(page.locator('.modal.event .modal-title')).toHaveText(/^Age \d+$/);
   const english = await page.locator('.backstory-screen').innerText();
@@ -58,11 +66,13 @@ test('menu → Russian → 50 turns: no English on the screen, the choice holds 
   // before the first choice the game begins anew in Russian: the same seed, the same hero, the words Russian
   await expect(page.locator('.modal.event .modal-title')).toHaveText(/^Возраст \d+$/);
   await expect(page.locator('.backstory-screen')).not.toHaveText(english);
-  await expect(page.locator('.backstory-screen')).toHaveAttribute('data-seed', '1');
+  await expect(page.locator('.backstory-screen')).toHaveAttribute('data-seed', '3');
   expect(await latin(page), 'Latin on the first screen').toEqual([]);
   await page.screenshot({ path: 'out/e2e/ru-1-backstory.png' });
 
-  await growUp(page);
+  const early = new Set<string>();
+  await growUp(page, early);
+  expect([...early].sort(), 'Latin in the scenes of the early years').toEqual([]);
   await expect(page.locator(DATE).first()).toBeVisible();
   expect(await latin(page), 'Latin on the game screen').toEqual([]);
   await page.screenshot({ path: 'out/e2e/ru-2-start.png' });
