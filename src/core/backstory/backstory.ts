@@ -79,7 +79,9 @@ export const backstoryInvariants: Invariant = ({ state, content }) => {
     if (st.running && st.stage > bs.stages.length) problems.push(`backstory: stage ${st.stage} is past the last one`);
     if (st.dates.length > bs.stages.length) problems.push('backstory: more stage dates than stages');
   } else if (st.running) problems.push('backstory: running without a backstory in the content');
-  if (st.running && st.founder !== state.playerId) problems.push('backstory: running for someone who is not the hero');
+  // a founder who died today is dropped by the next phase of the backstory or the next choice (until T.3 keeps him alive, D-480)
+  const founderAlive = state.characters.some((c) => c.id === st.founder && c.deathDay === null);
+  if (st.running && founderAlive && st.founder !== state.playerId) problems.push('backstory: running for someone who is not the hero');
   if (!st.running && st.lines.length > 0) problems.push('backstory: line marks left after the end');
   let prev = 0;
   for (const i of st.lines) {

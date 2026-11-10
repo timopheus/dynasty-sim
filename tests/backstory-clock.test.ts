@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { allChronicle } from '../src/core/archive/archive';
-import { EARLY_YEARS } from '../src/core/backstory/phases';
+import { backstoryAfterChoice, EARLY_YEARS } from '../src/core/backstory/phases';
 import { START_AGE_MAX, START_AGE_MIN } from '../src/core/backstory/content';
 import { shiftYears } from '../src/core/backstory/effects';
 import { botCommand } from '../src/core/bot';
@@ -174,6 +174,28 @@ describe('the backstory on one clock (D-479)', () => {
       const lines = allChronicle(run.state).filter((e) => e.kind !== 'start' && e.kind !== 'backstory_end' && e.subject === run.state.playerId && e.level === 'chronicle');
       for (const line of lines) expect(sceneDays.includes(line.day) || !birthdays.has(line.day)).toBe(true);
     }
+  });
+
+  it('never replaces an occupation of the founder\'s own; the scene still comes on its day', () => {
+    const state = newGame(4, content);
+    const bot = seedRng(4, 7);
+    // to the wait before the childhood scene
+    let guard = 0;
+    while (state.backstory.played.length < 1 || state.status !== 'running') {
+      if (++guard > 5000) throw new Error('no wait before the childhood scene');
+      apply(state, content, state.status === 'running' ? { type: 'wait', days: 1 } : botCommand(state, content, bot));
+    }
+    const next = state.backstory.next!;
+    expect(next).toBeGreaterThan(state.day);
+    // an illness broke off the early years, and the child rests: a choice in some event must not undo it
+    state.activeAction = { actionId: 'rest', endDay: next + 30, target: null, contract: null };
+    backstoryAfterChoice({ state, content });
+    expect(state.activeAction.actionId).toBe('rest');
+    while (state.day < next && state.status === 'running') apply(state, content, { type: 'wait', days: 1 });
+    expect(state.day).toBe(next);
+    expect(state.pendingEvent?.eventId).toMatch(/^childhood_/);
+    expect(state.activeAction?.actionId).toBe('rest');
+    expect(checkInvariants(state, content)).toEqual([]);
   });
 
   it('play() and the bot live through the childhood by themselves; the run keeps its invariants', () => {

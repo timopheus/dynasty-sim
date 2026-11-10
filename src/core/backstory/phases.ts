@@ -103,12 +103,17 @@ function nextDay(ctx: Ctx, stages: readonly BackstoryStage[]): number {
   return day;
 }
 
-/** The founder waits for `day` in the hidden action `early_years`: time runs until the day of the scene (D-439). */
+/**
+ * The founder waits for `day` in the hidden action `early_years`: time runs until the day of the scene (D-439). An
+ * occupation of his own under way (after an illness broke off the early years) is never replaced: the scene still comes
+ * on its day, the backstory phase looks at the day, not at the action.
+ */
 function waitFor(ctx: Ctx, day: number): void {
   const { state } = ctx;
   state.backstory.next = day;
   const active = state.activeAction;
-  if (active?.actionId !== EARLY_YEARS || active.endDay !== day) state.activeAction = { actionId: EARLY_YEARS, endDay: day, target: null, contract: null };
+  if (active !== null && active.actionId !== EARLY_YEARS) return;
+  if (active?.endDay !== day) state.activeAction = { actionId: EARLY_YEARS, endDay: day, target: null, contract: null };
   if (!state.pendingEvent) state.status = 'running';
 }
 
@@ -150,7 +155,7 @@ function advance(ctx: Ctx): void {
 
 /**
  * The old way only (until T.4). Dates the lines of the backstory by age (D-324): from the founder's first line to the first stage — the day of
- * birth (after every `age_years`); the lines of a stage with `age` — that birthday; of a stage without it — the start
+ * birth (after every `years`); the lines of a stage with `age` — that birthday; of a stage without it — the start
  * of the game, today. No day passes in the world: only the dates of the lines change, they never fall and never
  * pass today. Spends no randomness.
  */
@@ -235,8 +240,8 @@ export const backstoryPhase: DayPhase = {
     advanceOnClock(ctx);
     if (state.pendingEvent) return true;
     if (st.running) return false;
-    // the backstory is over: the player chooses the first action
-    state.activeAction = null;
+    // the backstory is over: the player chooses the first action; an occupation of his own goes on
+    if (state.activeAction !== null) return false;
     state.status = 'awaiting_action';
     return true;
   },

@@ -102,7 +102,7 @@ export const checkBackstory: CrossCheck = ({ backstory, events, actions, setting
     if (item.actions?.includes(EARLY_YEARS)) errors.push({ file, path: `events[${index}].actions`, message: `${EARLY_YEARS} has no events: the child founder gets only the scenes (D-479)` });
   }
   for (const { file, index, item } of events) {
-    for (const at of findKeys({ when: item.when, options: item.options, pages: item.pages }, ['backstory_only'], `events[${index}]`)) errors.push({ file, path: at, message: 'backstory_only is for an action' });
+    for (const at of findKeys({ when: item.when, roles: item.roles, options: item.options, pages: item.pages }, ['backstory_only'], `events[${index}]`)) errors.push({ file, path: at, message: 'backstory_only is for an action' });
   }
   if (!content) return errors;
   const { file, item: bs } = content;
