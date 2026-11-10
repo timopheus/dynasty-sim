@@ -482,17 +482,20 @@ test('a tip of the focus freezes while the clock runs, and Tab out of its last l
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/?seed=7');
   await growUp(page);
+  const date = () => page.locator('.clock .date').textContent();
   await page.mouse.move(700, 300);
+  await page.keyboard.press('Space');
+  // the command that starts living has its own redraw, which moves the focus: wait until the days run
+  const first = await date();
+  await expect.poll(date, { timeout: 10_000 }).not.toBe(first);
   await page.locator('.avatar-button').focus();
   await tabToTip(page, /Crowns in your purse/, 60);
-  // the clock runs: a day is a second, the ring takes two, and the redraw of each day must not start it again
-  await page.locator('.clock-toggle').click();
+  // a day is a second and the ring takes two: the redraw of each day must not start the ring again
   const tip = page.locator('#tooltip');
   await expect(tip).toHaveClass(/locked/, { timeout: 6_000 });
   await page.keyboard.press('Tab');
   await expect(page.locator('#tooltip .tip-concept:focus')).toHaveCount(1);
   // a day passes with the focus in the tip: the tip and the focus stay
-  const date = () => page.locator('.clock .date').textContent();
   const before = await date();
   await expect.poll(date, { timeout: 10_000 }).not.toBe(before);
   await expect(page.locator('#tooltip .tip-concept:focus')).toHaveCount(1);
