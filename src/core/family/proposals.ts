@@ -1,3 +1,4 @@
+import { inChildhood } from '../backstory/backstory';
 import { findCharacter } from '../helpers';
 import type { Character, Ctx } from '../state';
 import { isNear } from '../world/world';
@@ -45,7 +46,7 @@ function fits(ctx: Ctx, suitor: Character, target: Character): boolean {
  */
 export function proposalOptions(ctx: Ctx, id: string): ProposalOption[] {
   const { state, content } = ctx;
-  if (!content.family || (state.status !== 'awaiting_action' && state.status !== 'running')) return [];
+  if (!content.family || inChildhood(ctx) || (state.status !== 'awaiting_action' && state.status !== 'running')) return [];
   const person = findCharacter(state, id);
   if (!person) return [];
   const near = nearPeople(ctx);
@@ -62,6 +63,7 @@ export function proposalOptions(ctx: Ctx, id: string): ProposalOption[] {
 /** True if the match is one `proposalOptions` offers for some page: the check of the command `propose`. */
 export function proposalAllowed(ctx: Ctx, suitorId: string, targetId: string): boolean {
   const { state } = ctx;
+  if (inChildhood(ctx)) return false; // no grown-up commands in the childhood on the clock (D-479)
   const target = findCharacter(state, targetId);
   if (!target) return false;
   const suitor = suitors(ctx, nearPeople(ctx)).find((s) => s.id === suitorId);

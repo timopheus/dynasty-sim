@@ -1,6 +1,7 @@
 import { fullName } from '../character/character';
 import { personValues, placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
+import { inChildhood } from '../backstory/backstory';
 import { conditionReport } from '../condition-keys';
 import { findCharacter, getPlayer } from '../helpers';
 import { createCharacter } from '../hooks';
@@ -250,7 +251,10 @@ export function willReasons(ctx: Ctx): string[] | null {
   if (!pace) return null;
   const hero = getPlayer(state);
   const when = { age_min: content.settings.adultAge, money_min: pace.willCost, fit: true as const };
-  return conditionReport(ctx, hero, when, { hero: hero.id, protagonist: hero.id }).reasons;
+  const reasons = conditionReport(ctx, hero, when, { hero: hero.id, protagonist: hero.id }).reasons;
+  // The childhood on the clock (D-479): no grown-up commands, whatever the age.
+  if (inChildhood(ctx)) reasons.unshift(pace.texts.childhoodReason ?? 'A child makes no will');
+  return reasons;
 }
 
 /**

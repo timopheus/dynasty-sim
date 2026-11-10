@@ -40,6 +40,8 @@ export const SuccessionContentSchema = z.strictObject({
     /** The will is out of date (D-314): a child was born, or a person it names died (`{other}`). */
     willStaleBirth: Text,
     willStaleDeath: Text,
+    /** Reason the will is refused while the founder's childhood on the clock lasts (D-479, T.2). */
+    childhoodReason: Text.optional(),
   }),
 });
 
@@ -58,6 +60,7 @@ const TEXT_EXTRAS: Record<keyof SuccessionContent['texts'], string[]> = {
   willSignedNoHeir: [],
   willStaleBirth: [],
   willStaleDeath: ['other'],
+  childhoodReason: [],
 };
 
 function checkText(text: string, extras: string[]): string | null {
@@ -89,7 +92,9 @@ export const checkSuccession: CrossCheck = ({ succession, actions, opinions }) =
     if (!kind) err('guardianRelation', `unknown relation kind "${item.guardianRelation}"`);
     else if (kind.symmetric) err('guardianRelation', `relation kind "${kind.id}" must not be symmetric: the guardian is its a`);
     for (const [key, extras] of Object.entries(TEXT_EXTRAS)) {
-      const problem = checkText(item.texts[key as keyof SuccessionContent['texts']], extras);
+      const text = item.texts[key as keyof SuccessionContent['texts']];
+      if (text === undefined) continue;
+      const problem = checkText(text, extras);
       if (problem) err(`texts.${key}`, problem);
     }
   }

@@ -26,6 +26,43 @@ function spawnNewcomer(ctx: Ctx, population: PopulationContent): Character {
   return c;
 }
 
+/** Peers of a child hero (D-479, T.2): the span of ages around the hero, and how many the circle holds. */
+const PEER_SPREAD = 3;
+const PEERS = { min: 2, max: 4 };
+
+function isPeer(ctx: Ctx, c: Character, heroAge: number): boolean {
+  return Math.abs(ageYears(c.birthDay, ctx.state.day) - heroAge) <= PEER_SPREAD;
+}
+
+function heroAgeIfChild(ctx: Ctx): number | null {
+  const hero = ctx.state.characters.find((c) => c.id === ctx.state.playerId);
+  if (!hero) return null;
+  const age = ageYears(hero.birthDay, ctx.state.day);
+  return age < ctx.content.settings.adultAge ? age : null;
+}
+
+/**
+ * While the hero is a child the neighbours' children grow up beside them (D-479): when fewer than `PEERS.min` people of
+ * the circle are within `PEER_SPREAD` years of the hero, children of that age join, up to a draw of `PEERS.min…max`.
+ * They do not drift away while the hero is a child. Never grows the circle beyond its hard cap.
+ */
+function ensurePeers(ctx: Ctx, population: PopulationContent): void {
+  const { state } = ctx;
+  const heroAge = heroAgeIfChild(ctx);
+  if (heroAge === null) return;
+  const peers = state.circle.filter((id) => {
+    const c = state.characters.find((x) => x.id === id);
+    return c !== undefined && c.deathDay === null && isPeer(ctx, c, heroAge);
+  }).length;
+  if (peers >= PEERS.min) return;
+  const want = int(state.rng, PEERS.min, PEERS.max);
+  const ages = { min: Math.max(0, heroAge - PEER_SPREAD), max: heroAge + PEER_SPREAD };
+  for (let i = peers; i < want && state.circle.length < population.circle.max; i++) {
+    const c = createCharacter(ctx, { surname: pick(state.rng, ctx.content.names.surnames), age: ages });
+    state.circle.push(c.id);
+  }
+}
+
 /** Fills the circle up to its lower bound with new people. */
 function refillCircle(ctx: Ctx, population: PopulationContent): void {
   while (ctx.state.circle.length < population.circle.min) spawnNewcomer(ctx, population);
@@ -72,12 +109,14 @@ function applyMove(ctx: Ctx, population: PopulationContent, move: MoveDef): void
 function yearlyTick(ctx: Ctx, population: PopulationContent): void {
   const { state } = ctx;
   let inCircle = new Set(state.circle);
+  const heroAge = heroAgeIfChild(ctx);
   // Deaths do not add characters, and nobody far is the hero, so the list is stable while we walk it.
   for (const c of state.characters) {
     // The hero and the household are simulated day by day (D-313, D-354): no yearly roll of the far for them.
     if (c.deathDay !== null || c.id === state.playerId || state.household.includes(c.id)) continue;
     const age = ageYears(c.birthDay, state.day);
     if (inCircle.has(c.id)) {
+      if (heroAge !== null && isPeer(ctx, c, heroAge)) continue; // the hero's peers stay while the hero is a child (D-479)
       if (chancePer(state.rng, population.driftPer10k, 10000)) {
         leaveCircle(state, c.id);
         inCircle.delete(c.id);
@@ -127,6 +166,7 @@ export const worldPhase: DayPhase = {
         applyMove(ctx, population, move);
       }
     }
+    ensurePeers(ctx, population);
     refillCircle(ctx, population);
     return false;
   },
@@ -137,5 +177,7 @@ export const worldPhase: DayPhase = {
  * The first world phase then finds it full and only starts the yearly clock.
  */
 export const worldOnNewGame: NewGameHook = (ctx) => {
-  if (ctx.content.population) refillCircle(ctx, ctx.content.population);
+  if (!ctx.content.population) return;
+  ensurePeers(ctx, ctx.content.population);
+  refillCircle(ctx, ctx.content.population);
 };

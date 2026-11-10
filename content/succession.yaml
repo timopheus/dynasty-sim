@@ -24,3 +24,5 @@ succession:
     willSignedNoHeir: "{name} made a will and left the choice of the heir to the law."
     willStaleBirth: "With a child born since, the will of {name} no longer said all it should."
     willStaleDeath: "With {other} dead, the will of {name} was out of date."
+    # Reason shown while the founder is still living through the childhood.
+    childhoodReason: "A child makes no will"
