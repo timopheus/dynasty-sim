@@ -8,7 +8,7 @@ from PIL import Image
 src, out, prefix = sys.argv[1:4]
 FW, FH = map(int, (sys.argv[4] if len(sys.argv) > 4 else '80x100').split('x'))
 im = Image.open(src).convert('RGB'); W, H = im.size; px = im.load()
-bg = Counter(im.getdata()).most_common(1)[0][0]
+bg = Counter(im.get_flattened_data() if hasattr(im, 'get_flattened_data') else im.getdata()).most_common(1)[0][0]
 seen = [[False] * W for _ in range(H)]; blobs = []
 for y in range(H):
     for x in range(W):
@@ -31,7 +31,11 @@ for i, b in enumerate(blobs):
     name = f'{prefix}-{i + 1:02d}'
     if why: report.append((name, w, h, 'REJECT ' + ','.join(why))); continue
     fr = Image.new('RGB', (FW, FH), bg); fp = fr.load(); ox = (FW - w) // 2; oy = FH - h
-    for (a, c) in b: fp[a - x0 + ox, c - y0 + oy] = px[a, c]
+    owned = set(b)  # copy the whole box: fragments split off by background-coloured pixels (white wigs, lace) stay;
+    others = {q for o in blobs if o is not b for q in o if x0 <= q[0] <= x1 and y0 <= q[1] <= y1}  # but not a neighbour's
+    for yy in range(y0, y1 + 1):
+        for xx in range(x0, x1 + 1):
+            if (xx, yy) not in others: fp[xx - x0 + ox, yy - y0 + oy] = px[xx, yy]
     fr.save(os.path.join(out, name + '.png')); report.append((name, w, h, 'ok'))
 for r in report: print(*r)
 print('kept', sum(r[3] == 'ok' for r in report), 'of', len(report), 'bg', '#%02x%02x%02x' % bg)
