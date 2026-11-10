@@ -315,15 +315,21 @@ function wait(target: HTMLElement, by: By, parent: number): void {
   if (pending?.target === target || stack[parent + 1]?.source === target) return;
   cancelPending();
   if (document.querySelector('.person-menu')) return;
-  const timer = window.setTimeout(() => {
+  const fire = (tries: number): void => {
     const p = pending;
-    pending = null;
     if (!p) return;
     const t = p.target;
     // still under the pointer (a scroll may have moved it away), still with the focus (the window may have lost it)
     const still = p.by === 'pointer' ? holder(document.elementFromPoint(mouse.x, mouse.y)) === t : holder(document.activeElement) === t && document.hasFocus();
-    if (t.isConnected && still) open(t, p.by, p.parent);
-  }, TIP_DELAY_MS);
+    if (t.isConnected && still) {
+      pending = null;
+      open(t, p.by, p.parent);
+    } else if (p.by === 'focus' && focusIntent !== null && tries < 20) {
+      // a redraw of the day may hold the focus off its node for a moment: the keyboard's wish is still there, so wait on
+      p.timer = window.setTimeout(() => fire(tries + 1), 100);
+    } else pending = null;
+  };
+  const timer = window.setTimeout(() => fire(0), TIP_DELAY_MS);
   pending = { target, by, parent, timer };
   // the keyboard's wish lasts until the pointer or a key takes over
   if (parent < 0) focusIntent = by === 'focus' ? idOf(target) : null;
