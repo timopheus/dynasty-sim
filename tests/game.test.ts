@@ -10,6 +10,7 @@ import { checkInvariants } from '../src/core/invariants';
 import type { GameState } from '../src/core/state';
 import { ageYears } from '../src/core/time/calendar';
 import { fixtureContent, fixtureNarrator, realContent } from './fixtures/content';
+import { growUp, withoutBackstory } from './fixtures/grow-up';
 
 /** Starts an action and answers every event with the given option; returns [day, eventId] of each event. */
 function runAction(state: GameState, content: Content, actionId: string, option = 1): [number, string][] {
@@ -91,14 +92,16 @@ describe('game loop', () => {
     expect(checkInvariants(state, content)).toEqual([]);
   });
 
-  it('creates the first head of the house within the configured age range', () => {
-    const content = realContent();
+  it('creates the first head of the house within the configured age range, or born on day 0 with a backstory (D-479)', () => {
+    const real = realContent();
+    const content = withoutBackstory(real);
     const { min, max } = content.settings.startAge;
     for (let seed = 0; seed < 1000; seed++) {
       const founder = getPlayer(newGame(seed, content));
       const age = ageYears(founder.birthDay, 0);
       expect(age >= min && age <= max, `seed ${seed}: age ${age}`).toBe(true);
     }
+    for (let seed = 0; seed < 20; seed++) expect(getPlayer(newGame(seed, real)).birthDay).toBe(0);
   });
 });
 
@@ -202,9 +205,8 @@ describe('time moves only by wait (D-439)', () => {
 
   it('while running, another start switches the action (S.6); a will and a proposal are taken too (live time)', () => {
     const content = realContent();
-    const state = newGame(7, content);
     // through the backstory to the first action
-    while (state.status === 'awaiting_choice') apply(state, content, { type: 'choose', option: firstOption(state, content) });
+    const state = growUp(newGame(7, content), content);
     apply(state, content, { type: 'start', actionId: 'rest' });
     expect(state.status).toBe('running');
     const hero = getPlayer(state).id;
@@ -225,8 +227,7 @@ describe('time moves only by wait (D-439)', () => {
 
   it('going to the notary breaks off a busy action with a journal line, as start does (D-453)', () => {
     const content = realContent();
-    const state = newGame(7, content);
-    while (state.status === 'awaiting_choice') apply(state, content, { type: 'choose', option: firstOption(state, content) });
+    const state = growUp(newGame(7, content), content);
     apply(state, content, { type: 'start', actionId: 'rest' });
     getPlayer(state).money = 1000;
     const lines = state.chronicle.length;
@@ -245,8 +246,8 @@ describe('time moves only by wait (D-439)', () => {
 
   it('a choice does not move time either', () => {
     const content = realContent();
-    const state = newGame(7, content);
     // through the backstory to the first event of an action
+    const state = growUp(newGame(7, content), content);
     while (state.status !== 'ended' && !(state.status === 'awaiting_choice' && state.activeAction)) {
       if (state.status === 'awaiting_choice') play(state, content, { type: 'choose', option: firstOption(state, content) });
       else play(state, content, { type: 'start', actionId: 'rest' });

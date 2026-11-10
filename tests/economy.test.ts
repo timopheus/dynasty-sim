@@ -12,6 +12,7 @@ import { checkInvariants } from '../src/core/invariants';
 import type { Character, Ctx, GameState } from '../src/core/state';
 import { fromYmd, toYmd } from '../src/core/time/calendar';
 import { fixtureContent, realContent } from './fixtures/content';
+import { growUp } from './fixtures/grow-up';
 
 /** The points of the economy (S.5a, D-441): prices by level as parts of the reference income of the house status. */
 describe('economy points (D-441)', () => {
@@ -83,7 +84,7 @@ describe('monthly balance (S.7)', () => {
 
   /** A hero of plain Stewardship (5), no traits, no kin, doing `action`, of the house status `status`. */
   function setup(action: string | null, status = 'commoner') {
-    const state = newGame(1, content);
+    const state = growUp(newGame(1, content), content);
     const ctx: Ctx = { state, content };
     const hero = getPlayer(state);
     hero.baseStats.stewardship = 5;
@@ -194,13 +195,18 @@ describe('monthly balance (S.7)', () => {
     }
   }
 
+  // the founder grows up on the clock (T.4): the months are counted from the new year after he goes out
+  const nextYear = (s: ReturnType<typeof setup>): number => toYmd(s.state.day).year + 1;
+
   it('on the first of each month the hero gets the balance, without a line in the chronicle', () => {
     const s = setup('serve_contract');
-    s.state.activeAction = { actionId: 'serve_contract', endDay: 100000, target: null, contract: null };
+    s.state.activeAction = { actionId: 'serve_contract', endDay: 1000000, target: null, contract: null };
+    const y = nextYear(s);
+    runTo(s.state, fromYmd(y, 1, 2));
     const money = s.hero.money;
     const lines = s.state.chronicle.length;
-    runTo(s.state, fromYmd(1700, 4, 1));
-    // The first day only notes the month; Feb, Mar and Apr pay.
+    runTo(s.state, fromYmd(y, 4, 1));
+    // Feb, Mar and Apr pay.
     expect(s.hero.money).toBe(money + 3 * 8);
     expect(s.state.economy.balance).toBe(8);
     expect(s.state.chronicle.length).toBe(lines);
@@ -208,30 +214,34 @@ describe('monthly balance (S.7)', () => {
 
   it('a day the phase never sees does not lose the month', () => {
     const s = setup('serve_contract');
-    s.state.activeAction = { actionId: 'serve_contract', endDay: 100000, target: null, contract: null };
+    s.state.activeAction = { actionId: 'serve_contract', endDay: 1000000, target: null, contract: null };
+    const y = nextYear(s);
+    runTo(s.state, fromYmd(y, 1, 20));
     const money = s.hero.money;
-    runTo(s.state, fromYmd(1700, 1, 20));
     // Feb 1 and Mar 1 are skipped by an event; the phase runs again on Mar 2.
-    s.state.day = fromYmd(1700, 3, 1);
-    runTo(s.state, fromYmd(1700, 3, 2));
+    s.state.day = fromYmd(y, 3, 1);
+    runTo(s.state, fromYmd(y, 3, 2));
     expect(s.hero.money).toBe(money + 2 * 8);
-    expect(s.state.economy.month).toBe(1700 * 12 + 2);
+    expect(s.state.economy.month).toBe(y * 12 + 2);
   });
 
   it('going into debt writes one line and not more often than once a year', () => {
     const s = setup('travel');
-    s.state.activeAction = { actionId: 'travel', endDay: 100000, target: null, contract: null };
+    s.state.activeAction = { actionId: 'travel', endDay: 1000000, target: null, contract: null };
     s.state.pendingEvent = null;
+    const y = nextYear(s);
+    runTo(s.state, fromYmd(y, 1, 2));
     s.hero.money = 10;
-    const debt = () => s.state.chronicle.filter((e) => e.kind === 'economy').length;
-    runTo(s.state, fromYmd(1700, 4, 1));
+    const before = s.state.chronicle.filter((e) => e.kind === 'economy').length;
+    const debt = () => s.state.chronicle.filter((e) => e.kind === 'economy').length - before;
+    runTo(s.state, fromYmd(y, 4, 1));
     expect(s.hero.money).toBeLessThan(0);
     expect(debt()).toBe(1);
     s.hero.money = 1;
-    runTo(s.state, fromYmd(1700, 12, 31));
+    runTo(s.state, fromYmd(y, 12, 31));
     expect(debt()).toBe(1);
     s.hero.money = 1;
-    runTo(s.state, fromYmd(1701, 3, 1));
+    runTo(s.state, fromYmd(y + 1, 3, 1));
     expect(debt()).toBe(2);
     expect(checkInvariants(s.state, content).filter((p) => p.startsWith('economy'))).toEqual([]);
   });

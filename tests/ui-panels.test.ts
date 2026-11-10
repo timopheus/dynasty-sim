@@ -12,6 +12,7 @@ import { sidebarPage, visit } from '../src/ui/sidebar-model';
 import { whereView } from '../src/ui/where-model';
 import { entityHref, entityIdFromHash } from '../src/ui/address';
 import { BASE_FILES, loadOrThrow, realContent } from './fixtures/content';
+import { withoutBackstory } from './fixtures/grow-up';
 import { readContentFiles } from '../tools/content-files';
 
 const eventContent: Content = loadOrThrow([
@@ -57,7 +58,7 @@ describe('header', () => {
 
 describe('where I am', () => {
   it('names the action and the days left, never a day of a total', () => {
-    const content = realContent();
+    const content = withoutBackstory(realContent());
     const state = newGame(5, content);
     const ctx: Ctx = { state, content };
     state.backstory.running = false;

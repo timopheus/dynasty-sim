@@ -17,6 +17,7 @@ import { fromYmd } from '../src/core/time/calendar';
 import { loadContent } from '../src/core/content/load';
 import { readContentFiles } from '../tools/content-files';
 import { BASE_FILES, loadOrThrow, realContent } from './fixtures/content';
+import { withoutBackstory } from './fixtures/grow-up';
 
 const content: Content = loadOrThrow([...BASE_FILES, ...readContentFiles('tests/fixtures/time')]);
 
@@ -71,7 +72,7 @@ describe('conditions', () => {
   });
 
   it('does not let winter quarters start in summer in the real content', () => {
-    const real = realContent();
+    const real = withoutBackstory(realContent());
     const state = newGame(1, real);
     getPlayer(state).money = 500;
     state.day = fromYmd(1700, 7, 1);

@@ -13,10 +13,12 @@ import { runSim } from '../src/core/sim';
 import type { Character, Ctx } from '../src/core/state';
 import { fromYmd } from '../src/core/time/calendar';
 import { realContent } from './fixtures/content';
+import { withoutBackstory } from './fixtures/grow-up';
 
 const content = realContent();
 // Without families (4.5): `setup` skips 21 years at once, and the kin of the start would grow up without occupations.
-const noFamilies = { ...content, family: null };
+// No backstory either: on the clock (T.4) a newborn founder would wait for a scene in 1700.
+const noFamilies = { ...withoutBackstory(content), family: null };
 
 afterEach(() => {
   vi.restoreAllMocks();
