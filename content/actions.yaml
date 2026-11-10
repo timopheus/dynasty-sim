@@ -23,6 +23,16 @@ actions:
     idle: true
     text: "{name} lived as {he} pleased."
 
+  # The founder waits for the next scene of the backstory (D-479): set by the backstory itself, never by the player;
+  # no events (the child founder gets only the scenes), no line, no effects.
+  - id: early_years
+    name: Early years
+    category: self
+    duration: { min: 1, max: 1 }
+    when: { backstory_only: true }
+    idle: true
+    text: "{name} grew up."
+
   - id: travel
     name: Travel the roads
     category: road

@@ -4,6 +4,10 @@ translations:
     text: "Жить как хочется"
   - en: "{name} lived as {he} pleased."
     text: "{name} {~жил|жила}, как {~хотел|хотела}."
+  - en: Early years
+    text: "Ранние годы"
+  - en: "{name} grew up."
+    text: "{name} {~рос|росла}."
   - en: Travel the roads
     text: "Странствовать по дорогам"
   - en: "{name} came to the end of a journey on the roads."

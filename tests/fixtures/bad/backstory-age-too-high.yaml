@@ -20,5 +20,5 @@ events:
         when: { offered: vb }
         result: "{name} did B."
       - text: Plain
-        effects: { age_years: 5 }
+        effects: { years: 5 }
         result: "{name} did nothing."
