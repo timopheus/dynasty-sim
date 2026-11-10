@@ -499,11 +499,15 @@ test('a tip of the focus freezes while the clock runs, and Tab out of its last l
   const before = await date();
   await expect.poll(date, { timeout: 10_000 }).not.toBe(before);
   await expect(page.locator('#tooltip .tip-concept:focus')).toHaveCount(1);
-  // the last link: Tab goes on to a thing outside the tips, and the tips close
-  await page.keyboard.press('Tab');
+  // the last link: one Tab goes on to the thing right after the figure in the order, and the tips close
   await page.keyboard.press('Tab');
   await expect(tip).toBeHidden();
-  expect(await page.evaluate<boolean>(`document.activeElement !== document.body && !document.activeElement.closest('.tooltip')`)).toBe(true);
+  const next = await page.evaluate<{ after: boolean; body: boolean }>(`(() => {
+    const all = [...document.querySelectorAll('button, a[href], summary, [tabindex]')].filter((n) => !n.closest('.tooltip') && n.tabIndex >= 0 && !n.disabled);
+    const figure = all.findIndex((n) => (n.getAttribute('data-tip') ?? '').includes('Crowns in your purse'));
+    return { after: figure >= 0 && all[figure + 1] === document.activeElement, body: document.activeElement === document.body };
+  })()`);
+  expect(next).toEqual({ after: true, body: false });
   expect(problems).toEqual([]);
 });
 

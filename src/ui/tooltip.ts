@@ -33,7 +33,8 @@ export function withTip<T extends HTMLElement>(node: T, tip: Tip | null | undefi
   // the clock redraws the screen every day, and `keepView` finds the focused node again by this key: the title, or the
   // words on the node itself (a text shared by many nodes would send the focus to the first), with the numbers cut, so
   // a sum or a date that changes does not lose the focus
-  if (!node.hasAttribute('data-focus')) node.setAttribute('data-focus', `tip:${(tip.title ?? node.textContent ?? tip.text).replace(/[\d+\-−().,%]+/g, '').trim()}`);
+  // a link is found again by its place among the focusable nodes (`keepView`): many links share a name, and a key would send the focus to the first
+  if (!node.hasAttribute('data-focus') && !(node instanceof HTMLAnchorElement)) node.setAttribute('data-focus', `tip:${(tip.title ?? node.textContent ?? tip.text).replace(/[\d+\-−().,%]+/g, '').trim()}`);
   const focusable = node instanceof HTMLButtonElement || node instanceof HTMLAnchorElement || node.tabIndex >= 0;
   if (!focusable) node.tabIndex = 0;
   return node;
@@ -396,8 +397,10 @@ export function syncTip(): void {
   let target = copyOf(first.by, first.id);
   // a pointer inside a frozen tip is not on the thing any more: look for the thing itself
   if (!target && first.by === 'pointer' && first.locked && heldLevel(document.elementFromPoint(mouse.x, mouse.y)) >= 0) {
-    target = [...document.querySelectorAll<HTMLElement>(`[${ATTR}]`)].find((n) => sameTip(n, first.id)) ?? null;
+    target = findCopy(first);
   }
+  // the focus is inside a frozen tip (it lies outside `#app`, so a redraw leaves it be): look for the thing itself
+  if (!target && first.by === 'focus' && levelOfBox(document.activeElement) >= 0) target = findCopy(first);
   if (target) {
     retarget(first, target);
     return;
@@ -408,6 +411,11 @@ export function syncTip(): void {
   else hideTip();
 }
 
+/** The new copy of the thing of the first tip, found anywhere on the page. */
+function findCopy(first: Level): HTMLElement | null {
+  return [...document.querySelectorAll<HTMLElement>(`[${ATTR}]`)].find((n) => sameTip(n, first.id)) ?? null;
+}
+
 /** The first tip follows the new copy of its node after a redraw, with its frozen state, ring and the tips inside it. */
 function retarget(first: Level, target: HTMLElement): void {
   const raw = target.getAttribute(ATTR_DATA);
@@ -415,7 +423,7 @@ function retarget(first: Level, target: HTMLElement): void {
   first.id = idOf(target);
   first.describedBefore = target.getAttribute('aria-describedby');
   target.setAttribute('aria-describedby', [first.describedBefore, 'tooltip'].filter(Boolean).join(' '));
-  if (raw !== first.raw && stack.length === 1) {
+  if (raw !== first.raw && stack.length === 1 && levelOfBox(document.activeElement) < 0) {
     const tip = tipOf(target, -1);
     if (tip) fill(first, tip);
     // the links of a frozen tip drawn anew must take the keyboard again
@@ -429,7 +437,15 @@ function checkFocus(): void {
   const first = stack[0];
   if (!first || first.by !== 'focus') return;
   const active = document.activeElement;
-  if (levelOfBox(active) >= 0 || stack.some((l) => l.source === active)) return;
+  if (levelOfBox(active) >= 0) {
+    // the thing was drawn anew while the focus stood in the tip: the tip follows the new copy
+    if (!first.source.isConnected) {
+      const copy = findCopy(first);
+      if (copy) retarget(first, copy);
+    }
+    return;
+  }
+  if (stack.some((l) => l.source === active)) return;
   const copy = holder(active);
   if (copy && !first.source.isConnected && sameTip(copy, first.id)) {
     retarget(first, copy);
@@ -464,6 +480,7 @@ function tabThroughTip(e: KeyboardEvent): void {
   if (e.shiftKey && i === 0) {
     e.preventDefault();
     level.source.focus();
+    truncate(inBox + 1);
   } else if (!e.shiftKey && i === links.length - 1) {
     // the last link: the focus goes back up to the thing the order goes on from, and the browser takes the next step
     let k = inBox;

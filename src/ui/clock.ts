@@ -25,6 +25,12 @@ function stateText(mode: ClockMode, canPlay: boolean, held: string | null): stri
   return canPlay ? tr('Stopped: choose what to do, or play') : tr('Stopped: choose what to do');
 }
 
+function dateNode(date: string): HTMLElement {
+  const node = el('span', { className: 'date' }, date);
+  node.setAttribute('data-focus', 'clock-date');
+  return node;
+}
+
 /**
  * The date and the time player at the bottom right (D-438, S.8): "Play"/"Pause" and the speeds ×1, ×2, ×5. Space
  * pauses, 1/2/3 pick the speed (D-448); the screen does not write the keys (D-465: they belong to the tutorial), only
@@ -50,7 +56,7 @@ export function clockPanel({ date, mode, speed, canPlay, onToggle, onSpeed, held
   // the buttons stay in one place whatever the date and the state say: the words go to a row of their own below
   return el('div', { className: `clock ${mode}`, role: 'group', ariaLabel: tr('Time') },
     el('div', { className: 'clock-row' },
-      withTip(el('span', { className: 'date' }, date), { title: date, text: tr('The date in the world. Time goes by in whole days.') }),
+      withTip(dateNode(date), { title: date, text: tr('The date in the world. Time goes by in whole days.') }),
       el('span', { className: 'clock-buttons' }, toggle, ...speeds)),
     el('div', { className: 'clock-row clock-words' },
       el('span', { className: 'clock-state' }, stateText(mode, canPlay, held)),
