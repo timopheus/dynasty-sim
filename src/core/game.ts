@@ -91,6 +91,8 @@ export function newGame(seed: number, content: Content): GameState {
   const surname = pick(state.rng, content.names.surnames);
   // one clock (D-479): with `backstory.fromBirth` the founder is born today, day 0, and grows up in living time
   const founder = createCharacter(ctx, { surname, age: content.backstory?.fromBirth ? { min: 0, max: 0 } : content.settings.startAge });
+  // born today, not some day of the last year: the family hooks below build the kin from this date (T.1 review)
+  if (content.backstory?.fromBirth) founder.birthDay = state.day;
   founder.money = content.settings.startMoney;
   state.playerId = founder.id;
   log(ctx, { subject: founder, kind: 'start', level: 'chronicle', template: content.settings.texts.start });
