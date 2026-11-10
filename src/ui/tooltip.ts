@@ -432,6 +432,16 @@ function retarget(first: Level, target: HTMLElement): void {
   first.raw = raw;
 }
 
+/** The source of a level, as a node that is on the page: a key may come between a redraw and the tip following its thing. */
+function liveSource(level: Level): HTMLElement {
+  const first = stack[0];
+  if (level === first && !first.source.isConnected) {
+    const copy = findCopy(first);
+    if (copy) retarget(first, copy);
+  }
+  return level.source;
+}
+
 /** After a moment: a tip of the focus stays only if the focus is on its thing, or in its boxes. */
 function checkFocus(): void {
   const first = stack[0];
@@ -479,17 +489,17 @@ function tabThroughTip(e: KeyboardEvent): void {
   if (i < 0) return;
   if (e.shiftKey && i === 0) {
     e.preventDefault();
-    level.source.focus();
+    liveSource(level).focus();
     truncate(inBox + 1);
   } else if (!e.shiftKey && i === links.length - 1) {
     // the last link: the focus goes back up to the thing the order goes on from, and the browser takes the next step
     let k = inBox;
-    let back = level.source;
+    let back = liveSource(level);
     while (k > 0) {
       const above = linksOf(stack[k - 1] as Level);
       if (above[above.length - 1] !== back) break;
       k--;
-      back = (stack[k] as Level).source;
+      back = liveSource(stack[k] as Level);
     }
     back.focus();
   }
@@ -584,7 +594,8 @@ export function installTooltips(): void {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       focusIntent = null;
-      const back = stack[0]?.source;
+      const head = stack[0];
+      const back = head ? liveSource(head) : undefined;
       const inside = levelOfBox(document.activeElement) >= 0;
       hideTip();
       // the focus was in the tip: it goes back to the thing the tip opened from
