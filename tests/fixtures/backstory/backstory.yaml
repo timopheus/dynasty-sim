@@ -1,5 +1,7 @@
 # Backstory of the fixture: exact numbers (stats_roll with min = max), goes on top of base, population and opinions.
+# On the clock (D-479, T.4): the founder is born on day 0 and the scenes come in the years of their stages.
 backstory:
+  fromBirth: true
   base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
   stages:
     - id: origin
@@ -9,8 +11,26 @@ backstory:
       age: 7
     - id: training
       age: 15
+  fates:
+    ages: { min: 2, max: 14 }
+    missingPct: 25
+    causes: [illness, killed]
+    texts:
+      father_died: "{name} was {age} when {his} father, {parent}, died."
+      mother_died: "{name} was {age} when {his} mother, {parent}, died."
+      father_vanished: "{name} was {age} when {his} father, {parent}, went away."
+      mother_vanished: "{name} was {age} when {his} mother, {parent}, went away."
   texts:
     leave: "{name}, aged {age}, went out."
+
+actions:
+  - id: early_years
+    name: Early years
+    category: self
+    duration: { min: 1, max: 1 }
+    when: { backstory_only: true }
+    idle: true
+    text: "{name} grew up."
 
 events:
   - id: origin_scene

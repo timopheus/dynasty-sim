@@ -97,7 +97,7 @@ describe('content', () => {
   });
 
   it('accepts the new keys grammar and backstory, and factors as integer fractions', () => {
-    const file = { path: 'fixture/stage3.yaml', text: 'grammar:\n  dawn: ["at first light", { text: "in the snow", when: { season: [winter] } }]\nbackstory:\n  base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }\n  stages: [{ id: birth }]\n  texts: { leave: "{name} went out." }\n' };
+    const file = { path: 'fixture/stage3.yaml', text: 'grammar:\n  dawn: ["at first light", { text: "in the snow", when: { season: [winter] } }]\nbackstory:\n  fromBirth: true\n  base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }\n  stages: [{ id: birth }]\n  fates: { ages: { min: 2, max: 14 }, missingPct: 0, causes: [illness], texts: { father_died: "{name} lost {his} father.", mother_died: "{name} lost {his} mother.", father_vanished: "{name} lost {his} father.", mother_vanished: "{name} lost {his} mother." } }\n  texts: { leave: "{name} went out." }\nactions:\n  - { id: early_years, name: Early years, category: self, duration: { min: 1, max: 1 }, when: { backstory_only: true }, idle: true, text: "{name} grew up." }\n' };
     const result = loadContent([...BASE_FILES, file]);
     expect(result.ok, JSON.stringify(!result.ok && result.errors)).toBe(true);
     expect(Factor.safeParse('1/2').success).toBe(true);

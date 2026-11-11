@@ -4,6 +4,7 @@
  */
 export const RU_CORE: Record<string, string> = {
   // pages
+  " (dead)": " (нет в живых)",
   "a small child": "маленький ребёнок",
   "about {age}": "возраст около {age}",
   "b. {born}, aged {age}": "род. {born}, возраст {age}",

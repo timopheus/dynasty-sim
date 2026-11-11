@@ -1,5 +1,6 @@
 import { personValues, placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
+import { refreshBoards } from '../contracts/board';
 import { eventWeight, fireEvent } from '../events/events';
 import type { EventDef } from '../events/content';
 import { findCharacter, getPlayer } from '../helpers';
@@ -77,7 +78,7 @@ function runFates(ctx: Ctx): void {
   }
 }
 
-/** Ends the backstory with the line "went out into the world", dated today (D-167, D-479). */
+/** Ends the backstory with the line "went out into the world", dated today (D-167, D-479), and fills the boards. */
 function goOut(ctx: Ctx, leave: string): void {
   const { state } = ctx;
   const st = state.backstory;
@@ -85,41 +86,9 @@ function goOut(ctx: Ctx, leave: string): void {
   runFates(ctx);
   st.running = false;
   st.next = null;
-  st.lines = [];
   log(ctx, { subject: getPlayer(state), kind: 'backstory_end', level: 'chronicle', template: leave });
-}
-
-/**
- * The old way (no `fromBirth`, until T.4): starts scenes until one waits for the player, all on the same day; when the
- * stages are over, dates the lines (D-324), writes the line "went out into the world" and ends the backstory. A stage
- * that has no scene to show is passed over.
- */
-function advanceAtOnce(ctx: Ctx): void {
-  const { state, content } = ctx;
-  const bs = content.backstory;
-  const st = state.backstory;
-  if (!bs) return;
-  while (st.running) {
-    const stage = bs.stages[st.stage];
-    if (!stage) {
-      dateLines(ctx);
-      goOut(ctx, bs.texts.leave);
-      return;
-    }
-    // The first line of the stage, for its date (D-324); a stage with no scene to show marks the same place.
-    if (st.inStage === 0 && st.lines.length === st.stage + 1) st.lines.push(state.chronicle.length);
-    if (st.inStage === 0) drawOffer(ctx, stage);
-    const pool = st.inStage < (stage.scenes ?? 1) ? candidates(ctx, stage.id) : [];
-    if (pool.length === 0) {
-      st.stage += 1;
-      st.inStage = 0;
-      continue;
-    }
-    const { event } = weightedPick(state.rng, pool, (c) => c.weight);
-    st.played.push(event.id);
-    st.inStage += 1;
-    if (fireEvent(ctx, event, getPlayer(state)) === 'waiting') return;
-  }
+  // the boards within reach are there on the day he goes out, as in a new month (no boards in the childhood, D-480)
+  refreshBoards(ctx);
 }
 
 /**
@@ -167,7 +136,7 @@ function waitFor(ctx: Ctx, day: number): void {
 }
 
 /**
- * One clock (D-479): shows the scenes due today until one waits for the player; when the next scene is on a later day,
+ * Shows the scenes due today (D-479) until one waits for the player; when the next scene is on a later day,
  * the founder waits for it in `early_years`; when the stages are over and the day has come, writes the line "went out
  * into the world", dated today, and ends the backstory. A stage that has no scene to show on its day is passed over.
  */
@@ -197,31 +166,6 @@ function advanceOnClock(ctx: Ctx): void {
   }
 }
 
-function advance(ctx: Ctx): void {
-  if (ctx.content.backstory?.fromBirth) advanceOnClock(ctx);
-  else advanceAtOnce(ctx);
-}
-
-/**
- * The old way only (until T.4). Dates the lines of the backstory by age (D-324): from the founder's first line to the first stage — the day of
- * birth (after every `years`); the lines of a stage with `age` — that birthday; of a stage without it — the start
- * of the game, today. No day passes in the world: only the dates of the lines change, they never fall and never
- * pass today. Spends no randomness.
- */
-function dateLines(ctx: Ctx): void {
-  const { state, content } = ctx;
-  const st = state.backstory;
-  const stages = content.backstory?.stages ?? [];
-  const birth = Math.min(getPlayer(state).birthDay, state.day);
-  const bounds = [...st.lines, state.chronicle.length];
-  let day = birth;
-  for (let k = 0; k + 1 < bounds.length; k++) {
-    const age = k === 0 ? 0 : stages[k - 1]?.age;
-    day = Math.max(day, age === undefined ? state.day : Math.min(state.day, shiftYears(birth, age)));
-    for (let i = bounds[k] as number; i < (bounds[k + 1] as number); i++) (state.chronicle[i] as { day: number }).day = day;
-  }
-}
-
 /**
  * New game hook (D-167): brings the founder to the neutral base — base stats, no traits, no education — and starts
  * the first scene of the backstory. Runs after the circle is filled (worldOnNewGame), so scenes find people for their
@@ -232,16 +176,13 @@ export const backstoryOnNewGame: NewGameHook = (ctx) => {
   if (!bs) return;
   const founder = getPlayer(ctx.state);
   // one clock (D-479): the founder is born today, on the first day of the game, not some day of his first year
-  if (bs.fromBirth) founder.birthDay = ctx.state.day;
+  founder.birthDay = ctx.state.day;
   founder.baseStats = { ...bs.base };
   founder.traits = [];
-  const first = ctx.state.chronicle.findIndex((e) => e.kind === 'start' && e.subject === founder.id);
-  // on the clock no line is dated afterwards (D-479): each is dated the day it is written
-  const lines = bs.fromBirth ? [] : [first === -1 ? ctx.state.chronicle.length : first];
-  // the fates of the parents are drawn at the birth, on the clock only (D-481)
-  const fates = bs.fromBirth && bs.fates ? drawFates(ctx, founder, bs.fates) : [];
-  ctx.state.backstory = { running: true, founder: founder.id, stage: 0, inStage: 0, offered: [], played: [], lines, dates: [], next: null, notBefore: 0, fates };
-  advance(ctx);
+  // the fates of the parents are drawn at the birth (D-481)
+  const fates = bs.fates ? drawFates(ctx, founder, bs.fates) : [];
+  ctx.state.backstory = { running: true, founder: founder.id, stage: 0, inStage: 0, offered: [], played: [], dates: [], next: null, notBefore: 0, fates };
+  advanceOnClock(ctx);
 };
 
 /**
@@ -255,7 +196,7 @@ export const backstoryAfterChoice: AfterChoiceHook = (ctx) => {
   if (!st.running || state.pendingEvent) return;
   const hero = findCharacter(state, state.playerId);
   if (!hero || hero.id !== st.founder || hero.deathDay !== null) return drop(ctx);
-  advance(ctx);
+  advanceOnClock(ctx);
 };
 
 /** The founder is no longer the hero: the backstory is dropped, heirs never live through it. */
@@ -263,8 +204,9 @@ function drop(ctx: Ctx): void {
   const { state } = ctx;
   const st = state.backstory;
   st.running = false;
-  st.lines = [];
   st.next = null;
+  // a stage waited for and never begun leaves no date
+  st.dates = st.dates.filter((d) => d <= state.day);
   if (state.activeAction?.actionId === EARLY_YEARS) {
     state.activeAction = null;
     if (state.status === 'running') state.status = 'awaiting_action';
@@ -274,14 +216,14 @@ function drop(ctx: Ctx): void {
 /**
  * The day phase of the backstory (D-479): on the day the founder waits for it starts the scene and stops the day, as
  * the narrator does, or writes the line "went out into the world" and hands the choice of an action to the player.
- * Comes before the end of the action, so `early_years` ends here and not as an action. Only with `fromBirth`.
+ * Comes before the end of the action, so `early_years` ends here and not as an action.
  */
 export const backstoryPhase: DayPhase = {
   id: 'backstory',
   run(ctx) {
     const { state, content } = ctx;
     const st = state.backstory;
-    if (!st.running || !content.backstory?.fromBirth) return false;
+    if (!st.running || !content.backstory) return false;
     const hero = findCharacter(state, state.playerId);
     if (!hero || hero.id !== st.founder || hero.deathDay !== null) {
       drop(ctx);

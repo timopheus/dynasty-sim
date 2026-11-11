@@ -16,7 +16,8 @@ import { realContent } from './fixtures/content';
 
 const content: Content = realContent();
 // no event on the road: the journeys of these tests run undisturbed
-const quiet: Content = { ...content, events: [] };
+// no backstory: a grown hero from the first day (the founder grows up on the clock otherwise, T.4)
+const quiet: Content = { ...content, backstory: null, events: [] };
 
 /** An adult hero who is free to act, at the starting place. */
 function game(c: Content = quiet, seed = 5): { state: GameState; ctx: Ctx } {

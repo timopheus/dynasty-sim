@@ -16,12 +16,13 @@ function watch(page: Page): string[] {
 /** Answers the scenes of the backstory with their first choice, until the hero is free to act. */
 async function growUp(page: Page): Promise<void> {
   await expect(page.locator('.modal.event')).toBeVisible();
-  for (let i = 0; i < 40 && (await page.locator('.modal-layer').count()) > 0; i++) {
-    const shown = await page.locator('#app').innerText();
-    await page.locator('.modal-layer .option button.choice').first().click();
-    await expect.poll(async () => page.locator('#app').innerText()).not.toBe(shown);
+  // the years run between the scenes (D-479): answer whatever scene is up until the early years are over
+  const choice = page.locator('.modal-layer .option button.choice').first();
+  for (let i = 0; i < 60; i++) {
+    if ((await page.locator('.backstory-screen').count()) === 0 && (await page.locator('.modal-layer').count()) === 0) return;
+    await choice.click({ timeout: 2_000 }).catch(() => undefined);
   }
-  await expect(page.locator('.modal-layer')).toHaveCount(0);
+  throw new Error('the hero never grew up');
 }
 
 /** Opens the menu of directions if it is folded and presses the button of the place ("Travel to …" or "Turn toward …"). */
@@ -35,7 +36,7 @@ test('"Travel to …" puts the hero on the road, and on arrival he is in a new p
   test.setTimeout(180_000);
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=1&dev=1');
+  await page.goto('/?fastyears=1&seed=1&dev=1');
   await growUp(page);
   await expect(page.locator('#where-heading')).toHaveText('Free to act');
 

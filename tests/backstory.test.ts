@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { botCommand } from '../src/core/bot';
 import type { Content } from '../src/core/content/schema';
 import { eventView } from '../src/core/events/view';
-import { play, newGame } from '../src/core/game';
+import { apply, play, newGame } from '../src/core/game';
 import { getPlayer } from '../src/core/helpers';
 import { checkInvariants } from '../src/core/invariants';
 import { kill } from '../src/core/lifecycle';
 import { entryText } from '../src/core/chronicle/log';
+import { allChronicle } from '../src/core/archive/archive';
 import { seedRng } from '../src/core/rng';
 import { deserialize, serialize } from '../src/core/save/save';
 import { backstoryAfterChoice } from '../src/core/backstory/phases';
@@ -24,37 +25,46 @@ const content: Content = loadOrThrow([
   ...readContentFiles('tests/fixtures/backstory'),
 ]);
 
-/** Answers the pending scene with the first option the player may press, until the backstory is over. */
+/** Lets time run until a scene waits for the player or the backstory is over (D-479: the years pass between scenes). */
+function toScene(state: GameState, c: Content): void {
+  while (state.backstory.running && state.pendingEvent === null && state.status === 'running') apply(state, c, { type: 'wait', days: 3650 });
+}
+
+/** Answers each scene with the first option the player may press, letting the years run, until the backstory is over. */
 function playBackstory(state: GameState, c: Content, pickIndex = (n: number[]) => n[0] as number): string[] {
   const shown: string[] = [];
+  toScene(state, c);
   while (state.backstory.running) {
     const view = eventView({ state, content: c });
     if (!view) throw new Error('backstory running without a scene');
     shown.push(view.eventId);
     play(state, c, { type: 'choose', option: pickIndex(view.options.filter((o) => o.available).map((o) => o.index)) });
+    toScene(state, c);
   }
   return shown;
 }
 
 describe('the backstory of the first hero (D-167)', () => {
-  it('shows the scenes by stage, before the first action, without time passing', () => {
+  it('shows the scenes by stage in their years, before the first action (D-479)', () => {
     const state = newGame(3, content);
-    expect(state.status).toBe('awaiting_choice');
-    expect(state.activeAction).toBeNull();
-    expect(state.pendingEvent?.eventId).toBe('origin_scene');
+    expect(getPlayer(state).birthDay).toBe(0);
     expect(state.day).toBe(0);
+    toScene(state, content);
+    expect(state.pendingEvent?.eventId).toBe('origin_scene');
+    expect(ageYears(getPlayer(state).birthDay, state.day)).toBe(0);
     const shown = playBackstory(state, content);
     expect(shown).toEqual(['origin_scene', 'childhood_mentor', 'training_school']);
-    expect(state.day).toBe(0);
+    expect(ageYears(getPlayer(state).birthDay, state.day)).toBe(16);
     expect(state.status).toBe('awaiting_action');
     expect(state.pendingEvent).toBeNull();
     expect(checkInvariants(state, content)).toEqual([]);
-    const kinds = state.chronicle.map((e) => e.kind);
+    const kinds = allChronicle(state).filter((e) => e.subject === getPlayer(state).id).map((e) => e.kind);
     expect(kinds[0]).toBe('start');
     expect(kinds.at(-1)).toBe('backstory_end');
-    expect(entryText(state.chronicle[1]!)).toMatch(/was born/);
+    expect(allChronicle(state).some((e) => /was born in house|nowhere/.test(entryText(e)))).toBe(true);
+    const out = state.day;
     play(state, content, { type: 'start', actionId: 'wait' });
-    expect(state.day).toBeGreaterThan(0);
+    expect(state.day).toBeGreaterThan(out);
   });
 
   it('never shows a scene twice and takes a stage with no scene at its word', () => {
@@ -68,12 +78,18 @@ describe('the backstory of the first hero (D-167)', () => {
     const noScenes = { ...content, events: content.events.filter((e) => e.deck !== 'backstory') };
     const state = newGame(3, noScenes);
     const hero = getPlayer(state);
+    toScene(state, noScenes);
     expect(state.backstory.running).toBe(false);
+    expect(ageYears(hero.birthDay, state.day)).toBe(16);
     expect(hero.baseStats).toEqual(content.backstory!.base);
     expect(hero.traits).toEqual([]);
+    // no costs in the childhood (D-480)
     expect(hero.money).toBe(content.settings.startMoney);
     expect(state.status).toBe('awaiting_action');
-    expect(state.chronicle.map((e) => e.kind)).toEqual(['start', 'backstory_end']);
+    const kinds = allChronicle(state).filter((e) => e.subject === hero.id).map((e) => e.kind);
+    expect(kinds[0]).toBe('start');
+    expect(kinds.at(-1)).toBe('backstory_end');
+    expect(kinds.filter((k) => k !== 'backstory_fate').length).toBe(2);
     expect(checkInvariants(state, noScenes)).toEqual([]);
   });
 
@@ -89,18 +105,17 @@ describe('the backstory of the first hero (D-167)', () => {
     let found = 0;
     for (let seed = 1; seed <= 12; seed++) {
       const state = newGame(seed, content);
-      const people = state.characters.length;
       expect(state.circle.length).toBeGreaterThanOrEqual(content.population!.circle.min);
-      const circle = [...state.circle];
+      toScene(state, content);
       while (state.backstory.running) {
         const pending = state.pendingEvent!;
         if (pending.eventId === 'childhood_mentor') {
           found += 1;
-          expect(circle).toContain(pending.scope.mentor);
+          expect(state.circle).toContain(pending.scope.mentor);
         }
         play(state, content, { type: 'choose', option: eventView({ state, content })!.options.find((o) => o.available)!.index });
+        toScene(state, content);
       }
-      expect(state.characters.length).toBe(people);
     }
     expect(found).toBe(12);
   });
@@ -109,6 +124,7 @@ describe('the backstory of the first hero (D-167)', () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 30; seed++) {
       const state = newGame(seed, content);
+      toScene(state, content);
       expect(state.backstory.offered).toHaveLength(2);
       const view = eventView({ state, content })!;
       expect(view.options).toHaveLength(3);
@@ -119,19 +135,17 @@ describe('the backstory of the first hero (D-167)', () => {
     expect([...seen].sort()).toEqual(['va', 'vb', 'vc']);
   });
 
-  it('sets the direction by the answer and the size by chance; years make the hero older (the old way)', () => {
+  it('sets the direction by the answer and the size by chance; the line of going out names the real age', () => {
     const state = newGame(3, content);
     const hero = getPlayer(state);
-    const before = ageYears(hero.birthDay, state.day);
-    const pickOffered = (indices: number[]) => indices[0] as number;
+    toScene(state, content);
     const first = eventView({ state, content })!.options[0]!.index;
     expect([0, 1, 2]).toContain(first);
-    playBackstory(state, content, pickOffered);
+    playBackstory(state, content);
     const s = stats({ state, content }, hero);
     expect(hero.traits).toContain('courtly_1');
-    expect(ageYears(hero.birthDay, state.day)).toBe(before + 1);
     expect(Object.values(s).some((v) => v !== 5)).toBe(true);
-    expect(entryText(state.chronicle.at(-1)!)).toContain(`aged ${before + 1}`);
+    expect(entryText(state.chronicle.at(-1)!)).toContain(`aged ${ageYears(hero.birthDay, state.day)}`);
   });
 
   it('a heir does not live through the backstory', () => {
@@ -143,7 +157,7 @@ describe('the backstory of the first hero (D-167)', () => {
     expect(getPlayer(state).id).not.toBe(founder.id);
     backstoryAfterChoice(ctx);
     expect(state.backstory.running).toBe(false);
-    expect(state.backstory.lines).toEqual([]);
+    expect(state.backstory.next).toBeNull();
     expect(state.chronicle.every((e) => e.day >= 0)).toBe(true);
     expect(state.pendingEvent).toBeNull();
     expect(state.status).toBe('awaiting_action');
@@ -152,6 +166,7 @@ describe('the backstory of the first hero (D-167)', () => {
 
   it('continues after a save in the middle of the backstory', () => {
     const a = newGame(7, content);
+    toScene(a, content);
     const b = deserialize(serialize(a), content);
     expect(b).toEqual(a);
     for (let step = 0; step < 4 && a.backstory.running; step++) {
@@ -159,45 +174,35 @@ describe('the backstory of the first hero (D-167)', () => {
       const option = view.options.find((o) => o.available)!.index;
       play(a, content, { type: 'choose', option });
       play(b, content, { type: 'choose', option });
+      toScene(a, content);
+      toScene(b, content);
       expect(deserialize(serialize(a), content)).toEqual(a);
       expect(b).toEqual(a);
     }
     expect(a.backstory.running).toBe(false);
   });
 
-  it('dates the lines by the age of the stage: birth, 7, 15, then the start of the game (D-324)', () => {
+  it('dates every line the day it is written: birth on day 0, the childhood in year 7, the school in year 15 (D-479)', () => {
     for (let seed = 1; seed <= 6; seed++) {
       const state = newGame(seed, content);
       const hero = getPlayer(state);
       playBackstory(state, content);
-      expect(state.day).toBe(0);
-      // the school added a year: the birthday the lines are dated by is the final one
-      expect(ageYears(hero.birthDay, state.day)).toBe(21);
       const birth = hero.birthDay;
-      const dayOf = (re: RegExp) => state.chronicle.find((e) => re.test(entryText(e)))!.day;
-      expect(state.chronicle[0]!.kind).toBe('start');
-      expect(state.chronicle[0]!.day).toBe(birth);
-      expect(dayOf(/was born/)).toBe(birth);
-      expect(dayOf(/learned from|ran off|quiet year/)).toBe(shiftYears(birth, 7));
-      expect(toYmd(dayOf(/went to school/)).year).toBe(toYmd(birth).year + 15);
-      expect(state.chronicle.at(-1)!.kind).toBe('backstory_end');
-      expect(state.chronicle.at(-1)!.day).toBe(0);
-      const days = state.chronicle.map((e) => e.day);
-      expect(days).toEqual([...days].sort((a, b) => a - b));
-      expect(state.backstory.lines).toEqual([]);
+      expect(birth).toBe(0);
+      const mine = allChronicle(state).filter((e) => e.subject === hero.id);
+      const yearOf = (re: RegExp) => toYmd(mine.find((e) => re.test(entryText(e)))!.day).year - toYmd(birth).year;
+      expect(mine[0]!.kind).toBe('start');
+      expect(mine[0]!.day).toBe(0);
+      // born on 1 January: the year of life of a stage is its calendar year
+      expect(yearOf(/was born in|nowhere/)).toBe(0);
+      expect(yearOf(/learned from|ran off|quiet year/)).toBe(7);
+      expect(yearOf(/went to school/)).toBe(15);
+      expect(mine.at(-1)!.kind).toBe('backstory_end');
+      expect(mine.at(-1)!.day).toBe(state.day);
+      const days = allChronicle(state).map((e) => e.day);
+      expect(days).toEqual([...days].sort((x, y) => x - y));
       expect(checkInvariants(state, content)).toEqual([]);
     }
-  });
-
-  it('dates the lines of a stage without an age at the start of the game', () => {
-    const bs = content.backstory!;
-    const undated = { ...content, backstory: { ...bs, stages: bs.stages.map((s) => (s.id === 'training' ? { id: s.id } : s)) } };
-    const state = newGame(5, undated);
-    playBackstory(state, undated);
-    const school = state.chronicle.find((e) => /went to school/.test(entryText(e)))!;
-    expect(school.day).toBe(0);
-    expect(state.chronicle[0]!.day).toBe(getPlayer(state).birthDay);
-    expect(checkInvariants(state, undated)).toEqual([]);
   });
 
   it('is the same for the same seed', () => {
@@ -211,7 +216,7 @@ describe('the backstory of the first hero (D-167)', () => {
 });
 
 describe('effects of the scenes', () => {
-  it('stats_roll stays in its range and in 0..20; years (the old way) move a 29 February birth to the 28th', () => {
+  it('stats_roll stays in its range and in 0..20; years put the next scene off, 29 February falling to the 28th', () => {
     const state = newGame(3, content);
     const ctx = { state, content };
     const hero = getPlayer(state);
@@ -225,9 +230,13 @@ describe('effects of the scenes', () => {
     hero.baseStats.martial = 19;
     applyBackstoryEffects(ctx, hero, { stats_roll: { martial: { min: 3, max: 3 } } }, {});
     expect(hero.baseStats.martial).toBe(20);
-    hero.birthDay = fromYmd(1684, 2, 29);
+    const birth = hero.birthDay;
+    state.day = fromYmd(1704, 2, 29);
+    state.backstory.notBefore = 0;
     applyBackstoryEffects(ctx, hero, { years: 1 }, {});
-    expect(toYmd(hero.birthDay)).toMatchObject({ year: 1683, month: 2, day: 28 });
+    expect(toYmd(state.backstory.notBefore)).toMatchObject({ year: 1705, month: 2, day: 28 });
+    expect(hero.birthDay).toBe(birth);
+    expect(shiftYears(fromYmd(1704, 2, 29), 1)).toBe(fromYmd(1705, 2, 28));
   });
 });
 
@@ -249,6 +258,7 @@ describe('the real backstory', () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 30; seed++) {
       const state = newGame(seed, real);
+      toScene(state, real);
       expect(state.backstory.offered).toHaveLength(3);
       const view = eventView({ state, content: real })!;
       expect(view.options).toHaveLength(3);
@@ -265,14 +275,15 @@ describe('the real backstory', () => {
     expect(JSON.stringify(withPeople)).toMatch(/opinion|relation/);
   });
 
-  it('gives games different backstories: 100 seeds make 10 or more different chains', () => {
+  // 40 seeds, not 100: on the clock each game lives sixteen years of the world (T.4)
+  it('gives games different backstories: 40 seeds make 10 or more different chains', () => {
     const chains = new Set<string>();
-    for (let seed = 1; seed <= 100; seed++) {
+    for (let seed = 1; seed <= 40; seed++) {
       const state = newGame(seed, real);
       const rng = seedRng(seed, 1);
       const chain: string[] = [];
       while (state.backstory.running) {
-        const cmd = botCommand(state, real, rng);
+        const cmd = state.status === 'running' ? { type: 'wait' as const, days: 3650 } : botCommand(state, real, rng);
         if (cmd.type === 'choose') chain.push(`${state.pendingEvent!.eventId}:${cmd.option}`);
         play(state, real, cmd);
         expect(checkInvariants(state, real)).toEqual([]);
@@ -285,5 +296,5 @@ describe('the real backstory', () => {
       chains.add(chain.join('>'));
     }
     expect(chains.size).toBeGreaterThanOrEqual(10);
-  });
+  }, 120_000);
 });

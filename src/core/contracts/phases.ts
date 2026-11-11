@@ -30,7 +30,7 @@ export const contractsPhase: DayPhase = {
     if (!content.contracts) return false;
     const contracts = state.contracts;
     if (contracts.offers.some((o) => o.expires < state.day)) contracts.offers = contracts.offers.filter((o) => o.expires >= state.day);
-    // no boards for the child founder (D-480): they are filled the first day after he goes out into the world
+    // no boards for the child founder (D-480): they are filled the day he goes out into the world (backstory goOut)
     if (!inChildhood(ctx)) refreshBoards(ctx);
     const current = contracts.current;
     const active = state.activeAction;

@@ -20,7 +20,7 @@ import { boardView, offersByPlace } from './contracts-model';
 import { actionsPanel } from './actions-panel';
 import { avatarPanel } from './avatar';
 import { choiceNode } from './choice';
-import { backstoryDate, backstoryFrame, backstoryRuns, BACKSTORY_FRAME_MS, BACKSTORY_SAVE_EVERY_DAYS } from './backstory-clock-model';
+import { backstoryDate, backstoryFrame, backstoryRuns, BACKSTORY_CHUNK_DAYS, BACKSTORY_FAST_DAYS, BACKSTORY_FRAME_MS, BACKSTORY_SAVE_EVERY_DAYS } from './backstory-clock-model';
 import { clockPanel } from './clock';
 import { keepInView, personMenuNode, personOf, type MenuAnchor } from './context-menu';
 import { clockMode, idleAction, isPauseKey, newClock, SAVE_EVERY_DAYS, speedForKey, tick, tickMs, type Clock, type Speed } from './clock-model';
@@ -71,6 +71,11 @@ if (!app) throw new Error('#app not found');
 
 /** `?dev=1`: the tools of the developer (the seed, the journal of commands) are shown; a player never sees them. */
 const DEV = new URLSearchParams(location.search).get('dev') === '1';
+/**
+ * `?fastyears=1`: the years of the early years run in frames of a whole year (T.4). For the browser tests that do not
+ * look at the childhood, so they fit the CI limit; a player never sees it. The scenes and the game are the same.
+ */
+const FAST_YEARS = new URLSearchParams(location.search).get('fastyears') === '1';
 
 /** Narrow screens: one column, the side panel slides over the page (D-248). */
 const NARROW = '(max-width: 47.99rem)';
@@ -617,7 +622,7 @@ async function runBackstoryFrame(session: Session): Promise<void> {
   }
   session.busy = true;
   try {
-    const { passed, stopped } = backstoryFrame(session.journal, session.state, session.content);
+    const { passed, stopped } = backstoryFrame(session.journal, session.state, session.content, FAST_YEARS ? BACKSTORY_FAST_DAYS : BACKSTORY_CHUNK_DAYS);
     session.clock.unsaved += passed;
     if (stopped || session.clock.unsaved >= BACKSTORY_SAVE_EVERY_DAYS) await saveNow(session);
     if (stopped) {
@@ -766,7 +771,8 @@ async function startSession(session: Session, seed: number): Promise<void> {
 
 /** The address of this page without a seed or a page, keeping the developer flag. */
 function bareAddress(): string {
-  return location.pathname + (DEV ? '?dev=1' : '');
+  const flags = [...(DEV ? ['dev=1'] : []), ...(FAST_YEARS ? ['fastyears=1'] : [])];
+  return location.pathname + (flags.length > 0 ? `?${flags.join('&')}` : '');
 }
 
 async function newGameNow(session: Session): Promise<void> {

@@ -121,7 +121,7 @@ export function utf8Bytes(text: string): number {
 
 /**
  * Heads of the house are the subjects of "start" and "succession" lines, in order. The founder rules from the start
- * of the game, day 0: the "start" line is dated at the birth by the backstory (D-324).
+ * of the game, day 0: with a backstory he is born that day (D-479).
  */
 function headStarts(state: GameState): { id: string; startDay: number }[] {
   const heads: { id: string; startDay: number }[] = [];

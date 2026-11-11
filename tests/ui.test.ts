@@ -17,6 +17,7 @@ import { entityHref, entityIdFromHash, personHref, personIdFromHash } from '../s
 import { isValidSeed } from '../src/core/rng';
 import { seedFromSearch, startChoice } from '../src/ui/storage';
 import { BASE_FILES, fixtureContent, loadOrThrow, realContent } from './fixtures/content';
+import { withoutBackstory } from './fixtures/grow-up';
 
 // A condition the hero cannot know about: no such key exists yet, so the test adds one (as in events.test.ts).
 vi.mock('../src/core/roles/conditions', async (original) => {
@@ -30,7 +31,7 @@ vi.mock('../src/core/roles/conditions', async (original) => {
 
 describe('hero view', () => {
   it('shows stats as words with numbers kept for hover, and traits apart from education', () => {
-    const content = realContent();
+    const content = withoutBackstory(realContent());
     const state = newGame(5, content);
     const view = heroView(state, content);
     expect(view.stats).toHaveLength(6);

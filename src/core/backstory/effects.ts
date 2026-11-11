@@ -9,9 +9,8 @@ const Roll = z.strictObject({ min: Int, max: Int }).refine((r) => r.min <= r.max
 
 /**
  * Effect keys of this module (3.11), scenes of `deck: backstory` only (checkBackstory):
- * - `years: n` — n years of study or service (university, early service). On the clock (D-479, `fromBirth`) they
- *   pass in living time: no scene and no going out comes before n years from today. The old way (no `fromBirth`,
- *   until T.4) the character is n years older at once: the date of birth moves back;
+ * - `years: n` — n years of study or service (university, early service). They pass in living time (D-479): no scene
+ *   and no going out comes before n years from today;
  * - `stats_roll: {stat: {min, max}}` — the base of the stat changes by a whole number drawn from the range: the
  *   answer sets the direction, the chance the size (D-167). Kept within 0..BASE_STAT_MAX like `stats`.
  */
@@ -38,8 +37,7 @@ export function applyBackstoryEffects(
 ): void {
   if (effects.years !== undefined) {
     const st = ctx.state.backstory;
-    if (ctx.content.backstory?.fromBirth) st.notBefore = Math.max(st.notBefore, shiftYears(ctx.state.day, effects.years));
-    else c.birthDay = shiftYears(c.birthDay, -effects.years);
+    st.notBefore = Math.max(st.notBefore, shiftYears(ctx.state.day, effects.years));
   }
   for (const id of STAT_IDS) {
     const range = effects.stats_roll?.[id];

@@ -1,6 +1,8 @@
 import { fullName } from '../character/character';
 import { allCharacters, allMarriages, anyCharacter } from '../archive/archive';
+import type { Content } from '../content/schema';
 import { findCharacter } from '../helpers';
+import { phrase } from '../lang/phrases';
 import type { PageSection, PersonSection } from '../pages/person';
 import type { Character, Ctx } from '../state';
 import type { TextPart } from '../text/text';
@@ -16,12 +18,13 @@ import { proposalOptions } from './proposals';
 export const PROPOSE_MARRIAGE = 'Propose marriage';
 export const PROPOSE_MATCH = 'Propose a match';
 
-function ref(c: Character): TextPart[] {
-  return [{ id: c.id, name: fullName(c) }, ...(c.deathDay !== null ? [' (dead)'] : [])];
+/** The person as a link, the dead marked "(dead)" in the language of the content (D-476). */
+function ref(content: Content, c: Character): TextPart[] {
+  return [{ id: c.id, name: fullName(c) }, ...(c.deathDay !== null ? [phrase(content, ' (dead)')] : [])];
 }
 
-function list(people: readonly Character[]): TextPart[] {
-  return people.flatMap((c, i) => [...(i > 0 ? [', '] : []), ...ref(c)]);
+function list(content: Content, people: readonly Character[]): TextPart[] {
+  return people.flatMap((c, i) => [...(i > 0 ? [', '] : []), ...ref(content, c)]);
 }
 
 export const familySection: PersonSection = (ctx, c, level) => {
@@ -31,24 +34,24 @@ export const familySection: PersonSection = (ctx, c, level) => {
     // The whole history: parents, spouses and children may be in the archive (D-312).
     for (const id of [c.father, c.mother]) {
       const p = id === null ? null : anyCharacter(state, id);
-      if (p) lines.push({ label: p.sex === 'male' ? 'Father' : 'Mother', parts: ref(p) });
+      if (p) lines.push({ label: p.sex === 'male' ? 'Father' : 'Mother', parts: ref(ctx.content, p) });
     }
     const siblings = allCharacters(state)
       .filter((x) => x.id !== c.id && ((c.father !== null && x.father === c.father) || (c.mother !== null && x.mother === c.mother)))
       .sort((x, y) => x.birthDay - y.birthDay || (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
-    if (siblings.length > 0) lines.push({ label: siblings.length === 1 ? (siblings[0]?.sex === 'male' ? 'Brother' : 'Sister') : 'Brothers and sisters', parts: list(siblings) });
+    if (siblings.length > 0) lines.push({ label: siblings.length === 1 ? (siblings[0]?.sex === 'male' ? 'Brother' : 'Sister') : 'Brothers and sisters', parts: list(ctx.content, siblings) });
     for (const m of allMarriages(state)) {
       if (m.a !== c.id && m.b !== c.id) continue;
       const spouse = anyCharacter(state, m.a === c.id ? m.b : m.a);
       if (!spouse) continue;
       const label = m.end === null ? (spouse.sex === 'male' ? 'Husband' : 'Wife') : spouse.sex === 'male' ? 'Late husband' : 'Late wife';
-      lines.push({ label, parts: ref(spouse) });
+      lines.push({ label, parts: ref(ctx.content, spouse) });
     }
     // Eldest first: the order must not depend on which people the archive holds (allCharacters puts chunks first).
     const children = allCharacters(state)
       .filter((x) => x.father === c.id || x.mother === c.id)
       .sort((x, y) => x.birthDay - y.birthDay || (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
-    if (children.length > 0) lines.push({ label: 'Children', parts: list(children) });
+    if (children.length > 0) lines.push({ label: 'Children', parts: list(ctx.content, children) });
   }
   for (const o of proposalOptions(ctx, c.id)) {
     const suitor = findCharacter(state, o.suitor);

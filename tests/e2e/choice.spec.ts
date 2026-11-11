@@ -32,7 +32,7 @@ test('a variant has signs, a tip with its outcomes, and a light choice leaves a 
   const problems: string[] = [];
   page.on('pageerror', (e) => problems.push(e.message));
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   let seen = 0;
   let news = 0;

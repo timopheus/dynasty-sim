@@ -55,7 +55,7 @@ test('menu → Russian → 50 turns: no English on the screen, the choice holds 
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
   // seed 3: the second scene of the early years names a friend in its choices
-  await page.goto('/?seed=3&dev=1');
+  await page.goto('/?fastyears=1&seed=3&dev=1');
   await expect(page.locator('.backstory-screen')).toBeVisible();
   await expect(page.locator('.modal.event .modal-title')).toHaveText(/^Age \d+$/);
   const english = await page.locator('.backstory-screen').innerText();
@@ -108,7 +108,7 @@ test('menu → Russian → 50 turns: no English on the screen, the choice holds 
   }
 
   // the choice is kept: after a reload the game continues in Russian
-  await page.goto('/?dev=1');
+  await page.goto('/?fastyears=1&dev=1');
   await expect(page.locator(DATE).first()).toBeVisible();
   await expect(page.getByRole('button', { name: /Меню/ })).toBeVisible();
   // and back: the item is called "English" now

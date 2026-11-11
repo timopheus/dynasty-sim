@@ -74,7 +74,7 @@ for (const seed of SEEDS) {
     const problems = watch(page);
 
     // ?dev=1 shows the seed: the player's page never does
-    await page.goto(`/?seed=${String(seed)}&dev=1`);
+    await page.goto(`/?fastyears=1&seed=${String(seed)}&dev=1`);
     await expect(page.locator(GAME)).toHaveAttribute('data-seed', String(seed));
     // the early years are a screen of their own (playtest 09.11): the turns are counted in the game after them, the
     // chronicle from the very start
@@ -119,7 +119,7 @@ for (const seed of SEEDS) {
     expect(end.chronicle, 'chronicle did not grow').not.toBe(early.chronicle);
 
     // the bare address, without the seed: only a real continue of the autosave can show the same game
-    await page.goto('/?dev=1');
+    await page.goto('/?fastyears=1&dev=1');
     await expect(page.locator(DATE).first()).toBeVisible();
     const after = await snapshot(page);
     await shot(page, seed, '4-reload');
@@ -178,10 +178,10 @@ for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]
   test(`the screen is in shelves, with no empty space in the centre at ${String(size.width)}×${String(size.height)}`, async ({ page }) => {
     const problems = watch(page);
     await page.setViewportSize(size);
-    await page.goto('/?seed=7');
+    await page.goto('/?fastyears=1&seed=7');
     // the early years first, on a screen of their own (playtest 09.11): none of the game's panels behind them
     await expect(page.locator('.backstory-screen')).toBeVisible();
-    for (const selector of ['.topbar', '.sidebar', '.map-view', '.actions-panel', '.clock']) await expect(page.locator(selector), selector).toHaveCount(0);
+    for (const selector of ['.topbar', '.sidebar', '.map-view', '.actions-panel', '.clock:not(.backstory-screen)']) await expect(page.locator(selector), selector).toHaveCount(0);
     // a scene of the backstory is a window that holds the decision: Escape does not close it, and it names the age
     const modal = page.locator('.modal.event');
     await expect(modal).toBeVisible();
@@ -244,7 +244,7 @@ for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]
 test('the menu of a person opens by right click, by the button and by the keyboard; Escape closes it', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   // a name in the page of the hero: right click opens the menu of that person
   const name = page.locator('.sidebar a.person[data-person]').first();
@@ -269,7 +269,7 @@ test('the menu of a person opens by right click, by the button and by the keyboa
   await page.keyboard.press('Escape');
   await expect(menu).toHaveCount(0);
   // by the keyboard: focus a name, press Shift+F10
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await page.locator('.sidebar a.person[data-person]').first().focus();
   await page.keyboard.press('Shift+F10');
   await expect(menu).toBeVisible();
@@ -281,7 +281,7 @@ test('the menu of a person opens by right click, by the button and by the keyboa
 test('the hero knows the family; every part of the screen explains itself on hover and on focus', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   // the family of the hero is acquainted: the page of a parent says so, not "a stranger"
   await page.locator('.sidebar a.person[data-person]').first().click();
@@ -306,14 +306,14 @@ test('the hero knows the family; every part of the screen explains itself on hov
 });
 
 test('"Show numbers" and "Journal" are gone; the seed and the journal are for ?dev=1 only', async ({ page }) => {
-  await page.goto('/?seed=1');
+  await page.goto('/?fastyears=1&seed=1');
   await expect(page.getByText('Show numbers')).toHaveCount(0);
   await page.getByRole('button', { name: /Menu/ }).click();
   await expect(page.getByRole('button', { name: 'New game' })).toBeVisible();
   await expect(page.locator('.menu-list')).not.toContainText(/seed/i);
   await expect(page.locator('.menu-list')).not.toContainText(/journal/i);
   await expect(page.locator(GAME)).not.toHaveAttribute('data-seed', /.*/);
-  await page.goto('/?seed=1&dev=1');
+  await page.goto('/?fastyears=1&seed=1&dev=1');
   await page.getByRole('button', { name: /Menu/ }).click();
   await expect(page.locator('.menu-list')).toContainText('Seed 1');
   await expect(page.getByRole('button', { name: 'Download the command journal' })).toBeVisible();
@@ -321,15 +321,19 @@ test('"Show numbers" and "Journal" are gone; the seed and the journal are for ?d
 
 test('"New game" asks inside the page and starts another game', async ({ page }) => {
   const problems = watch(page);
-  await page.goto('/?seed=1&dev=1');
+  await page.goto('/?fastyears=1&seed=1&dev=1');
   await expect(page.locator(GAME)).toHaveAttribute('data-seed', '1');
   // play a turn, so the old game has a past; the screen redraws after the save, so wait for it as the turns test does
+  const scene = page.locator('.modal-layer .option button.choice').first();
+  await expect(scene).toBeVisible({ timeout: 30_000 });
   const shown = await page.locator('#app').innerText();
   await (await choices(page)).first().click();
   const moved = await expect.poll(async () => page.locator('#app').innerText(), { timeout: 10_000 }).not.toBe(shown).then(() => true, () => false);
   // console errors first: they are the cause when the screen stays put
   expect(problems, 'errors after the first choice').toEqual([]);
   expect(moved, 'screen did not change after the first choice').toBe(true);
+  // the years run to the next scene (D-479); there the clock stands, and the screen with it
+  await expect.poll(async () => (await scene.isVisible()) && (await page.locator('#app').innerText()) !== shown, { timeout: 30_000 }).toBe(true);
   const before = await snapshot(page);
 
   await page.getByRole('button', { name: /Menu/ }).click();
@@ -351,7 +355,7 @@ test('"New game" asks inside the page and starts another game', async ({ page })
   const fresh = await page.locator(GAME).getAttribute('data-seed');
 
   // and it is the game that continues after a reload
-  await page.goto('/?dev=1');
+  await page.goto('/?fastyears=1&dev=1');
   await expect(page.locator(GAME)).toHaveAttribute('data-seed', fresh ?? '');
   expect(problems).toEqual([]);
 });
@@ -359,25 +363,35 @@ test('"New game" asks inside the page and starts another game', async ({ page })
 test('a choice that says it all has no tip; a window that opens under a still pointer shows none', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   const tip = page.locator('#tooltip');
   const first = page.locator('.modal-layer .option button.choice').first();
   // a choice that is words only has nothing to explain (D-465); one with a chance or a price does (D-463): look for a plain one
   const plain = page.locator('.modal-layer .option button.choice:not([data-tip])').first();
-  for (let i = 0; i < 12 && (await plain.count()) === 0; i++) await first.click({ timeout: 2_000 }).catch(() => undefined);
+  // the years run between the scenes (D-479): wait for each scene before answering it
+  const sceneText = () => page.evaluate<string>(`document.querySelector('.modal-layer .event-text')?.textContent ?? ''`);
+  // answers the scene and waits for the next one: a new text with its choices, not the old window still closing
+  const answer = async () => {
+    await expect(first).toBeVisible({ timeout: 30_000 });
+    const before = await sceneText();
+    await first.click();
+    await expect.poll(async () => (await first.isVisible()) && (await sceneText()) !== before, { timeout: 30_000 }).toBe(true);
+  };
+  await expect(first).toBeVisible({ timeout: 30_000 });
+  for (let i = 0; i < 12 && (await plain.count()) === 0; i++) await answer();
   await plain.hover();
   await page.waitForTimeout(TIP_WAIT);
   await expect(tip).toBeHidden();
   await expect(page.locator('.tip-ring')).toHaveCount(0);
   // a scene with a name in its words: the name explains itself after the delay
   const named = page.locator('.modal-layer .event-text [data-tip]');
-  for (let i = 0; i < 8 && (await named.count()) === 0; i++) await first.click({ timeout: 2_000 }).catch(() => undefined);
+  for (let i = 0; i < 8 && (await named.count()) === 0; i++) await answer();
   await named.first().hover();
   await expect(tip).toBeVisible();
-  const title = await page.locator('.modal-title').textContent();
+  const before = await sceneText();
   await first.click();
-  // the next scene is there, the pointer has not moved: nothing is explained over its choices
-  await expect(page.locator('.modal-title')).not.toHaveText(title ?? '');
+  // the next scene is there (or, after the last one, the game), the pointer has not moved: nothing is explained over it
+  await expect.poll(async () => (await page.locator('.backstory-screen').count()) === 0 || ((await first.isVisible()) && (await sceneText()) !== before), { timeout: 30_000 }).toBe(true);
   await page.waitForTimeout(TIP_WAIT);
   await expect(tip).toBeHidden();
   expect(problems).toEqual([]);
@@ -386,7 +400,7 @@ test('a choice that says it all has no tip; a window that opens under a still po
 test('a tip waits a moment, with no ring at the pointer; a pointer that passes over opens none (D-477)', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   const tip = page.locator('#tooltip');
   const figure = page.locator('.topbar .figure').first();
@@ -414,7 +428,7 @@ test('a tip waits a moment, with no ring at the pointer; a pointer that passes o
 test('money: the breakdown, frozen by the ring, a blue concept opens a nested tip, Esc closes both (D-477)', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   await page.mouse.move(700, 300);
   const tip = page.locator('#tooltip');
@@ -459,7 +473,7 @@ test('money: the breakdown, frozen by the ring, a blue concept opens a nested ti
 test('by the keyboard alone: the tip freezes, Tab goes into its blue words, a nested tip opens, Esc closes all and gives the focus back (D-444, D-477)', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   await page.mouse.move(700, 300);
   await page.locator('.avatar-button').focus();
@@ -480,7 +494,7 @@ test('by the keyboard alone: the tip freezes, Tab goes into its blue words, a ne
 test('a tip of the focus freezes while the clock runs, and Tab out of its last link goes on to the next thing (D-444, D-477)', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   const date = () => page.locator('.clock .date').textContent();
   await page.mouse.move(700, 300);
@@ -514,7 +528,7 @@ test('a tip of the focus freezes while the clock runs, and Tab out of its last l
 test('Esc from inside a frozen tip gives the focus back to its thing while the clock runs (D-444, D-477)', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   const date = () => page.locator('.clock .date').textContent();
   await page.mouse.move(700, 300);
@@ -539,7 +553,7 @@ test('Esc from inside a frozen tip gives the focus back to its thing while the c
 test('a middle click freezes a tip at once; leaving it closes the stack after a moment (D-477)', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   await page.mouse.move(700, 300);
   const tip = page.locator('#tooltip');
@@ -558,7 +572,7 @@ test('a middle click freezes a tip at once; leaving it closes the stack after a 
 test('a tip under a still pointer stays while the clock runs', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   const date = () => page.locator('.clock .date').textContent();
   const before = await date();
@@ -578,7 +592,7 @@ test('a tip under a still pointer stays while the clock runs', async ({ page }) 
 test('the clock run by the mouse does not swap the tip under a still pointer for the tip of its button', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   const date = () => page.locator('.clock .date').textContent();
   await page.locator('.clock-toggle').click();
@@ -598,7 +612,7 @@ test('the clock run by the mouse does not swap the tip under a still pointer for
 test('Escape closes the tip of the focus and it stays closed while the clock runs', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   const date = () => page.locator('.clock .date').textContent();
   await page.mouse.move(700, 300);
@@ -622,7 +636,7 @@ test('Escape closes the tip of the focus and it stays closed while the clock run
 test('a tip opened by Tab stays while the clock runs, until Escape', async ({ page }) => {
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   const date = () => page.locator('.clock .date').textContent();
   await page.mouse.move(700, 300);
@@ -648,6 +662,7 @@ test('the focus and its tip stay on a figure whose number changes while the cloc
   test.setTimeout(120_000);
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
+  // the usual speed of the early years: the walk of Tab below starts where the last scene leaves the focus
   await page.goto('/?seed=7');
   await growUp(page);
   const date = () => page.locator('.clock .date').textContent();

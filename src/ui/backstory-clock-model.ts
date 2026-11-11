@@ -15,6 +15,9 @@ import { currentLang, ruPlural, tr } from './i18n';
 /** Days handed to the game in one frame: about twelve frames a year. */
 export const BACKSTORY_CHUNK_DAYS = 30;
 
+/** Days of one frame with the test flag `?fastyears=1` (T.4): a whole year, so the browser tests that do not look at the childhood fit the CI limit. */
+export const BACKSTORY_FAST_DAYS = 365;
+
 /** Milliseconds between two frames: a year of the childhood runs by in about 0.7 s. */
 export const BACKSTORY_FRAME_MS = 60;
 

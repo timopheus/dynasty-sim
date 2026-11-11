@@ -1,14 +1,15 @@
 import { expect, test, type Page } from '@playwright/test';
 
-/** Answers the scenes of the backstory (first answer) until the hero is free and the clock stands. */
+/**
+ * Answers the scenes of the backstory (first answer), the years running between them on the clock (D-479), until the
+ * early years are over and no window is up.
+ */
 async function growUp(page: Page): Promise<void> {
   await expect(page.locator('.backstory-screen, .clock').first()).toBeVisible();
+  const choice = page.locator('.modal-layer .option button.choice').first();
   for (let i = 0; i < 60; i++) {
-    if ((await page.locator('.modal-layer').count()) > 0) {
-      await page.locator('.modal-layer .option button.choice').first().click({ timeout: 2_000 }).catch(() => undefined);
-      continue;
-    }
-    return;
+    if ((await page.locator('.backstory-screen').count()) === 0 && (await page.locator('.modal-layer').count()) === 0) return;
+    await choice.click({ timeout: 2_000 }).catch(() => undefined);
   }
   throw new Error('the hero never became free to act');
 }
@@ -17,7 +18,7 @@ test('the work board: J opens it, Esc closes it, the work is taken and the block
   const problems: string[] = [];
   page.on('pageerror', (e) => problems.push(e.message));
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=1');
+  await page.goto('/?fastyears=1&seed=1');
   await growUp(page);
   const button = page.locator('[data-action="board"]');
   await expect(button).toContainText('Work board (J)');

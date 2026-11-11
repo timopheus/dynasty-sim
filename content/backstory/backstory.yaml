@@ -1,10 +1,12 @@
 # Backstory of the first hero (D-038, D-167, task 3.11). Schema: src/core/backstory/content.ts (BackstoryContentSchema).
-# New game: the founder is brought to this base (no traits, no education), then one scene of each stage is shown, in
-# this order, before the first action. Scenes are events with `deck: backstory` and `stage:` (scenes.yaml).
+# One clock (D-479): the game begins with the founder's birth on 1 January 1700; he is brought to this base (no traits,
+# no education) and lives his childhood in living time, one scene of each stage in its year, the world going on between
+# them. Scenes are events with `deck: backstory` and `stage:` (scenes.yaml).
 backstory:
+  fromBirth: true
   base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
-  # `age`: the lines of a stage are dated at this birthday of the founder (D-324); `leaving` has none, its lines are
-  # dated at the start of the game. The world is not simulated in these years: only the dates of the lines move.
+  # `age`: the first scene of the stage falls on a day of that year of the founder's life; `leaving` has none and comes
+  # right after the stage before it and the years of study; he goes out into the world not before 16 (D-038).
   stages:
     # The player is offered 3 of the 6 variants by chance and picks one (D-167, D-188).
     - id: origin
@@ -19,16 +21,17 @@ backstory:
     - id: training
       age: 15
     - id: leaving
-  # Fates of the founder's parents (D-481): on the clock (fromBirth, T.4) each parent alive at the birth dies or goes
-  # missing on a day of the founder's childhood, between these ages; the line is about the founder.
+  # Fates of the founder's parents (D-481): each parent alive at the birth dies or goes missing on a day of the
+  # founder's childhood, between these ages; the line is about the founder, {age} his age that day.
   fates:
     ages: { min: 2, max: 14 }
     missingPct: 25
     causes: [illness, fever, killed]
     texts:
-      father_died: "{name} lost {his} father, {parent}."
-      mother_died: "{name} lost {his} mother, {parent}."
-      father_vanished: "{name}'s father, {parent}, went away one day and never came back."
-      mother_vanished: "{name}'s mother, {parent}, went away one day and never came back."
+      # each starts with {name} and a verb: the section of the founder cuts the name off (ownLine, D-162)
+      father_died: "{name} lost {his} father, {parent}, at {age}."
+      mother_died: "{name} lost {his} mother, {parent}, at {age}."
+      father_vanished: "{name} lost {his} father at {age}: {parent} went out one morning and never came back."
+      mother_vanished: "{name} lost {his} mother at {age}: {parent} went out one morning and never came back."
   texts:
     leave: "{name}, aged {age}, went out into the world."
