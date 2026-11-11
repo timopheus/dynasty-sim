@@ -48,7 +48,8 @@ jobs:
 
   e2e:
     # Browser smoke test (S.1): the built game is opened and played; a failure fails the PR (D-430).
-    runs-on: ubuntu-latest
+    # Ubuntu 24.04, not ubuntu-latest: Playwright 1.56.1 installs no Chromium on Ubuntu 26.04 (D-482, CI.1 lifts it)
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
