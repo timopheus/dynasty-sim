@@ -658,7 +658,8 @@ test('the focus and its tip stay on a figure whose number changes while the cloc
   test.setTimeout(120_000);
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?fastyears=1&seed=7');
+  // the usual speed of the early years: the walk of Tab below starts where the last scene leaves the focus
+  await page.goto('/?seed=7');
   await growUp(page);
   const date = () => page.locator('.clock .date').textContent();
   const money = () => page.locator('.topbar .figure-value').first().textContent();

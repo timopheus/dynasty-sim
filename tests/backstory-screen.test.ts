@@ -90,11 +90,11 @@ describe('the screen of the early years on one clock (T.5)', () => {
     expect(again).toEqual(a.state);
   });
 
-  it('does nothing on the old way: no fromBirth, no frames; scenes come at once', () => {
+  // T.4: the old way (scenes at once, no frames) is gone; the real content runs on the clock
+  it('runs the real content on the clock: frames run the years until the first scene', () => {
     const real = realContent();
-    expect(real.backstory?.fromBirth ?? false).toBe(false);
+    expect(real.backstory?.fromBirth).toBe(true);
     const state = newGame(5, real);
-    expect(backstoryRuns(state, real)).toBe(false);
-    expect(state.pendingEvent).not.toBeNull();
+    expect(state.pendingEvent !== null || backstoryRuns(state, real)).toBe(true);
   });
 });
