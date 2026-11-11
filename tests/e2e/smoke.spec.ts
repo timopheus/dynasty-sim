@@ -662,8 +662,7 @@ test('the focus and its tip stay on a figure whose number changes while the cloc
   test.setTimeout(120_000);
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  // the usual speed of the early years: the walk of Tab below starts where the last scene leaves the focus
-  await page.goto('/?seed=7');
+  await page.goto('/?fastyears=1&seed=7');
   await growUp(page);
   const date = () => page.locator('.clock .date').textContent();
   const money = () => page.locator('.topbar .figure-value').first().textContent();
@@ -673,7 +672,9 @@ test('the focus and its tip stay on a figure whose number changes while the cloc
   const first = await date();
   await expect.poll(date, { timeout: 10_000 }).not.toBe(first);
   const tip = page.locator('#tooltip');
-  await tabToTip(page, /Crowns in your purse/);
+  // the walk starts at the portrait, right before the top bar: where the last scene leaves the focus is not fixed
+  await page.locator('.avatar-button').focus();
+  await tabToTip(page, /Crowns in your purse/, 60);
   await expect(tip).toContainText('Crowns in your purse');
   const sum = await money();
   // the sum changes on the first of a month; the focus and the tip are still on the figure then

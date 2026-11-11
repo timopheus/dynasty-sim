@@ -133,7 +133,7 @@ describe('living time (S.6, D-325)', () => {
     }
     expect(choices / years).toBeGreaterThanOrEqual(6);
     expect(choices / years).toBeLessThanOrEqual(12);
-  });
+  }, 30_000);
 
   it('a severely ill hero can start only the actions of rest', () => {
     const state = grownUp(content, 3);

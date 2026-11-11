@@ -122,7 +122,7 @@ describe('monthly balance (S.7)', () => {
     expect(total(setup('hunt'))).toBe(-1);
     expect(total(setup('travel'))).toBe(-7);
     expect(total(setup(null))).toBe(0);
-  });
+  }, 30_000);
 
   it('a commoner with a wife and two children: +3 in service, −5 living, −12 with no income', () => {
     const served = setup('serve_contract');

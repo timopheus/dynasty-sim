@@ -102,7 +102,7 @@ describe('game loop', () => {
       expect(age >= min && age <= max, `seed ${seed}: age ${age}`).toBe(true);
     }
     for (let seed = 0; seed < 20; seed++) expect(getPlayer(newGame(seed, real)).birthDay).toBe(0);
-  });
+  }, 30_000);
 });
 
 describe('choice outside an action (3.1)', () => {

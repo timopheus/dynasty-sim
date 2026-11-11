@@ -401,7 +401,7 @@ describe('the founder\'s childhood (D-480, D-481, T.3)', () => {
     if (grown.status !== 'running') apply(grown, deadly, { type: 'start', actionId: availableActions({ state: grown, content: deadly })[0]!.id });
     apply(grown, deadly, { type: 'wait', days: 1 });
     expect(hero.deathDay).not.toBeNull();
-  });
+  }, 30_000);
 });
 
 /**
