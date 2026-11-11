@@ -94,3 +94,31 @@
   color: var(--muted);
   font-size: 0.85rem;
 }
+
+/* the place of the scene keeps its height whether a window or the lines of the years stand in it: no jump */
+.backstory-slot {
+  width: min(38rem, 100%);
+}
+
+.backstory-log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.backstory-log-year {
+  font-weight: bold;
+  color: var(--fg);
+}
+
+.backstory-note.hidden {
+  visibility: hidden;
+}
+
+.backstory-screen.clock .backstory-slot {
+  min-height: 22rem;
+}
