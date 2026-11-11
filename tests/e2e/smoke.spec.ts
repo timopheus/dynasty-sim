@@ -145,6 +145,22 @@ async function growUp(page: Page): Promise<void> {
   throw new Error('the hero never became free to act');
 }
 
+/**
+ * Puts the focus on the portrait, right before the top bar in the order of Tab. A window of an event makes the portrait
+ * inert while it is open, so the window is answered first and the focus is checked.
+ */
+async function focusPortrait(page: Page): Promise<void> {
+  for (let i = 0; i < 10; i++) {
+    if ((await page.locator('.modal-layer').count()) > 0) {
+      await page.locator('.modal-layer .option button.choice').first().click({ timeout: 2_000 }).catch(() => undefined);
+      continue;
+    }
+    await page.locator('.avatar-button').focus();
+    if (await page.evaluate<boolean>(`document.activeElement?.classList.contains('avatar-button') === true`)) return;
+  }
+  throw new Error('the portrait never took the focus');
+}
+
 /** A tip opens after this delay (D-465, `TIP_DELAY_MS` of `src/ui/tooltip.ts`); twice it is surely past. */
 const TIP_WAIT = 1_000;
 
@@ -181,7 +197,7 @@ for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]
     await page.goto('/?fastyears=1&seed=7');
     // the early years first, on a screen of their own (playtest 09.11): none of the game's panels behind them
     await expect(page.locator('.backstory-screen')).toBeVisible();
-    for (const selector of ['.topbar', '.sidebar', '.map-view', '.actions-panel', '.clock:not(.backstory-screen)']) await expect(page.locator(selector), selector).toHaveCount(0);
+    for (const selector of ['.topbar', '.sidebar', '.map-view', '.actions-panel', '.clock']) await expect(page.locator(selector), selector).toHaveCount(0);
     // a scene of the backstory is a window that holds the decision: Escape does not close it, and it names the age
     const modal = page.locator('.modal.event');
     await expect(modal).toBeVisible();
@@ -673,7 +689,7 @@ test('the focus and its tip stay on a figure whose number changes while the cloc
   await expect.poll(date, { timeout: 10_000 }).not.toBe(first);
   const tip = page.locator('#tooltip');
   // the walk starts at the portrait, right before the top bar: where the last scene leaves the focus is not fixed
-  await page.locator('.avatar-button').focus();
+  await focusPortrait(page);
   await tabToTip(page, /Crowns in your purse/, 60);
   await expect(tip).toContainText('Crowns in your purse');
   const sum = await money();
