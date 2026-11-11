@@ -1,0 +1,35 @@
+# expect-error: events[0].options[0].effects.traits /a scene at age 0 gives no traits/
+backstory:
+  fromBirth: true
+  base: { diplomacy: 5, martial: 5, stewardship: 5, intrigue: 5, learning: 5, prowess: 5 }
+  stages:
+    - id: origin
+      age: 0
+  fates:
+    ages: { min: 2, max: 14 }
+    missingPct: 0
+    causes: [illness]
+    texts:
+      father_died: "{name} lost {his} father."
+      mother_died: "{name} lost {his} mother."
+      father_vanished: "{name} lost {his} father."
+      mother_vanished: "{name} lost {his} mother."
+  texts: { leave: "{name} went out." }
+actions:
+  - id: early_years
+    name: Early years
+    category: self
+    duration: { min: 1, max: 1 }
+    when: { backstory_only: true }
+    idle: true
+    text: "{name} grew up."
+events:
+  - id: scene
+    deck: backstory
+    stage: origin
+    weight: 1
+    text: "You were born."
+    options:
+      - text: A
+        effects: { traits: { add: [brave] } }
+        result: "{name} was born brave."

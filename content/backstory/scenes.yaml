@@ -3,7 +3,8 @@
 # One clock (D-479): a scene comes in the year of the founder's life its stage names, so `{age}` is his real age, and
 # peers are taken by `age_near` from the hero, elders by their own age.
 events:
-  # --- origin: the house the hero was born in (the player is offered 2 of the 5 variants, plus the common one) ---
+  # --- origin: the house the hero was born in, at 0: only the family and the place, no traits of character (they come
+#     from the choices at 7, so the chronicle never gives a newborn a temper) ---
   - id: bs_origin_house
     deck: backstory
     stage: origin
@@ -30,7 +31,6 @@ events:
         when: { offered: gentry_house }
         effects:
           stats_roll: { diplomacy: { min: 1, max: 2 }, stewardship: { min: 0, max: 1 } }
-          traits: { add: [ambitious] }
           money: 50
         result: "{name} was born in a gentry house and was taught from the cradle what the family name was owed."
         chronicle: true
@@ -44,7 +44,7 @@ events:
         chronicle: true
       - text: A plain house of plain people, no one of note
         when: { offered: plain_house }
-        effects: { stats_roll: { prowess: { min: 0, max: 1 }, stewardship: { min: 0, max: 1 } }, traits: { add: [diligent] } }
+        effects: { stats_roll: { prowess: { min: 1, max: 2 }, stewardship: { min: 0, max: 1 } } }
         result: "{name} was born to plain people and learned early to work for {his} bread."
         chronicle: true
 
@@ -61,6 +61,7 @@ events:
       - text: Share everything with {friend}
         effects:
           stats_roll: { diplomacy: { min: 0, max: 2 }, prowess: { min: 0, max: 1 } }
+          traits: { add: [generous] }
           opinion: [{ toward: friend, reason: childhood_friend }]
         on:
           friend: { opinion: [{ toward: hero, reason: childhood_friend }] }
@@ -68,7 +69,7 @@ events:
         result: "{name} grew up inseparable from {friend}, a friend of the next yard."
         chronicle: true
       - text: Fight {friend} over a stolen toy
-        effects: { stats_roll: { prowess: { min: 1, max: 2 } } }
+        effects: { stats_roll: { prowess: { min: 1, max: 2 } }, traits: { add: [wrathful] } }
         on:
           friend: { opinion: [{ toward: hero, reason: slighted }] }
         mood: anger
@@ -90,7 +91,7 @@ events:
       - text: Go out with the men to set snares
         check: { stat: prowess, difficulty: 5 }
         success:
-          effects: { stats_roll: { prowess: { min: 1, max: 2 }, martial: { min: 0, max: 1 } }, money: 5 }
+          effects: { stats_roll: { prowess: { min: 1, max: 2 }, martial: { min: 0, max: 1 } }, money: 5, traits: { add: [brave] } }
           mood: triumph
           result: "{name} set snares with the men in a hungry winter and brought home meat."
           chronicle: true
@@ -124,7 +125,7 @@ events:
       - text: Slip between the stalls and lift an apple
         check: { stat: intrigue, difficulty: 5 }
         success:
-          effects: { stats_roll: { intrigue: { min: 1, max: 2 } } }
+          effects: { stats_roll: { intrigue: { min: 1, max: 2 } }, traits: { add: [deceitful] } }
           mood: triumph
           result: "{name} lifted an apple from a stall at the fair and was not caught."
           chronicle: true
@@ -134,7 +135,7 @@ events:
           result: "{name} was caught stealing an apple at the fair and paid for it."
           chronicle: true
       - text: Help a stallholder and keep the coin earned
-        effects: { stats_roll: { stewardship: { min: 1, max: 2 } }, money: 5 }
+        effects: { stats_roll: { stewardship: { min: 1, max: 2 } }, money: 5, traits: { add: [diligent] } }
         result: "{name} helped at a stall during the fair and earned a few coins."
         chronicle: true
 

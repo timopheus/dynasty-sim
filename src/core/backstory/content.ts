@@ -163,6 +163,10 @@ export const checkBackstory: CrossCheck = ({ backstory, events, actions, health 
     if (item.actions) errors.push({ file: eventFile, path: `${at}.actions`, message: 'a scene of the backstory has no action' });
     if (item.followup_only || item.story !== undefined) errors.push({ file: eventFile, path: at, message: 'a scene of the backstory is picked by its stage, not by follow-ups or stories' });
     if (item.who !== undefined && item.who !== 'hero') errors.push({ file: eventFile, path: `${at}.who`, message: 'a scene of the backstory is the hero\'s' });
+    // a newborn has no temper yet (T.4): a scene at age 0 gives the family and the place, its line is dated at the birth
+    if (bs.stages.find((s) => s.id === item.stage)?.age === 0) {
+      for (const where of findKeys({ options: item.options, pages: item.pages, effects: item.effects }, ['traits'], at)) errors.push({ file: eventFile, path: where, message: 'a scene at age 0 gives no traits: they come from the scenes of later years' });
+    }
     // Scenes have no action and no days: nothing may wait for either, and nobody dies (D-173).
     const body = { options: item.options, pages: item.pages, effects: item.effects, on: item.on };
     for (const key of NOT_IN_SCENES) {
