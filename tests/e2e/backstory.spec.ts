@@ -27,7 +27,14 @@ test('the early years run on the clock: a child friend at seven, the years runni
   const screen = page.locator('.backstory-screen');
   await expect(screen).toBeVisible();
   // nothing of the game: no side panel with the grown hero, no map, no actions, no clock
-  for (const part of ['.sidebar', '.map-view', '.actions-panel', '.clock:not(.backstory-screen)', '.topbar', '.avatar']) await expect(page.locator(part)).toHaveCount(0);
+  for (const part of ['.sidebar', '.map-view', '.actions-panel', '.clock', '.topbar', '.avatar']) await expect(page.locator(part)).toHaveCount(0);
+  // the whole window: the rules of the clock panel of the game once pushed the screen to the right, in a frame
+  // measured in one go inside the page: the screen is drawn anew every frame while the years run
+  const box = await page.evaluate<{ x: number; width: number; window: number }>(`(() => {
+    const r = document.querySelector('.backstory-screen').getBoundingClientRect();
+    return { x: Math.round(r.x), width: Math.round(r.width), window: document.documentElement.clientWidth };
+  })()`);
+  expect({ x: box.x, width: box.width }).toEqual({ x: 0, width: box.window });
   expect(await nextScene(page)).toBe(true);
   await expect(head(page)).toHaveText('1700 · you are 0');
   await page.screenshot({ path: 'out/e2e/backstory-1-1440.png' });
