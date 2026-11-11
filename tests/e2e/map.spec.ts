@@ -50,7 +50,7 @@ test('the map lies under the panels, opens on the hero, moves and zooms, and a p
   test.setTimeout(120_000);
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=1&dev=1');
+  await page.goto('/?fastyears=1&seed=1&dev=1');
   await growUp(page);
   const canvas = page.locator('.map-view .map-canvas');
   await expect(canvas).toBeVisible();

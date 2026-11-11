@@ -46,7 +46,7 @@ test('"Play" moves the date, an event stops the clock; keys pick speed, answer a
   test.setTimeout(180_000);
   const problems = watch(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=1&dev=1');
+  await page.goto('/?fastyears=1&seed=1&dev=1');
   await growUp(page);
   await expect(page.locator('#where-heading')).toHaveText('Free to act');
   await expect(page.locator(CLOCK)).toHaveClass(/\bidle\b/);
@@ -159,7 +159,7 @@ test('"Play" moves the date, an event stops the clock; keys pick speed, answer a
   const paused = await date(page);
   await page.waitForTimeout(1000);
   expect(await date(page), 'the date moved while paused').toBe(paused);
-  await page.goto('/?dev=1');
+  await page.goto('/?fastyears=1&dev=1');
   await expect(page.locator(DATE)).toHaveText(paused);
   await expect(page.locator(CLOCK)).not.toHaveClass(/\brunning\b/);
   expect(problems).toEqual([]);

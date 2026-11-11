@@ -18,7 +18,7 @@ test('the work board: J opens it, Esc closes it, the work is taken and the block
   const problems: string[] = [];
   page.on('pageerror', (e) => problems.push(e.message));
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/?seed=1');
+  await page.goto('/?fastyears=1&seed=1');
   await growUp(page);
   const button = page.locator('[data-action="board"]');
   await expect(button).toContainText('Work board (J)');
