@@ -324,12 +324,16 @@ test('"New game" asks inside the page and starts another game', async ({ page })
   await page.goto('/?fastyears=1&seed=1&dev=1');
   await expect(page.locator(GAME)).toHaveAttribute('data-seed', '1');
   // play a turn, so the old game has a past; the screen redraws after the save, so wait for it as the turns test does
+  const scene = page.locator('.modal-layer .option button.choice').first();
+  await expect(scene).toBeVisible({ timeout: 30_000 });
   const shown = await page.locator('#app').innerText();
   await (await choices(page)).first().click();
   const moved = await expect.poll(async () => page.locator('#app').innerText(), { timeout: 10_000 }).not.toBe(shown).then(() => true, () => false);
   // console errors first: they are the cause when the screen stays put
   expect(problems, 'errors after the first choice').toEqual([]);
   expect(moved, 'screen did not change after the first choice').toBe(true);
+  // the years run to the next scene (D-479); there the clock stands, and the screen with it
+  await expect.poll(async () => (await scene.isVisible()) && (await page.locator('#app').innerText()) !== shown, { timeout: 30_000 }).toBe(true);
   const before = await snapshot(page);
 
   await page.getByRole('button', { name: /Menu/ }).click();
