@@ -460,6 +460,20 @@ describe('the real scenes by real ages (T.4)', () => {
     expect(seen).toBeGreaterThanOrEqual(5);
   }, 120_000);
 
+  it('the boards within reach are filled on the day the founder goes out, not the day after', () => {
+    for (let seed = 1; seed <= 5; seed++) {
+      const state = newGame(seed, real);
+      while (state.backstory.running) {
+        if (state.status === 'running') apply(state, real, { type: 'wait', days: 3650 });
+        else play(state, real, botCommand(state, real, seedRng(seed, 5)));
+        if (state.backstory.running) expect(state.contracts.offers, `seed ${seed}: a board in the childhood`).toEqual([]);
+      }
+      const out = allChronicle(state).find((e) => e.kind === 'backstory_end')!;
+      expect(out.day).toBe(state.day);
+      expect(state.contracts.offers.length, `seed ${seed}`).toBeGreaterThan(0);
+    }
+  }, 120_000);
+
   it('the fate lines start with a verb once the name is cut off, in English and in Russian', () => {
     for (const [content, lang] of [[real, 'en'], [russian, 'ru']] as const) {
       let lines = 0;

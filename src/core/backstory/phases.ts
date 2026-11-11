@@ -1,5 +1,6 @@
 import { personValues, placeholderValues } from '../character/text';
 import { log } from '../chronicle/log';
+import { refreshBoards } from '../contracts/board';
 import { eventWeight, fireEvent } from '../events/events';
 import type { EventDef } from '../events/content';
 import { findCharacter, getPlayer } from '../helpers';
@@ -77,7 +78,7 @@ function runFates(ctx: Ctx): void {
   }
 }
 
-/** Ends the backstory with the line "went out into the world", dated today (D-167, D-479). */
+/** Ends the backstory with the line "went out into the world", dated today (D-167, D-479), and fills the boards. */
 function goOut(ctx: Ctx, leave: string): void {
   const { state } = ctx;
   const st = state.backstory;
@@ -86,6 +87,8 @@ function goOut(ctx: Ctx, leave: string): void {
   st.running = false;
   st.next = null;
   log(ctx, { subject: getPlayer(state), kind: 'backstory_end', level: 'chronicle', template: leave });
+  // the boards within reach are there on the day he goes out, as in a new month (no boards in the childhood, D-480)
+  refreshBoards(ctx);
 }
 
 /**
