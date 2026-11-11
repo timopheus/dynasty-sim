@@ -119,6 +119,7 @@
   visibility: hidden;
 }
 
-.backstory-screen.clock .backstory-slot {
+/* not "clock": that is the class of the clock panel of the game, with its frame and margins */
+.backstory-screen.on-clock .backstory-slot {
   min-height: 22rem;
 }

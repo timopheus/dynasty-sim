@@ -39,7 +39,7 @@ export function backstoryScreen(props: BackstoryProps): HTMLElement {
   for (let i = 1; i <= props.steps; i++) {
     dots.append(el('li', { className: i < props.step ? 'done' : i === props.step ? 'current' : '' }));
   }
-  return el('div', { className: ['backstory-screen', props.date ? 'clock' : '', props.running ? 'running' : ''].filter(Boolean).join(' ') },
+  return el('div', { className: ['backstory-screen', props.date ? 'on-clock' : '', props.running ? 'running' : ''].filter(Boolean).join(' ') },
     el('header', { className: 'backstory-top' },
       el('div', { className: 'backstory-title' },
         el('h1', {}, tr('The early years')),
