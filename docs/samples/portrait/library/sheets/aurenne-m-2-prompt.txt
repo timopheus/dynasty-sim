@@ -1,0 +1,13 @@
+A character sheet of nine different middle-aged men of the Kingdom of Aurenne, early 18th century France, in a grid of three across and three down, nine equal passport photos that touch edge to edge. Each man is clearly a different person:
+Top row, left: a thin man with a long narrow face and a hooked nose, a white powdered wig with side curls, a red coat with gold buttons and a lace jabot.
+Top row, middle: a heavy round-faced man with a double chin and small eyes, his own brown hair tied back, a blue coat and a plain white cravat.
+Top row, right: a hard-faced officer with a pale scar across his left cheek, a short grey wig, a blue coat with gold braid on the shoulders.
+Middle row, left: a dark-skinned man with black curly hair worn short, a thin moustache, a green coat with a gold brooch at the cravat.
+Middle row, middle: a red-haired man with freckles and green eyes, a long red curled wig of his own hair, a brown coat.
+Middle row, right: a bald man with a broad face and bushy brows, a black ribbon at the neck, a dark red coat.
+Bottom row, left: a sharp-chinned courtier with a mole on his cheek and blue eyes, a long black curled wig, a gold earring, a blue coat with lace.
+Bottom row, middle: a weathered man with a broken nose and a short dark beard, long greying hair loose to the shoulders, a plain green coat.
+Bottom row, right: a gaunt elderly-looking man of fifty with hollow cheeks, a white wig tied with a black bow, a black coat and white neckcloth.
+Pose in every photo: an official passport photograph, strictly front-facing and symmetrical, head straight, looking straight into the camera, neutral expression, mouth closed; head, shoulders and upper chest; a clear empty margin above the head and on both sides; the figure never touches its neighbour or the edge of its photo.
+Style: simple flat pixel art in the style of the passport photos in the game Papers, Please: a clean dark outline around every head and figure, flat colour areas with at most one darker shade, few details, no dithering, no texture, no noise, no stray pixels. Plain flat light background in every photo.
+Strictly forbidden: profile or three-quarter views, smiles, text, numbers, frames, borders, gradients, modern clothes.

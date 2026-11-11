@@ -1,0 +1,6 @@
+Very simple low-resolution pixel art: a sheet of twenty small passport photos of different middle-aged men of the Levantine community of the Sultanate of Izmara, early 18th century Levant, in a grid of five across and four down, every photo the same size.
+Every face is different: thin and heavy faces, long and round faces, big and small noses, different hair colours and styles, some with a scar or a mole, some with a moustache or a beard; no two men look alike.
+Clothes: headcloths and small skullcaps, dark beards, striped robes and plain kaftans.
+Pose in every photo: strictly front-facing passport photo, head straight, looking at the viewer, neutral face, mouth closed; head and shoulders; empty space above the head.
+Style like the passport photos in the game Papers, Please: very few pixels, bold simple shapes, a dark outline, each area one flat colour: one flat skin colour per face with no shading, one flat colour for hair, one for the coat; eyes are two dark dots, the mouth one short line. No shading, no highlights, no gradients, no dithering, no texture, no noise, no stray pixels, no mixed colours. Plain flat grey background.
+Forbidden: profile or three-quarter views, smiles, text, numbers, frames, borders.
