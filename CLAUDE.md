@@ -32,7 +32,7 @@ npx tsx tools/lang.ts check ru          # русский перевод: чег�
 npx tsx tools/lang.ts skeleton ru       # заготовки lang/ru/ для новых английских текстов
 npm run build                            # сборка в dist/ (для артефакта: npx vite build --base ./)
 ```
-CI на каждый PR и push в main: typecheck, test, validate, sim 50 лет, build; работа `gates` — 300 лет × 10 seeds, валят инварианты, горячая часть > 300 КБ и строки хроники на жизнь главы вне 25–50; работа `e2e` — смоук в браузере, валит (D-435); работа `bots` — отчёт, не валит. Коридор или признак «валит / отчёт» меняется только новым решением в decisions-active (D-203).
+CI на каждый PR и push в main: typecheck, test, validate, sim 50 лет, build; работа `gates` — 300 лет × 10 seeds, валят инварианты, горячая часть > 300 КБ и строки хроники на жизнь главы вне 25–50; работа `e2e` — смоук в браузере, валит (D-435), идёт на Ubuntu 24.04 (D-482); работа `bots` — отчёт, не валит. Коридор или признак «валит / отчёт» меняется только новым решением в decisions-active (D-203).
 
 ## Правила ядра (src/core)
 - Ядро импортирует только свои модули, `yaml` и `zod`. Запрещены DOM, Node API, `Math.random`, `Date`, `performance` (проверяет `tests/architecture.test.ts`).
